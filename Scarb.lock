@@ -4,7 +4,7 @@ version = 1
 [[package]]
 name = "fixed"
 version = "0.1.0"
-source = "git+https://github.com/bal7hazar/glam.cairo?rev=e320707781d0f73ff07f400d9c6f9f5088db4ad4#e320707781d0f73ff07f400d9c6f9f5088db4ad4"
+source = "git+https://github.com/bal7hazar/glam.cairo?rev=944527587f3ecdd3f9c211f57b0cac55c4e935c1#944527587f3ecdd3f9c211f57b0cac55c4e935c1"
 
 [[package]]
 name = "rapier_core"

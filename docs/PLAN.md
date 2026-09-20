@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.1, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`, waves re-sequenced; v2.1: wave 1 merged). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.2, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` merged upstream and consumed, C2 + M3 merged). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -27,8 +27,8 @@ Each becomes a short ADR in `docs/adr/` when first implemented.
 |---|---|---|
 | D1 | Scalar = signed **Q32.32 in `struct { raw: i64 }`**, provided by glam.cairo's `fixed` (D12); mul via BoundedInt bias trick; `sqrt` via core `u128_sqrt`; `inv(0) = 0` as upstream | Report 04; range ±2.1e9, resolution 2.3e-10 |
 | D2 | **Fused kernels are the unit of design**, not scalar ops: dot, cross, `Rot2·Vec2`, `Pose2·Point`, constraint rows `J·v` accumulate in wide form and rescale once | 3–6× cheaper than composing scalar ops |
-| D3 | Quantities with extreme range (inverse inertia, `cfm`) get a **dedicated scale** (e.g. Q16.48) — to be benchmarked in C2 before freezing | Report 04 §precision; Report 01 §9.5 |
-| D4 | `Real::MAX` sentinels are replaced by `Option`/flags; rigid joints (`cfm ≈ 1.5e-9` upstream) are special-cased | Would overflow or underflow in fixed point |
+| D3 | ~~Dedicated scale for extreme-range quantities~~ **Not needed for the spring coefficients**: C2 reproduces every `IntegrationParameters`-derived value within 1 ulp in plain Q32.32 (joint `cfm_coeff` ≈ 6 ulp of resolution but correct). Re-evaluate only for inverse inertia in DA | Measured in C2 (PR #10) |
+| D4 | `Real::MAX` sentinels: kept as `fixed::MAX` where the consumer guards against multiplication (velocity caps, C2), replaced by `Option`/flags elsewhere; rigid joints (`cfm ≈ 1.5e-9` upstream) are special-cased | Would overflow or underflow in fixed point |
 | D5 | **2D first**, 3D only after 2D is benchmarked (3D ≈ 4–6× gas per contact *(est.)*). Dimension-specific crates (`*2d`, later `*3d`) over a shared dimension-agnostic core — no mutually exclusive Scarb features | Keeps `--workspace` builds and the snapshot simple |
 | D6 | Shapes are a **closed enum**; no `dyn`, no `SharedShape` | Cairo has no trait objects; `match` dispatch is cheap |
 | D7 | Broad phase is **stateless**: brute-force AABB with static/dynamic split, sort-and-prune as the measured alternative | Nothing to persist, no dict, trivially deterministic |
@@ -97,14 +97,14 @@ ships `test_*`, `gas_*` (one per candidate implementation) and docs per `AGENTS.
   are 15–25 % cheaper for read-only and bulk passes → solver scratch data should be dense arrays
   built once per step, the arena is for the persistent sets.
 
-**Gate X1 — external:** `glam.cairo` merges `fixed` F1 + F2 (scalar + wide accumulators) and `Vec2`
+**Gate X1 — external:** ✅ `fixed` F1 + F2 merged in glam.cairo and consumed (PR #8). **Still open: `Vec2` (glam item V2, status todo)** — the only remaining blocker for M2 and wave 3. Original wording: `glam.cairo` merges `fixed` F1 + F2 (scalar + wide accumulators) and `Vec2`
 (its items F1, F2, V2). Its `docs/DESIGN.md` already fixes what we need: `fixed::Fixed { raw: i64 }`,
 **floor** rounding on every rescale, panicking `recip(0)` (so `inv(0) = 0` stays in
 `rapier_math::math_ext`), public wide accumulators. Only these three items block rapier.cairo; nalgebra.cairo blocks nothing.
 If the gate slips, fallback: vendor a snapshot of `fixed` from the glam.cairo branch under
 `crates/` and swap it for the git dependency later (same code, so no semantic drift).
 
-**Wave 2** (needs X1)
+**Wave 2** (needs X1) — C2 ✅ (PR #10), M3 ✅ (PR #11); M2 waits for glam.cairo's `Vec2` (V2)
 
 | ID | Package | Acceptance |
 |---|---|---|
