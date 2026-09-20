@@ -37,6 +37,23 @@ justifies them lives in [`docs/research/`](docs/research).
 | **Executor** (sub-agent) | Implements exactly one work package inside the files it was given, with tests and gas probes, in its own git worktree/branch | Touch files outside its brief, edit shared config, change frozen interfaces |
 | **Reviewer** | Checks correctness against upstream, gas deltas, conventions | First implementation |
 
+### Launching executors
+
+Executors run through the terminal `claude` CLI (logged in with a separate account) rather than
+inside the orchestrator's session: `scripts/executor.sh <id> <model> <brief.md>` creates the
+worktree and branch `feat/<id>` from `origin/main`, frames the run with
+`scripts/executor/system-prompt.md`, restricts tools to file edits plus the toolchain, git and
+python, and writes the transcript and final report under `.executor-logs/`. Briefs live in
+`docs/briefs/<id>.md`.
+
+Model policy — the cheapest model that can do the job, with the frame above to prevent drift:
+
+| Task | Model |
+|---|---|
+| Mechanical, fully specified (generated fixtures, wiring, docs, straightforward ports validated by golden vectors) | `sonnet` |
+| Algorithmic or design-heavy (solver, SAT/clipping, numeric hazards, candidate design) | `opus` |
+| Orchestration, review, interface freezes, merges | the orchestrator itself |
+
 ### Task brief template (orchestrator → executor)
 
 ```
