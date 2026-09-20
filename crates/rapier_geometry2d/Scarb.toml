@@ -1,0 +1,24 @@
+[package]
+name = "rapier_geometry2d"
+description = "2D collision geometry of rapier.cairo (port of the Parry subset Rapier needs): shapes, AABB, mass properties, contact manifolds, broad phase."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+fixed.workspace = true
+glam.workspace = true
+rapier_core = { path = "../rapier_core" }
+rapier_math = { path = "../rapier_math" }
+
+[dev-dependencies]
+snforge_std.workspace = true
+assert_macros.workspace = true
+rapier_testing = { path = "../rapier_testing" }
+rapier_golden = { path = "../rapier_golden" }
+
+[tool]
+fmt.workspace = true
+scarb.workspace = true
+snforge.workspace = true
