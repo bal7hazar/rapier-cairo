@@ -19,15 +19,15 @@ use fixed::{Fixed, ONE, ZERO};
 use glam::vec2::Vec2;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
+use crate::shape::{Segment, SegmentTrait};
 use super::ratio::clamped_ratio;
-use super::shapes_shim::{Segment, segment_scaled_direction};
 use super::wide2::{cross_wide, dot_wide};
 use super::{PointProjection, SegmentPointLocation};
 
 /// Projects `pt` on `seg` and returns where on the segment it landed, plus the exact
 /// `ab x ap` the caller may need for the side test.
 fn project_with_cross(seg: Segment, pt: Vec2) -> (PointProjection, SegmentPointLocation, i128) {
-    let ab = segment_scaled_direction(seg);
+    let ab = seg.scaled_direction();
     let ap = Vec2 { x: pt.x - seg.a.x, y: pt.y - seg.a.y };
     let ab_ap = dot_wide(ab.x, ab.y, ap.x, ap.y);
     let sq_ab = norm2_sq_wide(ab.x, ab.y);
@@ -180,7 +180,7 @@ mod tests {
     use glam::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::{FeatureId, FeatureIdTrait};
-    use super::super::shapes_shim::Segment;
+    use crate::shape::Segment;
     use super::super::{PointProjection, SegmentPointLocation};
     use super::{
         contains_local_point_segment, distance_to_local_point_segment,

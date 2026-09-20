@@ -9,15 +9,16 @@ use fixed::{Fixed, ZERO};
 use glam::vec2::Vec2;
 use rapier_geometry2d::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
 use rapier_geometry2d::point::{
-    Ball, Capsule, Cuboid, PointProjection, Segment, SegmentPointLocation,
-    contains_local_point_ball, contains_local_point_capsule, contains_local_point_cuboid,
-    contains_local_point_segment, distance_to_local_point_ball, distance_to_local_point_capsule,
-    distance_to_local_point_cuboid, distance_to_local_point_segment,
-    project_local_point_and_get_feature_ball, project_local_point_and_get_feature_capsule,
-    project_local_point_and_get_feature_cuboid, project_local_point_and_get_feature_segment,
-    project_local_point_and_get_location_segment, project_local_point_ball,
-    project_local_point_capsule, project_local_point_cuboid, project_local_point_segment,
+    PointProjection, SegmentPointLocation, contains_local_point_ball, contains_local_point_capsule,
+    contains_local_point_cuboid, contains_local_point_segment, distance_to_local_point_ball,
+    distance_to_local_point_capsule, distance_to_local_point_cuboid,
+    distance_to_local_point_segment, project_local_point_and_get_feature_ball,
+    project_local_point_and_get_feature_capsule, project_local_point_and_get_feature_cuboid,
+    project_local_point_and_get_feature_segment, project_local_point_and_get_location_segment,
+    project_local_point_ball, project_local_point_capsule, project_local_point_cuboid,
+    project_local_point_segment,
 };
+use rapier_geometry2d::shape::{Ball, Capsule, Cuboid, Segment};
 use rapier_golden::compare::{vec2_within, within};
 use rapier_golden::point_projection;
 use rapier_golden::types::{PointFeatureRaw, ProjectionCase, SegmentLocationRaw, ShapeRaw, Vec2Raw};

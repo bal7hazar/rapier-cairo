@@ -18,11 +18,25 @@ pub struct Aabb {
     pub maxs: Vec2,
 }
 
+/// `|R| * h`: the half extents of the box of half extents `h` rotated by `pose` (upstream
+/// `PoseOps::absolute_transform_vector`). One rescale per component, so an exact quarter turn
+/// gives an exact box. Shared by [`AabbTrait::transform_by`] and the shape AABBs.
+/// #### Panics
+/// * `'i64_neg Underflow'` for a rotation component equal to `fixed::MIN` (not unit).
+/// * `'Fixed: overflow'` if a component of the result leaves the scalar range.
+#[inline(always)]
+pub fn absolute_transform_vector(pose: Pose2, h: Vec2) -> Vec2 {
+    let c = pose.rotation.re.abs();
+    let s = pose.rotation.im.abs();
+    Vec2 { x: dot2(c, h.x, s, h.y), y: dot2(s, h.x, c, h.y) }
+}
+
 #[generate_trait]
 pub impl AabbImpl of AabbTrait {
     /// Creates a new AABB from its minimum and maximum corners.
     ///
     /// The bounds are stored as-is; callers are responsible for `mins <= maxs` on each axis.
+    #[inline(always)]
     fn new(mins: Vec2, maxs: Vec2) -> Aabb {
         Aabb { mins, maxs }
     }
@@ -30,6 +44,7 @@ pub impl AabbImpl of AabbTrait {
     /// Creates an AABB from its center and half-extents.
     ///
     /// Negative half-extents invert that axis, matching direct vector arithmetic.
+    #[inline(always)]
     fn from_half_extents(center: Vec2, half_extents: Vec2) -> Aabb {
         Aabb { mins: center - half_extents, maxs: center + half_extents }
     }
@@ -81,6 +96,7 @@ pub impl AabbImpl of AabbTrait {
     /// Expands every side by `margin`.
     ///
     /// A negative margin tightens the box and may invert empty axes, matching upstream arithmetic.
+    #[inline(always)]
     fn loosened(self: Aabb, margin: Fixed) -> Aabb {
         let v = Vec2 { x: margin, y: margin };
         Aabb { mins: self.mins - v, maxs: self.maxs + v }
@@ -101,9 +117,7 @@ pub impl AabbImpl of AabbTrait {
     fn transform_by(self: Aabb, pose: Pose2) -> Aabb {
         let center = pose.transform_point(self.center());
         let half = self.half_extents();
-        let re = pose.rotation.re.abs();
-        let im = pose.rotation.im.abs();
-        let half = Vec2 { x: dot2(re, half.x, im, half.y), y: dot2(im, half.x, re, half.y) };
+        let half = absolute_transform_vector(pose, half);
         Aabb { mins: center - half, maxs: center + half }
     }
 
@@ -144,7 +158,7 @@ mod tests {
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{IDENTITY, Rot2};
     use rapier_testing::opaque;
-    use super::{Aabb, AabbTrait, alternatives};
+    use super::{Aabb, AabbTrait, absolute_transform_vector, alternatives};
 
     const QUARTER: Fixed = Fixed { raw: 1073741824 };
     const NEG_ONE: Fixed = Fixed { raw: -4294967296 };
@@ -250,7 +264,24 @@ mod tests {
     }
 
     #[test]
+    fn test_absolute_transform_vector_quarter_turns_are_exact() {
+        let h = v(TWO, ONE);
+        let turn = |
+            re: Fixed, im: Fixed,
+        | Pose2 { translation: v(ZERO, ZERO), rotation: Rot2 { re, im } };
+        assert_eq!(absolute_transform_vector(turn(ONE, ZERO), h), h);
+        assert_eq!(absolute_transform_vector(turn(ZERO, ONE), h), v(ONE, TWO));
+        assert_eq!(absolute_transform_vector(turn(NEG_ONE, ZERO), h), h);
+        assert_eq!(absolute_transform_vector(turn(ZERO, NEG_ONE), h), v(ONE, TWO));
+    }
+
+    #[test]
     fn gas_baseline() {}
+
+    #[test]
+    fn gas_absolute_transform_vector() {
+        let _ = absolute_transform_vector(opaque(P), opaque(v(ONE, HALF)));
+    }
     #[test]
     fn gas_new() {
         assert_eq!(AabbTrait::new(opaque(A.mins), opaque(A.maxs)), A);

@@ -5,9 +5,10 @@ use fixed::{Fixed, FixedTrait};
 use glam::Vec2;
 use rapier_math::pose2::Pose2;
 use rapier_math::{copy_sign_to, smallest_abs_component_index};
+use crate::aabb::{Aabb, AabbTrait, absolute_transform_vector};
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
-use crate::shape::aabb_shim::{Aabb, AabbTrait, absolute_transform_vector};
+use crate::polygonal_feature::PolygonalFeature;
 
 /// Raw of `1 / sqrt(2)`, the components of a normalised diagonal.
 const FRAC_1_SQRT_2_RAW: i64 = 3037000500;
@@ -19,16 +20,6 @@ const FACE_CODE_BASE: u32 = 48;
 pub struct Cuboid {
     /// Half of the extent along each axis (`>= 0`, not checked, as upstream).
     pub half_extents: Vec2,
-}
-
-/// The two-vertex face of a cuboid that supports a direction (the 2D `PolygonalFeature` that the
-/// clipping code of work package GD consumes; same fields, `num_vertices` is always 2 here).
-#[derive(Copy, Drop, Serde, PartialEq, Debug)]
-pub struct SupportFeature {
-    pub vertices: [Vec2; 2],
-    pub vids: [FeatureId; 2],
-    pub fid: FeatureId,
-    pub num_vertices: u8,
 }
 
 #[generate_trait]
@@ -81,7 +72,7 @@ pub impl CuboidImpl of CuboidTrait {
     /// / `support_face`): the axis along which `local_dir` is smallest supplies the two vertices,
     /// the other axis picks the side. Face code `= (max(v1, v2) << 2) | min(v1, v2) | 0b11_0000`
     /// where `v1`, `v2` are the vertex codes; vertex ids are the plain vertex codes.
-    fn support_feature(self: Cuboid, local_dir: Vec2) -> SupportFeature {
+    fn support_feature(self: Cuboid, local_dir: Vec2) -> PolygonalFeature {
         let he = self.half_extents;
         let (v1, v2) = if smallest_abs_component_index(local_dir.x, local_dir.y) == 0 {
             let y = copy_sign_to(local_dir.y, he.y);
@@ -98,7 +89,7 @@ pub impl CuboidImpl of CuboidTrait {
         } else {
             (c2, c1)
         };
-        SupportFeature {
+        PolygonalFeature {
             vertices: [v1, v2],
             vids: [vid1, vid2],
             fid: FeatureIdTrait::face(hi * 4 + lo + FACE_CODE_BASE),
@@ -162,7 +153,7 @@ mod alternatives {
     use glam::Vec2;
     use rapier_math::pose2::Pose2;
     use rapier_math::rot2::Rot2Trait;
-    use crate::shape::aabb_shim::{Aabb, AabbTrait};
+    use crate::aabb::{Aabb, AabbTrait};
     use super::Cuboid;
 
     fn abs_max(p: Fixed, q: Fixed) -> Fixed {
@@ -201,8 +192,9 @@ mod tests {
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{Rot2, Rot2Trait};
     use rapier_testing::opaque;
+    use crate::aabb::Aabb;
     use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
-    use crate::shape::aabb_shim::Aabb;
+    use crate::polygonal_feature::PolygonalFeature;
     use super::{Cuboid, CuboidTrait, alternatives};
 
     const DIAG: i64 = 3037000500;
@@ -370,7 +362,7 @@ mod tests {
         Vec2 { x: Fixed { raw: r.x }, y: Fixed { raw: r.y } }
     }
 
-    fn is_of(f: super::SupportFeature, packed: u32) -> bool {
+    fn is_of(f: PolygonalFeature, packed: u32) -> bool {
         let [a, b] = f.vids;
         packed == a.packed || packed == b.packed || packed == f.fid.packed
     }

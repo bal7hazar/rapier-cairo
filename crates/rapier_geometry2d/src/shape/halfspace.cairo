@@ -4,8 +4,8 @@ use core::num::traits::Zero;
 use fixed::Fixed;
 use glam::Vec2;
 use rapier_math::pose2::Pose2;
+use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::MassProperties;
-use crate::shape::aabb_shim::{Aabb, AabbTrait};
 
 /// Raw of `Vector::MAX * 0.5`: half of `fixed::MAX`, the extent of the AABB of a half-space.
 const HALF_MAX_RAW: i64 = 0x3fffffffffffffff;

@@ -12,9 +12,9 @@ use glam::vec2::Vec2;
 use rapier_math::math_ext::norm2::is_norm2_le;
 use rapier_math::math_ext::vec2::try_normalize2;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
+use crate::shape::{Capsule, SegmentTrait};
 use super::PointProjection;
 use super::segment::project_local_point_segment;
-use super::shapes_shim::{Capsule, segment_normal};
 
 /// Projects `pt` on `capsule`.
 ///
@@ -56,7 +56,7 @@ pub fn project_local_point_capsule(capsule: Capsule, pt: Vec2, solid: bool) -> P
                 return PointProjection { is_inside: true, point: pt };
             }
             // `+y` when the segment degenerates to a point and has no normal.
-            let dir = segment_normal(capsule.segment).unwrap_or(Vec2 { x: ZERO, y: ONE });
+            let dir = capsule.segment.normal().unwrap_or(Vec2 { x: ZERO, y: ONE });
             PointProjection {
                 is_inside: true,
                 point: Vec2 {
@@ -121,9 +121,9 @@ mod tests {
     use glam::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
+    use crate::shape::{Capsule, Segment};
     use super::super::PointProjection;
     use super::super::segment::distance_to_local_point_segment;
-    use super::super::shapes_shim::{Capsule, Segment};
     use super::{
         contains_local_point_capsule, distance_to_local_point_capsule,
         project_local_point_and_get_feature_capsule, project_local_point_capsule,

@@ -8,8 +8,8 @@ use fixed::wide::{dot2, mul_add};
 use fixed::{Fixed, ZERO};
 use glam::vec2::Vec2;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
+use crate::shape::HalfSpace;
 use super::PointProjection;
-use super::shapes_shim::HalfSpace;
 
 /// Projects `pt` on `halfspace`.
 ///
@@ -89,8 +89,8 @@ mod tests {
     use glam::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
+    use crate::shape::HalfSpace;
     use super::super::PointProjection;
-    use super::super::shapes_shim::HalfSpace;
     use super::{
         contains_local_point_halfspace, distance_to_local_point_halfspace,
         project_local_point_and_get_feature_halfspace, project_local_point_halfspace,

@@ -21,8 +21,8 @@ use fixed::{Fixed, FixedTrait, ZERO};
 use glam::vec2::Vec2;
 use rapier_math::consts::DEFAULT_EPSILON;
 use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
+use crate::shape::Cuboid;
 use super::PointProjection;
-use super::shapes_shim::Cuboid;
 
 /// Projects `pt` on `cuboid` and also returns the shift that was applied, which
 /// [`project_local_point_and_get_feature_cuboid`] reads to name the feature.
@@ -174,8 +174,8 @@ pub mod alternatives {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
     use glam::vec2::Vec2;
     use rapier_math::math_ext::scalar::copy_sign_to;
+    use crate::shape::Cuboid;
     use super::super::PointProjection;
-    use super::super::shapes_shim::Cuboid;
 
     /// The literal port of `Aabb::do_project_local_point`: `max(mins - pt, 0) - max(pt - maxs, 0)`
     /// for the outside shift and `diff * sign(pt)` for the inside one. Same answers as the
@@ -224,9 +224,9 @@ mod tests {
     use glam::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
+    use crate::shape::Cuboid;
     use super::alternatives::{contains_via_projection, do_project_sign_mul, project_sign_mul};
     use super::super::PointProjection;
-    use super::super::shapes_shim::Cuboid;
     use super::{
         contains_local_point_cuboid, distance_to_local_point_cuboid,
         project_local_point_and_get_feature_cuboid, project_local_point_cuboid,

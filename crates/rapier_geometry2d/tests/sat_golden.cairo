@@ -1,13 +1,13 @@
 //! All 15 in-scope cases in both directions. Seven triangle cases are explicitly
-//! Private GB shim types are inferred through Serde until GB lands.
 //! Counted as deferred: implementing their three edge axes is outside GD's scope.
-use fixed::{Fixed, ZERO};
+use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
 use rapier_geometry2d::sat::{
     cuboid_cuboid_find_local_separating_normal_oneway,
     cuboid_segment_find_local_separating_normal_oneway,
     segment_cuboid_find_local_separating_normal_oneway,
 };
+use rapier_geometry2d::shape::{Cuboid, Segment};
 use rapier_golden::compare::within;
 use rapier_golden::sat2d;
 use rapier_golden::types::{PoseRaw, SatAxisRaw, SatOperandRaw, Vec2Raw};
@@ -51,18 +51,14 @@ fn test_all_in_scope_sat_vectors_both_directions() {
     let mut deferred = 0;
     for c in sat2d::cases() {
         let c1 = match *c.shape1 {
-            SatOperandRaw::Cuboid(h) => {
-                let mut raw = array![h.x.into(), h.y.into()].span();
-                Serde::deserialize(ref raw).unwrap()
-            },
+            SatOperandRaw::Cuboid(h) => Cuboid { half_extents: v(h) },
             _ => panic!("expected cuboid"),
         };
         let p = pose(*c.pos12);
         let q = pose(*c.pos21);
         match *c.shape2 {
             SatOperandRaw::Cuboid(h) => {
-                let mut raw = array![h.x.into(), h.y.into()].span();
-                let c2 = Serde::deserialize(ref raw).unwrap();
+                let c2 = Cuboid { half_extents: v(h) };
                 check(
                     cuboid_cuboid_find_local_separating_normal_oneway(c1, c2, p), *c.sep1, p, *c.id,
                 );
@@ -72,8 +68,7 @@ fn test_all_in_scope_sat_vectors_both_directions() {
                 tested += 1;
             },
             SatOperandRaw::Segment(s) => {
-                let mut raw = array![s.a.x.into(), s.a.y.into(), s.b.x.into(), s.b.y.into()].span();
-                let s = Serde::deserialize(ref raw).unwrap();
+                let s = Segment { a: v(s.a), b: v(s.b) };
                 check(
                     cuboid_segment_find_local_separating_normal_oneway(c1, s, p), *c.sep1, p, *c.id,
                 );
@@ -95,7 +90,6 @@ fn gas_baseline() {
 #[test]
 fn gas_golden_sat() {
     let p = pose(opaque(sat2d::CUBOID_CUBOID_SHALLOW.pos12));
-    let mut raw = array![4294967296, 4294967296].span();
-    let c = Serde::deserialize(ref raw).unwrap();
+    let c = Cuboid { half_extents: Vec2 { x: ONE, y: ONE } };
     let _ = cuboid_cuboid_find_local_separating_normal_oneway(c, c, p);
 }

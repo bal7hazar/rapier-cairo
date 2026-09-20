@@ -3,8 +3,8 @@
 use fixed::Fixed;
 use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
+use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
-use crate::shape::aabb_shim::{Aabb, AabbTrait};
 
 /// A disc of the given radius centred on the local origin.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -63,7 +63,7 @@ mod tests {
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{Rot2, Rot2Trait};
     use rapier_testing::opaque;
-    use crate::shape::aabb_shim::Aabb;
+    use crate::aabb::Aabb;
     use super::BallTrait;
 
     const QUARTER_TURN: Rot2 = Rot2 { re: ZERO, im: ONE };
