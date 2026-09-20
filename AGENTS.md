@@ -128,6 +128,8 @@ python3 scripts/gas.py check                                  # CI and orchestra
   `pop_front` iteration.
 - Value types derive `Copy, Drop, Serde, PartialEq, Debug` and are passed by value.
 - `#[inline(always)]` on leaf arithmetic only; avoid `unwrap()` and panics inside inlined hot code.
+- In an enum `match`, an inlined computing arm is charged to **every** arm (measured in DB: 49k vs
+  21k): put each computing arm behind an `#[inline(never)]` helper.
 - Traits: `FooTrait` / `FooImpl` (via `#[generate_trait]` when there is a single impl); operators
   through core traits; `Zero`, `One`, `Default` where meaningful.
 - Errors: `pub mod errors { pub const X: felt252 = 'Type: reason'; }` with `assert(cond, errors::X)`;
