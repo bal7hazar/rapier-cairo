@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.2, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` merged upstream and consumed, C2 + M3 merged). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.3, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged, waiting on glam `Vec2`). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -78,6 +78,9 @@ ships `test_*`, `gas_*` (one per candidate implementation) and docs per `AGENTS.
 | ID | Package | Upstream reference | Acceptance |
 |---|---|---|---|
 | C1 [P] | `rapier_core::data`: generational handles, arena (candidates: `Felt252Dict` vs `Array` rebuild), union-find, interaction groups (math vs bitwise candidates) | `src/data`, `geometry/interaction_groups.rs` | handle reuse/generation tests, candidates ranked |
+| G1 [P] ✅ (PR #7) | Scene traces as Cairo fixtures | — | 10 sanity tests replaying the traces |
+| C3 [P] ✅ (PR #13) | Scalar-only body/collider components: `RigidBodyType/Damping/Dominance/Activation`, `ColliderMaterial`, `CoefficientCombineRule` (6 rules), `ActiveCollisionTypes`, flags | `rigid_body_components.rs`, `collider_components.rs` | damping ≤ 1 ulp; flag ops ranked |
+| G2 [P] ✅ (PR #14) | Leaf golden vectors: `pose2`, `aabb_overlap`, `sat2d`, `clip2d`, `point_projection`, `segment_segment` | parry `query::{sat,details}` | 63 sanity tests; upstream quirks in `tools/golden/README.md` |
 | G0 [P] | `tools/golden`: Rust harness + fixture generator; leaf vectors (mass props, AABB, spring coefficients, each contact pair over 6 regimes: separated, within prediction, touching, shallow, deep, degenerate) and scene traces. Inputs quantised to Q32.32, values emitted as raw `i64` so fixtures do not depend on the scalar crate | report 01 §8, report 02 §8 | fixtures committed, regeneration documented |
 
 **Wave 1 outcomes that constrain later packages**
@@ -181,6 +184,8 @@ EPA, mesh `transformation/`, serde/rkyv, debug-render, profiling counters, `dyn`
    `.gas-snapshot` once on `main` for the wave. Executors never commit the snapshot.
 5. CI is the gate: fmt, lint, build, tests, gas check. A red `main` stops the wave.
 6. After each wave this file is updated: status column, measured budgets, new ADRs.
+
+Executor runs so far (claude CLI, second account): G1 Sonnet 50 turns $1.6 · C2 Sonnet 72 turns $3.5 · M3 Opus 121 turns $15.2 · C3 Sonnet 97 turns $5.1 · G2 Sonnet 130 turns $8.5. Sonnet handles fully specified packages validated by golden vectors; Opus was used for the numeric-hazard design of M3.
 
 Parallel width: wave 1 = 2, wave 2 = 3, wave 3 = 8, wave 4 ≈ 11, wave 5 = 3.
 
