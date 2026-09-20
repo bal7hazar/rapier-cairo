@@ -31,42 +31,44 @@ justifies them lives in [`docs/research/`](docs/research).
 
 ## 3. Roles
 
+The orchestrator-side strategy (CLIs, model tiers, brief format, parallelism) is
+[`docs/ORCHESTRATOR.md`](docs/ORCHESTRATOR.md); this section is the porter-side view of it.
+
 | Role | Does | Does not |
 |---|---|---|
-| **Orchestrator** | Owns `docs/PLAN.md`, writes task briefs with acceptance checks, freezes interfaces, owns `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, regenerates `.gas-snapshot` after merging executor work, reviews and merges PRs | Large implementation work |
-| **Executor** (sub-agent) | Implements exactly one work package inside the files it was given, with tests and gas probes, in its own git worktree/branch | Touch files outside its brief, edit shared config, change frozen interfaces |
-| **Reviewer** | Checks correctness against upstream, gas deltas, conventions | First implementation |
+| **Orchestrator** | Owns `docs/PLAN.md`, `docs/interfaces/**`, root `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, every `lib.cairo` and crate `Scarb.toml`; pre-declares the stubs of a wave (modules, test files, snapshot files) before launching it; writes the briefs; reviews `REPORT.md` + CI; merges; updates re-exports/status/decisions after each merge | Large implementation work |
+| **Executor** (headless CLI agent: `claude -p` or `codex exec`, own account, own worktree and branch `feat/<id>`) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its PR and drives it to green CI; writes `REPORT.md` (uncommitted) | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, ask questions |
+| **Reviewer** | Checks API parity with upstream, deviations, gas table, conventions | First implementation |
 
 ### Launching executors
 
-Executors run through the terminal `claude` CLI (logged in with a separate account) rather than
-inside the orchestrator's session: `scripts/executor.sh <id> <model> <brief.md>` creates the
-worktree and branch `feat/<id>` from `origin/main`, frames the run with
-`scripts/executor/system-prompt.md`, restricts tools to file edits plus the toolchain, git and
-python, and writes the transcript and final report under `.executor-logs/`. Briefs live in
-`docs/briefs/<id>.md`.
+`scripts/executor.sh <id> <runner> <brief.md>` with `runner` = `claude:sonnet|opus|fable` or
+`codex:<model>[:<effort>]`; `scripts/executor.sh resume <id> <runner> "<follow-up>"` continues an
+interrupted agent in the same worktree. The launcher prepends `scripts/executor/system-prompt.md`
+(the frame every executor must obey) to the brief. Logs go to `.executor-logs/<id>.log`; the
+orchestrator reads `REPORT.md` and the log, never the transcript.
 
-Model policy — the cheapest model that can do the job, with the frame above to prevent drift:
+Model choice by difficulty (`docs/ORCHESTRATOR.md`):
 
-| Task | Model |
-|---|---|
-| Mechanical, fully specified (generated fixtures, wiring, docs, straightforward ports validated by golden vectors) | `sonnet` |
-| Algorithmic or design-heavy (solver, SAT/clipping, numeric hazards, candidate design) | `opus` |
-| Orchestration, review, interface freezes, merges | the orchestrator itself |
+| difficulty | claude | codex |
+|---|---|---|
+| mechanical, well framed (generated code, spec alignment, benching already-identified variants) | `sonnet` | `gpt-5.5` / `gpt-5.6-*`, effort `medium` |
+| standard port with numerics (a new module: kernels, tests, golden vectors, benches) | `opus` | `gpt-5.6-*`, effort `high` |
+| genuinely complex (novel numerics, hard debugging, cross-module design) | `fable` | `gpt-6-astra`, effort `xhigh` |
 
-### Task brief template (orchestrator → executor)
+The smaller the model, the tighter the brief.
 
-```
-Work package: <id and title from docs/PLAN.md>
-Goal: <one paragraph>
-Files owned: <paths the executor may create/modify>
-Frozen interfaces: <types/traits it must use as-is>
-Upstream reference: <rapier/parry file paths + functions>
-Acceptance: <tests that must exist and pass, gas budget if any, golden vectors to match>
-Out of scope: <explicit list>
-```
+### Brief (mandatory sections, in this order)
 
-### Escalation template (executor → orchestrator)
+1. Files to read first (`AGENTS.md`, `docs/PLAN.md`, `docs/interfaces/**`, style precedents on `main`).
+2. Strict scope: file allowlist; everything else is forbidden (needs go to "Escalations").
+3. Expected API (exact upstream names), numeric semantics, what is explicitly deferred (DEFER).
+4. Efficiency rules and gas targets; variants to bench (winner in the library, losers under `mod alternatives`).
+5. Tests: table-driven, compile budget (≤ 800 lines per file, ≤ 4 `fuzz_*` per module), golden vectors, exact panic messages.
+6. Definition of done: full gate in the foreground, `scripts/gas.py snapshot --filter <crate>::<module>` per owned module, conventional commits with trailer, push, `gh pr create`, `gh pr checks --watch` until green, never merge, `REPORT.md` (Summary · API · Gas table · Deviations · Deferred · Requested re-exports · Escalations · PR URL).
+7. "Work autonomously, do not ask questions, do not widen the scope."
+
+### Escalation (executor → orchestrator, in `REPORT.md`)
 
 ```
 Blocker: <what prevents completion>
@@ -76,14 +78,14 @@ Recommendation: <one of them, and why>
 
 ## 4. Parallelisation rules
 
-- **Safe in parallel:** disjoint modules/crates on top of frozen interfaces; each executor in an
-  isolated worktree and branch.
-- **Must be serialised (orchestrator only):** changes to public types of `rapier_math`, any
-  `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, `.gas-snapshot` regeneration,
-  `docs/PLAN.md`.
+- **Safe in parallel:** disjoint modules on top of frozen interfaces; each executor in its own
+  worktree and branch; one gas snapshot file per module (`gas/<crate>/<module>.snap`), so parallel
+  PRs never touch a common file.
+- **Orchestrator only, serialised:** public types of `rapier_math`, any `Scarb.toml`, every
+  `lib.cairo` (stubs are pre-declared before the wave), `.tool-versions`, `scripts/**`,
+  `.github/**`, `docs/PLAN.md`, `docs/interfaces/**`.
 - **Conflict protocol:** land the interface change first with its tests, then rebase dependents.
-- Executors never commit `.gas-snapshot`; the orchestrator regenerates it once per merge so that
-  parallel branches do not conflict on it.
+- Waves follow the dependency graph; a wave starts when its dependencies are merged.
 
 ## 5. Feature pipeline and definition of done
 
@@ -97,7 +99,8 @@ A feature is done when:
 - [ ] `fuzz_*` tests (fixed seed) prove alternative implementations equivalent, when there are any;
 - [ ] `gas_*` probes exist for every public function **and every candidate implementation**
       (`gas_mul_math`, `gas_mul_bitwise`, …), with inputs routed through
-      `rapier_testing::opaque` and one `gas_baseline` per test module;
+      `rapier_testing::opaque` and one `gas_baseline` per test module, and the module's
+      `gas/<crate>/<module>.snap` is regenerated and committed with the code;
 - [ ] rejected candidates live in a `#[cfg(test)] mod alternatives` next to the winner;
 - [ ] public items carry `///` docs (arguments, returns, panics, rounding direction, value range);
 - [ ] validation passes (§6).
@@ -109,7 +112,8 @@ scarb fmt --check --workspace
 scarb lint --workspace --deny-warnings
 scarb build --workspace
 snforge test --workspace
-python3 scripts/gas.py check      # orchestrator; executors run `diff` and report the table
+python3 scripts/gas.py snapshot --filter <crate>::<module>   # executors, per owned module
+python3 scripts/gas.py check                                  # CI and orchestrator
 ```
 
 ## 7. Coding conventions
@@ -131,8 +135,11 @@ python3 scripts/gas.py check      # orchestrator; executors run `diff` and repor
 - Core crates stay pure Cairo: no `starknet` dependency.
 - Tests are inline (`#[cfg(test)] mod tests`) at the bottom of each file; `crates/<c>/tests/`
   holds only cross-module scenarios and golden-vector comparisons.
+- Compile budget: no file over 800 lines, at most 4 `fuzz_*` tests per module, table-driven tests
+  rather than one function per case — test-crate compile time is the first cause of CI failures.
 
 ## 8. Rationalisations to reject
 
 "It is obviously cheaper" (measure it) · "tests later" (no) · "just this once I will edit the
-snapshot by hand" (never) · "the interface needs a tiny change" (escalate).
+snapshot by hand" (never) · "the interface needs a tiny change" (escalate) · "I will run the gate in
+the background and finish" (the headless session stops; run it in the foreground).

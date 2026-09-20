@@ -22,7 +22,7 @@ from the Rust engine to validate every layer.
 ## Gas is tracked per test
 
 Every unit test is a gas probe. `scripts/gas.py` records the Sierra gas of each test in
-`.gas-snapshot`; CI fails on any drift, so the snapshot diff of a PR *is* its gas report. When the
+`gas/<crate>/<module>.snap`; CI fails on any drift, so the snapshot diff of a PR *is* its gas report. When the
 cheapest implementation is not obvious (arithmetic vs bitwise vs loop), all candidates are
 implemented, measured, and the losers stay in the tree to be re-evaluated on compiler upgrades.
 
