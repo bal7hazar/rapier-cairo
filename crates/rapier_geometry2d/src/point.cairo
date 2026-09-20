@@ -29,7 +29,6 @@ pub mod cuboid;
 pub mod halfspace;
 pub mod ratio;
 pub mod segment;
-pub mod shapes_shim;
 pub mod wide2;
 pub use ball::{
     contains_local_point_ball, distance_to_local_point_ball,
@@ -55,7 +54,6 @@ pub use segment::{
     project_local_point_and_get_feature_segment, project_local_point_and_get_location_segment,
     project_local_point_segment, segment_point_at,
 };
-pub use shapes_shim::{Ball, Capsule, Cuboid, HalfSpace, Segment};
 pub use wide2::{cross_wide, dot_wide};
 
 /// The result of projecting a point on a shape (Parry `PointProjection`).

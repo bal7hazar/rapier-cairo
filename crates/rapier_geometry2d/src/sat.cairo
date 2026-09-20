@@ -1,14 +1,12 @@
 //! 2D SAT in upstream axis order. Nonnegative half extents/radii and unit poses
 //! are required. Products floor once; inputs, displacements, projections and results must fit
 //! Q32.32, otherwise the fixed arithmetic panics. No allocation or support loops.
-mod shims;
 use fixed::wide::{dot2, normalize2};
 use fixed::{Fixed, FixedTrait, MAX, ONE, ZERO};
 use glam::Vec2;
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::pose2::{Pose2, Pose2Trait};
-// Private temporary GB shims; swap this import for crate::shape after GB merges.
-use shims::{Capsule, Cuboid, Segment};
+use crate::shape::{Capsule, Cuboid, Segment};
 
 const X: Vec2 = Vec2 { x: ONE, y: ZERO };
 const Y: Vec2 = Vec2 { x: ZERO, y: ONE };

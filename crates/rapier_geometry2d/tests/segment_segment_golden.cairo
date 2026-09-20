@@ -17,7 +17,8 @@ use glam::vec2::Vec2;
 use rapier_geometry2d::closest_points::{
     closest_points_segment_segment, closest_points_segment_segment_with_locations,
 };
-use rapier_geometry2d::point::{Segment, SegmentPointLocation, segment_point_at};
+use rapier_geometry2d::point::{SegmentPointLocation, segment_point_at};
+use rapier_geometry2d::shape::Segment;
 use rapier_golden::compare::{vec2_within, within};
 use rapier_golden::segment_segment;
 use rapier_golden::types::{PoseRaw, SegmentLocationRaw, SegmentPairCase, SegmentRaw, Vec2Raw};

@@ -54,7 +54,7 @@ use rapier_math::math_ext::norm2::norm2_sq_wide;
 use crate::point::SegmentPointLocation;
 use crate::point::ratio::clamped_ratio;
 use crate::point::segment::segment_point_at;
-use crate::point::shapes_shim::{Segment, segment_scaled_direction};
+use crate::shape::{Segment, SegmentTrait};
 
 /// `rapier_math::consts::DEFAULT_EPSILON` (`2^-23`) lifted to the raw Q64.64 scale of
 /// `norm2_sq_wide`: `512 * 2^32 = 2^41`.
@@ -75,8 +75,8 @@ const SCALE: i128 = 0x1_0000_0000;
 
 /// Returns `(s, t)`, the parameters of the closest pair of points of `seg1` and `seg2`.
 fn closest_parameters(seg1: Segment, seg2: Segment) -> (Fixed, Fixed) {
-    let d1 = segment_scaled_direction(seg1);
-    let d2 = segment_scaled_direction(seg2);
+    let d1 = seg1.scaled_direction();
+    let d2 = seg2.scaled_direction();
     let r = Vec2 { x: seg1.a.x - seg2.a.x, y: seg1.a.y - seg2.a.y };
     let sq1 = norm2_sq_wide(d1.x, d1.y);
     let sq2 = norm2_sq_wide(d2.x, d2.y);
@@ -187,7 +187,7 @@ pub mod alternatives {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
     use glam::vec2::Vec2;
     use rapier_math::consts::DEFAULT_EPSILON;
-    use crate::point::shapes_shim::{Segment, segment_scaled_direction};
+    use crate::shape::{Segment, SegmentTrait};
 
     /// The literal port: `a`, `e` and `denom` as `Fixed`, `Fixed / Fixed` and `Fixed::clamp`
     /// instead of the wide ratios. **Wrong** for the inputs this package must handle — `|d|^2`
@@ -195,8 +195,8 @@ pub mod alternatives {
     /// segments is declared collinear), the divisions truncate toward zero instead of rounding,
     /// and `a e` overflows above `2^15.5` just as the shipped version does.
     pub fn closest_parameters_narrow(seg1: Segment, seg2: Segment) -> (Fixed, Fixed) {
-        let d1 = segment_scaled_direction(seg1);
-        let d2 = segment_scaled_direction(seg2);
+        let d1 = seg1.scaled_direction();
+        let d2 = seg2.scaled_direction();
         let r = Vec2 { x: seg1.a.x - seg2.a.x, y: seg1.a.y - seg2.a.y };
         let a = norm2_squared(d1.x, d1.y);
         let e = norm2_squared(d2.x, d2.y);
@@ -249,7 +249,7 @@ mod tests {
     use glam::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::point::SegmentPointLocation;
-    use crate::point::shapes_shim::Segment;
+    use crate::shape::Segment;
     use super::alternatives::{closest_parameters_narrow, pair_dist_sq, point_at_parameter};
     use super::{
         closest_parameters, closest_points_segment_segment,

@@ -7,7 +7,7 @@
 
 use fixed::Fixed;
 use glam::Vec2;
-use rapier_geometry2d::shape::aabb_shim::Aabb;
+use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape, ShapeTrait};
 use rapier_golden::aabb::cases;
 use rapier_golden::compare::{abs_diff, vec2_within};

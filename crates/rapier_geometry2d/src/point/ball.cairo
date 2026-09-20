@@ -16,8 +16,8 @@ use fixed::{Fixed, ZERO};
 use glam::vec2::Vec2;
 use rapier_math::math_ext::norm2::is_norm2_le;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
+use crate::shape::Ball;
 use super::PointProjection;
-use super::shapes_shim::Ball;
 
 /// Projects `pt` on `ball`.
 ///
@@ -102,8 +102,8 @@ pub mod alternatives {
     use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
     use glam::vec2::Vec2;
     use rapier_math::math_ext::norm2::is_norm2_le;
+    use crate::shape::Ball;
     use super::super::PointProjection;
-    use super::super::shapes_shim::Ball;
 
     /// Upstream's literal `pt * (radius / |pt|)`: one `Recip::mul` instead of two, but the scale
     /// `radius / |pt|` overflows the scalar range for a point closer than `radius * 2^-31` to
@@ -131,9 +131,9 @@ mod tests {
     use glam::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
+    use crate::shape::Ball;
     use super::alternatives::project_scale_first;
     use super::super::PointProjection;
-    use super::super::shapes_shim::Ball;
     use super::{
         contains_local_point_ball, distance_to_local_point_ball,
         project_local_point_and_get_feature_ball, project_local_point_ball,

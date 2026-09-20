@@ -6,7 +6,6 @@
 //!
 //! Deferred: convex polygons, round shapes, compounds, `scaled`, ray casting.
 
-pub mod aabb_shim;
 pub mod ball;
 pub mod capsule;
 pub mod cuboid;
@@ -14,11 +13,11 @@ pub mod halfspace;
 pub mod segment;
 use fixed::Fixed;
 use rapier_math::pose2::Pose2;
+use crate::aabb::Aabb;
 use crate::mass::MassProperties;
-use crate::shape::aabb_shim::Aabb;
 pub use crate::shape::ball::{Ball, BallTrait};
 pub use crate::shape::capsule::{Capsule, CapsuleTrait};
-pub use crate::shape::cuboid::{Cuboid, CuboidTrait, SupportFeature};
+pub use crate::shape::cuboid::{Cuboid, CuboidTrait};
 pub use crate::shape::halfspace::{HalfSpace, HalfSpaceTrait};
 pub use crate::shape::segment::{Segment, SegmentTrait};
 

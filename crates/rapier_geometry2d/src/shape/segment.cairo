@@ -5,9 +5,9 @@ use fixed::{Fixed, FixedTrait};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::{DEFAULT_EPSILON, try_normalize2, try_normalize2_eps};
+use crate::aabb::Aabb;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::MassProperties;
-use crate::shape::aabb_shim::{Aabb, segment_aabb};
 
 /// The segment from `a` to `b`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -61,6 +61,7 @@ pub impl SegmentImpl of SegmentTrait {
 
     /// Unit right-hand normal, `None` when the segment is not longer than `DEFAULT_EPSILON`
     /// (upstream `length > DEFAULT_EPSILON`, here the wide comparison).
+    #[inline(always)]
     fn normal(self: Segment) -> Option<Vec2> {
         let n = Self::scaled_normal(self);
         match try_normalize2_eps(n.x, n.y, DEFAULT_EPSILON) {
@@ -104,14 +105,23 @@ pub impl SegmentImpl of SegmentTrait {
     /// `[min(a, b), max(a, b)]` component-wise.
     #[inline(always)]
     fn compute_local_aabb(self: Segment) -> Aabb {
-        segment_aabb(self.a, self.b, FixedTrait::from_raw(0))
+        let (min_x, max_x) = if self.a.x < self.b.x {
+            (self.a.x, self.b.x)
+        } else {
+            (self.b.x, self.a.x)
+        };
+        let (min_y, max_y) = if self.a.y < self.b.y {
+            (self.a.y, self.b.y)
+        } else {
+            (self.b.y, self.a.y)
+        };
+        Aabb { mins: Vec2 { x: min_x, y: min_y }, maxs: Vec2 { x: max_x, y: max_y } }
     }
 
     /// Box of the transformed end points.
     #[inline(always)]
     fn compute_aabb(self: Segment, pose: Pose2) -> Aabb {
-        let s = Self::transformed(self, pose);
-        segment_aabb(s.a, s.b, FixedTrait::from_raw(0))
+        Self::compute_local_aabb(Self::transformed(self, pose))
     }
 
     /// Zero: a segment has no area.
@@ -223,6 +233,8 @@ mod tests {
         // Quarter turn: (3, -1) -> (11, 3), (-2, 4) -> (6, -2).
         let placed = s.compute_aabb(quarter_turn());
         assert_eq!((placed.mins, placed.maxs), (v(6, -2), v(11, 3)));
+        // End points given in the opposite order box the same.
+        assert_eq!(seg(-2, 4, 3, -1).compute_local_aabb(), local);
         let point = seg(1, 1, 1, 1).compute_local_aabb();
         assert_eq!((point.mins, point.maxs), (v(1, 1), v(1, 1)));
         assert_eq!(s.mass_properties(HALF), Default::default());

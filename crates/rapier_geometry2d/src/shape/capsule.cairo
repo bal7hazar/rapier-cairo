@@ -4,8 +4,8 @@
 use fixed::{Fixed, FixedTrait};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
+use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
-use crate::shape::aabb_shim::{Aabb, segment_aabb};
 use crate::shape::segment::{Segment, SegmentTrait};
 
 /// The segment `segment` dilated by `radius`.
@@ -63,15 +63,14 @@ pub impl CapsuleImpl of CapsuleTrait {
     /// `[min(a, b) - r, max(a, b) + r]`.
     #[inline(always)]
     fn compute_local_aabb(self: Capsule) -> Aabb {
-        segment_aabb(self.segment.a, self.segment.b, self.radius)
+        self.segment.compute_local_aabb().loosened(self.radius)
     }
 
     /// Box of the transformed core segment, grown by the radius (upstream
     /// `transform_by(pose).local_aabb()`).
     #[inline(always)]
     fn compute_aabb(self: Capsule, pose: Pose2) -> Aabb {
-        let s = self.segment.transformed(pose);
-        segment_aabb(s.a, s.b, self.radius)
+        self.segment.compute_aabb(pose).loosened(self.radius)
     }
 
     /// Mass properties for `density` (`from_capsule`).
@@ -103,7 +102,7 @@ mod tests {
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{Rot2, Rot2Trait};
     use rapier_testing::opaque;
-    use crate::shape::aabb_shim::Aabb;
+    use crate::aabb::Aabb;
     use super::CapsuleTrait;
 
     fn v(x: Fixed, y: Fixed) -> Vec2 {
