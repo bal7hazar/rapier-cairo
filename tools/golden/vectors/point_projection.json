@@ -1,0 +1,634 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "point_projection",
+  "cases": [
+    {
+      "id": "ball/outside",
+      "note": "distance 1.5 from the centre",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "point": { "f64": [1.1999999999534339, 0.8999999999068677], "raw": [5153960755, 3865470566] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.4000000000093133, 0.2999999999875824], "raw": [1717986918, 1288490189] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.4000000000093133, 0.2999999999875824], "raw": [1717986918, 1288490189] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.9999999999068676, "raw": 4294967296 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "ball/inside",
+      "note": "non-solid projection pushes the point out to the surface",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "point": { "f64": [0.30000000004656613, 0.19999999995343387], "raw": [1288490189, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.41602514721859535, 0.27735009803810423], "raw": [1786814402, 1191209601] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 0.19999999995343387], "raw": [1288490189, 858993459] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.13944487244068593, "raw": -598911167 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "ball/on_boundary",
+      "note": "distance^2 == r^2 exactly: counts as inside",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "point": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }, "is_inside": true },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "ball/near_center",
+      "note": "2^-20 from the centre: projection amplifies by r / 2^-20",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "point": { "f64": [9.5367431640625e-7, 0.0], "raw": [4096, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }, "is_inside": true },
+        "projection_solid": {
+          "point": { "f64": [9.5367431640625e-7, 0.0], "raw": [4096, 0] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.4999990463256836, "raw": -2147479552 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/outside_face",
+      "note": "face region of +x",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [2.0, 0.19999999995343387], "raw": [8589934592, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "distance": { "f64": 1.0, "raw": 4294967296 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/outside_vertex",
+      "note": "vertex region of (+x, +y)",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [1.5, 1.0], "raw": [6442450944, 4294967296] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.7071067811865476, "raw": 3037000500 },
+        "feature": { "kind": "vertex", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/inside",
+      "note": "nearest face is +y (0.4 away vs 0.7)",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [0.30000000004656613, 0.10000000009313226], "raw": [1288490189, 429496730] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 0.10000000009313226], "raw": [1288490189, 429496730] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.39999999990686774, "raw": -1717986918 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/inside_tie",
+      "note": "0.5 from the +x face and from both y faces: upstream picks x on a tie (`diff.x <= diff.y`)",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }, "is_inside": true },
+        "distance": { "f64": -0.5, "raw": -2147483648 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/center",
+      "note": "the centre: an exact zero has sign +1 (copysign of +0.0), so the +y face wins (0.5 < 1.0)",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -0.5, "raw": -2147483648 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/on_face",
+      "note": "on the +x face: inside, projection is the point itself",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] }, "is_inside": true },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+          "is_inside": true
+        },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/on_vertex",
+      "note": "on the (+x, +y) vertex",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] }, "is_inside": true },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          "is_inside": true
+        },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/on_edge_ext",
+      "note": "on the extension of the +y edge, beyond the +x vertex: face region of +x",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [3.0, 0.5], "raw": [12884901888, 2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          "is_inside": false
+        },
+        "distance": { "f64": 2.0, "raw": 8589934592 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "cuboid/on_edge_ext_diag",
+      "note": "diagonal beyond the vertex: vertex region",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "point": { "f64": [3.0, 1.0], "raw": [12884901888, 4294967296] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          "is_inside": false
+        },
+        "distance": { "f64": 2.0615528128088303, "raw": 8854301910 },
+        "feature": { "kind": "vertex", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/outside_side",
+      "note": "side region",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.75, "raw": 3221225472 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/outside_cap",
+      "note": "cap region of the top end point",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.30000000004656613, 1.1999999999534339], "raw": [1288490189, 5153960755] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.09847982466324062, 0.7297862574966079], "raw": [422967626, 3134408109] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.09847982466324062, 0.7297862574966079], "raw": [422967626, 3134408109] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.5115773105619331, "raw": 2197207818 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/inside",
+      "note": "inside the tube",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.10000000009313226, 0.19999999995343387], "raw": [429496730, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.19999999995343387], "raw": [429496730, 858993459] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.14999999990686774, "raw": -644245094 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/on_boundary",
+      "note": "exactly on the side surface",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+          "is_inside": true
+        },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/on_segment",
+      "note": "on the core segment: zero distance, upstream takes the segment normal",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.0, 0.19999999995343387], "raw": [0, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, 0.19999999995343387], "raw": [1073741824, 858993459] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.0, 0.19999999995343387], "raw": [0, 858993459] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.25, "raw": -1073741824 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/on_vertex",
+      "note": "on an end point of the core segment",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+          "is_inside": true
+        },
+        "projection_solid": { "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] }, "is_inside": true },
+        "distance": { "f64": -0.25, "raw": -1073741824 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/axis_extension",
+      "note": "on the extension of the core segment",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.75], "raw": [0, 3221225472] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.0, 0.75], "raw": [0, 3221225472] }, "is_inside": false },
+        "distance": { "f64": 0.75, "raw": 3221225472 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/oblique_outside",
+      "note": "oblique capsule, cap region",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [-0.5, -0.25], "raw": [-2147483648, -1073741824] },
+        "b": { "f64": [1.0, 0.75], "raw": [4294967296, 3221225472] },
+        "radius": { "f64": 0.30000000004656613, "raw": 1288490189 }
+      },
+      "point": { "f64": [0.19999999995343387, 1.1999999999534339], "raw": [858993459, 5153960755] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.48743609489902484, 0.7688458575350476], "raw": [2093522086, 3302167814] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.48743609489902484, 0.7688458575350476], "raw": [2093522086, 3302167814] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.5181827893727318, "raw": 2225578134 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/zero_len_center",
+      "note": "zero-length core on the point: no normal, upstream falls back to +y",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "b": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.25], "raw": [0, 1073741824] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -0.25, "raw": -1073741824 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "capsule/zero_len_outside",
+      "note": "zero-length core, outside",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "b": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.25, 0.0], "raw": [1073741824, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.25, 0.0], "raw": [1073741824, 0] }, "is_inside": false },
+        "distance": { "f64": 0.75, "raw": 3221225472 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      }
+    },
+    {
+      "id": "segment/above",
+      "note": "interior region, left of the direction",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "edge", "u": { "f64": 0.6500000000232831, "raw": 2791728743 } }
+      }
+    },
+    {
+      "id": "segment/below",
+      "note": "interior region, right of the direction",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [0.30000000004656613, -0.5], "raw": [1288490189, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "edge", "u": { "f64": 0.6500000000232831, "raw": 2791728743 } }
+      }
+    },
+    {
+      "id": "segment/on_interior",
+      "note": "on the segment: is_inside, feature Face(0) (perp_dot == 0)",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": true
+        },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "edge", "u": { "f64": 0.6500000000232831, "raw": 2791728743 } }
+      }
+    },
+    {
+      "id": "segment/beyond_b",
+      "note": "vertex region of b",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [2.0, 0.5], "raw": [8589934592, 2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": false },
+        "distance": { "f64": 1.118033988749895, "raw": 4801919417 },
+        "feature": { "kind": "vertex", "code": 1 },
+        "location": { "kind": "vertex", "vertex": 1 }
+      }
+    },
+    {
+      "id": "segment/before_a",
+      "note": "vertex region of a",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [-2.0, 0.10000000009313226], "raw": [-8589934592, 429496730] },
+      "expected": {
+        "projection": { "point": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }, "is_inside": false },
+        "distance": { "f64": 1.004987562121356, "raw": 4316388712 },
+        "feature": { "kind": "vertex", "code": 0 },
+        "location": { "kind": "vertex", "vertex": 0 }
+      }
+    },
+    {
+      "id": "segment/on_vertex_a",
+      "note": "on vertex a: ab.ap == 0 selects vertex 0",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }, "is_inside": true },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "vertex", "code": 0 },
+        "location": { "kind": "vertex", "vertex": 0 }
+      }
+    },
+    {
+      "id": "segment/on_vertex_b",
+      "note": "on vertex b: ab.ap == |ab|^2 selects vertex 1",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": true },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "feature": { "kind": "vertex", "code": 1 },
+        "location": { "kind": "vertex", "vertex": 1 }
+      }
+    },
+    {
+      "id": "segment/edge_ext",
+      "note": "on the line through the segment, beyond b: vertex 1, not inside",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "point": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }, "is_inside": false },
+        "distance": { "f64": 2.0, "raw": 8589934592 },
+        "feature": { "kind": "vertex", "code": 1 },
+        "location": { "kind": "vertex", "vertex": 1 }
+      }
+    },
+    {
+      "id": "segment/oblique",
+      "note": "oblique segment, interior region",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "b": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] }
+      },
+      "point": { "f64": [0.5, 1.0], "raw": [2147483648, 4294967296] },
+      "expected": {
+        "projection": { "point": { "f64": [0.8, 0.4], "raw": [3435973837, 1717986918] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [0.8, 0.4], "raw": [3435973837, 1717986918] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.6708203932499369, "raw": 2881151650 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "edge", "u": { "f64": 0.4, "raw": 1717986918 } }
+      }
+    },
+    {
+      "id": "segment/zero_length",
+      "note": "zero-length segment: vertex 0",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+        "b": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }
+      },
+      "point": { "f64": [1.0, 1.0], "raw": [4294967296, 4294967296] },
+      "expected": {
+        "projection": { "point": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+          "is_inside": false
+        },
+        "distance": { "f64": 0.7071067811865476, "raw": 3037000500 },
+        "feature": { "kind": "vertex", "code": 0 },
+        "location": { "kind": "vertex", "vertex": 0 }
+      }
+    }
+  ],
+  "non_finite_probes": [{ "id": "probe/ball_center", "projection_is_nan": true }]
+}
