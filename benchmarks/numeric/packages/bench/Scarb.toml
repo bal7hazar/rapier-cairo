@@ -1,0 +1,12 @@
+[package]
+name = "numbench"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+cubit = { path = "../cubit" }
+orion = { path = "../orion" }
+
+[dev-dependencies]
+snforge_std = "0.61.0"
+assert_macros = "2.19.4"

@@ -1,0 +1,7 @@
+[package]
+name = "alexandria_merkle_tree"
+version = "0.1.0"
+edition = "2023_10"
+
+[dependencies]
+starknet = "2.19.4"

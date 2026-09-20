@@ -1,0 +1,11 @@
+[package]
+name = "orion"
+version = "0.2.5"
+edition = "2023_10"
+
+[dependencies]
+starknet = "2.19.4"
+cubit = { path = "../cubit" }
+alexandria_merkle_tree = { path = "../alexandria_merkle_tree" }
+alexandria_data_structures = { path = "../alexandria_data_structures" }
+alexandria_sorting = { path = "../alexandria_sorting" }

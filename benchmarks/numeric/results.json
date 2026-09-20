@@ -1,0 +1,5933 @@
+{
+ "a_cubit_f128": {
+  "baselines": {
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bi": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bo": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "abs": {
+    "raw": {
+     "l2_gas": 14520,
+     "steps": 67,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "atan": {
+    "raw": {
+     "l2_gas": 203240,
+     "steps": 1183,
+     "holes": 404,
+     "builtins": {
+      "range_check": 261
+     }
+    },
+    "net": {
+     "steps": 1116,
+     "l2_gas": 188720,
+     "builtins": {
+      "range_check": 258
+     }
+    }
+   },
+   "atan_fast_lut": {
+    "raw": {
+     "l2_gas": 100410,
+     "steps": 371,
+     "holes": 335,
+     "builtins": {
+      "range_check": 63
+     }
+    },
+    "net": {
+     "steps": 304,
+     "l2_gas": 85890,
+     "builtins": {
+      "range_check": 60
+     }
+    }
+   },
+   "cos": {
+    "raw": {
+     "l2_gas": 479400,
+     "steps": 3743,
+     "holes": 265,
+     "builtins": {
+      "range_check": 950
+     }
+    },
+    "net": {
+     "steps": 3676,
+     "l2_gas": 464880,
+     "builtins": {
+      "range_check": 947
+     }
+    }
+   },
+   "cos_fast_lut": {
+    "raw": {
+     "l2_gas": 71770,
+     "steps": 511,
+     "holes": 58,
+     "builtins": {
+      "range_check": 84
+     }
+    },
+    "net": {
+     "steps": 444,
+     "l2_gas": 57250,
+     "builtins": {
+      "range_check": 81
+     }
+    }
+   },
+   "exp": {
+    "raw": {
+     "l2_gas": 172340,
+     "steps": 1158,
+     "holes": 204,
+     "builtins": {
+      "range_check": 265
+     }
+    },
+    "net": {
+     "steps": 1091,
+     "l2_gas": 157820,
+     "builtins": {
+      "range_check": 262
+     }
+    }
+   },
+   "floor": {
+    "raw": {
+     "l2_gas": 19630,
+     "steps": 108,
+     "holes": 0,
+     "builtins": {
+      "range_check": 16
+     }
+    },
+    "net": {
+     "steps": 41,
+     "l2_gas": 5110,
+     "builtins": {
+      "range_check": 13
+     }
+    }
+   },
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "round": {
+    "raw": {
+     "l2_gas": 22100,
+     "steps": 122,
+     "holes": 9,
+     "builtins": {
+      "range_check": 17
+     }
+    },
+    "net": {
+     "steps": 55,
+     "l2_gas": 7580,
+     "builtins": {
+      "range_check": 14
+     }
+    }
+   },
+   "sin": {
+    "raw": {
+     "l2_gas": 474750,
+     "steps": 3709,
+     "holes": 255,
+     "builtins": {
+      "range_check": 948
+     }
+    },
+    "net": {
+     "steps": 3642,
+     "l2_gas": 460230,
+     "builtins": {
+      "range_check": 945
+     }
+    }
+   },
+   "sin_fast_lut": {
+    "raw": {
+     "l2_gas": 67120,
+     "steps": 453,
+     "holes": 61,
+     "builtins": {
+      "range_check": 82
+     }
+    },
+    "net": {
+     "steps": 386,
+     "l2_gas": 52600,
+     "builtins": {
+      "range_check": 79
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 23400,
+     "steps": 141,
+     "holes": 1,
+     "builtins": {
+      "range_check": 24
+     }
+    },
+    "net": {
+     "steps": 74,
+     "l2_gas": 8880,
+     "builtins": {
+      "range_check": 21
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 17880,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 2960,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 17050,
+     "steps": 90,
+     "holes": 4,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 19,
+     "l2_gas": 2130,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 26800,
+     "steps": 164,
+     "holes": 7,
+     "builtins": {
+      "range_check": 27
+     }
+    },
+    "net": {
+     "steps": 93,
+     "l2_gas": 11880,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 26500,
+     "steps": 162,
+     "holes": 7,
+     "builtins": {
+      "range_check": 27
+     }
+    },
+    "net": {
+     "steps": 91,
+     "l2_gas": 11580,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19470,
+     "steps": 97,
+     "holes": 15,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 26,
+     "l2_gas": 4550,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "from_int": {
+    "raw": {
+     "l2_gas": 17750,
+     "steps": 93,
+     "holes": 0,
+     "builtins": {
+      "range_check": 12
+     }
+    },
+    "net": {
+     "steps": 26,
+     "l2_gas": 3230,
+     "builtins": {
+      "range_check": 9
+     }
+    }
+   },
+   "to_int_u32": {
+    "raw": {
+     "l2_gas": 16440,
+     "steps": 81,
+     "holes": 0,
+     "builtins": {
+      "range_check": 9
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 2120,
+     "builtins": {
+      "range_check": 6
+     }
+    }
+   }
+  }
+ },
+ "a_cubit_f64": {
+  "baselines": {
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bo": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bi": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "abs": {
+    "raw": {
+     "l2_gas": 14520,
+     "steps": 67,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "atan": {
+    "raw": {
+     "l2_gas": 98260,
+     "steps": 503,
+     "holes": 261,
+     "builtins": {
+      "range_check": 71
+     }
+    },
+    "net": {
+     "steps": 436,
+     "l2_gas": 83740,
+     "builtins": {
+      "range_check": 68
+     }
+    }
+   },
+   "atan_fast_lut": {
+    "raw": {
+     "l2_gas": 71810,
+     "steps": 386,
+     "holes": 167,
+     "builtins": {
+      "range_check": 21
+     }
+    },
+    "net": {
+     "steps": 319,
+     "l2_gas": 57290,
+     "builtins": {
+      "range_check": 18
+     }
+    }
+   },
+   "cos": {
+    "raw": {
+     "l2_gas": 149340,
+     "steps": 1151,
+     "holes": 90,
+     "builtins": {
+      "range_check": 202
+     }
+    },
+    "net": {
+     "steps": 1084,
+     "l2_gas": 134820,
+     "builtins": {
+      "range_check": 199
+     }
+    }
+   },
+   "cos_fast_lut": {
+    "raw": {
+     "l2_gas": 49390,
+     "steps": 330,
+     "holes": 49,
+     "builtins": {
+      "range_check": 34
+     }
+    },
+    "net": {
+     "steps": 263,
+     "l2_gas": 34870,
+     "builtins": {
+      "range_check": 31
+     }
+    }
+   },
+   "exp": {
+    "raw": {
+     "l2_gas": 79390,
+     "steps": 465,
+     "holes": 141,
+     "builtins": {
+      "range_check": 66
+     }
+    },
+    "net": {
+     "steps": 398,
+     "l2_gas": 64870,
+     "builtins": {
+      "range_check": 63
+     }
+    }
+   },
+   "floor": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 83,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1880,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "round": {
+    "raw": {
+     "l2_gas": 18090,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 31,
+     "l2_gas": 3570,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sin": {
+    "raw": {
+     "l2_gas": 144790,
+     "steps": 1118,
+     "holes": 80,
+     "builtins": {
+      "range_check": 200
+     }
+    },
+    "net": {
+     "steps": 1051,
+     "l2_gas": 130270,
+     "builtins": {
+      "range_check": 197
+     }
+    }
+   },
+   "sin_fast_lut": {
+    "raw": {
+     "l2_gas": 44840,
+     "steps": 273,
+     "holes": 52,
+     "builtins": {
+      "range_check": 32
+     }
+    },
+    "net": {
+     "steps": 206,
+     "l2_gas": 30320,
+     "builtins": {
+      "range_check": 29
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 18930,
+     "steps": 102,
+     "holes": 0,
+     "builtins": {
+      "range_check": 16
+     }
+    },
+    "net": {
+     "steps": 35,
+     "l2_gas": 4410,
+     "builtins": {
+      "range_check": 13
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1640,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15390,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19370,
+     "steps": 98,
+     "holes": 13,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 4450,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "from_int": {
+    "raw": {
+     "l2_gas": 14990,
+     "steps": 71,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "to_int_u32": {
+    "raw": {
+     "l2_gas": 15800,
+     "steps": 77,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 12,
+     "l2_gas": 1480,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   }
+  }
+ },
+ "a_orion_fp16x16": {
+  "baselines": {
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bo": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bi": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "abs": {
+    "raw": {
+     "l2_gas": 14520,
+     "steps": 67,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "atan": {
+    "raw": {
+     "l2_gas": 88200,
+     "steps": 447,
+     "holes": 244,
+     "builtins": {
+      "range_check": 59
+     }
+    },
+    "net": {
+     "steps": 380,
+     "l2_gas": 73680,
+     "builtins": {
+      "range_check": 56
+     }
+    }
+   },
+   "atan_fast_lut": {
+    "raw": {
+     "l2_gas": 69460,
+     "steps": 380,
+     "holes": 161,
+     "builtins": {
+      "range_check": 19
+     }
+    },
+    "net": {
+     "steps": 313,
+     "l2_gas": 54940,
+     "builtins": {
+      "range_check": 16
+     }
+    }
+   },
+   "cos": {
+    "raw": {
+     "l2_gas": 137790,
+     "steps": 1078,
+     "holes": 90,
+     "builtins": {
+      "range_check": 177
+     }
+    },
+    "net": {
+     "steps": 1011,
+     "l2_gas": 123270,
+     "builtins": {
+      "range_check": 174
+     }
+    }
+   },
+   "cos_fast_lut": {
+    "raw": {
+     "l2_gas": 44360,
+     "steps": 296,
+     "holes": 39,
+     "builtins": {
+      "range_check": 31
+     }
+    },
+    "net": {
+     "steps": 229,
+     "l2_gas": 29840,
+     "builtins": {
+      "range_check": 28
+     }
+    }
+   },
+   "exp": {
+    "raw": {
+     "l2_gas": 67820,
+     "steps": 393,
+     "holes": 123,
+     "builtins": {
+      "range_check": 51
+     }
+    },
+    "net": {
+     "steps": 326,
+     "l2_gas": 53300,
+     "builtins": {
+      "range_check": 48
+     }
+    }
+   },
+   "floor": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 83,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1880,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "round": {
+    "raw": {
+     "l2_gas": 18090,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 31,
+     "l2_gas": 3570,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sin": {
+    "raw": {
+     "l2_gas": 133190,
+     "steps": 1043,
+     "holes": 83,
+     "builtins": {
+      "range_check": 175
+     }
+    },
+    "net": {
+     "steps": 976,
+     "l2_gas": 118670,
+     "builtins": {
+      "range_check": 172
+     }
+    }
+   },
+   "sin_fast_lut": {
+    "raw": {
+     "l2_gas": 39810,
+     "steps": 239,
+     "holes": 42,
+     "builtins": {
+      "range_check": 29
+     }
+    },
+    "net": {
+     "steps": 172,
+     "l2_gas": 25290,
+     "builtins": {
+      "range_check": 26
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 16170,
+     "steps": 80,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 13,
+     "l2_gas": 1650,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1640,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15390,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 16700,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1780,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 16700,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1780,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19370,
+     "steps": 98,
+     "holes": 13,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 4450,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "from_int": {
+    "raw": {
+     "l2_gas": 14990,
+     "steps": 71,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "to_int_u32": {
+    "raw": {
+     "l2_gas": 15430,
+     "steps": 74,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 9,
+     "l2_gas": 1110,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   }
+  }
+ },
+ "a_orion_fp32x32": {
+  "baselines": {
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bo": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bi": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "abs": {
+    "raw": {
+     "l2_gas": 14520,
+     "steps": 67,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "atan": {
+    "raw": {
+     "l2_gas": 98260,
+     "steps": 503,
+     "holes": 261,
+     "builtins": {
+      "range_check": 71
+     }
+    },
+    "net": {
+     "steps": 436,
+     "l2_gas": 83740,
+     "builtins": {
+      "range_check": 68
+     }
+    }
+   },
+   "atan_fast_lut": {
+    "raw": {
+     "l2_gas": 71810,
+     "steps": 386,
+     "holes": 167,
+     "builtins": {
+      "range_check": 21
+     }
+    },
+    "net": {
+     "steps": 319,
+     "l2_gas": 57290,
+     "builtins": {
+      "range_check": 18
+     }
+    }
+   },
+   "cos": {
+    "raw": {
+     "l2_gas": 149340,
+     "steps": 1151,
+     "holes": 90,
+     "builtins": {
+      "range_check": 202
+     }
+    },
+    "net": {
+     "steps": 1084,
+     "l2_gas": 134820,
+     "builtins": {
+      "range_check": 199
+     }
+    }
+   },
+   "cos_fast_lut": {
+    "raw": {
+     "l2_gas": 49390,
+     "steps": 330,
+     "holes": 49,
+     "builtins": {
+      "range_check": 34
+     }
+    },
+    "net": {
+     "steps": 263,
+     "l2_gas": 34870,
+     "builtins": {
+      "range_check": 31
+     }
+    }
+   },
+   "exp": {
+    "raw": {
+     "l2_gas": 79390,
+     "steps": 465,
+     "holes": 141,
+     "builtins": {
+      "range_check": 66
+     }
+    },
+    "net": {
+     "steps": 398,
+     "l2_gas": 64870,
+     "builtins": {
+      "range_check": 63
+     }
+    }
+   },
+   "floor": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 83,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1880,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "round": {
+    "raw": {
+     "l2_gas": 18090,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 31,
+     "l2_gas": 3570,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sin": {
+    "raw": {
+     "l2_gas": 144790,
+     "steps": 1118,
+     "holes": 80,
+     "builtins": {
+      "range_check": 200
+     }
+    },
+    "net": {
+     "steps": 1051,
+     "l2_gas": 130270,
+     "builtins": {
+      "range_check": 197
+     }
+    }
+   },
+   "sin_fast_lut": {
+    "raw": {
+     "l2_gas": 44840,
+     "steps": 273,
+     "holes": 52,
+     "builtins": {
+      "range_check": 32
+     }
+    },
+    "net": {
+     "steps": 206,
+     "l2_gas": 30320,
+     "builtins": {
+      "range_check": 29
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 18930,
+     "steps": 102,
+     "holes": 0,
+     "builtins": {
+      "range_check": 16
+     }
+    },
+    "net": {
+     "steps": 35,
+     "l2_gas": 4410,
+     "builtins": {
+      "range_check": 13
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1640,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15390,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19370,
+     "steps": 98,
+     "holes": 13,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 4450,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "from_int": {
+    "raw": {
+     "l2_gas": 14990,
+     "steps": 71,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "to_int_u32": {
+    "raw": {
+     "l2_gas": 15800,
+     "steps": 77,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 12,
+     "l2_gas": 1480,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   }
+  }
+ },
+ "a_orion_fp8x23": {
+  "baselines": {
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bo": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "bi": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "abs": {
+    "raw": {
+     "l2_gas": 14520,
+     "steps": 67,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "atan": {
+    "raw": {
+     "l2_gas": 92150,
+     "steps": 473,
+     "holes": 255,
+     "builtins": {
+      "range_check": 61
+     }
+    },
+    "net": {
+     "steps": 406,
+     "l2_gas": 77630,
+     "builtins": {
+      "range_check": 58
+     }
+    }
+   },
+   "atan_fast_lut": {
+    "raw": {
+     "l2_gas": 69460,
+     "steps": 380,
+     "holes": 161,
+     "builtins": {
+      "range_check": 19
+     }
+    },
+    "net": {
+     "steps": 313,
+     "l2_gas": 54940,
+     "builtins": {
+      "range_check": 16
+     }
+    }
+   },
+   "cos": {
+    "raw": {
+     "l2_gas": 137790,
+     "steps": 1078,
+     "holes": 90,
+     "builtins": {
+      "range_check": 177
+     }
+    },
+    "net": {
+     "steps": 1011,
+     "l2_gas": 123270,
+     "builtins": {
+      "range_check": 174
+     }
+    }
+   },
+   "cos_fast_lut": {
+    "raw": {
+     "l2_gas": 44360,
+     "steps": 296,
+     "holes": 39,
+     "builtins": {
+      "range_check": 31
+     }
+    },
+    "net": {
+     "steps": 229,
+     "l2_gas": 29840,
+     "builtins": {
+      "range_check": 28
+     }
+    }
+   },
+   "exp": {
+    "raw": {
+     "l2_gas": 73350,
+     "steps": 429,
+     "holes": 136,
+     "builtins": {
+      "range_check": 56
+     }
+    },
+    "net": {
+     "steps": 362,
+     "l2_gas": 58830,
+     "builtins": {
+      "range_check": 53
+     }
+    }
+   },
+   "floor": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 83,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1880,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "round": {
+    "raw": {
+     "l2_gas": 18090,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 31,
+     "l2_gas": 3570,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sin": {
+    "raw": {
+     "l2_gas": 133190,
+     "steps": 1043,
+     "holes": 83,
+     "builtins": {
+      "range_check": 175
+     }
+    },
+    "net": {
+     "steps": 976,
+     "l2_gas": 118670,
+     "builtins": {
+      "range_check": 172
+     }
+    }
+   },
+   "sin_fast_lut": {
+    "raw": {
+     "l2_gas": 39810,
+     "steps": 239,
+     "holes": 42,
+     "builtins": {
+      "range_check": 29
+     }
+    },
+    "net": {
+     "steps": 172,
+     "l2_gas": 25290,
+     "builtins": {
+      "range_check": 26
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 16170,
+     "steps": 80,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 13,
+     "l2_gas": 1650,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1640,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15390,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 16700,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1780,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 16700,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1780,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19370,
+     "steps": 98,
+     "holes": 13,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 4450,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "from_int": {
+    "raw": {
+     "l2_gas": 14990,
+     "steps": 71,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "to_int_u32": {
+    "raw": {
+     "l2_gas": 15430,
+     "steps": 74,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 9,
+     "l2_gas": 1110,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   }
+  }
+ },
+ "b_cubit_f128": {
+  "baselines": {
+   "v2": {
+    "l2_gas": 15720,
+    "steps": 79,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 15120,
+    "steps": 73,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19420,
+    "steps": 116,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 23400,
+     "steps": 141,
+     "holes": 1,
+     "builtins": {
+      "range_check": 24
+     }
+    },
+    "net": {
+     "steps": 74,
+     "l2_gas": 8880,
+     "builtins": {
+      "range_check": 21
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 17880,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 2960,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 17050,
+     "steps": 90,
+     "holes": 4,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 19,
+     "l2_gas": 2130,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 26800,
+     "steps": 164,
+     "holes": 7,
+     "builtins": {
+      "range_check": 27
+     }
+    },
+    "net": {
+     "steps": 93,
+     "l2_gas": 11880,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 26500,
+     "steps": 162,
+     "holes": 7,
+     "builtins": {
+      "range_check": 27
+     }
+    },
+    "net": {
+     "steps": 91,
+     "l2_gas": 11580,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19470,
+     "steps": 97,
+     "holes": 15,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 26,
+     "l2_gas": 4550,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 141310,
+     "steps": 1075,
+     "holes": 84,
+     "builtins": {
+      "range_check": 229
+     }
+    },
+    "net": {
+     "steps": 959,
+     "l2_gas": 121890,
+     "builtins": {
+      "range_check": 226
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 49700,
+     "steps": 346,
+     "holes": 19,
+     "builtins": {
+      "range_check": 73
+     }
+    },
+    "net": {
+     "steps": 275,
+     "l2_gas": 34780,
+     "builtins": {
+      "range_check": 70
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 74360,
+     "steps": 541,
+     "holes": 33,
+     "builtins": {
+      "range_check": 121
+     }
+    },
+    "net": {
+     "steps": 468,
+     "l2_gas": 59240,
+     "builtins": {
+      "range_check": 118
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 43530,
+     "steps": 288,
+     "holes": 29,
+     "builtins": {
+      "range_check": 52
+     }
+    },
+    "net": {
+     "steps": 209,
+     "l2_gas": 27810,
+     "builtins": {
+      "range_check": 49
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 43430,
+     "steps": 293,
+     "holes": 25,
+     "builtins": {
+      "range_check": 53
+     }
+    },
+    "net": {
+     "steps": 214,
+     "l2_gas": 27710,
+     "builtins": {
+      "range_check": 50
+     }
+    }
+   }
+  }
+ },
+ "b_cubit_f64": {
+  "baselines": {
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 15120,
+    "steps": 73,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19420,
+    "steps": 116,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v2": {
+    "l2_gas": 15720,
+    "steps": 79,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 15020,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 5,
+     "l2_gas": 500,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 18930,
+     "steps": 102,
+     "holes": 0,
+     "builtins": {
+      "range_check": 16
+     }
+    },
+    "net": {
+     "steps": 35,
+     "l2_gas": 4410,
+     "builtins": {
+      "range_check": 13
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1640,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15390,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19370,
+     "steps": 98,
+     "holes": 13,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 4450,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 66790,
+     "steps": 460,
+     "holes": 69,
+     "builtins": {
+      "range_check": 58
+     }
+    },
+    "net": {
+     "steps": 344,
+     "l2_gas": 47370,
+     "builtins": {
+      "range_check": 55
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 29400,
+     "steps": 180,
+     "holes": 15,
+     "builtins": {
+      "range_check": 27
+     }
+    },
+    "net": {
+     "steps": 109,
+     "l2_gas": 14480,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 34680,
+     "steps": 216,
+     "holes": 20,
+     "builtins": {
+      "range_check": 37
+     }
+    },
+    "net": {
+     "steps": 143,
+     "l2_gas": 19560,
+     "builtins": {
+      "range_check": 34
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 25600,
+     "steps": 150,
+     "holes": 14,
+     "builtins": {
+      "range_check": 14
+     }
+    },
+    "net": {
+     "steps": 71,
+     "l2_gas": 9880,
+     "builtins": {
+      "range_check": 11
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 24990,
+     "steps": 148,
+     "holes": 11,
+     "builtins": {
+      "range_check": 15
+     }
+    },
+    "net": {
+     "steps": 69,
+     "l2_gas": 9270,
+     "builtins": {
+      "range_check": 12
+     }
+    }
+   }
+  }
+ },
+ "b_felt": {
+  "baselines": {
+   "b2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v2": {
+    "l2_gas": 15620,
+    "steps": 78,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19020,
+    "steps": 112,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 14420,
+     "steps": 66,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 1,
+     "l2_gas": 100,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 15870,
+     "steps": 77,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 12,
+     "l2_gas": 1550,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 21870,
+     "steps": 131,
+     "holes": 5,
+     "builtins": {
+      "range_check": 14
+     }
+    },
+    "net": {
+     "steps": 61,
+     "l2_gas": 7050,
+     "builtins": {
+      "range_check": 11
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 16770,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 16060,
+     "steps": 81,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 11,
+     "l2_gas": 1240,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16060,
+     "steps": 81,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 11,
+     "l2_gas": 1240,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 39870,
+     "steps": 289,
+     "holes": 0,
+     "builtins": {
+      "range_check": 48
+     }
+    },
+    "net": {
+     "steps": 177,
+     "l2_gas": 20850,
+     "builtins": {
+      "range_check": 45
+     }
+    }
+   },
+   "mat3_mul_vec3_fused": {
+    "raw": {
+     "l2_gas": 28830,
+     "steps": 194,
+     "holes": 6,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 82,
+     "l2_gas": 9810,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 22330,
+     "steps": 128,
+     "holes": 7,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 58,
+     "l2_gas": 7510,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "length2_fused": {
+    "raw": {
+     "l2_gas": 19440,
+     "steps": 108,
+     "holes": 0,
+     "builtins": {
+      "range_check": 13
+     }
+    },
+    "net": {
+     "steps": 38,
+     "l2_gas": 4620,
+     "builtins": {
+      "range_check": 10
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 35770,
+     "steps": 249,
+     "holes": 11,
+     "builtins": {
+      "range_check": 40
+     }
+    },
+    "net": {
+     "steps": 178,
+     "l2_gas": 20850,
+     "builtins": {
+      "range_check": 37
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 20640,
+     "steps": 120,
+     "holes": 0,
+     "builtins": {
+      "range_check": 13
+     }
+    },
+    "net": {
+     "steps": 42,
+     "l2_gas": 5020,
+     "builtins": {
+      "range_check": 10
+     }
+    }
+   },
+   "cross2_fused": {
+    "raw": {
+     "l2_gas": 17770,
+     "steps": 96,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2150,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 20640,
+     "steps": 120,
+     "holes": 0,
+     "builtins": {
+      "range_check": 13
+     }
+    },
+    "net": {
+     "steps": 42,
+     "l2_gas": 5020,
+     "builtins": {
+      "range_check": 10
+     }
+    }
+   },
+   "dot2_fused": {
+    "raw": {
+     "l2_gas": 17770,
+     "steps": 96,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2150,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   }
+  }
+ },
+ "b_i64b": {
+  "baselines": {
+   "b1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19020,
+    "steps": 112,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v2": {
+    "l2_gas": 15620,
+    "steps": 78,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 14620,
+     "steps": 68,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 3,
+     "l2_gas": 300,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 16440,
+     "steps": 82,
+     "holes": 0,
+     "builtins": {
+      "range_check": 9
+     }
+    },
+    "net": {
+     "steps": 17,
+     "l2_gas": 2120,
+     "builtins": {
+      "range_check": 6
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 20550,
+     "steps": 114,
+     "holes": 9,
+     "builtins": {
+      "range_check": 10
+     }
+    },
+    "net": {
+     "steps": 44,
+     "l2_gas": 5730,
+     "builtins": {
+      "range_check": 7
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 16770,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 15490,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 670,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 15490,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 670,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 43940,
+     "steps": 314,
+     "holes": 8,
+     "builtins": {
+      "range_check": 60
+     }
+    },
+    "net": {
+     "steps": 202,
+     "l2_gas": 24920,
+     "builtins": {
+      "range_check": 57
+     }
+    }
+   },
+   "mat3_mul_vec3_fused": {
+    "raw": {
+     "l2_gas": 29200,
+     "steps": 194,
+     "holes": 9,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 82,
+     "l2_gas": 10180,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 23480,
+     "steps": 135,
+     "holes": 8,
+     "builtins": {
+      "range_check": 21
+     }
+    },
+    "net": {
+     "steps": 65,
+     "l2_gas": 8660,
+     "builtins": {
+      "range_check": 18
+     }
+    }
+   },
+   "length2_fused": {
+    "raw": {
+     "l2_gas": 19910,
+     "steps": 112,
+     "holes": 0,
+     "builtins": {
+      "range_check": 14
+     }
+    },
+    "net": {
+     "steps": 42,
+     "l2_gas": 5090,
+     "builtins": {
+      "range_check": 11
+     }
+    }
+   },
+   "length2_wide_sqrt": {
+    "raw": {
+     "l2_gas": 16940,
+     "steps": 87,
+     "holes": 0,
+     "builtins": {
+      "range_check": 9
+     }
+    },
+    "net": {
+     "steps": 17,
+     "l2_gas": 2120,
+     "builtins": {
+      "range_check": 6
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 34040,
+     "steps": 222,
+     "holes": 21,
+     "builtins": {
+      "range_check": 35
+     }
+    },
+    "net": {
+     "steps": 151,
+     "l2_gas": 19120,
+     "builtins": {
+      "range_check": 32
+     }
+    }
+   },
+   "normalize2_fused": {
+    "raw": {
+     "l2_gas": 31550,
+     "steps": 202,
+     "holes": 21,
+     "builtins": {
+      "range_check": 28
+     }
+    },
+    "net": {
+     "steps": 131,
+     "l2_gas": 16630,
+     "builtins": {
+      "range_check": 25
+     }
+    }
+   },
+   "normalize2_fused_rsqrt": {
+    "raw": {
+     "l2_gas": 26400,
+     "steps": 158,
+     "holes": 9,
+     "builtins": {
+      "range_check": 28
+     }
+    },
+    "net": {
+     "steps": 87,
+     "l2_gas": 11480,
+     "builtins": {
+      "range_check": 25
+     }
+    }
+   },
+   "normalize2_wide_sqrt": {
+    "raw": {
+     "l2_gas": 29420,
+     "steps": 183,
+     "holes": 21,
+     "builtins": {
+      "range_check": 23
+     }
+    },
+    "net": {
+     "steps": 112,
+     "l2_gas": 14500,
+     "builtins": {
+      "range_check": 20
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 22290,
+     "steps": 129,
+     "holes": 8,
+     "builtins": {
+      "range_check": 15
+     }
+    },
+    "net": {
+     "steps": 51,
+     "l2_gas": 6670,
+     "builtins": {
+      "range_check": 12
+     }
+    }
+   },
+   "cross2_fused": {
+    "raw": {
+     "l2_gas": 17770,
+     "steps": 96,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2150,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 22290,
+     "steps": 129,
+     "holes": 8,
+     "builtins": {
+      "range_check": 15
+     }
+    },
+    "net": {
+     "steps": 51,
+     "l2_gas": 6670,
+     "builtins": {
+      "range_check": 12
+     }
+    }
+   },
+   "dot2_fused": {
+    "raw": {
+     "l2_gas": 17770,
+     "steps": 96,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2150,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   }
+  }
+ },
+ "b_i64n": {
+  "baselines": {
+   "b1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v2": {
+    "l2_gas": 15620,
+    "steps": 78,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19020,
+    "steps": 112,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 14620,
+     "steps": 68,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 3,
+     "l2_gas": 300,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 16340,
+     "steps": 81,
+     "holes": 0,
+     "builtins": {
+      "range_check": 9
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 2020,
+     "builtins": {
+      "range_check": 6
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 27700,
+     "steps": 158,
+     "holes": 24,
+     "builtins": {
+      "range_check": 23
+     }
+    },
+    "net": {
+     "steps": 88,
+     "l2_gas": 12880,
+     "builtins": {
+      "range_check": 20
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 18830,
+     "steps": 103,
+     "holes": 0,
+     "builtins": {
+      "range_check": 10
+     }
+    },
+    "net": {
+     "steps": 33,
+     "l2_gas": 4010,
+     "builtins": {
+      "range_check": 7
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 15490,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 670,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 15490,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 670,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 53300,
+     "steps": 382,
+     "holes": 16,
+     "builtins": {
+      "range_check": 78
+     }
+    },
+    "net": {
+     "steps": 270,
+     "l2_gas": 34280,
+     "builtins": {
+      "range_check": 75
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 25460,
+     "steps": 148,
+     "holes": 12,
+     "builtins": {
+      "range_check": 25
+     }
+    },
+    "net": {
+     "steps": 78,
+     "l2_gas": 10640,
+     "builtins": {
+      "range_check": 22
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 51150,
+     "steps": 325,
+     "holes": 61,
+     "builtins": {
+      "range_check": 65
+     }
+    },
+    "net": {
+     "steps": 254,
+     "l2_gas": 36230,
+     "builtins": {
+      "range_check": 62
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 24370,
+     "steps": 144,
+     "holes": 10,
+     "builtins": {
+      "range_check": 19
+     }
+    },
+    "net": {
+     "steps": 66,
+     "l2_gas": 8750,
+     "builtins": {
+      "range_check": 16
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 24370,
+     "steps": 144,
+     "holes": 10,
+     "builtins": {
+      "range_check": 19
+     }
+    },
+    "net": {
+     "steps": 66,
+     "l2_gas": 8750,
+     "builtins": {
+      "range_check": 16
+     }
+    }
+   }
+  }
+ },
+ "b_mulshift": {
+  "baselines": {
+   "u3": {
+    "l2_gas": 15220,
+    "steps": 74,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "w2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "w1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "y2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "u2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "x2": {
+    "l2_gas": 15320,
+    "steps": 75,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "mulshift_bounded_int": {
+    "raw": {
+     "l2_gas": 16300,
+     "steps": 82,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 12,
+     "l2_gas": 1480,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "mulshift_div_operator_literal": {
+    "raw": {
+     "l2_gas": 16770,
+     "steps": 85,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mulshift_divrem_const_nonzero": {
+    "raw": {
+     "l2_gas": 16770,
+     "steps": 85,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mulshift_felt": {
+    "raw": {
+     "l2_gas": 17040,
+     "steps": 87,
+     "holes": 0,
+     "builtins": {
+      "range_check": 9
+     }
+    },
+    "net": {
+     "steps": 17,
+     "l2_gas": 2220,
+     "builtins": {
+      "range_check": 6
+     }
+    }
+   },
+   "u64_checked_mul": {
+    "raw": {
+     "l2_gas": 15290,
+     "steps": 74,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "u64_div_const": {
+    "raw": {
+     "l2_gas": 15830,
+     "steps": 78,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 8,
+     "l2_gas": 1010,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   },
+   "u64_div_runtime": {
+    "raw": {
+     "l2_gas": 15830,
+     "steps": 78,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 8,
+     "l2_gas": 1010,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   },
+   "u64_wide_mul_only": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "mulshift_div_runtime_divisor": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "u128_div_const": {
+    "raw": {
+     "l2_gas": 15900,
+     "steps": 78,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 13,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "u128_checked_mul": {
+    "raw": {
+     "l2_gas": 17950,
+     "steps": 95,
+     "holes": 0,
+     "builtins": {
+      "range_check": 12
+     }
+    },
+    "net": {
+     "steps": 25,
+     "l2_gas": 3130,
+     "builtins": {
+      "range_check": 9
+     }
+    }
+   },
+   "u128_div_runtime": {
+    "raw": {
+     "l2_gas": 16300,
+     "steps": 82,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 12,
+     "l2_gas": 1480,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "u256_div_runtime": {
+    "raw": {
+     "l2_gas": 22390,
+     "steps": 132,
+     "holes": 0,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 57,
+     "l2_gas": 7070,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "u128_wide_mul_only": {
+    "raw": {
+     "l2_gas": 17950,
+     "steps": 95,
+     "holes": 0,
+     "builtins": {
+      "range_check": 12
+     }
+    },
+    "net": {
+     "steps": 24,
+     "l2_gas": 3030,
+     "builtins": {
+      "range_check": 9
+     }
+    }
+   }
+  }
+ },
+ "b_sm128": {
+  "baselines": {
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19420,
+    "steps": 116,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v2": {
+    "l2_gas": 15720,
+    "steps": 79,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 15120,
+    "steps": 73,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 14720,
+     "steps": 69,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 2,
+     "l2_gas": 200,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 22260,
+     "steps": 132,
+     "holes": 1,
+     "builtins": {
+      "range_check": 19
+     }
+    },
+    "net": {
+     "steps": 65,
+     "l2_gas": 7740,
+     "builtins": {
+      "range_check": 16
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 17880,
+     "steps": 98,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 27,
+     "l2_gas": 2960,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 17050,
+     "steps": 90,
+     "holes": 4,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 19,
+     "l2_gas": 2130,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 26800,
+     "steps": 164,
+     "holes": 7,
+     "builtins": {
+      "range_check": 27
+     }
+    },
+    "net": {
+     "steps": 93,
+     "l2_gas": 11880,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 21490,
+     "steps": 124,
+     "holes": 0,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 53,
+     "l2_gas": 6570,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19170,
+     "steps": 95,
+     "holes": 14,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 24,
+     "l2_gas": 4250,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 87940,
+     "steps": 661,
+     "holes": 21,
+     "builtins": {
+      "range_check": 148
+     }
+    },
+    "net": {
+     "steps": 545,
+     "l2_gas": 68520,
+     "builtins": {
+      "range_check": 145
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 36580,
+     "steps": 245,
+     "holes": 5,
+     "builtins": {
+      "range_check": 50
+     }
+    },
+    "net": {
+     "steps": 174,
+     "l2_gas": 21660,
+     "builtins": {
+      "range_check": 47
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 60740,
+     "steps": 435,
+     "holes": 19,
+     "builtins": {
+      "range_check": 98
+     }
+    },
+    "net": {
+     "steps": 362,
+     "l2_gas": 45620,
+     "builtins": {
+      "range_check": 95
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 32070,
+     "steps": 201,
+     "holes": 14,
+     "builtins": {
+      "range_check": 34
+     }
+    },
+    "net": {
+     "steps": 122,
+     "l2_gas": 16350,
+     "builtins": {
+      "range_check": 31
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 31570,
+     "steps": 201,
+     "holes": 11,
+     "builtins": {
+      "range_check": 35
+     }
+    },
+    "net": {
+     "steps": 122,
+     "l2_gas": 15850,
+     "builtins": {
+      "range_check": 32
+     }
+    }
+   }
+  }
+ },
+ "b_sm64": {
+  "baselines": {
+   "b2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v1v": {
+    "l2_gas": 15120,
+    "steps": 73,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "m3": {
+    "l2_gas": 19420,
+    "steps": 116,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "v2": {
+    "l2_gas": 15720,
+    "steps": 79,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2b": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "neg": {
+    "raw": {
+     "l2_gas": 14720,
+     "steps": 69,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 2,
+     "l2_gas": 200,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "sqrt": {
+    "raw": {
+     "l2_gas": 15800,
+     "steps": 77,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 10,
+     "l2_gas": 1280,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "add_mixed_sign": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1640,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "add_same_sign": {
+    "raw": {
+     "l2_gas": 15390,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 4,
+     "l2_gas": 470,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "div": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mul": {
+    "raw": {
+     "l2_gas": 17170,
+     "steps": 89,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 18,
+     "l2_gas": 2250,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sub": {
+    "raw": {
+     "l2_gas": 19170,
+     "steps": 96,
+     "holes": 13,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 25,
+     "l2_gas": 4250,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "lt_mixed_sign": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "lt_same_sign": {
+    "raw": {
+     "l2_gas": 16400,
+     "steps": 85,
+     "holes": 1,
+     "builtins": {
+      "range_check": 4
+     }
+    },
+    "net": {
+     "steps": 15,
+     "l2_gas": 1580,
+     "builtins": {
+      "range_check": 1
+     }
+    }
+   },
+   "mat3_mul_vec3": {
+    "raw": {
+     "l2_gas": 66790,
+     "steps": 460,
+     "holes": 69,
+     "builtins": {
+      "range_check": 58
+     }
+    },
+    "net": {
+     "steps": 344,
+     "l2_gas": 47370,
+     "builtins": {
+      "range_check": 55
+     }
+    }
+   },
+   "length2": {
+    "raw": {
+     "l2_gas": 25760,
+     "steps": 150,
+     "holes": 14,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 79,
+     "l2_gas": 10840,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "normalize2": {
+    "raw": {
+     "l2_gas": 31150,
+     "steps": 187,
+     "holes": 20,
+     "builtins": {
+      "range_check": 28
+     }
+    },
+    "net": {
+     "steps": 114,
+     "l2_gas": 16030,
+     "builtins": {
+      "range_check": 25
+     }
+    }
+   },
+   "cross2": {
+    "raw": {
+     "l2_gas": 25190,
+     "steps": 146,
+     "holes": 13,
+     "builtins": {
+      "range_check": 14
+     }
+    },
+    "net": {
+     "steps": 67,
+     "l2_gas": 9470,
+     "builtins": {
+      "range_check": 11
+     }
+    }
+   },
+   "dot2": {
+    "raw": {
+     "l2_gas": 24990,
+     "steps": 148,
+     "holes": 11,
+     "builtins": {
+      "range_check": 15
+     }
+    },
+    "net": {
+     "steps": 69,
+     "l2_gas": 9270,
+     "builtins": {
+      "range_check": 12
+     }
+    }
+   }
+  }
+ },
+ "c_sqrt": {
+  "baselines": {
+   "s1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "inv_sqrt_core_then_div": {
+    "raw": {
+     "l2_gas": 17650,
+     "steps": 91,
+     "holes": 0,
+     "builtins": {
+      "range_check": 12
+     }
+    },
+    "net": {
+     "steps": 26,
+     "l2_gas": 3330,
+     "builtins": {
+      "range_check": 9
+     }
+    }
+   },
+   "inv_sqrt_div_then_core": {
+    "raw": {
+     "l2_gas": 17080,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 11
+     }
+    },
+    "net": {
+     "steps": 21,
+     "l2_gas": 2760,
+     "builtins": {
+      "range_check": 8
+     }
+    }
+   },
+   "sqrt_core_u128_widemul": {
+    "raw": {
+     "l2_gas": 15600,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 7
+     }
+    },
+    "net": {
+     "steps": 10,
+     "l2_gas": 1280,
+     "builtins": {
+      "range_check": 4
+     }
+    }
+   },
+   "sqrt_core_u64_lowprec": {
+    "raw": {
+     "l2_gas": 16070,
+     "steps": 79,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 14,
+     "l2_gas": 1750,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "sqrt_cubit_style_checked_mul": {
+    "raw": {
+     "l2_gas": 18730,
+     "steps": 100,
+     "holes": 0,
+     "builtins": {
+      "range_check": 16
+     }
+    },
+    "net": {
+     "steps": 35,
+     "l2_gas": 4410,
+     "builtins": {
+      "range_check": 13
+     }
+    }
+   },
+   "sqrt_newton8_loop": {
+    "raw": {
+     "l2_gas": 57830,
+     "steps": 421,
+     "holes": 0,
+     "builtins": {
+      "range_check": 90
+     }
+    },
+    "net": {
+     "steps": 356,
+     "l2_gas": 43510,
+     "builtins": {
+      "range_check": 87
+     }
+    }
+   },
+   "sqrt_newton8_unrolled": {
+    "raw": {
+     "l2_gas": 45480,
+     "steps": 296,
+     "holes": 8,
+     "builtins": {
+      "range_check": 81
+     }
+    },
+    "net": {
+     "steps": 231,
+     "l2_gas": 31160,
+     "builtins": {
+      "range_check": 78
+     }
+    }
+   }
+  }
+ },
+ "d_sweep": {
+  "baselines": {},
+  "ops": {
+   "sweep_bhaskara_sin": {
+    "raw": {
+     "l2_gas": 55330730,
+     "steps": 425585,
+     "holes": 108292,
+     "builtins": {
+      "range_check": 44274
+     }
+    },
+    "net": null
+   },
+   "sweep_cubit_atan": {
+    "raw": {
+     "l2_gas": 70586960,
+     "steps": 511197,
+     "holes": 151965,
+     "builtins": {
+      "range_check": 56572
+     }
+    },
+    "net": null
+   },
+   "sweep_cubit_atan_fast": {
+    "raw": {
+     "l2_gas": 65263820,
+     "steps": 464580,
+     "holes": 144931,
+     "builtins": {
+      "range_check": 46599
+     }
+    },
+    "net": null
+   },
+   "sweep_cubit_cos": {
+    "raw": {
+     "l2_gas": 80762680,
+     "steps": 632290,
+     "holes": 124052,
+     "builtins": {
+      "range_check": 81284
+     }
+    },
+    "net": null
+   },
+   "sweep_cubit_cos_fast": {
+    "raw": {
+     "l2_gas": 60702670,
+     "steps": 463890,
+     "holes": 117691,
+     "builtins": {
+      "range_check": 47606
+     }
+    },
+    "net": null
+   },
+   "sweep_cubit_sin": {
+    "raw": {
+     "l2_gas": 79704970,
+     "steps": 624881,
+     "holes": 121422,
+     "builtins": {
+      "range_check": 80844
+     }
+    },
+    "net": null
+   },
+   "sweep_cubit_sin_fast": {
+    "raw": {
+     "l2_gas": 59642980,
+     "steps": 456652,
+     "holes": 114939,
+     "builtins": {
+      "range_check": 47174
+     }
+    },
+    "net": null
+   },
+   "sweep_poly_atan": {
+    "raw": {
+     "l2_gas": 58224100,
+     "steps": 451651,
+     "holes": 108732,
+     "builtins": {
+      "range_check": 50323
+     }
+    },
+    "net": null
+   },
+   "sweep_poly_cos7": {
+    "raw": {
+     "l2_gas": 57339290,
+     "steps": 443971,
+     "holes": 108167,
+     "builtins": {
+      "range_check": 48913
+     }
+    },
+    "net": null
+   },
+   "sweep_poly_sin5": {
+    "raw": {
+     "l2_gas": 56627060,
+     "steps": 437950,
+     "holes": 107973,
+     "builtins": {
+      "range_check": 47373
+     }
+    },
+    "net": null
+   },
+   "sweep_poly_sin7": {
+    "raw": {
+     "l2_gas": 57059210,
+     "steps": 441568,
+     "holes": 107973,
+     "builtins": {
+      "range_check": 48378
+     }
+    },
+    "net": null
+   },
+   "sweep_poly_sin9": {
+    "raw": {
+     "l2_gas": 57491360,
+     "steps": 445186,
+     "holes": 107973,
+     "builtins": {
+      "range_check": 49383
+     }
+    },
+    "net": null
+   }
+  }
+ },
+ "d_trig": {
+  "baselines": {
+   "c2": {
+    "l2_gas": 14920,
+    "steps": 71,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "c1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "i2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "i1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "cubit_atan_fast_lut_0p7": {
+    "raw": {
+     "l2_gas": 71810,
+     "steps": 386,
+     "holes": 167,
+     "builtins": {
+      "range_check": 21
+     }
+    },
+    "net": {
+     "steps": 319,
+     "l2_gas": 57290,
+     "builtins": {
+      "range_check": 18
+     }
+    }
+   },
+   "cubit_atan_poly_0p7": {
+    "raw": {
+     "l2_gas": 98260,
+     "steps": 503,
+     "holes": 261,
+     "builtins": {
+      "range_check": 71
+     }
+    },
+    "net": {
+     "steps": 436,
+     "l2_gas": 83740,
+     "builtins": {
+      "range_check": 68
+     }
+    }
+   },
+   "cubit_cos_fast_lut_0p7": {
+    "raw": {
+     "l2_gas": 49390,
+     "steps": 330,
+     "holes": 49,
+     "builtins": {
+      "range_check": 34
+     }
+    },
+    "net": {
+     "steps": 263,
+     "l2_gas": 34870,
+     "builtins": {
+      "range_check": 31
+     }
+    }
+   },
+   "cubit_cos_taylor_0p7": {
+    "raw": {
+     "l2_gas": 149340,
+     "steps": 1151,
+     "holes": 90,
+     "builtins": {
+      "range_check": 202
+     }
+    },
+    "net": {
+     "steps": 1084,
+     "l2_gas": 134820,
+     "builtins": {
+      "range_check": 199
+     }
+    }
+   },
+   "cubit_sin_fast_lut_0p7": {
+    "raw": {
+     "l2_gas": 44840,
+     "steps": 273,
+     "holes": 52,
+     "builtins": {
+      "range_check": 32
+     }
+    },
+    "net": {
+     "steps": 206,
+     "l2_gas": 30320,
+     "builtins": {
+      "range_check": 29
+     }
+    }
+   },
+   "cubit_sin_fast_lut_2p5": {
+    "raw": {
+     "l2_gas": 44840,
+     "steps": 288,
+     "holes": 43,
+     "builtins": {
+      "range_check": 33
+     }
+    },
+    "net": {
+     "steps": 221,
+     "l2_gas": 30320,
+     "builtins": {
+      "range_check": 30
+     }
+    }
+   },
+   "cubit_sin_taylor_0p7": {
+    "raw": {
+     "l2_gas": 144790,
+     "steps": 1118,
+     "holes": 80,
+     "builtins": {
+      "range_check": 200
+     }
+    },
+    "net": {
+     "steps": 1051,
+     "l2_gas": 130270,
+     "builtins": {
+      "range_check": 197
+     }
+    }
+   },
+   "cubit_sin_taylor_2p5": {
+    "raw": {
+     "l2_gas": 144790,
+     "steps": 1118,
+     "holes": 80,
+     "builtins": {
+      "range_check": 200
+     }
+    },
+    "net": {
+     "steps": 1051,
+     "l2_gas": 130270,
+     "builtins": {
+      "range_check": 197
+     }
+    }
+   },
+   "cubit_tan_taylor_0p7": {
+    "raw": {
+     "l2_gas": 283460,
+     "steps": 2236,
+     "holes": 170,
+     "builtins": {
+      "range_check": 404
+     }
+    },
+    "net": {
+     "steps": 2169,
+     "l2_gas": 268940,
+     "builtins": {
+      "range_check": 401
+     }
+    }
+   },
+   "bhaskara_sin_0p7": {
+    "raw": {
+     "l2_gas": 23750,
+     "steps": 135,
+     "holes": 13,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 70,
+     "l2_gas": 9430,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "poly_cos7_0p7": {
+    "raw": {
+     "l2_gas": 33560,
+     "steps": 220,
+     "holes": 12,
+     "builtins": {
+      "range_check": 41
+     }
+    },
+    "net": {
+     "steps": 155,
+     "l2_gas": 19240,
+     "builtins": {
+      "range_check": 38
+     }
+    }
+   },
+   "poly_sin5_0p7": {
+    "raw": {
+     "l2_gas": 30570,
+     "steps": 191,
+     "holes": 16,
+     "builtins": {
+      "range_check": 33
+     }
+    },
+    "net": {
+     "steps": 126,
+     "l2_gas": 16250,
+     "builtins": {
+      "range_check": 30
+     }
+    }
+   },
+   "poly_sin7_0p7": {
+    "raw": {
+     "l2_gas": 32720,
+     "steps": 209,
+     "holes": 16,
+     "builtins": {
+      "range_check": 38
+     }
+    },
+    "net": {
+     "steps": 144,
+     "l2_gas": 18400,
+     "builtins": {
+      "range_check": 35
+     }
+    }
+   },
+   "poly_sin7_2p5": {
+    "raw": {
+     "l2_gas": 32720,
+     "steps": 213,
+     "holes": 12,
+     "builtins": {
+      "range_check": 39
+     }
+    },
+    "net": {
+     "steps": 148,
+     "l2_gas": 18400,
+     "builtins": {
+      "range_check": 36
+     }
+    }
+   },
+   "poly_sin9_0p7": {
+    "raw": {
+     "l2_gas": 34870,
+     "steps": 227,
+     "holes": 16,
+     "builtins": {
+      "range_check": 43
+     }
+    },
+    "net": {
+     "steps": 162,
+     "l2_gas": 20550,
+     "builtins": {
+      "range_check": 40
+     }
+    }
+   },
+   "poly_atan2_deg11": {
+    "raw": {
+     "l2_gas": 37930,
+     "steps": 256,
+     "holes": 19,
+     "builtins": {
+      "range_check": 47
+     }
+    },
+    "net": {
+     "steps": 186,
+     "l2_gas": 23110,
+     "builtins": {
+      "range_check": 44
+     }
+    }
+   }
+  }
+ },
+ "e_orion_linalg": {
+  "baselines": {
+   "tmm16": {
+    "l2_gas": 47580,
+    "steps": 391,
+    "holes": 0,
+    "builtins": {
+     "range_check": 13
+    }
+   },
+   "smi": {
+    "l2_gas": 22940,
+    "steps": 150,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "tdot16": {
+    "l2_gas": 28660,
+    "steps": 203,
+    "holes": 0,
+    "builtins": {
+     "range_check": 9
+    }
+   },
+   "svi": {
+    "l2_gas": 19020,
+    "steps": 112,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "tmv16": {
+    "l2_gas": 38880,
+    "steps": 304,
+    "holes": 0,
+    "builtins": {
+     "range_check": 13
+    }
+   },
+   "smc": {
+    "l2_gas": 24040,
+    "steps": 161,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "tdot32": {
+    "l2_gas": 28660,
+    "steps": 203,
+    "holes": 0,
+    "builtins": {
+     "range_check": 9
+    }
+   },
+   "tmm32": {
+    "l2_gas": 47580,
+    "steps": 391,
+    "holes": 0,
+    "builtins": {
+     "range_check": 13
+    }
+   },
+   "tmv32": {
+    "l2_gas": 38880,
+    "steps": 304,
+    "holes": 0,
+    "builtins": {
+     "range_check": 13
+    }
+   }
+  },
+  "ops": {
+   "struct_mat3_mul_cubit_f64": {
+    "raw": {
+     "l2_gas": 158290,
+     "steps": 1098,
+     "holes": 219,
+     "builtins": {
+      "range_check": 164
+     }
+    },
+    "net": {
+     "steps": 937,
+     "l2_gas": 134250,
+     "builtins": {
+      "range_check": 161
+     }
+    }
+   },
+   "struct_mat3_mul_i64b": {
+    "raw": {
+     "l2_gas": 93040,
+     "steps": 724,
+     "holes": 8,
+     "builtins": {
+      "range_check": 174
+     }
+    },
+    "net": {
+     "steps": 574,
+     "l2_gas": 70100,
+     "builtins": {
+      "range_check": 171
+     }
+    }
+   },
+   "struct_mat3_mul_i64b_fused": {
+    "raw": {
+     "l2_gas": 48420,
+     "steps": 364,
+     "holes": 9,
+     "builtins": {
+      "range_check": 48
+     }
+    },
+    "net": {
+     "steps": 214,
+     "l2_gas": 25480,
+     "builtins": {
+      "range_check": 45
+     }
+    }
+   },
+   "struct_mat3_vec3_i64b": {
+    "raw": {
+     "l2_gas": 43940,
+     "steps": 314,
+     "holes": 8,
+     "builtins": {
+      "range_check": 60
+     }
+    },
+    "net": {
+     "steps": 202,
+     "l2_gas": 24920,
+     "builtins": {
+      "range_check": 57
+     }
+    }
+   },
+   "struct_mat3_vec3_i64b_fused": {
+    "raw": {
+     "l2_gas": 29200,
+     "steps": 194,
+     "holes": 9,
+     "builtins": {
+      "range_check": 18
+     }
+    },
+    "net": {
+     "steps": 82,
+     "l2_gas": 10180,
+     "builtins": {
+      "range_check": 15
+     }
+    }
+   },
+   "orion_tensor_dot_3_fp16x16": {
+    "raw": {
+     "l2_gas": 63740,
+     "steps": 497,
+     "holes": 34,
+     "builtins": {
+      "range_check": 33
+     }
+    },
+    "net": {
+     "steps": 294,
+     "l2_gas": 35080,
+     "builtins": {
+      "range_check": 24
+     }
+    }
+   },
+   "orion_tensor_dot_3_fp32x32": {
+    "raw": {
+     "l2_gas": 65150,
+     "steps": 506,
+     "holes": 34,
+     "builtins": {
+      "range_check": 36
+     }
+    },
+    "net": {
+     "steps": 303,
+     "l2_gas": 36490,
+     "builtins": {
+      "range_check": 27
+     }
+    }
+   },
+   "orion_tensor_matmul_3x3_fp16x16": {
+    "raw": {
+     "l2_gas": 391880,
+     "steps": 3348,
+     "holes": 230,
+     "builtins": {
+      "range_check": 326
+     }
+    },
+    "net": {
+     "steps": 2957,
+     "l2_gas": 344300,
+     "builtins": {
+      "range_check": 313
+     }
+    }
+   },
+   "orion_tensor_matmul_3x3_fp32x32": {
+    "raw": {
+     "l2_gas": 404570,
+     "steps": 3429,
+     "holes": 230,
+     "builtins": {
+      "range_check": 353
+     }
+    },
+    "net": {
+     "steps": 3038,
+     "l2_gas": 356990,
+     "builtins": {
+      "range_check": 340
+     }
+    }
+   },
+   "orion_tensor_matvec_3x3_3_fp16x16": {
+    "raw": {
+     "l2_gas": 181540,
+     "steps": 1566,
+     "holes": 70,
+     "builtins": {
+      "range_check": 130
+     }
+    },
+    "net": {
+     "steps": 1262,
+     "l2_gas": 142660,
+     "builtins": {
+      "range_check": 117
+     }
+    }
+   },
+   "orion_tensor_matvec_3x3_3_fp32x32": {
+    "raw": {
+     "l2_gas": 185770,
+     "steps": 1593,
+     "holes": 70,
+     "builtins": {
+      "range_check": 139
+     }
+    },
+    "net": {
+     "steps": 1289,
+     "l2_gas": 146890,
+     "builtins": {
+      "range_check": 126
+     }
+    }
+   }
+  }
+ },
+ "f_heuristic": {
+  "baselines": {
+   "h2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "r1": {
+    "l2_gas": 14420,
+    "steps": 66,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "k2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "t1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "p1": {
+    "l2_gas": 14520,
+    "steps": 67,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "q1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "pack_bitwise_or": {
+    "raw": {
+     "l2_gas": 16273,
+     "steps": 79,
+     "holes": 0,
+     "builtins": {
+      "range_check": 4,
+      "bitwise": 1
+     }
+    },
+    "net": {
+     "steps": 9,
+     "l2_gas": 1453,
+     "builtins": {
+      "range_check": 1,
+      "bitwise": 1
+     }
+    }
+   },
+   "pack_math_bounded_int": {
+    "raw": {
+     "l2_gas": 14920,
+     "steps": 71,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 1,
+     "l2_gas": 100,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "pack_math_checked": {
+    "raw": {
+     "l2_gas": 15760,
+     "steps": 78,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 8,
+     "l2_gas": 940,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "pack_math_felt": {
+    "raw": {
+     "l2_gas": 15560,
+     "steps": 76,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "shl13_loop_doubling": {
+    "raw": {
+     "l2_gas": 37810,
+     "steps": 281,
+     "holes": 0,
+     "builtins": {
+      "range_check": 30
+     }
+    },
+    "net": {
+     "steps": 211,
+     "l2_gas": 22990,
+     "builtins": {
+      "range_check": 27
+     }
+    }
+   },
+   "shl13_math_core_pow": {
+    "raw": {
+     "l2_gas": 29120,
+     "steps": 197,
+     "holes": 0,
+     "builtins": {
+      "range_check": 26
+     }
+    },
+    "net": {
+     "steps": 127,
+     "l2_gas": 14300,
+     "builtins": {
+      "range_check": 23
+     }
+    }
+   },
+   "shl13_math_table_mul": {
+    "raw": {
+     "l2_gas": 16560,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   },
+   "split_bitwise_and": {
+    "raw": {
+     "l2_gas": 17696,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6,
+      "bitwise": 2
+     }
+    },
+    "net": {
+     "steps": 19,
+     "l2_gas": 3176,
+     "builtins": {
+      "range_check": 3,
+      "bitwise": 2
+     }
+    }
+   },
+   "split_loop_32_halvings": {
+    "raw": {
+     "l2_gas": 142830,
+     "steps": 1194,
+     "holes": 0,
+     "builtins": {
+      "range_check": 226
+     }
+    },
+    "net": {
+     "steps": 1127,
+     "l2_gas": 128310,
+     "builtins": {
+      "range_check": 223
+     }
+    }
+   },
+   "split_math_divrem": {
+    "raw": {
+     "l2_gas": 15530,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 8,
+     "l2_gas": 1010,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   },
+   "low32_bitwise_and": {
+    "raw": {
+     "l2_gas": 15503,
+     "steps": 72,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3,
+      "bitwise": 1
+     }
+    },
+    "net": {
+     "steps": 7,
+     "l2_gas": 1183,
+     "builtins": {
+      "range_check": 0,
+      "bitwise": 1
+     }
+    }
+   },
+   "low32_math_divrem": {
+    "raw": {
+     "l2_gas": 15330,
+     "steps": 73,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 8,
+     "l2_gas": 1010,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   },
+   "parity_bitwise_and": {
+    "raw": {
+     "l2_gas": 16003,
+     "steps": 77,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3,
+      "bitwise": 1
+     }
+    },
+    "net": {
+     "steps": 11,
+     "l2_gas": 1583,
+     "builtins": {
+      "range_check": 0,
+      "bitwise": 1
+     }
+    }
+   },
+   "parity_math_divrem": {
+    "raw": {
+     "l2_gas": 15830,
+     "steps": 78,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 12,
+     "l2_gas": 1410,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   },
+   "split_math_bounded_int": {
+    "raw": {
+     "l2_gas": 15530,
+     "steps": 75,
+     "holes": 0,
+     "builtins": {
+      "range_check": 6
+     }
+    },
+    "net": {
+     "steps": 8,
+     "l2_gas": 1010,
+     "builtins": {
+      "range_check": 3
+     }
+    }
+   }
+  }
+ },
+ "g_pitfalls": {
+  "baselines": {
+   "f1": {
+    "l2_gas": 14320,
+    "steps": 65,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   },
+   "b2": {
+    "l2_gas": 14820,
+    "steps": 70,
+    "holes": 0,
+    "builtins": {
+     "range_check": 3
+    }
+   }
+  },
+  "ops": {
+   "dot6_fused_single_rescale": {
+    "raw": {
+     "l2_gas": 17770,
+     "steps": 96,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 26,
+     "l2_gas": 2950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "dot6_naive_6mul_5add": {
+    "raw": {
+     "l2_gas": 31140,
+     "steps": 204,
+     "holes": 0,
+     "builtins": {
+      "range_check": 43
+     }
+    },
+    "net": {
+     "steps": 134,
+     "l2_gas": 16320,
+     "builtins": {
+      "range_check": 40
+     }
+    }
+   },
+   "mul_blackboxed_inputs": {
+    "raw": {
+     "l2_gas": 16770,
+     "steps": 86,
+     "holes": 0,
+     "builtins": {
+      "range_check": 8
+     }
+    },
+    "net": {
+     "steps": 16,
+     "l2_gas": 1950,
+     "builtins": {
+      "range_check": 5
+     }
+    }
+   },
+   "mul_literal_inputs_no_blackbox": {
+    "raw": {
+     "l2_gas": 14820,
+     "steps": 70,
+     "holes": 0,
+     "builtins": {
+      "range_check": 3
+     }
+    },
+    "net": {
+     "steps": 0,
+     "l2_gas": 0,
+     "builtins": {
+      "range_check": 0
+     }
+    }
+   },
+   "mul_x4_chain_default_inlining": {
+    "raw": {
+     "l2_gas": 23540,
+     "steps": 142,
+     "holes": 0,
+     "builtins": {
+      "range_check": 23
+     }
+    },
+    "net": {
+     "steps": 72,
+     "l2_gas": 8720,
+     "builtins": {
+      "range_check": 20
+     }
+    }
+   },
+   "mul_x4_chain_inline_always": {
+    "raw": {
+     "l2_gas": 23540,
+     "steps": 142,
+     "holes": 0,
+     "builtins": {
+      "range_check": 23
+     }
+    },
+    "net": {
+     "steps": 72,
+     "l2_gas": 8720,
+     "builtins": {
+      "range_check": 20
+     }
+    }
+   },
+   "mul_x4_chain_inline_never": {
+    "raw": {
+     "l2_gas": 29940,
+     "steps": 178,
+     "holes": 32,
+     "builtins": {
+      "range_check": 23
+     }
+    },
+    "net": {
+     "steps": 108,
+     "l2_gas": 15120,
+     "builtins": {
+      "range_check": 20
+     }
+    }
+   },
+   "felt_storage_boundary_check": {
+    "raw": {
+     "l2_gas": 15060,
+     "steps": 71,
+     "holes": 0,
+     "builtins": {
+      "range_check": 5
+     }
+    },
+    "net": {
+     "steps": 6,
+     "l2_gas": 740,
+     "builtins": {
+      "range_check": 2
+     }
+    }
+   }
+  }
+ }
+}
