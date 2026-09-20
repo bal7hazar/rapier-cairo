@@ -15,6 +15,7 @@ crates/rapier_golden/
   src/generated.cairo         generated module index
   src/generated/*.cairo       generated fixtures — do not edit
   tests/sanity.cairo          closed-form checks of the fixtures
+  tests/scenes.cairo          shape and physics checks of the scene traces
 ```
 
 ## Regenerating
@@ -89,7 +90,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `mass_properties.json` | 11 + 1 | `<shape>/<params>_d<density>`, `compound/<parts>` | `Shape::mass_properties(density)` for ball, cuboid, capsule (incl. oblique and zero-length); a Rapier body with two colliders (local properties, world COM, effective inverse mass / inertia), cross-checked against the Parry sum |
 | `aabb.json` | 32 | `<shape>/<pose>` | `Shape::compute_aabb(pose)`, 4 shapes × 8 poses (identity, translation, exact 90°/180°, 30°, 45°, −135°, 1° far from the origin) |
 | `contact_manifolds.json` | 66 | `<shape1>_<shape2>/<regime>` | `DefaultQueryDispatcher::contact_manifolds` with the default prediction distance; see below |
-| `scenes.json` | 6 | scene name | full-engine traces; JSON only for now |
+| `scenes.json` | 6 | scene name | full-engine traces (also exported to Cairo, see [Scene fixtures](#scene-fixtures)) |
 
 ### contact_manifolds
 
@@ -236,4 +237,29 @@ position (nested structs, enum variants with payloads, fixed-size arrays, negati
 hexadecimal `u32`), and a constant costs nothing until it is used: no code is generated to build
 it, and `ALL.span()` is a pointer to a constant segment.
 
-Scenes are not exported to Cairo yet: their shape will depend on the world API of the port.
+### Scene fixtures
+
+`generated/scenes.cairo` holds one `pub const <SCENE>: SceneCase` per scene (`BALL_DROP`,
+`BALL_BOUNCE`, `BOX_SLOPE_STICK`, `BOX_SLOPE_SLIDE`, `BOX_STACK3`, `PENDULUM`), the `ALL` table and
+`cases()`. A `SceneCase` carries the whole description (`gravity`, `dt`, `num_steps`, bodies with
+kind, initial pose, damping, gravity scale and colliders with shape / pose / density / friction /
+restitution, the revolute joints) and the 22 samples of the trace, so that the engine can replay a
+scene and compare every sampled step.
+
+- Variable-length lists are **fixed-size arrays with a count**, the same way manifold points are:
+  `bodies: [SceneBodyRaw; 4]` + `num_bodies`, `colliders: [_; 1]` + `num_colliders`, `joints: [_; 1]`
+  + `num_joints`, `states: [BodyStateRaw; 3]` + `num_dynamic`. Unused slots are zeroed. The generator
+  panics when a scene outgrows a capacity; then widen the array in `types.cairo` and the
+  `SCENE_MAX_*` constants in `src/cairo.rs` together.
+- **Body order** is the JSON `bodies` order (insertion order upstream). A sample lists the
+  *dynamic* bodies only, in that same order, and refers to a body by its index into
+  `SceneCase::bodies` (`BodyStateRaw::body`); fixed bodies never move and are not sampled. Joints
+  refer to bodies by index too.
+- `SceneCase::samples` follows the sampling schedule: index `i <= 10` is step `i`, then steps 20,
+  30, …, 120 (`SceneSampleRaw::step` says so explicitly).
+- `SceneCase` derives `Copy, Drop` only: Cairo 2.19.4 has no `Serde` / `PartialEq` / `Debug` for a
+  fixed-size array of 22 elements. Compare fields, not whole cases.
+- The free-text `note` of the JSON is not exported (it does not fit a short string).
+
+Read a scene with `scenes::cases().at(i)`, then walk `samples.span()` and, per sample,
+`states.span()`; `crates/rapier_golden/tests/scenes.cairo` has the accessors.

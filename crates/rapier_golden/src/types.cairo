@@ -201,3 +201,97 @@ pub struct ManifoldCase {
     pub local_n2: Vec2Raw,
     pub points: [ContactPointRaw; 2],
 }
+
+/// Whether a scene body is simulated.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum BodyKindRaw {
+    Fixed,
+    Dynamic,
+}
+
+/// A collider of a [`SceneBodyRaw`].
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SceneColliderRaw {
+    pub shape: ShapeRaw,
+    pub pose_wrt_parent: PoseRaw,
+    pub density: i64,
+    pub friction: i64,
+    pub restitution: i64,
+}
+
+/// A rigid body of a scene, as built upstream (sleeping and CCD are off for every body).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SceneBodyRaw {
+    /// Name used by upstream; sampled states refer to a body by its index instead.
+    pub name: felt252,
+    pub kind: BodyKindRaw,
+    /// Initial pose.
+    pub pose: PoseRaw,
+    pub linear_damping: i64,
+    pub angular_damping: i64,
+    pub gravity_scale: i64,
+    /// Number of meaningful entries of `colliders` (0 or 1). Unused entries are zeroed.
+    pub num_colliders: u32,
+    pub colliders: [SceneColliderRaw; 1],
+}
+
+/// A revolute impulse joint between two bodies of a scene.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RevoluteJointRaw {
+    /// Index into `SceneCase::bodies`.
+    pub body1: u32,
+    /// Index into `SceneCase::bodies`.
+    pub body2: u32,
+    /// Anchor in the local frame of body 1.
+    pub local_anchor1: Vec2Raw,
+    /// Anchor in the local frame of body 2.
+    pub local_anchor2: Vec2Raw,
+}
+
+/// State of one dynamic body after a step, read through the upstream accessors.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct BodyStateRaw {
+    /// Index into `SceneCase::bodies`.
+    pub body: u32,
+    pub translation: Vec2Raw,
+    pub rotation: RotRaw,
+    pub linvel: Vec2Raw,
+    pub angvel: i64,
+}
+
+/// The dynamic bodies of a scene after `step` calls of `PhysicsPipeline::step`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SceneSampleRaw {
+    /// Number of steps taken so far; 0 is the initial state.
+    pub step: u32,
+    /// One entry per dynamic body, in body order; only the first `SceneCase::num_dynamic` count.
+    /// Unused entries are zeroed. Fixed bodies never move and are not sampled.
+    pub states: [BodyStateRaw; 3],
+}
+
+/// A full-engine trace: the description of a scene and the sampled states of its dynamic bodies.
+///
+/// Every scene uses the same gravity, step length and sampling schedule (step 0, steps 1–10, then
+/// every 10th step up to `num_steps`).
+///
+/// Only `Copy` and `Drop` are derived: Cairo 2.19.4 has no `Serde`, `PartialEq` or `Debug`
+/// implementation for a fixed-size array as long as `samples` (22 entries).
+#[derive(Copy, Drop)]
+pub struct SceneCase {
+    pub id: felt252,
+    pub gravity: Vec2Raw,
+    /// Step length of every `PhysicsPipeline::step`.
+    pub dt: i64,
+    /// Steps simulated; the last sample is taken after this many.
+    pub num_steps: u32,
+    /// Number of meaningful entries of `bodies` (at most 4), in insertion order. Unused entries
+    /// are zeroed.
+    pub num_bodies: u32,
+    pub bodies: [SceneBodyRaw; 4],
+    /// Number of dynamic bodies, i.e. of meaningful entries of every sample.
+    pub num_dynamic: u32,
+    /// Number of meaningful entries of `joints` (0 or 1). Unused entries are zeroed.
+    pub num_joints: u32,
+    pub joints: [RevoluteJointRaw; 1],
+    pub samples: [SceneSampleRaw; 22],
+}
