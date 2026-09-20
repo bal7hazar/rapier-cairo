@@ -1,0 +1,107 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "integration_parameters",
+  "defaults": {
+    "dt": { "f64": 0.016666666666666666, "raw": 71582788 },
+    "min_ccd_dt": { "f64": 0.00016666666666666666, "raw": 715828 },
+    "contact_softness": {
+      "natural_frequency": { "f64": 30.0, "raw": 128849018880 },
+      "damping_ratio": { "f64": 10.0, "raw": 42949672960 },
+      "angular_frequency": { "f64": 188.49555921538757, "raw": 809582262271 }
+    },
+    "static_contact_softness": {
+      "natural_frequency": { "f64": 60.0, "raw": 257698037760 },
+      "damping_ratio": { "f64": 10.0, "raw": 42949672960 },
+      "angular_frequency": { "f64": 376.99111843077515, "raw": 1619164524543 }
+    },
+    "joint_softness": {
+      "natural_frequency": { "f64": 1000000.0, "raw": 4294967296000000 },
+      "damping_ratio": { "f64": 1.0, "raw": 4294967296 },
+      "angular_frequency": { "f64": 6283185.307179586, "raw": 26986075409044036 }
+    },
+    "warmstart_coefficient": { "f64": 1.0, "raw": 4294967296 },
+    "length_unit": { "f64": 1.0, "raw": 4294967296 },
+    "normalized_allowed_linear_error": { "f64": 0.005, "raw": 21474836 },
+    "normalized_max_corrective_velocity": { "f64": 3.0, "raw": 12884901888 },
+    "normalized_prediction_distance": { "f64": 0.02, "raw": 85899346 },
+    "normalized_max_linear_velocity": { "f64": 400.0, "raw": 1717986918400 },
+    "normalized_contact_recycle_distance": { "f64": 0.05, "raw": 214748365 },
+    "num_solver_iterations": 4,
+    "num_internal_pgs_iterations": 1,
+    "num_internal_stabilization_iterations": 1,
+    "max_ccd_substeps": 1,
+    "contact_clustering": true,
+    "contact_recycling": true,
+    "friction_in_bias_pass": false,
+    "warmstart_joints": false
+  },
+  "cases": [
+    {
+      "id": "dt_f64",
+      "note": "dt = 1.0 / 60.0 as an f64 (the upstream default, not a Q32.32 value)",
+      "dt": { "f64": 0.016666666666666666, "raw": 71582788 },
+      "num_solver_iterations": 4,
+      "inv_dt": { "f64": 60.0, "raw": 257698037760 },
+      "substep_dt": { "f64": 0.004166666666666667, "raw": 17895697 },
+      "substep_inv_dt": { "f64": 240.0, "raw": 1030792151040 },
+      "allowed_linear_error": { "f64": 0.005, "raw": 21474836 },
+      "max_corrective_velocity": { "f64": 3.0, "raw": 12884901888 },
+      "prediction_distance": { "f64": 0.02, "raw": 85899346 },
+      "max_linear_velocity": { "f64": 400.0, "raw": 1717986918400 },
+      "contact_recycle_distance": { "f64": 0.05, "raw": 214748365 },
+      "contact": {
+        "erp_inv_dt": { "f64": 9.068652798161134, "raw": 38949567187 },
+        "erp": { "f64": 0.03778605332567139, "raw": 162289863 },
+        "cfm_coeff": { "f64": 0.06125644237007232, "raw": 263094417 },
+        "cfm_factor": { "f64": 0.9422793210722282, "raw": 4047058868 }
+      },
+      "static_contact": {
+        "erp_inv_dt": { "f64": 17.476921700961167, "raw": 75062807140 },
+        "erp": { "f64": 0.0728205070873382, "raw": 312761696 },
+        "cfm_coeff": { "f64": 0.029513039886097416, "raw": 126757541 },
+        "cfm_factor": { "f64": 0.9713330101293689, "raw": 4171843512 }
+      },
+      "joint": {
+        "erp_inv_dt": { "f64": 239.98166675111287, "raw": 1030713410336 },
+        "erp": { "f64": 0.9999236114629703, "raw": 4294639210 },
+        "cfm_coeff": { "f64": 1.4589135916579799e-9, "raw": 6 },
+        "cfm_factor": { "f64": 0.9999999985410863, "raw": 4294967290 }
+      }
+    },
+    {
+      "id": "dt_q32",
+      "note": "dt = round(2^32 / 60) / 2^32, the step length the scenes use",
+      "dt": { "f64": 0.016666666604578495, "raw": 71582788 },
+      "num_solver_iterations": 4,
+      "inv_dt": { "f64": 60.00000022351742, "raw": 257698038720 },
+      "substep_dt": { "f64": 0.004166666651144624, "raw": 17895697 },
+      "substep_inv_dt": { "f64": 240.00000089406967, "raw": 1030792154880 },
+      "allowed_linear_error": { "f64": 0.005, "raw": 21474836 },
+      "max_corrective_velocity": { "f64": 3.0, "raw": 12884901888 },
+      "prediction_distance": { "f64": 0.02, "raw": 85899346 },
+      "max_linear_velocity": { "f64": 400.0, "raw": 1717986918400 },
+      "contact_recycle_distance": { "f64": 0.05, "raw": 214748365 },
+      "contact": {
+        "erp_inv_dt": { "f64": 9.068652799437675, "raw": 38949567192 },
+        "erp": { "f64": 0.03778605319022629, "raw": 162289863 },
+        "cfm_coeff": { "f64": 0.06125644260689306, "raw": 263094418 },
+        "cfm_factor": { "f64": 0.9422793208619573, "raw": 4047058867 }
+      },
+      "static_contact": {
+        "erp_inv_dt": { "f64": 17.476921705702264, "raw": 75062807161 },
+        "erp": { "f64": 0.07282050683581524, "raw": 312761695 },
+        "cfm_coeff": { "f64": 0.029513040004048276, "raw": 126757542 },
+        "cfm_factor": { "f64": 0.9713330100180837, "raw": 4171843512 }
+      },
+      "joint": {
+        "erp_inv_dt": { "f64": 239.98166764504595, "raw": 1030713414175 },
+        "erp": { "f64": 0.9999236114626857, "raw": 4294639210 },
+        "cfm_coeff": { "f64": 1.4589136025299902e-9, "raw": 6 },
+        "cfm_factor": { "f64": 0.9999999985410863, "raw": 4294967290 }
+      }
+    }
+  ]
+}
