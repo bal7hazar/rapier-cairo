@@ -176,16 +176,25 @@ EPA, mesh `transformation/`, serde/rkyv, debug-render, profiling counters, `dyn`
 
 ## 5. Orchestration protocol
 
-1. The orchestrator session picks the next wave, writes one task brief per package (template in
-   `AGENTS.md` §3) and launches one sub-agent per brief **in an isolated worktree**, all in parallel.
-2. Interfaces a wave depends on are frozen and merged to `main` *before* the wave starts (F2, F3).
-3. Each executor returns: branch name, test results, `scripts/gas.py diff` table, candidate ranking.
-4. The orchestrator reviews, opens one PR per package, merges in dependency order, then regenerates
-   `.gas-snapshot` once on `main` for the wave. Executors never commit the snapshot.
-5. CI is the gate: fmt, lint, build, tests, gas check. A red `main` stops the wave.
-6. After each wave this file is updated: status column, measured budgets, new ADRs.
+The full strategy is [`docs/ORCHESTRATOR.md`](ORCHESTRATOR.md) (shared with the glam/nalgebra
+orchestrators). In short:
 
-Executor runs so far (claude CLI, second account): G1 Sonnet 50 turns $1.6 · C2 Sonnet 72 turns $3.5 · M3 Opus 121 turns $15.2 · C3 Sonnet 97 turns $5.1 · G2 Sonnet 130 turns $8.5. Sonnet handles fully specified packages validated by golden vectors; Opus was used for the numeric-hazard design of M3.
+1. Before a wave, the orchestrator merges the interface it depends on and **pre-declares the stubs**
+   (module lines in `lib.cairo`, empty test files, `gas/<crate>/<module>.snap` targets) so that
+   parallel PRs never touch a common file.
+2. One brief per package in the mandatory 7-section format (`docs/briefs/<id>.md`), launched with
+   `scripts/executor.sh <id> <claude:model|codex:model:effort> <brief>` in the background — local
+   CLIs on accounts distinct from the session; model tier by difficulty; the in-session Agent tool
+   only for short read-only research.
+3. Each executor runs the gate in the foreground, regenerates the snapshot of its own modules,
+   pushes, opens its PR, drives CI to green, never merges, and writes `REPORT.md`.
+4. The orchestrator reads `REPORT.md` + the log, merges on green CI + review (API parity,
+   deviations, gas table), then alone updates re-exports, status, decisions and this file.
+5. An interrupted executor is resumed (`scripts/executor.sh resume …`), not relaunched.
+
+Executor runs so far (claude CLI, second account; before the per-module snapshot and self-opened
+PR flow): G1 Sonnet 50 turns $1.6 · C2 Sonnet 72 turns $3.5 · M3 Opus 121 turns $15.2 ·
+C3 Sonnet 97 turns $5.1 · G2 Sonnet 130 turns $8.5.
 
 Parallel width: wave 1 = 2, wave 2 = 3, wave 3 = 8, wave 4 ≈ 11, wave 5 = 3.
 

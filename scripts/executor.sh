@@ -1,35 +1,34 @@
 #!/usr/bin/env bash
-# Launch one Executor sub-agent through the `claude` CLI in an isolated worktree.
+# Launch (or resume) one Executor sub-agent in an isolated worktree through a local CLI.
 #
-#   scripts/executor.sh <id> <model> <brief.md> [extra claude args...]
+#   scripts/executor.sh <id> <runner> <brief.md>          launch
+#   scripts/executor.sh resume <id> <runner> "<follow-up>" resume in the same worktree
 #
-#   id      work package id, lowercase (e.g. ga-broad-phase); branch feat/<id>, worktree
-#           .claude/worktrees/exec-<id>, both created from origin/main
-#   model   sonnet | opus | haiku | a full model id
-#   brief   Markdown brief written by the orchestrator (see AGENTS.md §3)
+#   id      work package id, lowercase (e.g. ga-broad-phase): branch feat/<id>, worktree
+#           .claude/worktrees/exec-<id>, created from $EXECUTOR_BASE (default origin/main)
+#   runner  claude:<sonnet|opus|fable>            e.g. claude:sonnet
+#           codex:<model>[:<effort>]             e.g. codex:gpt-5.5:medium, codex:gpt-6-astra:xhigh
+#   brief   Markdown brief in the mandatory format (docs/ORCHESTRATOR.md §"The brief")
 #
 # Environment:
-#   EXECUTOR_LOG_DIR   where to write <id>.jsonl and <id>.result (default: ./.executor-logs)
-#   EXECUTOR_MAX_TURNS turn budget (default 200)
-#   EXECUTOR_EFFORT    effort level passed to the CLI (default: high)
-#   EXECUTOR_BASE      ref the new branch starts from (default: origin/main); use it to stack a
-#                      package on an interface branch that is not merged yet
+#   EXECUTOR_LOG_DIR   where to write <id>.log (default: ./.executor-logs)
+#   EXECUTOR_MAX_TURNS claude turn budget (default 300)
+#   EXECUTOR_BASE      ref the new branch starts from (default: origin/main)
 #
-# The CLI runs with its own login (a separate account from the orchestrator's session), with the
-# permission prompts replaced by an explicit allow-list: file edits, and Bash restricted to the
-# toolchain, git and python. Everything else is denied. Nested-session variables are unset so the
-# CLI does not believe it runs inside another Claude Code session.
+# The agent works with all permission prompts disabled inside its own worktree, opens its own PR
+# and writes REPORT.md (not committed) at the worktree root: read that file and the log, not the
+# transcript. Both CLIs use their own logins, distinct from the orchestrator's session.
 set -euo pipefail
 
-if [ $# -lt 3 ]; then
-  sed -n '2,20p' "$0"
-  exit 64
-fi
+usage() { sed -n '2,20p' "$0"; exit 64; }
 
-ID="$1"
-MODEL="$2"
-BRIEF="$3"
-shift 3
+MODE=launch
+if [ "${1:-}" = "resume" ]; then MODE=resume; shift; fi
+[ $# -ge 3 ] || usage
+
+ID="$1"; RUNNER="$2"; INPUT="$3"; shift 3
+CLI="${RUNNER%%:*}"; REST="${RUNNER#*:}"; MODEL="${REST%%:*}"; EFFORT=""
+[ "$REST" != "$MODEL" ] && EFFORT="${REST#*:}"
 
 ROOT="$(git rev-parse --show-toplevel)"
 COMMON="$(git -C "$ROOT" rev-parse --git-common-dir)"
@@ -38,75 +37,73 @@ WORKTREE="$REPO_ROOT/.claude/worktrees/exec-$ID"
 BRANCH="feat/$ID"
 LOG_DIR="${EXECUTOR_LOG_DIR:-$ROOT/.executor-logs}"
 mkdir -p "$LOG_DIR"
+LOG="$LOG_DIR/$ID.log"
 
-[ -f "$BRIEF" ] || { echo "brief not found: $BRIEF" >&2; exit 66; }
+if [ "$MODE" = launch ]; then
+  [ -f "$INPUT" ] || { echo "brief not found: $INPUT" >&2; exit 66; }
+  git -C "$ROOT" fetch -q origin
+  [ -d "$WORKTREE" ] && { echo "worktree already exists: $WORKTREE" >&2; exit 73; }
+  if git -C "$ROOT" show-ref --quiet "refs/heads/$BRANCH"; then
+    git -C "$ROOT" worktree add -q "$WORKTREE" "$BRANCH"
+  else
+    git -C "$ROOT" worktree add -q -b "$BRANCH" "$WORKTREE" "${EXECUTOR_BASE:-origin/main}"
+  fi
+  cp "$INPUT" "$WORKTREE/BRIEF.md"
+  PROMPT="$(cat "$ROOT/scripts/executor/system-prompt.md")
 
-git -C "$ROOT" fetch -q origin
-if [ -d "$WORKTREE" ]; then
-  echo "worktree already exists: $WORKTREE" >&2
-  exit 73
-fi
-if git -C "$ROOT" show-ref --quiet "refs/heads/$BRANCH"; then
-  git -C "$ROOT" worktree add -q "$WORKTREE" "$BRANCH"
+----
+
+Your brief (also saved as BRIEF.md at the repository root). Your branch is $BRANCH, already
+checked out in this worktree. Start now.
+
+$(cat "$INPUT")"
 else
-  git -C "$ROOT" worktree add -q -b "$BRANCH" "$WORKTREE" "${EXECUTOR_BASE:-origin/main}"
+  [ -d "$WORKTREE" ] || { echo "no worktree to resume: $WORKTREE" >&2; exit 66; }
+  PROMPT="$INPUT"
 fi
-cp "$BRIEF" "$WORKTREE/.executor-brief.md"
-cp "$ROOT/scripts/executor/system-prompt.md" "$WORKTREE/.executor-system.md"
-
-PROMPT="Your work package brief is in .executor-brief.md at the root of this repository (also \
-reproduced below). Your branch is $BRANCH, already checked out in this worktree. Start now.
-
-$(cat "$BRIEF")"
 
 cd "$WORKTREE"
-echo "executor $ID: model=$MODEL branch=$BRANCH worktree=$WORKTREE log=$LOG_DIR/$ID.jsonl"
+echo "executor $ID ($MODE): cli=$CLI model=$MODEL effort=${EFFORT:-default} branch=$BRANCH log=$LOG"
 set +e
-env -u CLAUDECODE -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_CHILD_SESSION \
-  claude -p \
-  --model "$MODEL" \
-  --effort "${EXECUTOR_EFFORT:-high}" \
-  --max-turns "${EXECUTOR_MAX_TURNS:-200}" \
-  --name "exec-$ID" \
-  --append-system-prompt-file .executor-system.md \
-  --permission-mode acceptEdits \
-  --allowedTools "Read" "Edit" "Write" "Glob" "Grep" "MultiEdit" \
-    "Bash(scarb:*)" "Bash(snforge:*)" "Bash(git:*)" "Bash(python3:*)" "Bash(cargo:*)" \
-    "Bash(ls:*)" "Bash(cat:*)" "Bash(wc:*)" "Bash(head:*)" "Bash(tail:*)" "Bash(grep:*)" \
-    "Bash(find:*)" "Bash(diff:*)" "Bash(mkdir:*)" "Bash(sed:*)" "Bash(awk:*)" "Bash(sort:*)" \
-  --output-format stream-json --verbose \
-  "$@" \
-  "$PROMPT" > "$LOG_DIR/$ID.jsonl"
+case "$CLI" in
+  claude)
+    ARGS=(-p --model "$MODEL" --max-turns "${EXECUTOR_MAX_TURNS:-300}" --name "exec-$ID" \
+          --dangerously-skip-permissions --output-format stream-json --verbose)
+    [ "$MODE" = resume ] && ARGS+=(--continue)
+    env -u CLAUDECODE -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_CHILD_SESSION \
+      claude "${ARGS[@]}" "$@" "$PROMPT" >> "$LOG"
+    ;;
+  codex)
+    COMMON_ARGS=(-C "$WORKTREE" --dangerously-bypass-approvals-and-sandbox -o REPORT.md)
+    [ -n "$EFFORT" ] && COMMON_ARGS+=(-c "model_reasoning_effort=$EFFORT")
+    if [ "$MODE" = resume ]; then
+      codex exec resume --last "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1
+    else
+      codex exec -m "$MODEL" "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1
+    fi
+    ;;
+  *) echo "unknown runner: $RUNNER" >&2; exit 64 ;;
+esac
 STATUS=$?
 set -e
 
-python3 - "$LOG_DIR/$ID.jsonl" "$LOG_DIR/$ID.result" <<'EOF'
+if [ "$CLI" = claude ]; then
+  python3 - "$LOG" <<'EOF'
 import json, sys
-log, out = sys.argv[1], sys.argv[2]
 result = None
-for line in open(log):
+for line in open(sys.argv[1]):
     try:
         msg = json.loads(line)
     except ValueError:
         continue
     if msg.get("type") == "result":
         result = msg
-if result is None:
-    open(out, "w").write("no result message in log\n")
-    sys.exit(0)
-usage = result.get("modelUsage", {})
-summary = [
-    f"is_error: {result.get('is_error')}",
-    f"num_turns: {result.get('num_turns')}",
-    f"duration_ms: {result.get('duration_ms')}",
-    f"total_cost_usd: {result.get('total_cost_usd')}",
-    "models: " + ", ".join(f"{m} in={u.get('inputTokens')} out={u.get('outputTokens')}" for m, u in usage.items()),
-    "",
-    result.get("result") or "",
-]
-open(out, "w").write("\n".join(summary) + "\n")
-print("\n".join(summary))
+if result:
+    usage = result.get("modelUsage", {})
+    print(f"turns={result.get('num_turns')} cost_usd={result.get('total_cost_usd')} "
+          + " ".join(f"{m}:out={u.get('outputTokens')}" for m, u in usage.items()))
 EOF
-
+fi
+[ -f REPORT.md ] && echo "REPORT.md: $WORKTREE/REPORT.md" || echo "warning: no REPORT.md written"
 echo "executor $ID finished with status $STATUS"
 exit $STATUS

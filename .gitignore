@@ -5,5 +5,5 @@ target/
 .DS_Store
 __pycache__/
 .executor-logs/
-.executor-brief.md
-.executor-system.md
+BRIEF.md
+REPORT.md
