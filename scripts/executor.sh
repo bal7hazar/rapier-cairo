@@ -74,7 +74,8 @@ case "$CLI" in
       claude "${ARGS[@]}" "$@" "$PROMPT" >> "$LOG"
     ;;
   codex)
-    COMMON_ARGS=(-C "$WORKTREE" --dangerously-bypass-approvals-and-sandbox -o REPORT.md)
+    # `-o` captures the agent's LAST message only; REPORT.md is written by the agent itself.
+    COMMON_ARGS=(-C "$WORKTREE" --dangerously-bypass-approvals-and-sandbox -o LAST_MESSAGE.md)
     [ -n "$EFFORT" ] && COMMON_ARGS+=(-c "model_reasoning_effort=$EFFORT")
     if [ "$MODE" = resume ]; then
       codex exec resume --last "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1

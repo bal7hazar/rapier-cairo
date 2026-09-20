@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.3, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged, waiting on glam `Vec2`). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.4, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -107,7 +107,7 @@ ships `test_*`, `gas_*` (one per candidate implementation) and docs per `AGENTS.
 If the gate slips, fallback: vendor a snapshot of `fixed` from the glam.cairo branch under
 `crates/` and swap it for the git dependency later (same code, so no semantic drift).
 
-**Wave 2** (needs X1) — C2 ✅ (PR #10), M3 ✅ (PR #11); M2 waits for glam.cairo's `Vec2` (V2)
+**Wave 2** (needs X1) — C2 ✅ (PR #10), M3 ✅ (PR #11), M2 ✅ (PR #21, codex gpt-6-astra: fused kernels win everywhere, renormalise once per substep), F3 ✅ as code (PR #19)
 
 | ID | Package | Acceptance |
 |---|---|---|
@@ -118,7 +118,7 @@ If the gate slips, fallback: vendor a snapshot of `fixed` from the glam.cairo br
 
 Trig (`sin_cos`, `atan2`) comes from `fixed::trig` (glam item F3); it is only needed in phase 2.
 
-**Wave 3** (needs M2, M3, F3) — geometry and dynamics streams run side by side
+**Wave 3** (needs M2, M3, F3) — geometry and dynamics streams run side by side. **Launched 2026-09-20** (stubs pre-declared in PR #20, briefs in `docs/briefs/`): GA codex gpt-5.5, GB claude sonnet, GC claude opus, GD codex gpt-6-astra, GE codex gpt-5.5, DA claude opus, DC codex gpt-6-astra xhigh. DB moved to wave 4 (needs GB's `Shape`).
 
 | ID | Package | Upstream reference |
 |---|---|---|
