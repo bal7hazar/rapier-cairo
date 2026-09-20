@@ -1,0 +1,28 @@
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024_07"
+cairo-version = "2.19.4"
+license = "MIT"
+repository = "https://github.com/bal7hazar/rapier.cairo"
+
+[workspace.dependencies]
+snforge_std = "0.61.0"
+assert_macros = "2.19.4"
+
+[workspace.tool.scarb]
+allow-prebuilt-plugins = ["snforge_std"]
+
+[workspace.tool.fmt]
+sort-module-level-items = true
+max-line-length = 100
+
+[workspace.tool.snforge]
+tracked_resource = "sierra-gas"
+
+[scripts]
+test = "snforge test --workspace"
+gas = "python3 scripts/gas.py snapshot"
+gas-check = "python3 scripts/gas.py check"

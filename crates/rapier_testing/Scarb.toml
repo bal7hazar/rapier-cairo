@@ -1,0 +1,18 @@
+[package]
+name = "rapier_testing"
+description = "Shared test and gas-probe helpers for the rapier.cairo workspace."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+snforge_std.workspace = true
+assert_macros.workspace = true
+
+[tool]
+fmt.workspace = true
+scarb.workspace = true
+snforge.workspace = true

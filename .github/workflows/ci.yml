@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - run: scarb fmt --check --workspace
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - run: scarb build --workspace
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - uses: foundry-rs/setup-snfoundry@v6
+      - name: Run tests
+        run: snforge test --workspace --tracked-resource sierra-gas | tee snforge.log
+      - name: Check gas snapshot
+        run: python3 scripts/gas.py check --from-log snforge.log
+      - name: Gas delta summary
+        if: always()
+        run: python3 scripts/gas.py diff --from-log snforge.log >> "$GITHUB_STEP_SUMMARY"
