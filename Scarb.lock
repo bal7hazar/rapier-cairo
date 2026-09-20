@@ -2,6 +2,14 @@
 version = 1
 
 [[package]]
+name = "rapier_core"
+version = "0.1.0"
+dependencies = [
+ "rapier_testing",
+ "snforge_std",
+]
+
+[[package]]
 name = "rapier_golden"
 version = "0.1.0"
 dependencies = [
