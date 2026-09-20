@@ -1,0 +1,25 @@
+[package]
+name = "rapier-golden"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Golden-vector harness: runs upstream Rapier/Parry (f64, 2D) and emits reference vectors for rapier.cairo."
+license = "MIT"
+
+[[bin]]
+name = "golden"
+path = "src/main.rs"
+
+[dependencies]
+# Exact pins: the vectors are only meaningful for a precise upstream version.
+# `block-solver` is a default feature of rapier: it is dropped on purpose (see README).
+rapier2d-f64 = { version = "=0.35.3", default-features = false, features = ["dim2", "f64", "std", "enhanced-determinism"] }
+# rapier2d-f64 0.35.3 depends on parry2d-f64 ^0.30.2; pinning it here keeps a single parry in the lock.
+parry2d-f64 = { version = "=0.30.2", features = ["enhanced-determinism"] }
+# f32 build, used ONLY to read cuboid feature ids: `Cuboid::vertex_feature_id` reads bit 31 of the
+# float, which is the sign bit in f32 but a mantissa bit in f64 (see README, "Feature ids").
+parry2d = { version = "=0.30.2", features = ["enhanced-determinism"] }
+serde_json = { version = "1", features = ["float_roundtrip", "preserve_order"] }
+
+[profile.release]
+codegen-units = 1
