@@ -295,3 +295,243 @@ pub struct SceneCase {
     pub joints: [RevoluteJointRaw; 1],
     pub samples: [SceneSampleRaw; 22],
 }
+
+// ---------------------------------------------------------------------------------------------
+// Leaf-level families (G2): pose algebra and the narrow-phase building blocks.
+// ---------------------------------------------------------------------------------------------
+
+/// A triangle given by its three vertices, counter-clockwise.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct TriangleRaw {
+    pub a: Vec2Raw,
+    pub b: Vec2Raw,
+    pub c: Vec2Raw,
+}
+
+/// Pose algebra of upstream's `Pose` / `Rotation` for the pose `a` (and `b`).
+///
+/// `rot_*` are the rotation-only operations on the rotations of `a` and `b`. Upstream multiplies
+/// rotations as plain complex numbers: it never renormalises, so inputs whose norm is `1 ± 2^-32`
+/// yield products whose norm error keeps accumulating.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Pose2Case {
+    pub id: felt252,
+    pub a: PoseRaw,
+    pub b: PoseRaw,
+    /// Points (and vectors) the poses are applied to.
+    pub points: [Vec2Raw; 3],
+    /// `a * b`: `b` first, then `a`.
+    pub mul: PoseRaw,
+    /// `a.inverse()`.
+    pub inverse: PoseRaw,
+    /// `a.inv_mul(b)`, i.e. `a⁻¹ * b`: the pose of `b` in the frame of `a` (Parry's `pos12`).
+    pub inv_mul: PoseRaw,
+    /// `a.rotation * b.rotation`.
+    pub rot_mul: RotRaw,
+    /// `a.rotation.inverse()`: the conjugate, exact in Q32.32.
+    pub rot_inverse: RotRaw,
+    /// `a.transform_point(p)` for each entry of `points`.
+    pub transform_point: [Vec2Raw; 3],
+    /// `a.inverse_transform_point(p)`.
+    pub inverse_transform_point: [Vec2Raw; 3],
+    /// `a.transform_vector(v)`: rotation only.
+    pub transform_vector: [Vec2Raw; 3],
+    /// `a.inverse_transform_vector(v)`.
+    pub inverse_transform_vector: [Vec2Raw; 3],
+}
+
+/// A checkpoint of a [`RotChainCase`].
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RotChainSampleRaw {
+    /// Number of multiplications performed so far.
+    pub steps: u32,
+    pub rotation: RotRaw,
+    /// `re² + im²` computed in `f64` from the upstream rotation.
+    pub norm_squared: i64,
+    /// `norm_squared - 1`.
+    pub drift: i64,
+}
+
+/// `acc = acc * step`, repeated 1 000 times from the identity, in `f64`.
+///
+/// The drift is dominated by the norm error of `step` itself (`1 ± 2^-32`, amplified linearly),
+/// not by `f64` rounding: it is the value a Q32.32 chain has to be compared with.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RotChainCase {
+    pub id: felt252,
+    pub step: RotRaw,
+    /// Checkpoints after 1, 10, 100 and 1 000 multiplications.
+    pub samples: [RotChainSampleRaw; 4],
+}
+
+/// One AABB of an [`AabbOverlapCase`].
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct OverlapBoxRaw {
+    pub mins: Vec2Raw,
+    pub maxs: Vec2Raw,
+    /// Belongs to a fixed body (upstream's `intersects` ignores this; the broad phase does not
+    /// pair two fixed colliders).
+    pub is_static: bool,
+}
+
+/// An overlapping pair of AABB indices, `i < j`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct OverlapPairRaw {
+    pub i: u32,
+    pub j: u32,
+    /// Both AABBs are static: the broad phase would drop the pair.
+    pub both_static: bool,
+}
+
+/// The overlapping pairs of a list of AABBs under `BoundingVolume::intersects`.
+///
+/// The convention is closed: AABBs that merely touch overlap. Coordinates are exact Q32.32, so a
+/// port must reproduce `pairs` exactly.
+#[derive(Copy, Drop)]
+pub struct AabbOverlapCase {
+    pub id: felt252,
+    /// Number of meaningful entries of `aabbs`. Unused entries are zeroed.
+    pub num_aabbs: u32,
+    pub aabbs: [OverlapBoxRaw; 32],
+    /// Number of meaningful entries of `pairs`. Unused entries are zeroed.
+    pub num_pairs: u32,
+    /// Every overlapping pair `i < j`, sorted by `i` then `j` (all pairs, static-static included).
+    pub pairs: [OverlapPairRaw; 32],
+    /// `merged` of every AABB of the list.
+    pub merged_mins: Vec2Raw,
+    pub merged_maxs: Vec2Raw,
+}
+
+/// The shapes SAT helpers are tested on, in their local frame.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum SatOperandRaw {
+    /// Half extents.
+    Cuboid: Vec2Raw,
+    Segment: SegmentRaw,
+    Triangle: TriangleRaw,
+}
+
+/// `(separation, axis)` as returned by a `*_find_local_separating_normal_oneway` function.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SatAxisRaw {
+    /// Positive when the shapes are apart along `axis`, negative when they overlap.
+    pub separation: i64,
+    /// Unit axis oriented from the tested shape towards the other one, in the local frame of the
+    /// tested shape.
+    pub axis: Vec2Raw,
+}
+
+/// The separating-axis helpers of Parry, in both directions.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SatCase {
+    pub id: felt252,
+    pub shape1: SatOperandRaw,
+    pub shape2: SatOperandRaw,
+    /// Pose of shape 2 in the frame of shape 1.
+    pub pos12: PoseRaw,
+    /// Pose of shape 1 in the frame of shape 2: the inverse of `pos12`, snapped to Q32.32 (the
+    /// rotation is exact, the translation is rounded), i.e. the exact input of the second call.
+    pub pos21: PoseRaw,
+    /// Two axes tie exactly, or the answer hinges on the sign of an exact zero: the discrete
+    /// output (axis) may legitimately differ; `separation` is still comparable.
+    pub ambiguous: bool,
+    /// The normals of shape 1 tested against shape 2, with `pos12`.
+    pub sep1: SatAxisRaw,
+    /// The normals of shape 2 tested against shape 1, with `pos21`.
+    pub sep2: SatAxisRaw,
+}
+
+/// A clipping point of `clip_segment_segment*`: `p1` lies on segment 1, `p2` on segment 2.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ClipPointRaw {
+    pub p1: Vec2Raw,
+    pub p2: Vec2Raw,
+    /// Feature of segment 1: 0 = first vertex as passed, 1 = interior, 2 = second vertex.
+    pub f1: u32,
+    /// Feature of segment 2, same convention.
+    pub f2: u32,
+}
+
+/// Result of a clipping function: `None` upstream maps to `clipped == false` and zeroed points.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ClipResultRaw {
+    pub clipped: bool,
+    pub points: [ClipPointRaw; 2],
+}
+
+/// `clip_segment_segment(seg1, seg2)` and `clip_segment_segment_with_normal(seg1, seg2, normal)`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ClipCase {
+    pub id: felt252,
+    pub seg1: SegmentRaw,
+    pub seg2: SegmentRaw,
+    /// Projection direction of the `with_normal` variant; its tangent is `(-normal.y, normal.x)`.
+    pub normal: Vec2Raw,
+    /// Projection on the direction of segment 1; points ordered along it.
+    pub plain: ClipResultRaw,
+    /// Projection on the tangent of `normal`; points ordered along the tangent.
+    pub with_normal: ClipResultRaw,
+}
+
+/// `PointProjection`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ProjectionRaw {
+    pub point: Vec2Raw,
+    pub is_inside: bool,
+}
+
+/// `FeatureId` as returned by `project_local_point_and_get_feature` (2D: no edges).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum PointFeatureRaw {
+    Unknown,
+    Vertex: u32,
+    Face: u32,
+}
+
+/// `SegmentPointLocation`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum SegmentLocationRaw {
+    /// The query has no location (only segments report one).
+    NoLocation,
+    /// End point 0 (`a`) or 1 (`b`).
+    OnVertex: u32,
+    /// Interior point `a + u (b - a)`; the payload is `u` (upstream stores `[1 - u, u]`).
+    OnEdge: i64,
+}
+
+/// Local-frame point queries on one shape.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ProjectionCase {
+    pub id: felt252,
+    pub shape: ShapeRaw,
+    pub point: Vec2Raw,
+    /// `project_local_point(point, false)`: an inside point is pushed to the boundary.
+    pub projection: ProjectionRaw,
+    /// `project_local_point(point, true)`: an inside point projects to itself.
+    pub projection_solid: ProjectionRaw,
+    /// `distance_to_local_point(point, false)`: negative inside.
+    pub distance: i64,
+    pub feature: PointFeatureRaw,
+    /// `Segment::project_local_point_and_get_location`; `NoLocation` for the other shapes.
+    pub location: SegmentLocationRaw,
+}
+
+/// Closest points between two segments (`pos12` places segment 2 in the frame of segment 1).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SegmentPairCase {
+    pub id: felt252,
+    pub seg1: SegmentRaw,
+    pub seg2: SegmentRaw,
+    pub pos12: PoseRaw,
+    /// The closest pair is not unique (parallel or collinear overlap): only `dist_sq` is
+    /// comparable, the points and locations are the member of the tie upstream happens to pick.
+    pub ambiguous: bool,
+    pub loc1: SegmentLocationRaw,
+    pub loc2: SegmentLocationRaw,
+    /// Closest point on segment 1, in the frame of segment 1.
+    pub p1: Vec2Raw,
+    /// Closest point on segment 2, in the frame of segment 2.
+    pub p2: Vec2Raw,
+    /// `|p1 - pos12 * p2|²`.
+    pub dist_sq: i64,
+}

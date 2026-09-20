@@ -4,7 +4,13 @@
 //! Golden fixtures, one module per vector family.
 
 pub mod aabb;
+pub mod aabb_overlap;
+pub mod clip2d;
 pub mod contact_manifolds;
 pub mod integration_parameters;
 pub mod mass_properties;
+pub mod point_projection;
+pub mod pose2;
+pub mod sat2d;
 pub mod scenes;
+pub mod segment_segment;

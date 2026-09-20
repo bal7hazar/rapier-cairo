@@ -16,6 +16,7 @@ crates/rapier_golden/
   src/generated/*.cairo       generated fixtures — do not edit
   tests/sanity.cairo          closed-form checks of the fixtures
   tests/scenes.cairo          shape and physics checks of the scene traces
+  tests/<leaf family>.cairo   closed-form / consistency checks of each G2 family (see below)
 ```
 
 ## Regenerating
@@ -91,6 +92,12 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `aabb.json` | 32 | `<shape>/<pose>` | `Shape::compute_aabb(pose)`, 4 shapes × 8 poses (identity, translation, exact 90°/180°, 30°, 45°, −135°, 1° far from the origin) |
 | `contact_manifolds.json` | 66 | `<shape1>_<shape2>/<regime>` | `DefaultQueryDispatcher::contact_manifolds` with the default prediction distance; see below |
 | `scenes.json` | 6 | scene name | full-engine traces (also exported to Cairo, see [Scene fixtures](#scene-fixtures)) |
+| `pose2.json` | 7 + 3 | `pair/<what>`, `chain/deg<angle>` | **G2** 2D pose algebra and rotation drift, see [Leaf-level families](#leaf-level-families-g2) |
+| `aabb_overlap.json` | 5 | `set/<what>` | **G2** overlapping pairs of 8–32 AABBs |
+| `sat2d.json` | 22 | `<cuboid>_<other>/<regime>` | **G2** separating-axis helpers, both directions |
+| `clip2d.json` | 16 | `clip/<what>` | **G2** segment-against-segment clipping |
+| `point_projection.json` | 33 | `<shape>/<what>` | **G2** point projection on ball, cuboid, capsule, segment |
+| `segment_segment.json` | 24 | `seg/<what>` | **G2** closest points between two segments |
 
 ### contact_manifolds
 
@@ -121,6 +128,203 @@ quantised `dt`, gravity `(0, -9.81)` snapped to Q32.32. The file describes each 
 (bodies in insertion order, colliders, material, joints) and samples every dynamic body at step 0
 (initial state), steps 1–10, then every 10th step: `translation`, `rotation` `(re, im)`,
 `linvel`, `angvel`, read after `PhysicsPipeline::step`.
+
+## Leaf-level families (G2)
+
+Work package **G2**. The families above only validate end results (a manifold, a body trace). The
+six below validate the *internal* functions the port implements in waves 2–3, so that a wrong
+`inv_mul`, a wrong SAT tie-break or a wrong clipping feature is caught where it is written, not
+three layers up. Same quantisation rule, same fixture pattern (`const` per case + `ALL` +
+`cases()`); sanity tests in `crates/rapier_golden/tests/<family>.cairo`.
+
+Public entry points: everything below is called through the published API of
+`parry2d-f64 0.30.2` re-exported by `rapier2d-f64`. Two things differ from the 0.31 clone the
+algorithms were read from: `query::clip` and `query::closest_points` are **private modules** in
+0.30.2, so `clip_segment_segment*` and `closest_points_segment_segment*` are reached through
+`query::details`; `query::sat::*` is public. Nothing had to be replaced by a "nearest public API".
+The 3D-only SAT helpers (`*_edge_twoway`, `cuboid_cuboid_compute_separation_wrt_local_line`) do not
+exist in 2D and are not used.
+
+Case lists are deliberately short (≈ 3 200 generated Cairo lines in total): each case is there
+for a reason written in its `note` field in the JSON.
+
+### pose2
+
+Upstream: `Pose * Pose`, `Pose::inverse`, `Pose::inv_mul` (Parry's `pos12`),
+`Pose::{transform_point, inverse_transform_point, transform_vector, inverse_transform_vector}`,
+`Rotation * Rotation`, `Rotation::inverse`, on `parry2d_f64::math::{Pose, Rotation}` (glam's
+`Pose2` / `Rot2`). 7 pairs `a`, `b` (identity first, exact quarter / half turns, generic angles,
+a far pair with a 1° rotation and a 100–250 translation, `a == b`, `b = a⁻¹` snapped) and 3
+points `(1, 0)`, `(0.5, -2)`, `(-3, 4.25)` on which the point / vector operations are recorded.
+
+- **Upstream never renormalises.** `Pose::from_parts` keeps the `(re, im)` pair as passed
+  (`a_rotation_used` in the JSON equals the input for every case), and `Rotation * Rotation` is
+  the plain complex product (`rot_mul_is_plain_complex_product` is `true` everywhere).
+  `Rotation::inverse` is the conjugate, so `R · R⁻¹ = |R|² = 1 ± 2^-31`, not 1: the port must not
+  "fix" that either. The norm error of a rotation multiplies every coordinate it is applied to.
+- `chain/deg0p1`, `chain/deg1`, `chain/deg5`: `acc = acc · step` 1 000 times from the identity, in
+  `f64`, sampled after 1, 10, 100 and 1 000 products (`norm_squared` = `re² + im²`, `drift` =
+  `norm_squared − 1`). The drift is **the input-norm term alone**: `|step|² − 1` is
+  `−1.83e-10`, `+1.51e-10`, `+1.24e-10` and grows linearly (drift after 1 000 products =
+  1 000 × drift after 1, to 1e-13; that is −786, +649, +535 raw). `f64` rounding is invisible. A
+  Q32.32 chain adds the bias of its truncating products on top: report the two contributions
+  separately in the M2 study, and compare the *growth* (linear in the number of steps) rather than
+  the value.
+
+Tolerances: rotation products / inverse 2 ulp (two products and a sum; the conjugate is exact);
+translations and transformed points `4 + 2·(|p|₁ + |t|₁)` ulp with `|·|₁` in whole units (the
+norm error above scales with the magnitude: the far pair sits at ≈ 350, i.e. ≈ 700 ulp).
+
+### aabb_overlap
+
+Upstream: `BoundingVolume::intersects` and `BoundingVolume::merged` on `parry::bounding_volume::Aabb`.
+Five sets, each an ordered list of AABBs with an `is_static` flag: `grid_touching` (4 × 3 unit
+boxes sharing edges and corners), `nested` (nested, identical, edge- and corner-touching),
+`ulp_boundary` (gaps and overlaps of exactly one raw unit along x, y and diagonally), `mixed_20`
+and `random_32` (boxes on a 1/16 grid from a fixed LCG, some forced to touch or nest). The
+recorded `pairs` are every `i < j` that intersects, sorted by `i` then `j`.
+
+- **Convention: closed.** `intersects` is `mins ≤ other.maxs ∧ maxs ≥ other.mins` on every axis,
+  so AABBs that merely touch (along an edge, or at a corner) overlap, and so does an AABB with
+  itself. The `ulp_boundary` set pins the decision at the last raw unit.
+- `intersects` knows nothing about static bodies. `is_static` is carried so that the port can
+  test the Rapier rule (no pair of two fixed colliders): `both_static` marks those pairs, they are
+  still listed. Rapier's broad phase may inflate the AABBs (prediction distance) before this test;
+  that inflation is not part of this family.
+
+Tolerance: **none, exact.** The inputs are exact Q32.32 numbers and the test is a comparison, so
+the pair list is reproduced bit for bit (the Cairo sanity test recomputes it with integer
+comparisons). `merged` is exact too.
+
+### sat2d
+
+Upstream (`query::sat`): `cuboid_cuboid_find_local_separating_normal_oneway`,
+`cuboid_support_map_find_local_separating_normal_oneway` (cuboid vs segment and vs triangle: the
+four face normals of the cuboid), `segment_cuboid_find_local_separating_normal_oneway` and
+`triangle_cuboid_find_local_separating_normal_oneway` (the one normal of the segment, the three
+edge normals of the triangle). Each case calls the helper in both directions: `sep1` tests the
+normals of shape 1 (cuboid) against shape 2 with `pos12`, `sep2` those of shape 2 against shape 1
+with `pos21`. 22 cases: cuboid–cuboid 9, cuboid–segment 6, cuboid–triangle 7, over the six regimes
+of `contact_manifolds` (`separated`, `within_pred`, `touching`, `shallow`, `deep`, `degenerate`),
+the cuboid–cuboid ones with the same poses as `contact_manifolds/cuboid_cuboid/*`, plus
+`degen_corner`, `degen_rot90`, `sep_diagonal` and the triangle `degen_edge`.
+
+- `pos21` is the inverse of `pos12` **snapped to Q32.32** (the rotation conjugate is exact, the
+  translation is rounded) and is what the second call was given, so both calls have exact inputs;
+  `pos12` and `pos21` are mutually consistent to 1–2 ulp only.
+- The axis of `sep1` is expressed in the frame of shape 1, the axis of `sep2` in the frame of
+  shape 2, both pointing from the tested shape towards the other one.
+- **Tie-breaking.** All helpers keep the first axis on an exact tie (strict `>`): the cuboid
+  helpers scan `-x, +x, -y, +y` (support-map version) or `x, y` (cuboid–cuboid version, oriented
+  by `copysign(1, translation_i)`, so an exact `+0` orients towards `+`). Cases where this decides
+  the answer carry `"ambiguous": true` (`cuboid_cuboid/{degenerate, degen_corner}`,
+  `cuboid_segment/degenerate`, `cuboid_triangle/{touching, degenerate, degen_edge}`): compare
+  `separation`, treat `axis` as informative.
+- **Weighted diagonal.** `cuboid_cuboid…oneway` does not return the axis with the largest
+  separation when at least two face axes have `separation ≥ 0`: it returns the direction of
+  `Σ sign_i · max(separation_i, ε) · e_i` and the separation measured along it. For two boxes
+  apart along x and y that is the corner-to-corner distance, **larger** than any face gap
+  (`sep_diagonal`: 1.2806 vs 1.0), and for exact corner contact it is the 45° axis with
+  separation 0 (`degen_corner`), not `+x`. The manifold generators rely on it.
+- A zero-length segment has no normal: `segment_cuboid…oneway` answers `(-f64::MAX, 0)`. It cannot
+  be quantised, so it is recorded (`non_finite_probes`) but not exported.
+
+Tolerances: separation 1 ulp for axis-aligned face axes (a difference of inputs), 4 ulp with
+rotations (the support point goes through one pose product); axis components 4 ulp for face axes,
+8 ulp for a normalised diagonal or segment / triangle normal (one square root and a division).
+
+### clip2d
+
+Upstream: `query::details::clip_segment_segment(seg1, seg2)` and
+`clip_segment_segment_with_normal(seg1, seg2, normal)` (2D), the clipping Parry runs on the
+reference and incident edges of a polygonal manifold. Each returns `None` or two clipping points
+`(p1, p2, f1, f2)`; `p1` lies on segment 1, `p2` on segment 2, and a feature is **`0` = first
+vertex as passed, `1` = interior, `2` = second vertex** (not the `PackedFeatureId` convention, the
+manifold code translates it). 16 cases: partial overlap, containment both ways, identical,
+reversed, collinear overlap / disjoint, parallel disjoint, two end-to-end single-point cases,
+perpendicular crossing, oblique, zero-length segment 2 in the interior, a one-raw-unit sliver,
+vertical segments with an `x` normal, and a slanted segment 2.
+
+- `plain` projects on the direction of segment 1 and returns the points sorted along it;
+  `with_normal` projects on the tangent `(-normal.y, normal.x)` (a `+y` normal gives a `-x`
+  tangent), so its two points come out in the **opposite order** for horizontal segments.
+- **Single point.** Touching end to end yields two clipping points at the same position with
+  *different* features (`(1, 0)` then `(2, 1)`), not one point.
+- **Ties** (`range2[0] == range1[0]`, e.g. `identical`): the strict `>` picks the vertex of
+  segment 1 and the *interior* feature of segment 2 (`(0, 1)`), although the point coincides with
+  a vertex of segment 2. Features are exact except at such ties.
+- **Division by zero.** `clip_segment_segment` divides by the length of segment 1 or 2: a
+  zero-length segment 1, a zero-length segment 2 starting where segment 1 starts, or two points
+  give non-finite points (recorded in `non_finite_probes`, not exported). `with_normal` stays
+  finite there (its reciprocal is guarded). A zero-length segment 2 in the interior (case
+  `seg2_point_inside`) is fine.
+
+Tolerance: clip points `4 + 2·length` ulp (`a + (b − a)·t`, `t` a ratio of two projections: one
+division and one product, so the error scales with the segment length); features exact except at
+the ties above.
+
+### point_projection
+
+Upstream: `PointQuery::{project_local_point(pt, solid), project_local_point_and_get_feature,
+distance_to_local_point}` on `Ball`, `Cuboid`, `Capsule`, `Segment`, and
+`PointQueryWithLocation::project_local_point_and_get_location` on `Segment`. All in the local
+frame of the shape. 33 cases: inside / outside / on the boundary / on a vertex / on an edge
+extension / at the centre for each shape (see `note`). Recorded: the projection for `solid = false`
+and `solid = true`, `distance` (`solid = false`: negative inside), the feature and, for segments,
+the location (`OnVertex(i)` or `OnEdge(u)` with the point at `a + u (b − a)`).
+
+- **Solid vs non-solid.** `solid = true` projects an inside point to itself; `solid = false`
+  pushes it to the boundary (nearest face for the cuboid, the surface for ball and capsule, the
+  point itself for a segment, which has no interior). Outside points are identical in both.
+- **Boundary counts as inside** (`<=`): a ball point at distance exactly `r`, a cuboid point on a
+  face or on a vertex, a capsule point on its side, a segment point on the segment.
+- **Features.** Ball and capsule always report `Face(0)`. Cuboid (`Aabb` projection): outside a
+  face `Face(i)` with `i = 0, 1` for `+x, +y` and `2, 3` for `-x, -y`; outside a vertex region
+  `Vertex(code)` with bit `i` set when the coordinate is below the centre (`+,+` = 0, `-,+` = 1,
+  `+,-` = 2, `-,-` = 3); a point on the boundary or inside (zero shift) reports the first `Face`
+  it touches, so a point *on a vertex* is `Face(0)`, not a vertex. Segment: `Vertex(0|1)` in a
+  vertex region (`ab·ap ≤ 0` and `≥ |ab|²` belong to the vertex), otherwise `Face(0)` when
+  `perp_dot(pt − proj, ab) ≥ 0` and `Face(1)` on the other side. These are the codes of the
+  point-projection scheme, different from the SAT / support-face scheme of the manifolds.
+- **Cuboid ties.** For an inside point the axis with the smaller distance to a face wins and
+  `diff.x <= diff.y` picks `x` on a tie (`inside_tie`); an exact zero coordinate has sign `+1`
+  (`center` projects to `+y`).
+- **Capsule on its core segment** (distance 0, also the end points): the projection uses the
+  segment normal `(dir.y, -dir.x)`, or `+y` for a zero-length core. Upstream's "distance ≥
+  `f64::EPSILON`" threshold is `2.2e-16`, far below 1 ulp: in Q32.32 read it as "distance ≠ 0".
+- **Ball centre.** `pt · (r / sqrt(|pt|²))` is `0 · ∞ = NaN` at the exact centre (recorded in
+  `non_finite_probes`, not exported); the port needs a rule. `ball/near_center` is 2^-20 from the
+  centre: its squared length `2^-40` is below one raw unit, so a Q32.32 `length_squared` underflows
+  to 0 and the projection needs wide arithmetic (or a fallback) there.
+
+Tolerances: cuboid projection exact (≤ 1 ulp: sums and differences of inputs); segment 4 ulp (one
+division), `u` 2 ulp; ball 4 ulp away from the centre; capsule 8 ulp (normalisation); `distance`
+8 ulp; discrete outputs (`is_inside`, feature, location kind) exact, except that a point within a few
+ulp of a region boundary may legitimately flip `OnVertex` / `OnEdge`: compare the points.
+
+### segment_segment
+
+Upstream: `query::details::closest_points_segment_segment_with_locations(pos12, seg1, seg2)` (Ericson's
+routine) and `closest_points_segment_segment(pos12, seg1, seg2, margin)` (asserted equal: same
+points). `pos12` places segment 2 in the frame of segment 1; `p1` is reported in the frame of
+segment 1, `p2` in the frame of segment 2, and `dist_sq` is `|p1 − pos12·p2|²` computed **by the
+harness** in `f64` from those points (upstream returns no distance). 24 cases: crossing, oblique
+crossing, parallel (both orientations), collinear overlapping / disjoint / touching / identical,
+endpoint to interior, endpoint to endpoint, skew, nearly parallel (slope 2^-10), zero-length first /
+second / both, three posed cases, and 6 **swapped copies** (`*_swap`) for the symmetry check.
+
+- **Non-unique pairs.** Parallel and collinear-overlapping segments have infinitely many closest
+  pairs; upstream picks one by falling back to `s = 0` and clamping `t`: for `parallel` it answers
+  the start of segment 2 and its projection on segment 1, for `parallel_reversed` the *same
+  geometric point* through the other end point of segment 2 (`OnVertex(1)`). These cases carry
+  `"ambiguous": true`: compare `dist_sq`, not points or locations.
+- Collinearity is decided by `denom > eps && !ulps_eq(ae, bb)` with `eps = f64::EPSILON`; in Q32.32
+  the port needs its own threshold (`nearly_parallel` has `denom = 4·2^-20`, i.e. 16 384 raw, and
+  goes through the regular branch).
+- A location within an ulp of `0` or `1` may legitimately be `OnVertex` or `OnEdge`.
+
+Tolerances: `dist_sq` 16 ulp (distances ≤ 2); points and `u` 4 ulp (a division scaled by the segment
+length); locations exact unless `ambiguous`.
 
 ## Settings deviating from Rapier's defaults
 
@@ -263,3 +467,25 @@ scene and compare every sampled step.
 
 Read a scene with `scenes::cases().at(i)`, then walk `samples.span()` and, per sample,
 `states.span()`; `crates/rapier_golden/tests/scenes.cairo` has the accessors.
+
+### Leaf-level fixtures
+
+`generated/{pose2, aabb_overlap, sat2d, clip2d, point_projection, segment_segment}.cairo` follow
+the same pattern (`pub const <CASE>`, `ALL`, `cases()`); `pose2` also has `ALL_CHAINS` /
+`chain_cases()` for the rotation chains. Case types are in `types.cairo` (`Pose2Case`,
+`RotChainCase`, `AabbOverlapCase`, `SatCase`, `ClipCase`, `ProjectionCase`, `SegmentPairCase`).
+Deviations from the scene format worth knowing:
+
+- `AabbOverlapCase` is a fixed-size array with a count (`aabbs: [OverlapBoxRaw; 32]` +
+  `num_aabbs`, `pairs: [OverlapPairRaw; 32]` + `num_pairs`, unused slots zeroed); the generator
+  panics when a set outgrows a capacity (`OVERLAP_MAX_*` in `src/cairo/leaf_families.rs`, widen
+  them with `types.cairo`). It derives `Copy, Drop` only (no `Serde` for arrays that long).
+- A `None` upstream result (`clip2d`) is `clipped: false` with zeroed points; a location on a
+  segment is `SegmentLocationRaw::{OnVertex(i), OnEdge(u)}` (`NoLocation` for the other shapes), a
+  point-projection feature `PointFeatureRaw::{Unknown, Vertex(i), Face(i)}`.
+- Inputs that make upstream answer NaN / infinity / `-f64::MAX` (zero-length segments in
+  `clip_segment_segment`, the exact centre of a ball, a zero-length segment normal) are recorded
+  under `non_finite_probes` in the JSON and **not** exported: the generator refuses to quantise a
+  non-finite output, and the port needs a rule of its own there.
+- `a_rotation_used`, `b_rotation_used`, `step_norm_squared_minus_one`, the SAT / clip / projection
+  `note`s stay in the JSON only.

@@ -5,13 +5,20 @@
 //! crates: no clock, no RNG, no hash-map iteration.
 
 mod aabb;
+mod aabb_overlap;
 mod cairo;
+mod clip2d;
 mod jsonfmt;
+mod leaf;
 mod manifolds;
 mod mass;
 mod params;
+mod point_projection;
+mod pose2;
 mod q;
+mod sat2d;
 mod scenes;
+mod segment_segment;
 mod shapes;
 
 use serde_json::Value;
@@ -59,12 +66,18 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 5] = [
+        let families: [Family; 11] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
             ("contact_manifolds", manifolds::generate),
             ("scenes", scenes::generate),
+            ("pose2", pose2::generate),
+            ("aabb_overlap", aabb_overlap::generate),
+            ("sat2d", sat2d::generate),
+            ("clip2d", clip2d::generate),
+            ("point_projection", point_projection::generate),
+            ("segment_segment", segment_segment::generate),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

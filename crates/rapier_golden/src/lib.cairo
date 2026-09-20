@@ -7,4 +7,7 @@ pub mod compare;
 pub mod generated;
 pub mod types;
 
-pub use generated::{aabb, contact_manifolds, integration_parameters, mass_properties, scenes};
+pub use generated::{
+    aabb, aabb_overlap, clip2d, contact_manifolds, integration_parameters, mass_properties,
+    point_projection, pose2, sat2d, scenes, segment_segment,
+};

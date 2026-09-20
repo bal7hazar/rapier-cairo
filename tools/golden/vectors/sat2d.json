@@ -1,0 +1,646 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "sat2d",
+  "cases": [
+    {
+      "id": "cuboid_cuboid/separated",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "gap 1.5 along x only",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-3.0, 0.0], "raw": [-12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 1.5, "raw": 6442450944 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 1.5, "raw": 6442450944 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/within_pred",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "gap 0.01 along x",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.5100000000093132, 0.25], "raw": [6485400617, 1073741824] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.5100000000093132, -0.25], "raw": [-6485400617, -1073741824] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.010000000009313226, "raw": 42949673 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.010000000009313226, "raw": 42949673 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/touching",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "faces in exact contact: separation 0 along +x",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/shallow",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "vertex of cuboid 2 inside a face of cuboid 1",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.6000000000931323, 0.30000000004656613], "raw": [6871947674, 1288490189] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.53564064623788, 0.540192378917709], "raw": [-6595526354, 2320108601] },
+        "rotation": { "f64": [0.8660254038404673, -0.5], "raw": [3719550787, -2147483648] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -0.08301270182710141, "raw": -356536840 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": -0.08038475760258734, "raw": -345249905 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/deep",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "centre of cuboid 2 inside cuboid 1",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.30000000004656613, 0.19999999995343387], "raw": [1288490189, 858993459] },
+        "rotation": { "f64": [0.7071067811921239, 0.7071067811921239], "raw": [3037000500, 3037000500] }
+      },
+      "pos21": {
+        "translation": {
+          "f64": [-0.35355339059606194, 0.07071067811921239],
+          "raw": [-1518500250, 303700050]
+        },
+        "rotation": { "f64": [0.7071067811921239, -0.7071067811921239], "raw": [3037000500, -3037000500] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -1.00710678123869, "raw": -4325490689 },
+          "axis": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": -1.207106781192124, "raw": -5184484148 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/degenerate",
+      "pair": "cuboid_cuboid",
+      "ambiguous": true,
+      "note": "coincident centres: the orientation of every tested axis is decided by the sign of an exact zero translation (+)",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -1.0, "raw": -4294967296 },
+          "axis": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": -1.0, "raw": -4294967296 },
+          "axis": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/degen_corner",
+      "pair": "cuboid_cuboid",
+      "ambiguous": true,
+      "note": "corner against corner, exactly touching: x and y separations are both 0",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.5, 1.0], "raw": [6442450944, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.5, -1.0], "raw": [-6442450944, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [0.7071067811865475, 0.7071067811865475], "raw": [3037000500, 3037000500] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [-0.7071067811865475, -0.7071067811865475], "raw": [-3037000500, -3037000500] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/degen_rot90",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "exact quarter turn: edges parallel through a rotation, penetration 0.01",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.4899999999906868], "raw": [0, 6399501271] },
+        "rotation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.4899999999906868, 0.0], "raw": [-6399501271, 0] },
+        "rotation": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -0.010000000009313226, "raw": -42949673 },
+          "axis": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": -0.010000000009313226, "raw": -42949673 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_cuboid/sep_diagonal",
+      "pair": "cuboid_cuboid",
+      "ambiguous": false,
+      "note": "separated along x and y: upstream returns the separation along the weighted diagonal, not the maximum axis separation",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [2.5, 1.8000000000465661], "raw": [10737418240, 7730941133] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-2.5, -1.8000000000465661], "raw": [-10737418240, -7730941133] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 1.2806248475156594, "raw": 5500241839 },
+          "axis": { "f64": [0.7808688094252927, 0.6246950475765962], "raw": [3353805999, 2683044799] }
+        },
+        "sep2": {
+          "separation": { "f64": 1.2806248475156594, "raw": 5500241839 },
+          "axis": { "f64": [-0.7808688094252927, -0.6246950475765962], "raw": [-3353805999, -2683044799] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_segment/separated",
+      "pair": "cuboid_segment",
+      "ambiguous": false,
+      "note": "vertical segment, gap 2 along x",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "type": "segment"
+      },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-3.0, 0.0], "raw": [-12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 2.0, "raw": 8589934592 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 2.0, "raw": 8589934592 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_segment/within_pred",
+      "pair": "cuboid_segment",
+      "ambiguous": false,
+      "note": "gap 0.01",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "type": "segment"
+      },
+      "pos12": {
+        "translation": { "f64": [1.0100000000093132, 0.0], "raw": [4337916969, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.0100000000093132, 0.0], "raw": [-4337916969, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.010000000009313226, "raw": 42949673 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.010000000009313226, "raw": 42949673 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_segment/touching",
+      "pair": "cuboid_segment",
+      "ambiguous": false,
+      "note": "segment lying on the +x face: separation 0, parallel to the face",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "type": "segment"
+      },
+      "pos12": {
+        "translation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_segment/shallow",
+      "pair": "cuboid_segment",
+      "ambiguous": false,
+      "note": "rotated segment crossing the +x face",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "type": "segment"
+      },
+      "pos12": {
+        "translation": { "f64": [0.8999999999068677, 0.19999999995343387], "raw": [3865470566, 858993459] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "pos21": {
+        "translation": { "f64": [-0.879422863246873, 0.27679491927847266], "raw": [-3777092437, 1188825126] },
+        "rotation": { "f64": [0.8660254038404673, -0.5], "raw": [3719550787, -2147483648] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -0.35000000009313226, "raw": -1503238554 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": -0.2366025405935943, "raw": -1016200174 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_segment/deep",
+      "pair": "cuboid_segment",
+      "ambiguous": false,
+      "note": "horizontal segment through the cuboid",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "type": "segment"
+      },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+        "rotation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+      },
+      "pos21": {
+        "translation": { "f64": [-0.10000000009313226, 0.19999999995343387], "raw": [-429496730, 858993459] },
+        "rotation": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -0.39999999990686774, "raw": -1717986918 },
+          "axis": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": -0.39999999990686774, "raw": -1717986918 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_segment/degenerate",
+      "pair": "cuboid_segment",
+      "ambiguous": true,
+      "note": "segment through the cuboid centre along y: face normals tie",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "type": "segment"
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -1.0, "raw": -4294967296 },
+          "axis": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": -1.0, "raw": -4294967296 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/separated",
+      "pair": "cuboid_triangle",
+      "ambiguous": false,
+      "note": "gap 1.5 along x",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-3.0, 0.0], "raw": [-12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 1.5, "raw": 6442450944 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 1.3416407864998738, "raw": 5762303301 },
+          "axis": { "f64": [-0.8944271909999159, 0.4472135954999579], "raw": [-3841535534, 1920767767] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/within_pred",
+      "pair": "cuboid_triangle",
+      "ambiguous": false,
+      "note": "gap 0.01, closest feature: vertex against face",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [1.5100000000093132, 0.0], "raw": [6485400617, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.5100000000093132, 0.0], "raw": [-6485400617, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.010000000009313226, "raw": 42949673 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.008944271918329139, "raw": 38415355 },
+          "axis": { "f64": [-0.8944271909999159, 0.4472135954999579], "raw": [-3841535534, 1920767767] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/touching",
+      "pair": "cuboid_triangle",
+      "ambiguous": true,
+      "note": "triangle vertex on the corner of the cuboid: exact contact",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [-0.8944271909999159, 0.4472135954999579], "raw": [-3841535534, 1920767767] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/shallow",
+      "pair": "cuboid_triangle",
+      "ambiguous": false,
+      "note": "rotated triangle vertex 0.05 inside the +x face",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [1.1999999999534339, 0.19999999995343387], "raw": [5153960755, 858993459] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "pos21": {
+        "translation": { "f64": [-1.1392304846085608, 0.4267949191853404], "raw": [-4892957674, 1833070220] },
+        "rotation": { "f64": [0.8660254038404673, -0.5], "raw": [3719550787, -2147483648] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -0.05000000004656613, "raw": -214748365 },
+          "axis": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+        },
+        "sep2": {
+          "separation": { "f64": -0.04194068261873664, "raw": -180133860 },
+          "axis": { "f64": [-0.8944271909999159, 0.4472135954999579], "raw": [-3841535534, 1920767767] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/deep",
+      "pair": "cuboid_triangle",
+      "ambiguous": false,
+      "note": "triangle centre inside the cuboid",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+        "rotation": { "f64": [0.7071067811921239, 0.7071067811921239], "raw": [3037000500, 3037000500] }
+      },
+      "pos21": {
+        "translation": { "f64": [-0.21213203435763717, 0.07071067811921239], "raw": [-911100150, 303700050] },
+        "rotation": { "f64": [0.7071067811921239, -0.7071067811921239], "raw": [3037000500, -3037000500] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -0.9535533906891942, "raw": -4095480628 },
+          "axis": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": -1.1090445426041078, "raw": -4763310040 },
+          "axis": { "f64": [-0.8944271909999159, 0.4472135954999579], "raw": [-3841535534, 1920767767] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/degenerate",
+      "pair": "cuboid_triangle",
+      "ambiguous": true,
+      "note": "triangle inside the cuboid",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": -1.0, "raw": -4294967296 },
+          "axis": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": -1.0, "raw": -4294967296 },
+          "axis": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }
+        }
+      }
+    },
+    {
+      "id": "cuboid_triangle/degen_edge",
+      "pair": "cuboid_triangle",
+      "ambiguous": true,
+      "note": "triangle base edge lying on the +y face: parallel edges in exact contact",
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+        "b": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+        "c": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos21": {
+        "translation": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "sep1": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        },
+        "sep2": {
+          "separation": { "f64": 0.0, "raw": 0 },
+          "axis": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }
+        }
+      }
+    }
+  ],
+  "non_finite_probes": [
+    { "id": "probe/segment_no_normal", "separation_is_minus_f64_max": true, "axis_is_zero": true }
+  ]
+}
