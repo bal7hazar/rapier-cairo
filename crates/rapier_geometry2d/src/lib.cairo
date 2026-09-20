@@ -18,6 +18,10 @@ pub mod point;
 pub mod polygonal_feature;
 pub mod sat;
 pub mod shape;
+pub use closest_points::{
+    closest_points_segment_segment, closest_points_segment_segment_with_locations,
+};
 
 pub use mass::MassPropertiesTrait;
+pub use point::{PointProjection, SegmentPointLocation};
 pub use shape::{Shape, ShapeTrait, ShapeType};
