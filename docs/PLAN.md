@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`, waves re-sequenced). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.1, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`, waves re-sequenced; v2.1: wave 1 merged). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -73,15 +73,34 @@ ships `test_*`, `gas_*` (one per candidate implementation) and docs per `AGENTS.
 
 ### Phase 1 — 2D MVP: "a box stack settles, and the step is proven"
 
-**Wave 1 — independent of the scalar, starts now**
+**Wave 1 — independent of the scalar** ✅ merged (PR #3, #4)
 
 | ID | Package | Upstream reference | Acceptance |
 |---|---|---|---|
 | C1 [P] | `rapier_core::data`: generational handles, arena (candidates: `Felt252Dict` vs `Array` rebuild), union-find, interaction groups (math vs bitwise candidates) | `src/data`, `geometry/interaction_groups.rs` | handle reuse/generation tests, candidates ranked |
 | G0 [P] | `tools/golden`: Rust harness + fixture generator; leaf vectors (mass props, AABB, spring coefficients, each contact pair over 6 regimes: separated, within prediction, touching, shallow, deep, degenerate) and scene traces. Inputs quantised to Q32.32, values emitted as raw `i64` so fixtures do not depend on the scalar crate | report 01 §8, report 02 §8 | fixtures committed, regeneration documented |
 
+**Wave 1 outcomes that constrain later packages**
+
+- Golden vectors pin `rapier2d-f64 =0.35.3` with `parry2d-f64 =0.30.2` (the Parry that the published
+  Rapier actually depends on; report 02 analysed 0.31.1, differences are not relevant to the MVP).
+- Upstream cuboid **feature ids are wrong in f64 builds** (bit 31 of the float is read); fixtures carry
+  ids from an f32 run. The Cairo port must follow the f32 semantics.
+- Convex pairs always return one manifold, possibly with 0 points; clipped points beyond the
+  prediction distance are kept; ball–ball tests `<` where other generators test `<=`; normals of
+  exactly-degenerate configurations are unreliable upstream (cases tagged `ambiguous`, excluded from
+  strict comparison).
+- Joint `cfm_coeff` is ~6 ulp in Q32.32 → confirms D4 (rigid joints special-cased) and D3.
+- No rotation other than multiples of 90° is exactly unit in Q32.32 → `Rot2` renormalisation policy
+  is part of M2's acceptance.
+- `rapier_core`: `Felt252Dict` arena is O(1) per mutation (array rebuild is O(capacity)), but arrays
+  are 15–25 % cheaper for read-only and bulk passes → solver scratch data should be dense arrays
+  built once per step, the arena is for the persistent sets.
+
 **Gate X1 — external:** `glam.cairo` merges `fixed` F1 + F2 (scalar + wide accumulators) and `Vec2`
-(its items F1, F2, V2). Only these three block rapier.cairo; nalgebra.cairo blocks nothing.
+(its items F1, F2, V2). Its `docs/DESIGN.md` already fixes what we need: `fixed::Fixed { raw: i64 }`,
+**floor** rounding on every rescale, panicking `recip(0)` (so `inv(0) = 0` stays in
+`rapier_math::math_ext`), public wide accumulators. Only these three items block rapier.cairo; nalgebra.cairo blocks nothing.
 If the gate slips, fallback: vendor a snapshot of `fixed` from the glam.cairo branch under
 `crates/` and swap it for the git dependency later (same code, so no semantic drift).
 

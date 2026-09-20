@@ -44,3 +44,18 @@ jobs:
       - name: Gas delta summary
         if: always()
         run: python3 scripts/gas.py diff --from-log snforge.log >> "$GITHUB_STEP_SUMMARY"
+
+  golden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/golden
+      - name: Regenerate golden vectors
+        working-directory: tools/golden
+        run: cargo run --release --locked
+      - name: Vectors and fixtures are up to date
+        run: git diff --exit-code -- tools/golden/vectors crates/rapier_golden
