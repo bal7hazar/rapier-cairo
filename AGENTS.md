@@ -56,7 +56,8 @@ Model choice by difficulty (`docs/ORCHESTRATOR.md`):
 | standard port with numerics (a new module: kernels, tests, golden vectors, benches) | `opus` | `gpt-5.6-*`, effort `high` |
 | genuinely complex (novel numerics, hard debugging, cross-module design) | `fable` | `gpt-6-astra`, effort `xhigh` |
 
-The smaller the model, the tighter the brief.
+The smaller the model, the tighter the brief. On the current codex account only `gpt-5.5` and
+`gpt-6-astra` are accepted (`gpt-5.6-*` is refused): use `gpt-5.5` at `high` effort for the middle tier.
 
 ### Brief (mandatory sections, in this order)
 
