@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.4, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.4, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -118,7 +118,7 @@ If the gate slips, fallback: vendor a snapshot of `fixed` from the glam.cairo br
 
 Trig (`sin_cos`, `atan2`) comes from `fixed::trig` (glam item F3); it is only needed in phase 2.
 
-**Wave 3** (needs M2, M3, F3) — geometry and dynamics streams run side by side. **Launched 2026-09-20** (stubs pre-declared in PR #20, briefs in `docs/briefs/`): GA codex gpt-5.5, GB claude sonnet, GC claude opus, GD codex gpt-6-astra, GE codex gpt-5.5, DA claude opus, DC codex gpt-6-astra xhigh. DB moved to wave 4 (needs GB's `Shape`).
+**Wave 3** ✅ merged 2026-09-20 (GE #23, GA #24, GD #25, DC #26, DA #27, GB #28, GC #30; 1 091 tests on main). Findings: brute-force broad phase wins up to n = 64 but costs ~7k gas per pair test (optimisation candidate); `try_update_contacts` fast path 75k; SAT+clip contact ≈ 150k; solver 153k per manifold per pass (1 point), 233k (2 points) with gather/scatter; DC warns that scattering into an immutable `Array` is O(bodies) per manifold → DF benches a dict-backed store; free-fall step of one body 222k. Launched 2026-09-20 (stubs pre-declared in PR #20, briefs in `docs/briefs/`): GA codex gpt-5.5, GB claude sonnet, GC claude opus, GD codex gpt-6-astra, GE codex gpt-5.5, DA claude opus, DC codex gpt-6-astra xhigh. DB moved to wave 4 (needs GB's `Shape`).
 
 | ID | Package | Upstream reference |
 |---|---|---|
@@ -131,7 +131,7 @@ Trig (`sin_cos`, `atan2`) comes from `fixed::trig` (glam item F3); it is only ne
 | DB [P] | Collider components, material + combine rules, sensors flag | `geometry/collider_components.rs` |
 | DC [P] | Contact solver on **mock manifolds**: generate, update, warm start, solve (biased + relax), friction, restitution pass, writeback | `solver/contact_constraint/*` |
 
-**Wave 4** (needs wave 3)
+**Wave 4** (needs wave 3) — briefs in `docs/briefs/` (GF1–GF4, GG, GH shim consolidation, DB, DD, DE, DF); DB and DE launched 2026-09-20, GH after GC
 
 | ID | Package |
 |---|---|
