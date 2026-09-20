@@ -229,5 +229,7 @@ rapier_golden_integrationtest::sanity::test_tables_have_the_expected_sizes 19840
 rapier_golden_integrationtest::sanity::test_touching_regime_has_a_zero_distance 112730
 rapier_golden_integrationtest::sanity::test_unused_contact_points_are_zeroed 503210
 rapier_golden_integrationtest::sanity::test_within_prediction_regime_has_a_positive_distance_below_prediction 85280
+rapier_math::tests::gas_baseline 13620
+rapier_math::tests::gas_fixed_dot2_sqrt 21620
 rapier_testing::tests::gas_baseline 13620
 rapier_testing::tests::gas_opaque_u64 15540

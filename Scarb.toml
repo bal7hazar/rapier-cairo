@@ -9,6 +9,9 @@ license = "MIT"
 repository = "https://github.com/bal7hazar/rapier.cairo"
 
 [workspace.dependencies]
+# Shared Q32.32 scalar from glam.cairo (docs/PLAN.md D12). Pinned to the fixed F1+F2 branch until
+# it is merged upstream; bump the rev then.
+fixed = { git = "https://github.com/bal7hazar/glam.cairo", rev = "e320707781d0f73ff07f400d9c6f9f5088db4ad4" }
 snforge_std = "0.61.0"
 assert_macros = "2.19.4"
 
