@@ -1,6 +1,6 @@
 [package]
-name = "rapier_core"
-description = "Dimension-agnostic data structures of rapier.cairo: handles, arena, union-find, interaction groups."
+name = "rapier_math"
+description = "Physics-side math on top of glam.cairo: Rot2, Pose2, fused kernels and scalar helpers (the glamx layer of rapier.cairo)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,10 +10,10 @@ repository.workspace = true
 fixed.workspace = true
 
 [dev-dependencies]
-rapier_golden = { path = "../rapier_golden" }
 snforge_std.workspace = true
 assert_macros.workspace = true
 rapier_testing = { path = "../rapier_testing" }
+rapier_golden = { path = "../rapier_golden" }
 
 [tool]
 fmt.workspace = true

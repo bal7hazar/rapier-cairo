@@ -12,6 +12,8 @@
 #   EXECUTOR_LOG_DIR   where to write <id>.jsonl and <id>.result (default: ./.executor-logs)
 #   EXECUTOR_MAX_TURNS turn budget (default 200)
 #   EXECUTOR_EFFORT    effort level passed to the CLI (default: high)
+#   EXECUTOR_BASE      ref the new branch starts from (default: origin/main); use it to stack a
+#                      package on an interface branch that is not merged yet
 #
 # The CLI runs with its own login (a separate account from the orchestrator's session), with the
 # permission prompts replaced by an explicit allow-list: file edits, and Bash restricted to the
@@ -47,7 +49,7 @@ fi
 if git -C "$ROOT" show-ref --quiet "refs/heads/$BRANCH"; then
   git -C "$ROOT" worktree add -q "$WORKTREE" "$BRANCH"
 else
-  git -C "$ROOT" worktree add -q -b "$BRANCH" "$WORKTREE" origin/main
+  git -C "$ROOT" worktree add -q -b "$BRANCH" "$WORKTREE" "${EXECUTOR_BASE:-origin/main}"
 fi
 cp "$BRIEF" "$WORKTREE/.executor-brief.md"
 cp "$ROOT/scripts/executor/system-prompt.md" "$WORKTREE/.executor-system.md"

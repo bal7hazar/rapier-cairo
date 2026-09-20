@@ -2,9 +2,16 @@
 version = 1
 
 [[package]]
+name = "fixed"
+version = "0.1.0"
+source = "git+https://github.com/bal7hazar/glam.cairo?rev=e320707781d0f73ff07f400d9c6f9f5088db4ad4#e320707781d0f73ff07f400d9c6f9f5088db4ad4"
+
+[[package]]
 name = "rapier_core"
 version = "0.1.0"
 dependencies = [
+ "fixed",
+ "rapier_golden",
  "rapier_testing",
  "snforge_std",
 ]
@@ -13,6 +20,16 @@ dependencies = [
 name = "rapier_golden"
 version = "0.1.0"
 dependencies = [
+ "rapier_testing",
+ "snforge_std",
+]
+
+[[package]]
+name = "rapier_math"
+version = "0.1.0"
+dependencies = [
+ "fixed",
+ "rapier_golden",
  "rapier_testing",
  "snforge_std",
 ]
