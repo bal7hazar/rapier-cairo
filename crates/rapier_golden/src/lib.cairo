@@ -7,4 +7,4 @@ pub mod compare;
 pub mod generated;
 pub mod types;
 
-pub use generated::{aabb, contact_manifolds, integration_parameters, mass_properties};
+pub use generated::{aabb, contact_manifolds, integration_parameters, mass_properties, scenes};
