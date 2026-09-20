@@ -6,6 +6,8 @@
 
 pub mod consts;
 pub mod math_ext;
+pub mod pose2;
+pub mod rot2;
 
 pub use consts::{
     COS_10_DEGREES, COS_1_DEGREES, COS_45_DEGREES, COS_5_DEGREES, COS_FRAC_PI_8, DEFAULT_EPSILON,
