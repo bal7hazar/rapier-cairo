@@ -6,6 +6,7 @@
 //!
 //! Deferred: convex polygons, round shapes, compounds, `scaled`, ray casting.
 
+pub mod aabb_shim;
 pub mod ball;
 pub mod capsule;
 pub mod cuboid;
