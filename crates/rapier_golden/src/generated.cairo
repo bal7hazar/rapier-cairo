@@ -7,3 +7,4 @@ pub mod aabb;
 pub mod contact_manifolds;
 pub mod integration_parameters;
 pub mod mass_properties;
+pub mod scenes;

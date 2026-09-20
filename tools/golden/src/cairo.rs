@@ -170,14 +170,18 @@ fn shape(v: &Value) -> Node {
     }
 }
 
-/// A case id as a Cairo short string.
-fn id(v: &Value) -> Node {
-    let s = v["id"].as_str().unwrap();
+/// A string as a Cairo short string.
+fn short_string(s: &str) -> Node {
     assert!(
         s.len() <= MAX_SHORT_STRING && s.is_ascii() && !s.contains('\''),
-        "case id `{s}` does not fit a felt252 short string"
+        "`{s}` does not fit a felt252 short string"
     );
     Node::Lit(format!("'{s}'"))
+}
+
+/// A case id as a Cairo short string.
+fn id(v: &Value) -> Node {
+    short_string(v["id"].as_str().unwrap())
 }
 
 /// A case id as a Cairo constant name: upper case, every other character becomes `_`.
@@ -293,8 +297,10 @@ impl Module {
     }
 }
 
-const ALL_TYPES: [&str; 17] = [
+const ALL_TYPES: [&str; 24] = [
     "AabbCase",
+    "BodyKindRaw",
+    "BodyStateRaw",
     "CapsuleRaw",
     "CompoundMassCase",
     "ContactPointRaw",
@@ -303,7 +309,12 @@ const ALL_TYPES: [&str; 17] = [
     "ManifoldCase",
     "MassPropertiesRaw",
     "PoseRaw",
+    "RevoluteJointRaw",
     "RotRaw",
+    "SceneBodyRaw",
+    "SceneCase",
+    "SceneColliderRaw",
+    "SceneSampleRaw",
     "SegmentRaw",
     "ShapeMassCase",
     "ShapeRaw",
@@ -611,6 +622,273 @@ fn manifolds(vectors: &Path) -> String {
     module.finish(&ALL_TYPES)
 }
 
+fn zero() -> Node {
+    Node::Lit("0".into())
+}
+
+fn zero_rot() -> Node {
+    Node::Struct("RotRaw", vec![("re", zero()), ("im", zero())])
+}
+
+fn zero_pose() -> Node {
+    Node::Struct(
+        "PoseRaw",
+        vec![("translation", zero_vec2()), ("rotation", zero_rot())],
+    )
+}
+
+/// Capacities of the fixed-size arrays of `SceneCase` (see `types.cairo`).
+const SCENE_MAX_BODIES: usize = 4;
+const SCENE_MAX_COLLIDERS: usize = 1;
+const SCENE_MAX_JOINTS: usize = 1;
+const SCENE_MAX_DYNAMIC: usize = 3;
+const SCENE_NUM_SAMPLES: usize = 22;
+
+/// Pads `items` with `pad()` up to `len`, so that unused array slots are zeroed.
+fn padded(mut items: Vec<Node>, len: usize, what: &str, pad: fn() -> Node) -> Node {
+    assert!(
+        items.len() <= len,
+        "{what}: {} items exceed capacity {len}",
+        items.len()
+    );
+    while items.len() < len {
+        items.push(pad());
+    }
+    Node::Array(items)
+}
+
+fn scene_collider(v: &Value) -> Node {
+    Node::Struct(
+        "SceneColliderRaw",
+        vec![
+            ("shape", shape(&v["shape"])),
+            ("pose_wrt_parent", pose(&v["pose_wrt_parent"])),
+            ("density", raw(&v["density"])),
+            ("friction", raw(&v["friction"])),
+            ("restitution", raw(&v["restitution"])),
+        ],
+    )
+}
+
+fn empty_scene_collider() -> Node {
+    Node::Struct(
+        "SceneColliderRaw",
+        vec![
+            ("shape", Node::Variant("ShapeRaw::Ball", Box::new(zero()))),
+            ("pose_wrt_parent", zero_pose()),
+            ("density", zero()),
+            ("friction", zero()),
+            ("restitution", zero()),
+        ],
+    )
+}
+
+fn scene_body(v: &Value) -> Node {
+    let colliders: Vec<Node> = v["colliders"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(scene_collider)
+        .collect();
+    let num_colliders = colliders.len();
+    let kind = match v["type"].as_str().unwrap() {
+        "fixed" => "BodyKindRaw::Fixed",
+        "dynamic" => "BodyKindRaw::Dynamic",
+        other => panic!("unknown body type {other}"),
+    };
+    Node::Struct(
+        "SceneBodyRaw",
+        vec![
+            ("name", short_string(v["name"].as_str().unwrap())),
+            ("kind", Node::Lit(kind.into())),
+            ("pose", pose(&v["pose"])),
+            ("linear_damping", raw(&v["linear_damping"])),
+            ("angular_damping", raw(&v["angular_damping"])),
+            ("gravity_scale", raw(&v["gravity_scale"])),
+            ("num_colliders", Node::Lit(num_colliders.to_string())),
+            (
+                "colliders",
+                padded(
+                    colliders,
+                    SCENE_MAX_COLLIDERS,
+                    "colliders",
+                    empty_scene_collider,
+                ),
+            ),
+        ],
+    )
+}
+
+fn empty_scene_body() -> Node {
+    Node::Struct(
+        "SceneBodyRaw",
+        vec![
+            ("name", zero()),
+            ("kind", Node::Lit("BodyKindRaw::Fixed".into())),
+            ("pose", zero_pose()),
+            ("linear_damping", zero()),
+            ("angular_damping", zero()),
+            ("gravity_scale", zero()),
+            ("num_colliders", zero()),
+            (
+                "colliders",
+                padded(
+                    vec![],
+                    SCENE_MAX_COLLIDERS,
+                    "colliders",
+                    empty_scene_collider,
+                ),
+            ),
+        ],
+    )
+}
+
+fn empty_joint() -> Node {
+    Node::Struct(
+        "RevoluteJointRaw",
+        vec![
+            ("body1", zero()),
+            ("body2", zero()),
+            ("local_anchor1", zero_vec2()),
+            ("local_anchor2", zero_vec2()),
+        ],
+    )
+}
+
+fn empty_state() -> Node {
+    Node::Struct(
+        "BodyStateRaw",
+        vec![
+            ("body", zero()),
+            ("translation", zero_vec2()),
+            ("rotation", zero_rot()),
+            ("linvel", zero_vec2()),
+            ("angvel", zero()),
+        ],
+    )
+}
+
+fn scenes(vectors: &Path) -> String {
+    let json = load(vectors, "scenes.json");
+    let mut module = Module::new(
+        "scenes.json",
+        "Full-engine traces: description of six scenes and the sampled states of their dynamic bodies.",
+    );
+    let num_steps = json["num_steps"].as_u64().unwrap();
+
+    let cases: Vec<(String, Node)> = json["scenes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| {
+            let bodies = c["bodies"].as_array().unwrap();
+            let index_of = |v: &Value| -> Node {
+                let index = bodies
+                    .iter()
+                    .position(|b| b["name"] == *v)
+                    .unwrap_or_else(|| panic!("unknown body {v}"));
+                Node::Lit(index.to_string())
+            };
+            let dynamic: Vec<&str> = bodies
+                .iter()
+                .filter(|b| b["type"] == "dynamic")
+                .map(|b| b["name"].as_str().unwrap())
+                .collect();
+
+            let joints: Vec<Node> = c["joints"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|j| {
+                    assert_eq!(j["type"], "revolute", "only revolute joints are exported");
+                    Node::Struct(
+                        "RevoluteJointRaw",
+                        vec![
+                            ("body1", index_of(&j["body1"])),
+                            ("body2", index_of(&j["body2"])),
+                            ("local_anchor1", vec2(&j["local_anchor1"])),
+                            ("local_anchor2", vec2(&j["local_anchor2"])),
+                        ],
+                    )
+                })
+                .collect();
+            let num_joints = joints.len();
+
+            let samples = c["samples"].as_array().unwrap();
+            assert_eq!(
+                samples.len(),
+                SCENE_NUM_SAMPLES,
+                "sample count of {}",
+                c["id"]
+            );
+            let samples: Vec<Node> = samples
+                .iter()
+                .map(|s| {
+                    let states = s["bodies"].as_array().unwrap();
+                    let names: Vec<&str> =
+                        states.iter().map(|b| b["body"].as_str().unwrap()).collect();
+                    assert_eq!(
+                        names, dynamic,
+                        "sampled bodies of {} follow body order",
+                        c["id"]
+                    );
+                    let states: Vec<Node> = states
+                        .iter()
+                        .map(|b| {
+                            Node::Struct(
+                                "BodyStateRaw",
+                                vec![
+                                    ("body", index_of(&b["body"])),
+                                    ("translation", vec2(&b["translation"])),
+                                    ("rotation", rot(&b["rotation"])),
+                                    ("linvel", vec2(&b["linvel"])),
+                                    ("angvel", raw(&b["angvel"])),
+                                ],
+                            )
+                        })
+                        .collect();
+                    Node::Struct(
+                        "SceneSampleRaw",
+                        vec![
+                            ("step", int(&s["step"])),
+                            (
+                                "states",
+                                padded(states, SCENE_MAX_DYNAMIC, "sampled states", empty_state),
+                            ),
+                        ],
+                    )
+                })
+                .collect();
+
+            let body_nodes: Vec<Node> = bodies.iter().map(scene_body).collect();
+            let node = Node::Struct(
+                "SceneCase",
+                vec![
+                    ("id", id(c)),
+                    ("gravity", vec2(&json["gravity"])),
+                    ("dt", raw(&json["dt"])),
+                    ("num_steps", Node::Lit(num_steps.to_string())),
+                    ("num_bodies", Node::Lit(bodies.len().to_string())),
+                    (
+                        "bodies",
+                        padded(body_nodes, SCENE_MAX_BODIES, "bodies", empty_scene_body),
+                    ),
+                    ("num_dynamic", Node::Lit(dynamic.len().to_string())),
+                    ("num_joints", Node::Lit(num_joints.to_string())),
+                    (
+                        "joints",
+                        padded(joints, SCENE_MAX_JOINTS, "joints", empty_joint),
+                    ),
+                    ("samples", Node::Array(samples)),
+                ],
+            );
+            (const_name(c), node)
+        })
+        .collect();
+    module.table("SceneCase", "ALL", "cases", &cases);
+    module.finish(&ALL_TYPES)
+}
+
 fn write(path: &Path, content: &str) {
     if fs::read_to_string(path).ok().as_deref() != Some(content) {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -628,6 +906,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("contact_manifolds", manifolds(vectors)),
         ("integration_parameters", integration_parameters(vectors)),
         ("mass_properties", mass(vectors)),
+        ("scenes", scenes(vectors)),
     ];
     let mut index = String::from(
         "// Generated by tools/golden — do not edit.\n// Regenerate with `cargo run --release` in tools/golden.\n\n//! Golden fixtures, one module per vector family.\n\n",
