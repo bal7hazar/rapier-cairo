@@ -1,0 +1,6 @@
+[workspace]
+members = ["packages/cubit", "packages/orion", "packages/alexandria_merkle_tree", "packages/alexandria_data_structures", "packages/alexandria_sorting", "packages/bench"]
+
+# cairo-lang-lowering 2.19.4 panics in its incremental cache with this workspace (cache/mod.rs:437)
+[profile.dev.cairo]
+incremental = false

@@ -17,6 +17,13 @@ jobs:
       - uses: software-mansion/setup-scarb@v1
       - run: scarb fmt --check --workspace
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - run: scarb lint --workspace --deny-warnings
+
   build:
     runs-on: ubuntu-latest
     steps:
