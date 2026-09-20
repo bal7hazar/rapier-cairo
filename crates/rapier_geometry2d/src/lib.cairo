@@ -9,6 +9,8 @@ pub mod broad_phase;
 pub mod clip;
 pub mod closest_points;
 pub mod contact;
+pub mod contact_generators;
+pub mod dispatch;
 pub mod feature_id;
 pub mod manifold;
 pub mod mass;
@@ -16,3 +18,6 @@ pub mod point;
 pub mod polygonal_feature;
 pub mod sat;
 pub mod shape;
+
+pub use mass::MassPropertiesTrait;
+pub use shape::{Shape, ShapeTrait, ShapeType};
