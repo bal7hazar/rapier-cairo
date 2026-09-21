@@ -144,6 +144,15 @@ the immutable-`Array` scatter, see wave-3 findings). Still-empty pre-declared st
 `rapier_geometry2d::{contact_generators::*, dispatch}`, `rapier_dynamics2d::{collider_set,
 rigid_body_set, narrow_phase, events, solver::{island, body_store}}`.
 
+Wave-4 finding (GF2, measured 2026-09-21): **Sierra gas is path-insensitive for loop-free code.**
+`contact_manifold_cuboid_cuboid` costs 482k Sierra gas in every regime (separated early exit, cached
+`try_update_contacts` hit, full SAT + clip) because `branch_align` charges each branch up to the most
+expensive one, whereas Cairo steps follow the executed path: 767 (separated, short-circuit) / 968
+(separated, eager two-SAT) / 1 090 (cached hit) / 3 165 (full). Consequences: (1) `gas_*` probes rank
+whole functions, not early exits — candidates that differ only by an early exit must also be compared
+with `--tracked-resource cairo-steps --detailed-resources`; (2) Starknet execution pays the worst
+case, `scarb prove` pays the path; P3 records both resources per scene (ties into open question 2).
+
 Upstream read-only clones for the briefs live at `UP=/home/claude/git/refs/{rapier,parry}`
 (rapier `28d0ba9` = v0.35.3 + 4 commits, parry `3383f51` = v0.31.1; golden vectors still pin
 `parry2d-f64 =0.30.2`). Briefs of already-merged packages keep the path of the previous machine.
