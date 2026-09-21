@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.6, 2026-09-21** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.7, 2026-09-22** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -147,6 +147,21 @@ rigid_body_set, narrow_phase, events, solver::{island, body_store}}`.
 G3 (added 2026-09-21, brief `g3-manifold-golden-gaps.md`, codex gpt-5.5 high): GF4 found no golden
 vectors for halfspace–capsule, halfspace–segment and cuboid–segment (analytic tests only); G3 appends
 21 cases to the `contact_manifolds` family, then GF4's golden test file is extended.
+
+Wave-4 status (2026-09-22): merged G3 ✅ (#38, golden manifolds 66 → 87), GF2 ✅ (#39), GF4 ✅ (#41), GF1 ✅
+(#42), DD ✅ (#43); GF3 running; DF launched after DD; GG waits for GF3. Measured (Sierra gas net | Cairo
+steps): ball–ball 39k | 277–411; convex–ball 92k | 466–754; cuboid–cuboid 482k | 767 separated, 1 090
+cached, 3 165 full; halfspace–cuboid 212k, halfspace–segment/capsule ~140k; cuboid–segment 524k | 716
+separated, 3 082 touching. Narrow phase (DD, mock dispatcher): `process_pair` 275k, `compute_contacts`
+≈ 0.5M per body in a stack (18.9M for 32), `broad_phase_proxies` 290k per collider — optimisation
+candidates for P3; warm-start carry-over by sorted merge beats `Felt252Dict` by 1.5–3.4 %.
+Findings: (1) G3's vectors caught a real gap — vertex–vertex cuboid–segment needs an endpoint–corner
+fallback after clipping (face-normal SAT cannot produce the diagonal normal); upstream (GJK path)
+emits that point twice, the port reproduces it, and a 2-point manifold costs the solver 233k vs 153k
+per pass → candidate: collapse duplicates. (2) Any test iterating `contact_manifolds::cases()` drifts
+in gas when the golden table grows: merge golden extensions before launching their consumers.
+(3) Executors now run in systemd user units with a machine-wide build lock (`scripts/executor-unit.sh`,
+PR #40) after two OOM-induced mass kills.
 
 Wave-4 finding (GF2, measured 2026-09-21): **Sierra gas is path-insensitive for loop-free code.**
 `contact_manifold_cuboid_cuboid` costs 482k Sierra gas in every regime (separated early exit, cached

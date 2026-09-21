@@ -10,3 +10,10 @@ pub mod narrow_phase;
 pub mod rigid_body;
 pub mod rigid_body_set;
 pub mod solver;
+
+pub use collider_set::{ColliderSet, ColliderSetTrait};
+pub use events::{CollisionEvent, CollisionEventTrait};
+pub use narrow_phase::{
+    ContactDispatcher, ContactPair, ContactPairTrait, NarrowPhase, NarrowPhaseTrait,
+};
+pub use rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};

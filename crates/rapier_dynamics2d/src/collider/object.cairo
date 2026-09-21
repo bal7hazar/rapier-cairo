@@ -17,8 +17,8 @@ use rapier_core::collider::{
     ColliderEnabled, ColliderFlags, ColliderMaterial, ColliderType, ColliderTypeTrait,
 };
 use rapier_core::interaction_groups::InteractionGroups;
+use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
-use rapier_geometry2d::shape::aabb_shim::Aabb;
 use rapier_geometry2d::shape::{Shape, ShapeTrait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
