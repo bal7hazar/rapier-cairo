@@ -30,8 +30,8 @@ fn test_tables_have_the_expected_sizes() {
     assert_eq!(mass_properties::cases().len(), 11);
     assert_eq!(mass_properties::body_cases().len(), 1);
     assert_eq!(aabb::cases().len(), 32);
-    // 9 pairs x 6 regimes + 7 extra degenerate cases + 5 flipped-order cases.
-    assert_eq!(contact_manifolds::cases().len(), 66);
+    // 12 pairs x 6 regimes + 7 extra degenerate cases + 8 flipped-order cases.
+    assert_eq!(contact_manifolds::cases().len(), 87);
 }
 
 #[test]
@@ -136,7 +136,8 @@ fn test_separated_regime_has_no_contact_point() {
         contact_manifolds::BALL_CAPSULE_SEPARATED, contact_manifolds::CUBOID_CUBOID_SEPARATED,
         contact_manifolds::CUBOID_CAPSULE_SEPARATED, contact_manifolds::CAPSULE_CAPSULE_SEPARATED,
         contact_manifolds::HALFSPACE_BALL_SEPARATED, contact_manifolds::HALFSPACE_CUBOID_SEPARATED,
-        contact_manifolds::SEGMENT_BALL_SEPARATED,
+        contact_manifolds::SEGMENT_BALL_SEPARATED, contact_manifolds::HALFSPACE_CAPSULE_SEPARATED,
+        contact_manifolds::HALFSPACE_SEGMENT_SEPARATED, contact_manifolds::CUBOID_SEGMENT_SEPARATED,
     ];
     for case in separated.span() {
         assert_eq!(*case.num_points, 0, "{}", *case.id);
@@ -153,6 +154,9 @@ fn test_within_prediction_regime_has_a_positive_distance_below_prediction() {
         contact_manifolds::HALFSPACE_BALL_WITHIN_PRED,
         contact_manifolds::HALFSPACE_CUBOID_WITHIN_PRED,
         contact_manifolds::SEGMENT_BALL_WITHIN_PRED,
+        contact_manifolds::HALFSPACE_CAPSULE_WITHIN_PRED,
+        contact_manifolds::HALFSPACE_SEGMENT_WITHIN_PRED,
+        contact_manifolds::CUBOID_SEGMENT_WITHIN_PRED,
     ];
     for case in within_prediction.span() {
         assert!(*case.num_points >= 1, "{}", *case.id);
@@ -169,12 +173,47 @@ fn test_touching_regime_has_a_zero_distance() {
         contact_manifolds::BALL_CAPSULE_TOUCHING, contact_manifolds::CUBOID_CUBOID_TOUCHING,
         contact_manifolds::CUBOID_CAPSULE_TOUCHING, contact_manifolds::CAPSULE_CAPSULE_TOUCHING,
         contact_manifolds::HALFSPACE_BALL_TOUCHING, contact_manifolds::HALFSPACE_CUBOID_TOUCHING,
-        contact_manifolds::SEGMENT_BALL_TOUCHING,
+        contact_manifolds::SEGMENT_BALL_TOUCHING, contact_manifolds::HALFSPACE_CAPSULE_TOUCHING,
+        contact_manifolds::HALFSPACE_SEGMENT_TOUCHING, contact_manifolds::CUBOID_SEGMENT_TOUCHING,
     ];
     for case in touching.span() {
         assert!(*case.num_points >= 1, "{}", *case.id);
         let [first, _] = *case.points;
         assert!(within(first.dist, 0, 4), "{}", *case.id);
+    }
+}
+
+#[test]
+fn test_shallow_regime_has_a_contact_point() {
+    let shallow = [
+        contact_manifolds::BALL_BALL_SHALLOW, contact_manifolds::BALL_CUBOID_SHALLOW,
+        contact_manifolds::BALL_CAPSULE_SHALLOW, contact_manifolds::CUBOID_CUBOID_SHALLOW,
+        contact_manifolds::CUBOID_CAPSULE_SHALLOW, contact_manifolds::CAPSULE_CAPSULE_SHALLOW,
+        contact_manifolds::HALFSPACE_BALL_SHALLOW, contact_manifolds::HALFSPACE_CUBOID_SHALLOW,
+        contact_manifolds::SEGMENT_BALL_SHALLOW, contact_manifolds::HALFSPACE_CAPSULE_SHALLOW,
+        contact_manifolds::HALFSPACE_SEGMENT_SHALLOW, contact_manifolds::CUBOID_SEGMENT_SHALLOW,
+        contact_manifolds::CUBOID_BALL_SHALLOW, contact_manifolds::CAPSULE_BALL_SHALLOW,
+        contact_manifolds::BALL_HALFSPACE_SHALLOW, contact_manifolds::BALL_SEGMENT_SHALLOW,
+        contact_manifolds::CAPSULE_CUBOID_SHALLOW, contact_manifolds::CAPSULE_HALFSPACE_SHALLOW,
+        contact_manifolds::SEGMENT_HALFSPACE_SHALLOW, contact_manifolds::SEGMENT_CUBOID_SHALLOW,
+    ];
+    for case in shallow.span() {
+        assert!(*case.num_points >= 1, "{}", *case.id);
+    }
+}
+
+#[test]
+fn test_deep_regime_has_a_contact_point() {
+    let deep = [
+        contact_manifolds::BALL_BALL_DEEP, contact_manifolds::BALL_CUBOID_DEEP,
+        contact_manifolds::BALL_CAPSULE_DEEP, contact_manifolds::CUBOID_CUBOID_DEEP,
+        contact_manifolds::CUBOID_CAPSULE_DEEP, contact_manifolds::CAPSULE_CAPSULE_DEEP,
+        contact_manifolds::HALFSPACE_BALL_DEEP, contact_manifolds::HALFSPACE_CUBOID_DEEP,
+        contact_manifolds::SEGMENT_BALL_DEEP, contact_manifolds::HALFSPACE_CAPSULE_DEEP,
+        contact_manifolds::HALFSPACE_SEGMENT_DEEP, contact_manifolds::CUBOID_SEGMENT_DEEP,
+    ];
+    for case in deep.span() {
+        assert!(*case.num_points >= 1, "{}", *case.id);
     }
 }
 
@@ -201,8 +240,8 @@ fn test_contact_normals_are_unit_and_opposite() {
             with_contact += 1;
         }
     }
-    // Everything but the 9 separated cases.
-    assert_eq!(with_contact, 57);
+    // Everything but the 12 separated cases.
+    assert_eq!(with_contact, 75);
 }
 
 #[test]
