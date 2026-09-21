@@ -6,7 +6,11 @@
 (DC contact constraints and `SolverBody`, DE joint constraints — DC's report warns that scattering
 into an immutable `Array<SolverBody>` costs O(bodies) per manifold), `crates/rapier_dynamics2d/src/rigid_body.cairo`
 (DA `RigidBodyVelocity::integrate`, `RigidBodyForces::integrate`, `apply_damping`),
-`crates/rapier_core/src/integration_parameters.cairo`, `crates/rapier_core/src/data/arena.cairo`.
+`crates/rapier_core/src/integration_parameters.cairo`, `crates/rapier_core/src/data/arena.cairo`;
+DD (merged, PR #43): `crates/rapier_dynamics2d/src/{rigid_body_set.cairo,narrow_phase.cairo}` —
+`RigidBody`, `RigidBodySet` (`iter` in ascending index order), `ContactPair` and its manifolds with
+`ContactManifoldData.solver_contacts`; `src/narrow_phase/mock.cairo` is a test-only dispatcher you
+may reuse in tests.
 Upstream (`UP=/home/claude/git/refs`):
 `$UP/rapier/src/dynamics/solver/staged_island_solver/worker.rs` (`run_worker`: per substep —
 add force increment, rebuild joint rows, update + warm-start contacts, biased sweep joints then
@@ -14,8 +18,8 @@ contacts (friction skipped), clamp velocities, `integrate_linearized`, relax swe
 after substeps — restitution pass, impulse writeback, damping, `next_position`),
 `$UP/rapier/src/dynamics/solver/velocity_solver.rs`, `$UP/rapier/src/dynamics/solver/solver_body.rs`.
 Golden: `rapier_golden::scenes` ball_drop, ball_bounce, box_slope_stick/slide, box_stack3 —
-replayable with hand-built manifolds until GG/DD land (the tests may construct manifolds
-analytically as DC did).
+replayable with hand-built manifolds until GG lands (the tests may construct manifolds
+analytically as DC did, or run DD's `compute_contacts` with its mock dispatcher).
 
 ## 2. Scope (file allowlist)
 `crates/rapier_dynamics2d/src/solver/island.cairo` (+ `src/solver/island/*.cairo`),
@@ -41,6 +45,9 @@ CCD, parallel colouring.
 Ship the cheaper body store (expected: the dict). Bench `solve_island` for the four golden scenes
 and for a 5-box stack with hand-built manifolds; report cost per step and per substep, split
 between contact sweeps, joint sweeps and integration; report the store crossover if any.
+Sierra gas is path-insensitive for loop-free code (`docs/PLAN.md`, wave-4 finding): give every
+table in both Sierra gas and Cairo steps (`snforge test <name> --detailed-resources
+--tracked-resource cairo-steps`), and decide the store on gas with steps as the tie-breaker.
 
 ## 5. Tests
 Golden replays: ball_drop (contact phase included: build the ball–halfspace manifold analytically

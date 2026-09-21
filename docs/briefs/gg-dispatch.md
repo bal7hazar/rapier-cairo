@@ -28,6 +28,19 @@ implement `ContactManifold::flip` here if GE did not. Unsupported pairs (segment
 halfspace–halfspace, halfspace–ball is supported via convex–ball) return `false` and leave the
 manifold cleared. DEFER: compound/heightfield/trimesh branches, `ContactManifoldsWorkspace`.
 
+Generators on `main` (GF1 #42, GF2 #39, GF3, GF4 #41), each with a typed entry point and a
+`*_shapes(pos12, shape1, shape2, prediction, ref manifold) -> bool` wrapper:
+`ball_ball::contact_manifold_ball_ball`, `convex_ball::{contact_manifold_convex_ball,
+contact_manifold_ball_convex}` (the second is upstream's `flipped = true`),
+`cuboid_cuboid::contact_manifold_cuboid_cuboid`, `capsule_capsule`/`cuboid_capsule` (GF3),
+`halfspace_pfm::contact_manifold_halfspace_pfm(.., flipped: bool)`,
+`cuboid_segment::contact_manifold_cuboid_segment`. Pitfall reported by GF1:
+`contact_manifold_convex_ball_shapes` also accepts ball–ball, so the ball–ball arm must come first,
+as in upstream's dispatcher. Match on the variants and call the **typed** entry points (the
+`_shapes` wrappers re-match the enum: bench one against the other before choosing). Golden: the
+family now has 87 cases (G3, #38), including `cuboid_segment`, `halfspace_capsule`,
+`halfspace_segment` and their flipped singles.
+
 ## 4. Efficiency and variants
 The dispatcher must add nothing measurable on top of the generator: `match` on two enum
 discriminants, no allocation. Bench the dispatch overhead per pair (dispatcher cost minus the
