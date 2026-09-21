@@ -59,4 +59,16 @@ commits + trailer; push; `gh pr create` per template; `gh pr checks --watch` unt
 merge; `REPORT.md` (Summary · API · Gas table · Deviations · Deferred · Requested re-exports ·
 Escalations · PR URL).
 
+## Orchestrator addendum (2026-09-22, GF3 merged as #44)
+- `cuboid_capsule::contact_manifold_cuboid_capsule_shapes` handles BOTH orders (cuboid–capsule and
+  capsule–cuboid, flipping internally); the typed entry is `contact_manifold_cuboid_capsule(pos12,
+  cuboid1, capsule2, ..)`. `capsule_capsule::contact_manifold_capsule_capsule(pos12, capsule1, capsule2, ..)`.
+- Sierra gas is path-insensitive for loop-free code (docs/PLAN.md): a `match` dispatcher is charged
+  the most expensive arm on every call unless each computing arm sits behind an `#[inline(never)]`
+  helper (AGENTS.md §7). Report every probe in Sierra gas AND Cairo steps
+  (`snforge test <name> --detailed-resources --tracked-resource cairo-steps`), per pair.
+- The golden test must run all 87 `contact_manifolds` cases through `contact_manifold` (ambiguous
+  cases: `num_points` and `dist` only; point order may differ where a GF report says so — match by
+  fid pair as `tests/contact_capsule_golden.cairo` does).
+
 ## 7. Work autonomously, do not ask questions, do not widen the scope.

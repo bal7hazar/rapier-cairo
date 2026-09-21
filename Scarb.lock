@@ -15,6 +15,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rapier2d"
+version = "0.1.0"
+dependencies = [
+ "fixed",
+ "glam",
+ "rapier_core",
+ "rapier_dynamics2d",
+ "rapier_geometry2d",
+ "rapier_golden",
+ "rapier_math",
+ "rapier_testing",
+ "snforge_std",
+]
+
+[[package]]
 name = "rapier_core"
 version = "0.1.0"
 dependencies = [

@@ -25,6 +25,7 @@ docs/PLAN.md          execution plan: phases, work packages, dependency graph
 docs/research/        Rapier, Parry, Cairo ecosystem and numeric benchmark reports
 docs/adr/             architecture decision records
 crates/rapier_testing dev helpers (opaque, …)
+crates/rapier2d        public facade: World, step(), dispatcher glue (wave 5)
 ```
 
 Dependency DAG of the crates: see `docs/PLAN.md`.
