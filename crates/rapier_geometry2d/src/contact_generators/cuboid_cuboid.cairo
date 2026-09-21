@@ -509,6 +509,13 @@ mod tests {
         let _ = opaque(m);
     }
     #[test]
+    fn gas_generator_fast_hit_eager() {
+        let (p, a, b, prediction) = opaque(inputs(contact_manifolds::CUBOID_CUBOID_TOUCHING));
+        let mut m = opaque(cached());
+        alternatives::eager_sat(p, a, b, prediction, ref m);
+        let _ = opaque(m);
+    }
+    #[test]
     fn gas_sat_one() {
         let (p, a, b, _) = opaque(inputs(contact_manifolds::CUBOID_CUBOID_TOUCHING));
         let _ = opaque(cuboid_cuboid_find_local_separating_normal_oneway(a, b, p));
