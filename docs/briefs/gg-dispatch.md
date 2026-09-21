@@ -6,7 +6,7 @@
 capsule–capsule, anything–ball, halfspace–pfm, then the pfm fallback); on `main`:
 `crates/rapier_geometry2d/src/contact_generators/*.cairo` (GF1–GF4: `*_shapes` wrappers returning
 `bool`), `shape.cairo` (`Shape`, `ShapeType`). Upstream
-(`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+(`UP=/home/claude/git/refs`):
 `$UP/parry/src/query/default_query_dispatcher.rs` (`contact_manifolds`, `contact_manifold_convex_convex`).
 Golden: the whole `rapier_golden::contact_manifolds` family (every case through the dispatcher,
 both argument orders).

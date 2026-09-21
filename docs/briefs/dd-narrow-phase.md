@@ -9,7 +9,7 @@ on `main`: `crates/rapier_core/src/data/{arena,handle}.cairo`, `interaction_grou
 `crates/rapier_dynamics2d/src/{rigid_body.cairo,collider.cairo}` (DA components, DB `Collider`),
 `crates/rapier_geometry2d/src/{contact.cairo,manifold.cairo,broad_phase.cairo,dispatch.cairo}`
 (frozen types, GE persistence, GA `find_pairs`, GG `contact_manifold` dispatch). Upstream
-(`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+(`UP=/home/claude/git/refs`):
 `$UP/rapier/src/dynamics/rigid_body_set.rs`, `$UP/rapier/src/geometry/collider_set.rs`,
 `$UP/rapier/src/geometry/narrow_phase/` (`process_pair`: pair filtering by body types, collision
 groups, `ActiveCollisionTypes`; manifold generation; `SolverContact` localisation with
@@ -43,7 +43,16 @@ sensors, both bodies non-dynamic → skip), `contact_manifold` (GG) with `match_
 with `dist > prediction`, `NEW_CONTACT_BIT` for unmatched points), `friction`/`restitution` via
 `CoefficientCombineRule::combine`, `relative_dominance`, `solver_flags`, `rigid_body1/2`;
 `CollisionEvent::{Started, Stopped}` derived from `PairEventStatus` transitions, returned as an
-array. DEFER: sensors' intersection events (keep the filter), contact-force events, hooks,
+array.
+**Dispatch dependency:** GG is not merged yet (`rapier_geometry2d::dispatch` is an empty stub and the
+GF generators land in parallel with you). Mirror upstream, where `NarrowPhase` receives a
+`&dyn PersistentQueryDispatcher`: declare in `narrow_phase.cairo`
+`pub trait ContactDispatcher { fn contact_manifold(pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold) -> bool; }`
+(the frozen GG signature, interface doc §2) and make `compute_contacts` generic over an impl of it
+(static dispatch, no runtime cost). Tests use a small mock impl written in your test module/file
+(exact ball–ball and axis-aligned cuboid–halfspace manifolds are enough for the scenes of §5);
+P1 will plug GG's `dispatch::contact_manifold` in. Do not touch `rapier_geometry2d`.
+DEFER: sensors' intersection events (keep the filter), contact-force events, hooks,
 modification flags (`RigidBodyChanges`) propagation beyond positions, islands.
 
 ## 4. Efficiency and variants

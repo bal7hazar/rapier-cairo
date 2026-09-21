@@ -7,7 +7,7 @@ manifolds are legal, points beyond prediction are kept, ball–ball tests `<` wh
 `<=`); on `main`: `crates/rapier_geometry2d/src/{shape.cairo,point.cairo,manifold.cairo}`
 (GB shapes, GC `project_local_point_and_get_feature_*`, GE `try_update_contacts`/`match_contacts`)
 and `src/sat.cairo` as a style precedent for golden tests. Upstream
-(`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+(`UP=/home/claude/git/refs`):
 `$UP/parry/src/query/contact_manifolds/{contact_manifolds_ball_ball.rs,contact_manifolds_convex_ball.rs}`.
 Golden: `rapier_golden::contact_manifolds` cases whose pair is ball–ball, ball–cuboid,
 ball–capsule, halfspace–ball, segment–ball (and the flipped-order cases); `tools/golden/README.md`
@@ -17,7 +17,8 @@ for tolerances, `ambiguous` tags and the f32 feature-id convention.
 `crates/rapier_geometry2d/src/contact_generators/ball_ball.cairo`,
 `crates/rapier_geometry2d/src/contact_generators/convex_ball.cairo`,
 `crates/rapier_geometry2d/tests/contact_ball_golden.cairo`,
-`gas/rapier_geometry2d/contact_generators.snap` (entries of your two modules only; regenerate with
+`gas/rapier_geometry2d/contact_generators.ball_ball.snap` and `…/contact_generators.convex_ball.snap`
+(one snapshot file per generator module; regenerate with
 `--filter rapier_geometry2d::contact_generators::ball_ball` and `…::convex_ball`),
 `gas/rapier_geometry2d_integrationtest/contact_ball_golden.snap`. `lib.cairo` and
 `contact_generators.cairo` already declare the modules. Everything else is forbidden.

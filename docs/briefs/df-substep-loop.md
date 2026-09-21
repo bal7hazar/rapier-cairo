@@ -7,7 +7,7 @@
 into an immutable `Array<SolverBody>` costs O(bodies) per manifold), `crates/rapier_dynamics2d/src/rigid_body.cairo`
 (DA `RigidBodyVelocity::integrate`, `RigidBodyForces::integrate`, `apply_damping`),
 `crates/rapier_core/src/integration_parameters.cairo`, `crates/rapier_core/src/data/arena.cairo`.
-Upstream (`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+Upstream (`UP=/home/claude/git/refs`):
 `$UP/rapier/src/dynamics/solver/staged_island_solver/worker.rs` (`run_worker`: per substep —
 add force increment, rebuild joint rows, update + warm-start contacts, biased sweep joints then
 contacts (friction skipped), clamp velocities, `integrate_linearized`, relax sweep with friction;

@@ -80,7 +80,8 @@ Recommendation: <one of them, and why>
 ## 4. Parallelisation rules
 
 - **Safe in parallel:** disjoint modules on top of frozen interfaces; each executor in its own
-  worktree and branch; one gas snapshot file per module (`gas/<crate>/<module>.snap`), so parallel
+  worktree and branch; one gas snapshot file per module (`gas/<crate>/<module>.snap`, or
+  `<module>.<child>.snap` for the parents listed in `scripts/gas.py` `SPLIT_MODULES`), so parallel
   PRs never touch a common file.
 - **Orchestrator only, serialised:** public types of `rapier_math`, any `Scarb.toml`, every
   `lib.cairo` (stubs are pre-declared before the wave), `.tool-versions`, `scripts/**`,

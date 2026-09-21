@@ -8,7 +8,7 @@ but is commented out of the dispatcher — this project re-enables it); `tools/g
 `crates/rapier_geometry2d/src/{closest_points.cairo,sat.cairo,polygonal_feature.cairo,shape.cairo,manifold.cairo}`
 (GC `closest_points_segment_segment_with_locations`, GD `cuboid_support_map_find_local_separating_normal_oneway`
 and `PolygonalFeature`, GB `Capsule`, GE persistence). Upstream
-(`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+(`UP=/home/claude/git/refs`):
 `$UP/parry/src/query/contact_manifolds/{contact_manifolds_capsule_capsule.rs,contact_manifolds_cuboid_capsule.rs}`
 (read the 2D `cfg(feature = "dim2")` branches), `$UP/parry/src/shape/capsule.rs` (`to_polyline`?
 no — `local_support_point`, `segment`). Golden: `rapier_golden::contact_manifolds` capsule–capsule,
@@ -18,8 +18,8 @@ cuboid–capsule (+ flipped) cases.
 `crates/rapier_geometry2d/src/contact_generators/capsule_capsule.cairo`,
 `crates/rapier_geometry2d/src/contact_generators/cuboid_capsule.cairo`,
 `crates/rapier_geometry2d/tests/contact_capsule_golden.cairo`,
-`gas/rapier_geometry2d/contact_generators.snap` (filters `…::capsule_capsule`, `…::cuboid_capsule`
-only), `gas/rapier_geometry2d_integrationtest/contact_capsule_golden.snap`. Modules pre-declared.
+`gas/rapier_geometry2d/contact_generators.capsule_capsule.snap` and
+`…/contact_generators.cuboid_capsule.snap` (filters `…::capsule_capsule`, `…::cuboid_capsule` only), `gas/rapier_geometry2d_integrationtest/contact_capsule_golden.snap`. Modules pre-declared.
 
 ## 3. Expected API and semantics
 ```cairo
