@@ -1,11 +1,9 @@
 //! Half-space contact-manifold golden checks.
-//!
-//! The committed upstream set contains halfspace-cuboid cases. Halfspace-segment/capsule are
-//! covered analytically in the generator module because this fixture family has no such pairs.
 
 use fixed::Fixed;
 use glam::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
+use rapier_geometry2d::contact_generators::cuboid_segment::contact_manifold_cuboid_segment_shapes;
 use rapier_geometry2d::contact_generators::halfspace_pfm::contact_manifold_halfspace_pfm_shapes;
 use rapier_geometry2d::feature_id::FeatureId;
 use rapier_geometry2d::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
@@ -50,11 +48,26 @@ fn shape(s: ShapeRaw) -> Shape {
     }
 }
 
-fn is_halfspace_case(case: ManifoldCase) -> bool {
+fn is_owned_case(case: ManifoldCase) -> bool {
     match (case.shape1, case.shape2) {
         (ShapeRaw::HalfSpace(_), ShapeRaw::Cuboid(_)) => true,
+        (ShapeRaw::HalfSpace(_), ShapeRaw::Capsule(_)) => true,
+        (ShapeRaw::HalfSpace(_), ShapeRaw::Segment(_)) => true,
+        (ShapeRaw::Capsule(_), ShapeRaw::HalfSpace(_)) => true,
+        (ShapeRaw::Segment(_), ShapeRaw::HalfSpace(_)) => true,
+        (ShapeRaw::Cuboid(_), ShapeRaw::Segment(_)) => true,
+        (ShapeRaw::Segment(_), ShapeRaw::Cuboid(_)) => true,
         _ => false,
     }
+}
+
+fn dispatch_case(case: ManifoldCase, ref manifold: ContactManifold) -> bool {
+    let pos12 = pose(case.pos12);
+    let shape1 = shape(case.shape1);
+    let shape2 = shape(case.shape2);
+    let prediction = Fixed { raw: contact_manifolds::PREDICTION };
+    contact_manifold_halfspace_pfm_shapes(pos12, shape1, shape2, prediction, ref manifold)
+        || contact_manifold_cuboid_segment_shapes(pos12, shape1, shape2, prediction, ref manifold)
 }
 
 fn check_point(actual: TrackedContact, expected: ContactPointRaw, id: felt252, i: u8) {
@@ -69,20 +82,43 @@ fn check_point(actual: TrackedContact, expected: ContactPointRaw, id: felt252, i
     assert_eq!(actual.fid2, FeatureId { packed: expected.fid2 }, "{} fid2 {}", id, i);
 }
 
+fn has_expected_dist(actual: Fixed, points: Span<ContactPointRaw>, count: u8) -> bool {
+    let mut i = 0_u8;
+    while i != count {
+        if within(actual.raw, (*points.at(i.into())).dist, DIST_TOLERANCE) {
+            return true;
+        }
+        i += 1;
+    }
+    false
+}
+
+fn check_ambiguous_dists(manifold: @ContactManifold, case: ManifoldCase) {
+    let points = case.points.span();
+    let mut i = 0_u8;
+    while i != (*manifold).num_points {
+        let actual = (*manifold).point(i).dist;
+        assert!(
+            has_expected_dist(actual, points, (*manifold).num_points),
+            "{} ambiguous dist {}",
+            case.id,
+            i,
+        );
+        i += 1;
+    }
+}
+
 fn check_case(case: ManifoldCase) {
     let mut manifold: ContactManifold = Default::default();
-    assert!(
-        contact_manifold_halfspace_pfm_shapes(
-            pose(case.pos12),
-            shape(case.shape1),
-            shape(case.shape2),
-            Fixed { raw: contact_manifolds::PREDICTION },
-            ref manifold,
-        ),
-        "{} supported",
-        case.id,
-    );
+    assert!(dispatch_case(case, ref manifold), "{} supported", case.id);
     assert_eq!(manifold.num_points, case.num_points.try_into().unwrap(), "{}", case.id);
+    if manifold.num_points == 0 {
+        return;
+    }
+    if case.ambiguous {
+        check_ambiguous_dists(@manifold, case);
+        return;
+    }
     assert!(
         vec2_within(raw(manifold.local_n1), case.local_n1, NORMAL_TOLERANCE),
         "{} local_n1",
@@ -102,15 +138,15 @@ fn check_case(case: ManifoldCase) {
 }
 
 #[test]
-fn test_halfspace_cuboid_golden_cases() {
+fn test_owned_golden_cases() {
     let mut count = 0;
     for case in contact_manifolds::cases() {
-        if is_halfspace_case(*case) {
+        if is_owned_case(*case) {
             check_case(*case);
             count += 1;
         }
     }
-    assert_eq!(count, 6);
+    assert_eq!(count, 27);
 }
 
 #[test]
@@ -121,4 +157,11 @@ fn gas_baseline() {
 #[test]
 fn gas_halfspace_cuboid_golden() {
     check_case(opaque(contact_manifolds::HALFSPACE_CUBOID_TOUCHING));
+}
+
+#[test]
+fn gas_owned_golden_cases() {
+    check_case(opaque(contact_manifolds::HALFSPACE_CAPSULE_SHALLOW));
+    check_case(opaque(contact_manifolds::HALFSPACE_SEGMENT_SHALLOW));
+    check_case(opaque(contact_manifolds::CUBOID_SEGMENT_SHALLOW));
 }
