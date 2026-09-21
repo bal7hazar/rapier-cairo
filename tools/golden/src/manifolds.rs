@@ -42,7 +42,9 @@ fn cases() -> Vec<Case> {
     };
     let ball = ShapeSpec::ball;
     let cuboid = ShapeSpec::cuboid;
+    let cap_x = ShapeSpec::capsule_x;
     let cap_y = ShapeSpec::capsule_y;
+    let segment = ShapeSpec::segment;
 
     // --- ball / ball -------------------------------------------------------------------------
     let (s1, s2) = (ball(0.5), ball(0.25));
@@ -160,6 +162,59 @@ fn cases() -> Vec<Case> {
         "mirror of segment_ball/shallow with the shapes swapped");
     add("capsule_cuboid", "shallow", "shallow", cap_y(0.5, 0.25), cuboid(1.0, 0.5), pose(-1.2, 0.1, ID), false,
         "capsule first in the PFM-PFM path");
+
+    // --- G3: halfspace / capsule (upstream: halfspace-PFM) -----------------------------------
+    let (s1, s2) = (ShapeSpec::halfspace_up(), cap_y(0.5, 0.25));
+    add("halfspace_capsule", "separated", "separated", s1, s2, pose(0.0, 1.5, ID), false,
+        "upright capsule above the plane, gap 0.75");
+    add("halfspace_capsule", "within_pred", "within_pred", s1, s2, pose(0.0, 0.76, ID), false,
+        "upright capsule, bottom cap gap 0.01 < prediction");
+    add("halfspace_capsule", "touching", "touching", s1, cap_x(0.5, 0.25), pose(0.0, 0.25, ID), false,
+        "capsule axis parallel to the plane, both rounded endpoints tangent");
+    add("halfspace_capsule", "shallow", "shallow", s1, cap_x(0.5, 0.25), pose(0.0, 0.2, deg(30.0)), false,
+        "tilted 30 degrees with one rounded endpoint below the plane");
+    add("halfspace_capsule", "deep", "deep", s1, cap_x(0.5, 0.25), pose(0.0, -0.2, deg(30.0)), false,
+        "tilted 30 degrees with the capsule deeply crossing the plane");
+    add("halfspace_capsule", "degenerate", "degenerate", s1, cap_x(0.5, 0.25), pose(0.0, 0.27000000001862645, ID), true,
+        "axis parallel to the plane and both endpoints exactly at the prediction distance");
+
+    // --- G3: halfspace / segment (upstream: halfspace-PFM) -----------------------------------
+    let (s1, s2) = (ShapeSpec::halfspace_up(), segment((0.0, -0.5), (0.0, 0.5)));
+    add("halfspace_segment", "separated", "separated", s1, s2, pose(0.0, 1.0, ID), false,
+        "upright segment above the plane, gap 0.5");
+    add("halfspace_segment", "within_pred", "within_pred", s1, s2, pose(0.0, 0.51, ID), false,
+        "upright segment, lower endpoint gap 0.01 < prediction");
+    add("halfspace_segment", "touching", "touching", s1, segment((-0.5, 0.0), (0.5, 0.0)), pose(0.0, 0.0, ID), false,
+        "segment lying on the plane");
+    add("halfspace_segment", "shallow", "shallow", s1, segment((-0.5, 0.0), (0.5, 0.0)), pose(0.0, -0.05, deg(30.0)), false,
+        "tilted 30 degrees with one endpoint below the plane");
+    add("halfspace_segment", "deep", "deep", s1, segment((-0.5, 0.0), (0.5, 0.0)), pose(0.0, -0.5, deg(30.0)), false,
+        "tilted 30 degrees and crossing the plane deeply");
+    add("halfspace_segment", "degenerate", "degenerate", s1, segment((-0.5, 0.0), (0.5, 0.0)), pose(0.0, 0.0, ID), true,
+        "segment exactly collinear with the halfspace boundary");
+
+    // --- G3: cuboid / segment (upstream: generic PFM-PFM, i.e. GJK/EPA + clipping) -----------
+    let (s1, s2) = (cuboid(1.0, 0.5), segment((0.0, -0.5), (0.0, 0.5)));
+    add("cuboid_segment", "separated", "separated", s1, s2, pose(1.5, 0.0, ID), false,
+        "segment parallel to the +X face with a gap 0.5");
+    add("cuboid_segment", "within_pred", "within_pred", s1, s2, pose(1.01, 0.0, ID), false,
+        "segment parallel to the +X face, gap 0.01 < prediction");
+    add("cuboid_segment", "touching", "touching", s1, s2, pose(1.0, 0.0, ID), false,
+        "segment exactly on the +X face, yielding two contact points");
+    add("cuboid_segment", "shallow", "shallow", s1, segment((0.0, 0.0), (0.25, 0.0)), pose(1.01, 0.51, deg(30.0)), true,
+        "segment endpoint tilted 30 degrees towards the top-right corner; upstream emits duplicate tied features and f32/f64 pick different ids");
+    add("cuboid_segment", "deep", "deep", s1, segment((-1.5, 0.0), (1.5, 0.0)), pose(0.0, 0.0, ID), false,
+        "segment crosses the cuboid through its centre");
+    add("cuboid_segment", "degenerate", "degenerate", s1, segment((-1.0, 0.0), (1.0, 0.0)), pose(0.0, 0.5, ID), true,
+        "segment collinear with the cuboid top edge; feature tie in the PFM-PFM path");
+
+    // --- G3: flipped argument order ----------------------------------------------------------
+    add("capsule_halfspace", "shallow", "shallow", cap_y(0.5, 0.25), ShapeSpec::halfspace_up(), pose(0.0, -0.7, ID), false,
+        "capsule first, mirror of a shallow halfspace-capsule contact");
+    add("segment_halfspace", "shallow", "shallow", segment((-0.5, 0.0), (0.5, 0.0)), ShapeSpec::halfspace_up(), pose(0.0, 0.05, ID), false,
+        "segment first, mirror of a shallow halfspace-segment contact");
+    add("segment_cuboid", "shallow", "shallow", segment((0.0, -0.5), (0.0, 0.5)), cuboid(1.0, 0.5), pose(-0.95, 0.0, ID), false,
+        "segment first, mirror of a shallow cuboid-segment face contact");
 
     v
 }

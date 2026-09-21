@@ -90,7 +90,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `integration_parameters.json` | defaults + 2 | `dt_f64`, `dt_q32` | every `IntegrationParameters` field; for `dt` and 4 solver iterations: `inv_dt`, substep `dt` / `inv_dt`, length-scaled limits, and `erp_inv_dt`, `erp`, `cfm_coeff`, `cfm_factor` of the contact, static-contact and joint springs **at the substep length**, all from the upstream functions |
 | `mass_properties.json` | 11 + 1 | `<shape>/<params>_d<density>`, `compound/<parts>` | `Shape::mass_properties(density)` for ball, cuboid, capsule (incl. oblique and zero-length); a Rapier body with two colliders (local properties, world COM, effective inverse mass / inertia), cross-checked against the Parry sum |
 | `aabb.json` | 32 | `<shape>/<pose>` | `Shape::compute_aabb(pose)`, 4 shapes × 8 poses (identity, translation, exact 90°/180°, 30°, 45°, −135°, 1° far from the origin) |
-| `contact_manifolds.json` | 66 | `<shape1>_<shape2>/<regime>` | `DefaultQueryDispatcher::contact_manifolds` with the default prediction distance; see below |
+| `contact_manifolds.json` | 87 | `<shape1>_<shape2>/<regime>` | `DefaultQueryDispatcher::contact_manifolds` with the default prediction distance; see below |
 | `scenes.json` | 6 | scene name | full-engine traces (also exported to Cairo, see [Scene fixtures](#scene-fixtures)) |
 | `pose2.json` | 7 + 3 | `pair/<what>`, `chain/deg<angle>` | **G2** 2D pose algebra and rotation drift, see [Leaf-level families](#leaf-level-families-g2) |
 | `aabb_overlap.json` | 5 | `set/<what>` | **G2** overlapping pairs of 8–32 AABBs |
@@ -102,21 +102,28 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 ### contact_manifolds
 
 Pairs (shape 1 first): `ball_ball`, `ball_cuboid`, `ball_capsule`, `cuboid_cuboid`,
-`cuboid_capsule`, `capsule_capsule`, `halfspace_ball`, `halfspace_cuboid`, `segment_ball`.
-Regimes: `separated` (beyond prediction), `within_pred` (gap 0.01 < prediction), `touching`
-(distance exactly 0), `shallow`, `deep`, `degenerate`. That is 9 × 6 = 54 canonical cases, plus
+`cuboid_capsule`, `capsule_capsule`, `halfspace_ball`, `halfspace_cuboid`, `segment_ball`,
+`halfspace_capsule`, `halfspace_segment`, `cuboid_segment`. Regimes: `separated` (beyond
+prediction), `within_pred` (gap 0.01 < prediction), `touching` (distance exactly 0), `shallow`,
+`deep`, `degenerate`. That is 12 × 6 = 72 canonical cases, plus
 
 - 7 extra degenerate cases named `degen_<what>` (regime `degenerate`): ball centre exactly on a
   face / plane / segment, corner against corner, exact quarter turn, crossing capsule segments,
   zero-length capsule;
-- 5 flipped-order cases (`cuboid_ball`, `capsule_ball`, `ball_halfspace`, `ball_segment`,
-  `capsule_cuboid`, regime `shallow`) because upstream swaps the arguments and the outputs.
+- 8 flipped-order cases (`cuboid_ball`, `capsule_ball`, `ball_halfspace`, `ball_segment`,
+  `capsule_cuboid`, `capsule_halfspace`, `segment_halfspace`, `segment_cuboid`, regime `shallow`)
+  because upstream swaps the arguments and the outputs.
+
+Upstream routes `halfspace_capsule` and `halfspace_segment` through the halfspace-PFM generator.
+It routes `cuboid_segment` through the generic PFM-PFM generator (GJK/EPA plus feature clipping);
+the Cairo port uses SAT plus clipping for that pair, so normals and points must agree but exact
+tie-breaking may differ. The `ambiguous` tag marks those tied outputs.
 
 Each case records both shapes, `pos12` (pose of shape 2 in the frame of shape 1) and, per
 manifold, `local_n1`, `local_n2`, the number of points and for each point `local_p1`, `local_p2`,
 `dist`, `fid1`, `fid2` (packed value + decoded kind and code).
 
-`"ambiguous": true` (16 cases) marks a case whose discrete outputs — point count, feature ids,
+`"ambiguous": true` (20 cases) marks a case whose discrete outputs — point count, feature ids,
 even the sign of the normal — hinge on an exact tie or on a fallback branch upstream. A port may
 legitimately answer differently there; compare `dist` and treat the rest as informative.
 

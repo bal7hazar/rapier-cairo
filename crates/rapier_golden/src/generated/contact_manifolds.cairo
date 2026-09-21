@@ -2152,7 +2152,691 @@ pub const CAPSULE_CUBOID_SHALLOW: ManifoldCase = ManifoldCase {
     ],
 };
 
-pub const ALL: [ManifoldCase; 66] = [
+pub const HALFSPACE_CAPSULE_SEPARATED: ManifoldCase = ManifoldCase {
+    id: 'halfspace_capsule/separated',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: 0, y: -2147483648 },
+            b: Vec2Raw { x: 0, y: 2147483648 },
+            radius: 1073741824,
+        },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 6442450944 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 0,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_CAPSULE_WITHIN_PRED: ManifoldCase = ManifoldCase {
+    id: 'halfspace_capsule/within_pred',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: 0, y: -2147483648 },
+            b: Vec2Raw { x: 0, y: 2147483648 },
+            radius: 1073741824,
+        },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 3264175145 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 1,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: -3221225472 },
+            dist: 42949673,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_CAPSULE_TOUCHING: ManifoldCase = ManifoldCase {
+    id: 'halfspace_capsule/touching',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: -2147483648, y: 0 },
+            b: Vec2Raw { x: 2147483648, y: 0 },
+            radius: 1073741824,
+        },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 1073741824 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -2147483648, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: -1073741824 },
+            dist: 0,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 2147483648, y: 0 },
+            local_p2: Vec2Raw { x: 2147483648, y: -1073741824 },
+            dist: 0,
+            fid1: 0xc0000000,
+            fid2: 0x40000002,
+        },
+    ],
+};
+
+pub const HALFSPACE_CAPSULE_SHALLOW: ManifoldCase = ManifoldCase {
+    id: 'halfspace_capsule/shallow',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: -2147483648, y: 0 },
+            b: Vec2Raw { x: 2147483648, y: 0 },
+            radius: 1073741824,
+        },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 858993459 },
+        rotation: RotRaw { re: 3719550787, im: 2147483648 },
+    },
+    ambiguous: false,
+    num_points: 1,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: -2147483648, y: -3719550787 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -1859775394, y: 0 },
+            local_p2: Vec2Raw { x: -2684354560, y: -929887697 },
+            dist: -1288490189,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_CAPSULE_DEEP: ManifoldCase = ManifoldCase {
+    id: 'halfspace_capsule/deep',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: -2147483648, y: 0 },
+            b: Vec2Raw { x: 2147483648, y: 0 },
+            radius: 1073741824,
+        },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: -858993459 },
+        rotation: RotRaw { re: 3719550787, im: 2147483648 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: -2147483648, y: -3719550787 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -1859775394, y: 0 },
+            local_p2: Vec2Raw { x: -2684354560, y: -929887697 },
+            dist: -3006477107,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 1859775394, y: 0 },
+            local_p2: Vec2Raw { x: 1610612736, y: -929887697 },
+            dist: -858993459,
+            fid1: 0xc0000000,
+            fid2: 0x40000002,
+        },
+    ],
+};
+
+pub const HALFSPACE_CAPSULE_DEGENERATE: ManifoldCase = ManifoldCase {
+    id: 'halfspace_capsule/degenerate',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: -2147483648, y: 0 },
+            b: Vec2Raw { x: 2147483648, y: 0 },
+            radius: 1073741824,
+        },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 1159641170 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: true,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -2147483648, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: -1073741824 },
+            dist: 85899346,
+            fid1: 0,
+            fid2: 0,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 2147483648, y: 0 },
+            local_p2: Vec2Raw { x: 2147483648, y: -1073741824 },
+            dist: 85899346,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_SEGMENT_SEPARATED: ManifoldCase = ManifoldCase {
+    id: 'halfspace_segment/separated',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: -2147483648 }, b: Vec2Raw { x: 0, y: 2147483648 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 4294967296 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 0,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_SEGMENT_WITHIN_PRED: ManifoldCase = ManifoldCase {
+    id: 'halfspace_segment/within_pred',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: -2147483648 }, b: Vec2Raw { x: 0, y: 2147483648 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 2190433321 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 1,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: -2147483648 },
+            dist: 42949673,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_SEGMENT_TOUCHING: ManifoldCase = ManifoldCase {
+    id: 'halfspace_segment/touching',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -2147483648, y: 0 }, b: Vec2Raw { x: 2147483648, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -2147483648, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: 0 },
+            dist: 0,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 2147483648, y: 0 },
+            local_p2: Vec2Raw { x: 2147483648, y: 0 },
+            dist: 0,
+            fid1: 0xc0000000,
+            fid2: 0x40000002,
+        },
+    ],
+};
+
+pub const HALFSPACE_SEGMENT_SHALLOW: ManifoldCase = ManifoldCase {
+    id: 'halfspace_segment/shallow',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -2147483648, y: 0 }, b: Vec2Raw { x: 2147483648, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: -214748365 },
+        rotation: RotRaw { re: 3719550787, im: 2147483648 },
+    },
+    ambiguous: false,
+    num_points: 1,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: -2147483648, y: -3719550787 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -1859775394, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: 0 },
+            dist: -1288490189,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const HALFSPACE_SEGMENT_DEEP: ManifoldCase = ManifoldCase {
+    id: 'halfspace_segment/deep',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -2147483648, y: 0 }, b: Vec2Raw { x: 2147483648, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: -2147483648 },
+        rotation: RotRaw { re: 3719550787, im: 2147483648 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: -2147483648, y: -3719550787 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -1859775394, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: 0 },
+            dist: -3221225472,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 1859775394, y: 0 },
+            local_p2: Vec2Raw { x: 2147483648, y: 0 },
+            dist: -1073741824,
+            fid1: 0xc0000000,
+            fid2: 0x40000002,
+        },
+    ],
+};
+
+pub const HALFSPACE_SEGMENT_DEGENERATE: ManifoldCase = ManifoldCase {
+    id: 'halfspace_segment/degenerate',
+    shape1: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -2147483648, y: 0 }, b: Vec2Raw { x: 2147483648, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: true,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -2147483648, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: 0 },
+            dist: 0,
+            fid1: 0xc0000000,
+            fid2: 0x40000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 2147483648, y: 0 },
+            local_p2: Vec2Raw { x: 2147483648, y: 0 },
+            dist: 0,
+            fid1: 0xc0000000,
+            fid2: 0x40000002,
+        },
+    ],
+};
+
+pub const CUBOID_SEGMENT_SEPARATED: ManifoldCase = ManifoldCase {
+    id: 'cuboid_segment/separated',
+    shape1: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: -2147483648 }, b: Vec2Raw { x: 0, y: 2147483648 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 6442450944, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 0,
+    local_n1: Vec2Raw { x: 4294967296, y: 0 },
+    local_n2: Vec2Raw { x: 0, y: 0 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const CUBOID_SEGMENT_WITHIN_PRED: ManifoldCase = ManifoldCase {
+    id: 'cuboid_segment/within_pred',
+    shape1: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: -2147483648 }, b: Vec2Raw { x: 0, y: 2147483648 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 4337916969, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 4294967296, y: 0 },
+    local_n2: Vec2Raw { x: -4294967296, y: 0 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: -2147483648 },
+            local_p2: Vec2Raw { x: 0, y: -2147483648 },
+            dist: 42949673,
+            fid1: 0x40000002,
+            fid2: 0xc0000001,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: 0, y: 2147483648 },
+            dist: 42949673,
+            fid1: 0x40000000,
+            fid2: 0xc0000001,
+        },
+    ],
+};
+
+pub const CUBOID_SEGMENT_TOUCHING: ManifoldCase = ManifoldCase {
+    id: 'cuboid_segment/touching',
+    shape1: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: -2147483648 }, b: Vec2Raw { x: 0, y: 2147483648 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 4294967296, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 4294967296, y: 0 },
+    local_n2: Vec2Raw { x: -4294967296, y: 0 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: -2147483648 },
+            local_p2: Vec2Raw { x: 0, y: -2147483648 },
+            dist: 0,
+            fid1: 0x40000002,
+            fid2: 0xc0000001,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: 0, y: 2147483648 },
+            dist: 0,
+            fid1: 0x40000000,
+            fid2: 0xc0000001,
+        },
+    ],
+};
+
+pub const CUBOID_SEGMENT_SHALLOW: ManifoldCase = ManifoldCase {
+    id: 'cuboid_segment/shallow',
+    shape1: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: 0 }, b: Vec2Raw { x: 1073741824, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 4337916969, y: 2190433321 },
+        rotation: RotRaw { re: 3719550787, im: 2147483648 },
+    },
+    ambiguous: true,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 3037000500, y: 3037000500 },
+    local_n2: Vec2Raw { x: -4148619834, y: -1111619334 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 60740010,
+            fid1: 0,
+            fid2: 0,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 60740010,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const CUBOID_SEGMENT_DEEP: ManifoldCase = ManifoldCase {
+    id: 'cuboid_segment/deep',
+    shape1: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -6442450944, y: 0 }, b: Vec2Raw { x: 6442450944, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: 4294967296, y: 0 },
+            dist: -2147483648,
+            fid1: 0x40000000,
+            fid2: 0xc0000001,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: -4294967296, y: 0 },
+            dist: -2147483648,
+            fid1: 0x40000001,
+            fid2: 0xc0000001,
+        },
+    ],
+};
+
+pub const CUBOID_SEGMENT_DEGENERATE: ManifoldCase = ManifoldCase {
+    id: 'cuboid_segment/degenerate',
+    shape1: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    shape2: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -4294967296, y: 0 }, b: Vec2Raw { x: 4294967296, y: 0 } },
+    ),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 2147483648 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: true,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: 4294967296 },
+    local_n2: Vec2Raw { x: 0, y: -4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: 4294967296, y: 0 },
+            dist: 0,
+            fid1: 0x40000000,
+            fid2: 0xc0000001,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -4294967296, y: 2147483648 },
+            local_p2: Vec2Raw { x: -4294967296, y: 0 },
+            dist: 0,
+            fid1: 0x40000001,
+            fid2: 0xc0000001,
+        },
+    ],
+};
+
+pub const CAPSULE_HALFSPACE_SHALLOW: ManifoldCase = ManifoldCase {
+    id: 'capsule_halfspace/shallow',
+    shape1: ShapeRaw::Capsule(
+        CapsuleRaw {
+            a: Vec2Raw { x: 0, y: -2147483648 },
+            b: Vec2Raw { x: 0, y: 2147483648 },
+            radius: 1073741824,
+        },
+    ),
+    shape2: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: -3006477107 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 1,
+    local_n1: Vec2Raw { x: 0, y: -4294967296 },
+    local_n2: Vec2Raw { x: 0, y: 4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: -3221225472 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: -214748365,
+            fid1: 0x40000000,
+            fid2: 0xc0000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 0 },
+            local_p2: Vec2Raw { x: 0, y: 0 },
+            dist: 0,
+            fid1: 0,
+            fid2: 0,
+        },
+    ],
+};
+
+pub const SEGMENT_HALFSPACE_SHALLOW: ManifoldCase = ManifoldCase {
+    id: 'segment_halfspace/shallow',
+    shape1: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: -2147483648, y: 0 }, b: Vec2Raw { x: 2147483648, y: 0 } },
+    ),
+    shape2: ShapeRaw::HalfSpace(Vec2Raw { x: 0, y: 4294967296 }),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: 0, y: 214748365 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: 0, y: -4294967296 },
+    local_n2: Vec2Raw { x: 0, y: 4294967296 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: -2147483648, y: 0 },
+            local_p2: Vec2Raw { x: -2147483648, y: 0 },
+            dist: -214748365,
+            fid1: 0x40000000,
+            fid2: 0xc0000000,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 2147483648, y: 0 },
+            local_p2: Vec2Raw { x: 2147483648, y: 0 },
+            dist: -214748365,
+            fid1: 0x40000002,
+            fid2: 0xc0000000,
+        },
+    ],
+};
+
+pub const SEGMENT_CUBOID_SHALLOW: ManifoldCase = ManifoldCase {
+    id: 'segment_cuboid/shallow',
+    shape1: ShapeRaw::Segment(
+        SegmentRaw { a: Vec2Raw { x: 0, y: -2147483648 }, b: Vec2Raw { x: 0, y: 2147483648 } },
+    ),
+    shape2: ShapeRaw::Cuboid(Vec2Raw { x: 4294967296, y: 2147483648 }),
+    pos12: PoseRaw {
+        translation: Vec2Raw { x: -4080218931, y: 0 }, rotation: RotRaw { re: 4294967296, im: 0 },
+    },
+    ambiguous: false,
+    num_points: 2,
+    local_n1: Vec2Raw { x: -4294967296, y: 0 },
+    local_n2: Vec2Raw { x: 4294967296, y: 0 },
+    points: [
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: 2147483648 },
+            local_p2: Vec2Raw { x: 4294967296, y: 2147483648 },
+            dist: -214748365,
+            fid1: 0x40000002,
+            fid2: 0xc0000038,
+        },
+        ContactPointRaw {
+            local_p1: Vec2Raw { x: 0, y: -2147483648 },
+            local_p2: Vec2Raw { x: 4294967296, y: -2147483648 },
+            dist: -214748365,
+            fid1: 0x40000000,
+            fid2: 0xc0000038,
+        },
+    ],
+};
+
+pub const ALL: [ManifoldCase; 87] = [
     BALL_BALL_SEPARATED, BALL_BALL_WITHIN_PRED, BALL_BALL_TOUCHING, BALL_BALL_SHALLOW,
     BALL_BALL_DEEP, BALL_BALL_DEGENERATE, BALL_CUBOID_SEPARATED, BALL_CUBOID_WITHIN_PRED,
     BALL_CUBOID_TOUCHING, BALL_CUBOID_SHALLOW, BALL_CUBOID_DEEP, BALL_CUBOID_DEGENERATE,
@@ -2172,6 +2856,13 @@ pub const ALL: [ManifoldCase; 66] = [
     SEGMENT_BALL_SEPARATED, SEGMENT_BALL_WITHIN_PRED, SEGMENT_BALL_TOUCHING, SEGMENT_BALL_SHALLOW,
     SEGMENT_BALL_DEEP, SEGMENT_BALL_DEGENERATE, SEGMENT_BALL_DEGEN_ON_SEGMENT, CUBOID_BALL_SHALLOW,
     CAPSULE_BALL_SHALLOW, BALL_HALFSPACE_SHALLOW, BALL_SEGMENT_SHALLOW, CAPSULE_CUBOID_SHALLOW,
+    HALFSPACE_CAPSULE_SEPARATED, HALFSPACE_CAPSULE_WITHIN_PRED, HALFSPACE_CAPSULE_TOUCHING,
+    HALFSPACE_CAPSULE_SHALLOW, HALFSPACE_CAPSULE_DEEP, HALFSPACE_CAPSULE_DEGENERATE,
+    HALFSPACE_SEGMENT_SEPARATED, HALFSPACE_SEGMENT_WITHIN_PRED, HALFSPACE_SEGMENT_TOUCHING,
+    HALFSPACE_SEGMENT_SHALLOW, HALFSPACE_SEGMENT_DEEP, HALFSPACE_SEGMENT_DEGENERATE,
+    CUBOID_SEGMENT_SEPARATED, CUBOID_SEGMENT_WITHIN_PRED, CUBOID_SEGMENT_TOUCHING,
+    CUBOID_SEGMENT_SHALLOW, CUBOID_SEGMENT_DEEP, CUBOID_SEGMENT_DEGENERATE,
+    CAPSULE_HALFSPACE_SHALLOW, SEGMENT_HALFSPACE_SHALLOW, SEGMENT_CUBOID_SHALLOW,
 ];
 
 /// Every case of [`ALL`], in the order of the JSON file.
