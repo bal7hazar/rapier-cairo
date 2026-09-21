@@ -33,7 +33,7 @@ rapier_geometry2d::shape::cuboid::tests::gas_mass_properties 28720
 rapier_geometry2d::shape::cuboid::tests::gas_support_feature 35470
 rapier_geometry2d::shape::cuboid::tests::gas_vertex_feature_id 19000
 rapier_geometry2d::shape::cuboid::tests::test_aabb_table 145780
-rapier_geometry2d::shape::cuboid::tests::test_feature_ids_match_golden_manifolds 803380
+rapier_geometry2d::shape::cuboid::tests::test_feature_ids_match_golden_manifolds 942350
 rapier_geometry2d::shape::cuboid::tests::test_feature_normal_table 113200
 rapier_geometry2d::shape::cuboid::tests::test_support_feature_table 201060
 rapier_geometry2d::shape::cuboid::tests::test_support_points 60170
