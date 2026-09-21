@@ -178,31 +178,17 @@ fn contact_manifold_cuboid_segment_with_flip(
         return;
     }
 
-    let old = manifold;
     let sep1 = cuboid_segment_find_local_separating_normal_oneway(cuboid1, segment2, pos12);
-    let (sep1_dist, sep1_normal) = sep1;
+    let (sep1_dist, _) = sep1;
     if sep1_dist > prediction {
-        if endpoint_prediction_fallback(
-            pos12, pos21, cuboid1, segment2, prediction, sep1_normal, ref manifold, flipped,
-        ) {
-            manifold.match_contacts(@old);
-        } else {
-            manifold.clear();
-        }
+        manifold.clear();
         return;
     }
 
     let sep2 = segment_cuboid_find_local_separating_normal_oneway(segment2, cuboid1, pos21);
     let (sep2_dist, _) = sep2;
     if sep2_dist > prediction {
-        let (_, normal1) = choose_normal(pos12, sep1, sep2);
-        if endpoint_prediction_fallback(
-            pos12, pos21, cuboid1, segment2, prediction, normal1, ref manifold, flipped,
-        ) {
-            manifold.match_contacts(@old);
-        } else {
-            manifold.clear();
-        }
+        manifold.clear();
         return;
     }
 
@@ -217,6 +203,7 @@ fn contact_manifold_cuboid_segment_with_flip(
     let normal2 = pos21.transform_vector(-normal1);
     let feature1 = cuboid1.support_feature(normal1);
     let feature2 = segment_feature(segment2);
+    let old = manifold;
     manifold.clear();
     PolygonalFeatureTrait::contacts(
         pos12, pos21, normal1, normal2, feature1, feature2, ref manifold, flipped,
@@ -252,9 +239,9 @@ fn contact_manifold_cuboid_segment_with_flip(
 ///
 /// `pos12` places the segment in the cuboid frame. The fast path refreshes existing contacts
 /// with upstream's 1-degree and `1e-6` squared-distance tolerances. If either one-way SAT
-/// separation is greater than `prediction`, endpoint-corner prediction is tested before clearing;
-/// otherwise the axis with the larger separation is clipped. Points beyond prediction are not
-/// filtered after clipping.
+/// separation is greater than `prediction`, the manifold is cleared; otherwise the axis with the
+/// larger separation is clipped. If clipping produces no points, endpoint-corner prediction handles
+/// the vertex-vertex regime. Points beyond prediction are not filtered after clipping.
 pub fn contact_manifold_cuboid_segment(
     pos12: Pose2,
     cuboid1: Cuboid,
@@ -306,9 +293,18 @@ mod tests {
     use super::{contact_manifold_cuboid_segment, contact_manifold_cuboid_segment_shapes};
 
     const C: Cuboid = Cuboid { half_extents: Vec2 { x: ONE, y: ONE } };
+    const C_RECT: Cuboid = Cuboid { half_extents: Vec2 { x: ONE, y: HALF } };
     const N_HALF: Fixed = Fixed { raw: -2147483648 };
     const S: Segment = Segment { a: Vec2 { x: N_HALF, y: N_HALF }, b: Vec2 { x: HALF, y: N_HALF } };
+    const S_VERTICAL_HALF: Segment = Segment {
+        a: Vec2 { x: ZERO, y: N_HALF }, b: Vec2 { x: ZERO, y: HALF },
+    };
+    const S_VERTEX: Segment = Segment {
+        a: Vec2 { x: ZERO, y: ZERO }, b: Vec2 { x: Fixed { raw: 1073741824 }, y: ZERO },
+    };
     const R: Rot2 = Rot2 { re: Fixed { raw: 3037000500 }, im: Fixed { raw: 3037000500 } };
+    const R_30: Rot2 = Rot2 { re: Fixed { raw: 3719550787 }, im: HALF };
+    const PREDICTION: Fixed = Fixed { raw: 85899346 };
 
     fn pose(x: Fixed, y: Fixed) -> Pose2 {
         Pose2 { translation: Vec2 { x, y }, ..IDENTITY }
@@ -395,6 +391,28 @@ mod tests {
         contact_manifold_cuboid_segment(
             opaque(pose(ZERO, FixedTrait::from_ratio(3, 2))), C, S, ZERO, ref m,
         );
+    }
+
+    #[test]
+    fn gas_cuboid_segment_separated() {
+        let mut m: ContactManifold = Default::default();
+        contact_manifold_cuboid_segment(
+            opaque(pose(Fixed { raw: 6442450944 }, ZERO)),
+            C_RECT,
+            S_VERTICAL_HALF,
+            PREDICTION,
+            ref m,
+        );
+    }
+
+    #[test]
+    fn gas_cuboid_segment_vertex_vertex_fallback() {
+        let mut m: ContactManifold = Default::default();
+        let p = Pose2 {
+            translation: Vec2 { x: Fixed { raw: 4337916969 }, y: Fixed { raw: 2190433321 } },
+            rotation: R_30,
+        };
+        contact_manifold_cuboid_segment(opaque(p), C_RECT, S_VERTEX, PREDICTION, ref m);
     }
 
     #[test]
