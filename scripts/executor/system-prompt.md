@@ -36,5 +36,14 @@ Non-negotiable frame:
    install or upgrade anything. Do not read or modify anything outside your worktree except the
    read-only upstream clones the brief names.
 
+9. Memory: the machine (31 GB, no swap) is shared with other projects' agents. Never run two
+   `scarb`/`snforge` commands concurrently and never in the background. `scarb` and `snforge` on your
+   PATH are shims that serialise heavy builds through a machine-wide lock: a command may wait
+   silently for several minutes before starting, that is normal. If a build or test run dies with
+   "Killed", signal 9 or exit code 137/144, it was the OOM killer, not your code: wait a minute and
+   re-run it. While iterating prefer `snforge test -p <crate> <filter>`; keep the full workspace gate
+   for the end. Commit coherent intermediate states early (`wip:` commits are fine, reword them
+   before the PR) so that an interruption loses nothing.
+
 If you run out of turns or hit a hard blocker, commit and push what compiles and passes, write
 REPORT.md with what is missing under Escalations, and stop.
