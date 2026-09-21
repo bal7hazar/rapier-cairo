@@ -7,7 +7,7 @@ on first axis, clipped points beyond prediction are kept, f32 feature ids); on `
 `crates/rapier_geometry2d/src/{sat.cairo,polygonal_feature.cairo,clip.cairo,shape.cairo,manifold.cairo}`
 (GD's `cuboid_cuboid_find_local_separating_normal_oneway`, `PolygonalFeatureTrait::{transform_by,clip,contacts}`,
 GB's `Cuboid::support_feature`/`support_face`, GE's `try_update_contacts`). Upstream
-(`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+(`UP=/home/claude/git/refs`):
 `$UP/parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` (100 lines: the
 `try_update_contacts` fast path, the two-way SAT, the `support_feature` + `clip` + `contacts`
 sequence, the `normal.flip` convention). Golden: `rapier_golden::contact_manifolds` cuboid–cuboid
@@ -16,7 +16,7 @@ cases (6 regimes + flipped order).
 ## 2. Scope (file allowlist)
 `crates/rapier_geometry2d/src/contact_generators/cuboid_cuboid.cairo`,
 `crates/rapier_geometry2d/tests/contact_cuboid_golden.cairo`,
-`gas/rapier_geometry2d/contact_generators.snap` (regenerate with `--filter
+`gas/rapier_geometry2d/contact_generators.cuboid_cuboid.snap` (regenerate with `--filter
 rapier_geometry2d::contact_generators::cuboid_cuboid` only), `gas/rapier_geometry2d_integrationtest/contact_cuboid_golden.snap`.
 Modules are pre-declared. Everything else is forbidden.
 

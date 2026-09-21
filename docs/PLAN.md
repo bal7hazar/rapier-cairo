@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.4, 2026-09-20** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.6, 2026-09-21** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -131,7 +131,22 @@ Trig (`sin_cos`, `atan2`) comes from `fixed::trig` (glam item F3); it is only ne
 | DB [P] | Collider components, material + combine rules, sensors flag | `geometry/collider_components.rs` |
 | DC [P] | Contact solver on **mock manifolds**: generate, update, warm start, solve (biased + relax), friction, restitution pass, writeback | `solver/contact_constraint/*` |
 
-**Wave 4** (needs wave 3) — briefs in `docs/briefs/` (GF1–GF4, GG, GH shim consolidation, DB, DD, DE, DF); DB and DE launched 2026-09-20, GH after GC
+**Wave 4** (needs wave 3) — briefs in `docs/briefs/`. Merged: DE ✅ (PR #32, fixed/revolute/prismatic
+joint solver), DB ✅ (PR #33, collider components + builder; finding: an inlined computing `match` arm
+is charged to every arm, 49k vs 21k → `AGENTS.md` §7), GH ✅ (PR #35, wave-3 shims deleted: one `Aabb`,
+one shape set, one `PolygonalFeature`); 1 355 tests on main. Launch plan from 2026-09-21, in parallel: GF1
+(claude sonnet), GF2 (codex gpt-6-astra high), GF3 (claude opus), GF4 (codex gpt-5.5 high), DD (claude
+opus). Each GF package owns its own
+`gas/rapier_geometry2d/contact_generators.<child>.snap` (`SPLIT_MODULES` in `scripts/gas.py`), and DD
+is generic over a `ContactDispatcher` trait (upstream's `&dyn PersistentQueryDispatcher`) so it does
+not wait for GG. Then GG after GF1–4 and DF after DD (DF must bench a `Felt252Dict`-backed body store against
+the immutable-`Array` scatter, see wave-3 findings). Still-empty pre-declared stubs:
+`rapier_geometry2d::{contact_generators::*, dispatch}`, `rapier_dynamics2d::{collider_set,
+rigid_body_set, narrow_phase, events, solver::{island, body_store}}`.
+
+Upstream read-only clones for the briefs live at `UP=/home/claude/git/refs/{rapier,parry}`
+(rapier `28d0ba9` = v0.35.3 + 4 commits, parry `3383f51` = v0.31.1; golden vectors still pin
+`parry2d-f64 =0.30.2`). Briefs of already-merged packages keep the path of the previous machine.
 
 | ID | Package |
 |---|---|

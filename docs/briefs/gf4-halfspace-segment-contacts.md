@@ -8,7 +8,7 @@ on `main`: `crates/rapier_geometry2d/src/{polygonal_feature.cairo,sat.cairo,clip
 (GD `PolygonalFeature`, `cuboid_segment_find_local_separating_normal_oneway`,
 `segment_cuboid_find_local_separating_normal_oneway`; GB `Cuboid::support_feature`,
 `Segment`, `HalfSpace`). Upstream
-(`UP=/private/tmp/claude-501/-Users-bal7hazar-git-rapier-cairo--claude-worktrees-rapier-physics-cairo-benchmark-2d3317/239b7c62-97d7-47ea-9d79-74f81363555f/scratchpad/refs`):
+(`UP=/home/claude/git/refs`):
 `$UP/parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` (`local_support_feature`
 of the pfm toward `-normal`, one `TrackedContact` per vertex of the feature with `dist = normal·p`,
 `fid1 = UNKNOWN`, `fid2` = the feature's vertex id), `$UP/parry/src/shape/polygonal_feature_map.rs`
@@ -22,8 +22,8 @@ case, derive expected values analytically in the test and say so in the report.
 `crates/rapier_geometry2d/src/contact_generators/halfspace_pfm.cairo`,
 `crates/rapier_geometry2d/src/contact_generators/cuboid_segment.cairo`,
 `crates/rapier_geometry2d/tests/contact_halfspace_golden.cairo`,
-`gas/rapier_geometry2d/contact_generators.snap` (filters `…::halfspace_pfm`, `…::cuboid_segment`
-only), `gas/rapier_geometry2d_integrationtest/contact_halfspace_golden.snap`. Modules pre-declared.
+`gas/rapier_geometry2d/contact_generators.halfspace_pfm.snap` and
+`…/contact_generators.cuboid_segment.snap` (filters `…::halfspace_pfm`, `…::cuboid_segment` only), `gas/rapier_geometry2d_integrationtest/contact_halfspace_golden.snap`. Modules pre-declared.
 
 ## 3. Expected API and semantics
 ```cairo
