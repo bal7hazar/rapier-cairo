@@ -75,12 +75,14 @@ case "$CLI" in
     ;;
   codex)
     # `-o` captures the agent's LAST message only; REPORT.md is written by the agent itself.
-    COMMON_ARGS=(-C "$WORKTREE" --dangerously-bypass-approvals-and-sandbox -o LAST_MESSAGE.md)
+    COMMON_ARGS=(--dangerously-bypass-approvals-and-sandbox -o LAST_MESSAGE.md)
     [ -n "$EFFORT" ] && COMMON_ARGS+=(-c "model_reasoning_effort=$EFFORT")
     if [ "$MODE" = resume ]; then
-      codex exec resume --last "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1
+      # `codex exec resume` has no `-C` (codex-cli 0.155): `--last` resolves against the current
+      # directory, which is already the worktree.
+      codex exec resume --last -m "$MODEL" "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1
     else
-      codex exec -m "$MODEL" "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1
+      codex exec -m "$MODEL" -C "$WORKTREE" "${COMMON_ARGS[@]}" "$@" "$PROMPT" >> "$LOG" 2>&1
     fi
     ;;
   *) echo "unknown runner: $RUNNER" >&2; exit 64 ;;
