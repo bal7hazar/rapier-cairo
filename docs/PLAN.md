@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.7, 2026-09-22** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.8, 2026-09-22** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -147,6 +147,13 @@ rigid_body_set, narrow_phase, events, solver::{island, body_store}}`.
 G3 (added 2026-09-21, brief `g3-manifold-golden-gaps.md`, codex gpt-5.5 high): GF4 found no golden
 vectors for halfspace–capsule, halfspace–segment and cuboid–segment (analytic tests only); G3 appends
 21 cases to the `contact_manifolds` family, then GF4's golden test file is extended.
+
+DF ✅ (#46, codex gpt-6-astra xhigh, 2026-09-22): `solve_island` in upstream's `run_worker` order over a
+dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k steps per step vs 27.6M |
+253k with the array store; stack 16 = 72.6M vs 121.6M). One step, 4 substeps: ball drop 4.7M | 39k,
+pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
+Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
+brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
 
 Wave-4 status (2026-09-22): merged G3 ✅ (#38, golden manifolds 66 → 87), GF2 ✅ (#39), GF4 ✅ (#41), GF1 ✅
 (#42), DD ✅ (#43); GF3 running; DF launched after DD; GG waits for GF3. Measured (Sierra gas net | Cairo

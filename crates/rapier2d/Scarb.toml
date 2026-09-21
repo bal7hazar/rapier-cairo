@@ -1,0 +1,26 @@
+[package]
+name = "rapier2d"
+description = "Public facade of rapier.cairo in 2D: World, step(), events."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+fixed.workspace = true
+glam.workspace = true
+rapier_core = { path = "../rapier_core" }
+rapier_math = { path = "../rapier_math" }
+rapier_geometry2d = { path = "../rapier_geometry2d" }
+rapier_dynamics2d = { path = "../rapier_dynamics2d" }
+
+[dev-dependencies]
+snforge_std.workspace = true
+assert_macros.workspace = true
+rapier_testing = { path = "../rapier_testing" }
+rapier_golden = { path = "../rapier_golden" }
+
+[tool]
+fmt.workspace = true
+scarb.workspace = true
+snforge.workspace = true
