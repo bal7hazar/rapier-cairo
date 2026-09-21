@@ -144,6 +144,10 @@ the immutable-`Array` scatter, see wave-3 findings). Still-empty pre-declared st
 `rapier_geometry2d::{contact_generators::*, dispatch}`, `rapier_dynamics2d::{collider_set,
 rigid_body_set, narrow_phase, events, solver::{island, body_store}}`.
 
+G3 (added 2026-09-21, brief `g3-manifold-golden-gaps.md`, codex gpt-5.5 high): GF4 found no golden
+vectors for halfspace–capsule, halfspace–segment and cuboid–segment (analytic tests only); G3 appends
+21 cases to the `contact_manifolds` family, then GF4's golden test file is extended.
+
 Wave-4 finding (GF2, measured 2026-09-21): **Sierra gas is path-insensitive for loop-free code.**
 `contact_manifold_cuboid_cuboid` costs 482k Sierra gas in every regime (separated early exit, cached
 `try_update_contacts` hit, full SAT + clip) because `branch_align` charges each branch up to the most
