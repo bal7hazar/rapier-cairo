@@ -66,6 +66,18 @@ allows it only if measured cheaper including storage — report, ship the cheape
 touching manifolds to the solver vs all of them. Put each computing `match` arm behind an
 `#[inline(never)]` helper (AGENTS.md §7).
 
+**Dispatcher cost model (GG, PR #48 — read its REPORT in the PR body):** `dispatch::contact_manifold`
+is `#[inline(always)]`; inlined in a test, each pair pays only its own generator (ball–ball 41k,
+cuboid–segment 528k Sierra gas), but behind ANY outlined function the `match` is charged its most
+expensive arm on every call (flat 556k) — and DD's `process_pair`/`update_manifold` are outlined
+functions called from the pair loop. You must therefore MEASURE, through the real `step`, the
+narrow-phase cost per pair of a ball-only world vs a cuboid-only world (same pair count). If a
+ball–ball pair pays cuboid prices, that is this package's main finding: report it with numbers, try
+within your allowlist (a) an `#[inline(always)]` `DefaultDispatcher::contact_manifold`, (b) per-kind
+pair buckets (group pairs by shape-pair kind, one loop per kind so that each loop body reaches a
+single generator), and escalate what would have to change in DD (`narrow_phase.cairo` is not yours)
+with the measured gain of each option. Same question for Cairo steps (expected: no penalty).
+
 ## 5. Tests
 `tests/world_step.cairo`, table-driven: free fall matches DA's closed form; a ball dropped on a
 halfspace comes to rest and emits exactly one `Started`; removing the ball emits `Stopped`; a

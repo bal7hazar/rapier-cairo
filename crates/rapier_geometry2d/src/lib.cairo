@@ -22,6 +22,7 @@ pub use closest_points::{
     closest_points_segment_segment, closest_points_segment_segment_with_locations,
 };
 
+pub use dispatch::contact_manifold;
 pub use mass::MassPropertiesTrait;
 pub use point::{PointProjection, SegmentPointLocation};
 pub use shape::{Shape, ShapeTrait, ShapeType};
