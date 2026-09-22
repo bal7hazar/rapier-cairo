@@ -23,6 +23,7 @@ use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 
 mod builder;
+mod slope_diagnostics;
 
 /// Position / rotation tolerance per step, in ulps (`2^12`); velocities get twice as much.
 const TOL_PER_STEP: u64 = 4096;
@@ -364,16 +365,16 @@ fn test_ball_bounce() {
     replay("ball_bounce", scenes::BALL_BOUNCE, 0, 120, Judge::Samples, NONE);
 }
 
-/// Finding (REPORT.md): diverges at the first contact step (3) and settles 1.5e6 ulp further
-/// down the slope than upstream (bounded offset, no drift).
+/// SD diagnosis: surface-point lever arms diverge at step 3; upstream f64 duplicate IDs
+/// corrupt warm starts from step 4. See README slope diagnosis and `slope_diagnostics`.
 #[test]
 #[ignore]
 fn test_box_slope_stick() {
     replay("box_slope_stick", scenes::BOX_SLOPE_STICK, 0, 120, Judge::Samples, NONE);
 }
 
-/// Finding (REPORT.md): diverges at the first contact step (3); the position offset along the
-/// slope then grows linearly (4.45e6 ulp at step 120) while velocities agree within 2e3 ulp.
+/// SD diagnosis: transient substep velocities differ even when final linear velocities
+/// agree within 2e3 ulp. Midpoint and f64-ID counterfactuals isolate both causes.
 #[test]
 #[ignore]
 fn test_box_slope_slide() {

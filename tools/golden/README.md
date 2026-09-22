@@ -136,6 +136,173 @@ quantised `dt`, gravity `(0, -9.81)` snapped to Q32.32. The file describes each 
 (initial state), steps 1–10, then every 10th step: `translation`, `rotation` `(re, im)`,
 `linvel`, `angvel`, read after `PhysicsPipeline::step`.
 
+### Slope divergence diagnosis (SD)
+
+Only the two slope scenes add `contact_diagnostics.steps` (steps 1–10). These records
+come from the pinned **published** Rapier 0.35.3 API after `step`: all manifold points,
+normals, raw f64 feature IDs, accumulated and warm-start impulses, solver contacts,
+`ContactData::solver_dp1/2`, and the dynamic body's state. Geometry belongs to the
+pre-solve collision pass; impulses and body state belong to the completed step.
+`SolverContact::anchor*` are CoM-local upstream (world for the fixed side), whereas
+`solver_dp*` are the world lever arms consumed by constraint generation. Compare the
+port's `SolverContact::anchor*` with **`solver_dp*`**, not with upstream's localized anchors.
+Substep velocities are private upstream and are deliberately not presented as observations.
+Existing scene samples and tolerances are unchanged.
+
+Reproduce the diagnosis with `snforge test -p rapier2d slope_diagnostics`.
+The test runs three modes entirely inside the integration test: the current engine;
+a shared-midpoint counterfactual; midpoint plus emulation of upstream's duplicate-ID
+matching. It asserts geometry, step-3 recovery, and recovery through step 10 when both
+differences are included. A public-API substep tracer is checked bit-for-bit against
+`pipeline::solve` for pose and velocities. There are no production engine edits.
+
+**First response, step 3.** Steps 1–2 already have two speculative manifold points;
+step 3 is the first step with nonzero impulse. Both materials have the same initial
+geometry and coefficients. In the following table numbers are raw Q32.32 and signed
+deltas mean **port minus upstream**. SI deltas are raw deltas divided by `2^32`;
+feature IDs and indices are discrete and have no SI interpretation.
+
+| Quantity | Upstream | Port | Delta (ulp; SI) |
+|---|---|---|---|
+| `local_n1`, `local_n2` | `(0,4294967296)`, `(0,-4294967296)` | same | 0 |
+| world normal | `(-2147483648,3719550787)` | same | 0 |
+| first `local_p1.x` | 2134316890 | 2134316900 | +10; +2.33e-9 m |
+| second `local_p1.x` | -2160650407 | -2160650400 | +7; +1.63e-9 m |
+| both `local_p1.y` | 2147483648 | same | 0 |
+| `local_p2` in point order | `(2147483648,-2147483648)`, `(-2147483648,-2147483648)` | same | 0 |
+| both distances | 20144178 | 20144174 | -4; -9.31e-10 m |
+| `(fid1,fid2)`, point 0 | `(3221225520,1073741824)` | `(3221225524,1073741826)` | known f64 sign-bit bug |
+| `(fid1,fid2)`, point 1 | `(3221225520,1073741824)` | `(3221225524,1073741827)` | known f64 sign-bit bug |
+| solver point count / IDs | 2 / `2147483648,2147483649` | same | no prediction skip; both NEW |
+| first world arm on slope | `(769594778,2935656523)` | `(774630831,2926933843)` | `(+5036053,-8722680)`; `(+0.00117255,-0.00203091)` m |
+| first world arm on box | `(2938553262,-794756254)` | `(2933517217,-786033570)` | `(-5036045,+8722684)`; `(-0.00117255,+0.00203091)` m |
+| second world arm on slope | `(-2949956009,788172875)` | `(-2944919960,779450193)` | `(+5036049,-8722682)`; `(+0.00117255,-0.00203091)` m |
+| second world arm on box | `(-780997525,-2942239902)` | `(-786033570,-2933517218)` | `(-5036045,+8722684)`; `(-0.00117255,+0.00203091)` m |
+| first box normal cross coefficient | 2147483648 | 2147483647 | -1; -2.33e-10 m |
+| first normal inverse effective mass | 1717986918 | 1717986918 | 0 |
+| box tangent cross coefficient, both points | -2157555737 | -2147483649 | +10072088; +0.00234509 m |
+| tangent inverse effective mass, both points | 1708349407 | 1717986916 | +9637509; +0.00224391 kg^-1 |
+| substep inverse dt | 1030792154880 | same | 0 |
+| static `erp_inv_dt` | 75062807161 | 75062807160 | -1; -2.33e-10 s^-1 |
+| static `erp` (`substep_dt * erp_inv_dt`) | 312761695 | same | 0 |
+| static `cfm_factor` | 4171843512 | same | 0 |
+| friction: stick / slide | 3006477107 / 1073741824 | same | 0; average combine |
+| restitution | 0 | 0 | 0 |
+
+Upstream row coefficients above are calculated from its recorded `solver_dp2`, world
+normal, inverse mass 1 and inverse inertia 6, using its scalar row formulas. ERP/CFM
+come from `integration_parameters.json` (`dt_q32.static_contact`). Initial speculative
+normal RHS is `max(dist,0)/substep_dt`; penetration bias is zero. Both implementations
+solve normal points 0,1 then tangents 0,1, with friction in the relaxation pass only.
+The block solver is disabled and a single pair has no graph-order ambiguity.
+
+The first substantive defect is in the port's constraint builder: it uses the two
+separated surface points as lever arms and material anchors. Upstream freezes **one
+shared midpoint** for both. Its tangent arm length is `0.5 + dist/2`, rather than 0.5;
+this changes both friction effective mass and angular response. Upstream's
+`pair_update.rs` localization pass computes that midpoint, stores `solver_dp1/2`, and
+`ContactWithCoulombFrictionBuilder::generate` uses them for both rows and substep anchors.
+
+| Step-3 velocity | Upstream raw | Port raw | Signed delta (ulp; SI) |
+|---|---|---|---|
+| stick vx | -180922494 | -178467458 | +2455036; +0.000571608 m/s |
+| stick vy | 34900322 | 36476938 | +1576616; +0.000367085 m/s |
+| stick angular | 277166668 | 272637761 | -4528907; -0.00105447 rad/s |
+| slide vx | -502431356 | -501940666 | +490690; +0.000114248 m/s |
+| slide vy | -350302641 | -352018006 | -1715365; -0.000399390 m/s |
+| slide angular | -624046678 | -626383038 | -2336360; -0.000543976 rad/s |
+
+| Step-3 pose | Upstream raw | Port raw | Signed delta (ulp; SI) |
+|---|---|---|---|
+| stick x / y | -2169527138 / 3708194310 | -2169511332 / 3708204096 | +15806 / +9786; +3.68e-6 / +2.28e-6 m |
+| stick re / im | 3718363471 / 2149538828 | 3718362901 / 2149539815 | -570 / +987; -1.33e-7 / +2.30e-7 |
+| slide x / y | -2170201782 / 3706973093 | -2170198175 / 3706966844 | +3607 / -6249; +8.40e-7 / -1.45e-6 m |
+| slide re / im | 3719084234 / 2148291539 | 3719091454 / 2148279040 | +7220 / -12499; +1.68e-6 / -2.91e-6 |
+
+Replacing only the anchors with the common midpoint reduces step-3 absolute errors:
+
+| Scene | x/y position ulps | re/im rotation ulps | vx/vy/angular velocity ulps |
+|---|---|---|---|
+| stick | 4 / 0 | 1 / 2 | 673 / 599 / 559 |
+| slide | 2 / 3 | 0 / 0 | 298 / 1017 / 1640 |
+
+**Step 4 and subsequent drift.** Midpoint alone does not recover step 4 because upstream
+regenerates the manifold with **duplicate f64 IDs**. Parry 0.30.2 `match_contacts` keeps
+iterating after a match; both new points receive the *last* old point's data. For stick,
+that last point has warm normal impulse 714093889 and tangent -462965448 at step 3,
+while the first point's warm impulses are zero. The port correctly keeps the distinct
+point data. Reproducing upstream's erroneous last-match copy *only in the diagnostic*
+recovers every sample through step 10: maximum position / rotation / velocity errors
+are 30 / 28 / 3000 ulps for stick and 26 / 5 / 1640 for slide. This establishes a
+second, independent root cause; increasing a rounding tolerance cannot repair it.
+
+**Substeps and the slide position/velocity oddity.** These are measured **port**
+step-3 velocities, as `(vx,vy,angular)` raw; divide by `4294967296` for m/s and rad/s.
+Substeps are numbered 0–3. “Integrated” is the velocity just before pose integration;
+“relaxed” is the velocity after the subsequent no-bias solve.
+
+| Scene | Substep | Integrated | Relaxed |
+|---|---|---|---|
+| both | 0 | `(0,-1580011092,0)` | same |
+| both | 1 | `(0,-1755567880,0)` | same |
+| stick | 2 | `(0,-1931124668,0)` | `(-222884590,-638332879,1024380310)` |
+| stick | 3 | `(-132683402,-63378354,569913031)` | `(-178467458,36476938,272637761)` |
+| slide | 2 | `(0,-1931124668,0)` | `(-348989990,-711139865,587538390)` |
+| slide | 3 | `(-297525818,-360318806,220439496)` | `(-501940666,-352018006,-626383038)` |
+
+At slide step 120 the port's integrated velocities are:
+
+| Substep | vx raw | vy raw | angular raw |
+|---|---|---|---|
+| 0 | -20559380031 | -11869963559 | 41 |
+| 1 | -20602481457 | -11894848181 | 36 |
+| 2 | -20645582882 | -11919732801 | 37 |
+| 3 | -20688684317 | -11944617407 | 39 |
+
+The final relaxed velocity is `(-20688684298,-11944617442,9)`.
+The linear components differ from upstream by only 1921 / 1828 ulps, but angular
+velocity differs by 158982 ulps (3.70e-5 rad/s); the earlier “velocities agree to
+2e3 ulps” observation applies to **linear** velocity. Position errors are 4450151 /
+2569242 ulps at step 120 (0.001036 / 0.000598 m).
+
+Both engines integrate each substep's *biased* velocity and then relax velocity.
+Upstream `RigidBodyVelocity::integrate_linearized` normalizes the first-order complex
+rotation and adds `linvel * substep_dt` to translation. The port does the same;
+`next_position` is the accumulated solver pose (minus rotated local CoM, zero here),
+not a reintegration using the final relaxed velocity. The duplicate-ID warm start
+changes transient substep velocities even when their final linear values converge.
+Consequently their integrals differ each step. This is a solver-input difference,
+not an independent defect in `integrate_linearized` or `next_position`.
+
+The midpoint-plus-ID counterfactual also passes **all 22 sampled states through 120
+steps** for both scenes. At slide step 120 it differs from upstream by only 2500 /
+1443 position ulps, 4 / 6 rotation ulps, and 2281 / 1314 / 2 velocity ulps. Its
+integrated substep velocities, measured in the test (not read from upstream), are:
+
+| Substep | vx raw | vy raw | angular raw |
+|---|---|---|---|
+| 0 | -20550629413 | -11866170347 | -1508757 |
+| 1 | -20603635768 | -11892920071 | 3829244 |
+| 2 | -20644928878 | -11920714278 | -2365515 |
+| 3 | -20688740093 | -11944626077 | 45545 |
+
+The current port moves `(-343733870,-198454844)` raw during step 120; the
+counterfactual moves `(-343699727,-198435130)`. The difference is
+`(-34143,-19714)` ulps (`-7.95e-6,-4.59e-6` m) **in one step**, while their final
+linear velocities differ by just `(360,-514)` ulps. This directly reproduces the
+reported drift mechanism without inventing access to upstream's private substeps.
+
+**Required follow-up.** In `crates/rapier_dynamics2d/src/solver/contact.cairo`,
+`generate_element` (lines 352, 368, 379–386 at the SD base), reconstruct the two world
+points from `original*.position.translation + sc.anchor*`, compute their midpoint,
+and use midpoint-minus-original-CoM for **both** calls to `coefficients`. Use the same
+midpoint for `local_p1/2`, and keep `sc.dist` as the base separation. Leave the frozen
+DD/F3 `SolverContact` interface unchanged. This belongs with the owning package's
+unit tests and affected gas snapshots. Separately obtain corrected-ID upstream scene
+references (or a controlled f32 engine cross-check); do not port the f64 ID bug.
+The two original 120-step replays remain ignored pending these follow-ups, with their
+original tolerances intact. No wider tolerance is claimed or justified by this diagnosis.
+
 ## Leaf-level families (G2)
 
 Work package **G2**. The families above only validate end results (a manifold, a body trace). The
