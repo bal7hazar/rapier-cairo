@@ -264,6 +264,7 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
         json!({ "step": step, "bodies": states })
     };
 
+    let mut diagnostics = Vec::new();
     let mut samples = vec![sample(0, &bodies)];
     for step in 1..=NUM_STEPS {
         pipeline.step(
@@ -280,18 +281,62 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             &(),
             &(),
         );
+        if scene.id.starts_with("box_slope_") && step <= 10 {
+            let c1 = bodies[handles[0]].colliders()[0];
+            let c2 = bodies[handles[1]].colliders()[0];
+            let manifolds: Vec<Value> =
+                narrow_phase
+                    .contact_pair(c1, c2)
+                    .map(|pair| {
+                        pair.manifolds.iter().map(|m| {
+                    let points: Vec<Value> = m.points.iter().map(|p| json!({
+                        "local_p1": jvec(p.local_p1), "local_p2": jvec(p.local_p2),
+                        "dist": jf(p.dist), "fid1": p.fid1.0, "fid2": p.fid2.0,
+                        "impulse": jf(p.data.impulse),
+                        "tangent_impulse": jf(p.data.tangent_impulse.x),
+                        "warmstart_impulse": jf(p.data.warmstart_impulse),
+                        "warmstart_tangent_impulse": jf(p.data.warmstart_tangent_impulse.x),
+                        "solver_dp1": jvec(p.data.solver_dp1),
+                        "solver_dp2": jvec(p.data.solver_dp2),
+                    })).collect();
+                    let solver_contacts: Vec<Value> = m.data.solver_contacts.iter().map(|c| json!({
+                        "contact_id": c.contact_id[0], "anchor1": jvec(c.anchor1),
+                        "anchor2": jvec(c.anchor2), "dist": jf(c.dist),
+                        "tangent_velocity": jvec(c.tangent_velocity),
+                    })).collect();
+                    json!({
+                        "local_n1": jvec(m.local_n1), "local_n2": jvec(m.local_n2),
+                        "normal": jvec(m.data.normal), "friction": jf(m.data.friction),
+                        "restitution": jf(m.data.restitution), "points": points,
+                        "solver_contacts": solver_contacts,
+                    })
+                }).collect()
+                    })
+                    .unwrap_or_default();
+            diagnostics.push(json!({ "step": step, "manifolds": manifolds,
+                "body": sample(step, &bodies)["bodies"][0] }));
+        }
         if is_sampled(step) {
             samples.push(sample(step, &bodies));
         }
     }
 
-    json!({
+    let mut result = json!({
         "id": scene.id,
         "note": scene.note,
         "bodies": bodies_json,
         "joints": joints_json,
         "samples": samples,
-    })
+    });
+    if scene.id.starts_with("box_slope_") {
+        result["contact_diagnostics"] = json!({
+            "timing": "after step; geometry and solver arms from pre-solve collision detection; impulses and body state after solve",
+            "anchor_frames": "solver_contacts anchors are CoM-local (world for fixed side); solver_dp1/2 are frozen world lever arms at the common midpoint",
+            "substeps": "body velocities inside a step are not exposed by the public API",
+            "steps": diagnostics,
+        });
+    }
+    result
 }
 
 pub fn generate() -> Value {
