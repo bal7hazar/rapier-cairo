@@ -75,7 +75,12 @@ case "$CLI" in
     ARGS=(-p --model "$MODEL" --max-turns "${EXECUTOR_MAX_TURNS:-300}" --name "exec-$ID" \
           --dangerously-skip-permissions --output-format stream-json --verbose)
     [ "$MODE" = resume ] && ARGS+=(--continue)
+    # A workspace test run behind the shared build lock can exceed Claude Code's default 10-minute
+    # Bash cap; a capped command is moved to the background and a headless session then ends
+    # without its result. Raise both caps to one hour.
     env -u CLAUDECODE -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_CHILD_SESSION \
+      BASH_DEFAULT_TIMEOUT_MS="${EXECUTOR_BASH_TIMEOUT_MS:-3600000}" \
+      BASH_MAX_TIMEOUT_MS="${EXECUTOR_BASH_TIMEOUT_MS:-3600000}" \
       claude "${ARGS[@]}" "$@" "$PROMPT" >> "$LOG"
     ;;
   codex)
