@@ -42,7 +42,10 @@ Non-negotiable frame:
    silently for several minutes before starting, that is normal. If a build or test run dies with
    "Killed", signal 9 or exit code 137/144, it was the OOM killer, not your code: wait a minute and
    re-run it. While iterating prefer `snforge test -p <crate> <filter>`; keep the full workspace gate
-   for the end. Commit coherent intermediate states early (`wip:` commits are fine, reword them
+   for the end. A shell command may run for up to one hour in the foreground (the
+   default cap is raised for you): never move a build or test run to the background and never
+   end your turn waiting for a background notification — in headless mode that ends the session.
+   Commit coherent intermediate states early (`wip:` commits are fine, reword them
    before the PR) so that an interruption loses nothing.
 
 If you run out of turns or hit a hard blocker, commit and push what compiles and passes, write
