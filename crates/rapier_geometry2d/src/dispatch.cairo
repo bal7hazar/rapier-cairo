@@ -39,21 +39,23 @@
 //! parentheses; ball–ball / cuboid–segment / unsupported pair). The losers live in
 //! `dispatch/alternatives.cairo`.
 //!
-//! 1. **`#[inline(always)]` typed `match`** (this module): 40 570 (362) / 527 900 (3 019) / 6 720
-//!    (66), i.e. 1.2k to 6.9k gas and 12 to 70 steps above the bare generator, whatever the pair.
-//! 2. `alternatives::contact_manifold_helpers`: the same with one `#[inline(never)]` helper per
-//!    arm: 47 470 / 535 200 / 6 720, about 7k more than the winner for nothing.
-//! 3. `alternatives::contact_manifold_shapes_chain`: upstream's shape, the `*_shapes` wrappers
+//! 1. **metered `#[inline(always)]` typed `match`** (this module): each generator call is inside a
+//!    one-iteration `while`, so an outlined caller is charged only the reached generator.
+//! 2. `alternatives::contact_manifold_plain`: GG's original typed `match`, still cheapest when
+//!    fully inlined into a caller, but a loop-free outlined caller pays its costliest arm for every
+//!    pair.
+//! 3. `alternatives::contact_manifold_helpers`: the plain match with one `#[inline(never)]` helper
+//!    per arm: no help for an outlined caller, and about 7k more when inlined.
+//! 4. `alternatives::contact_manifold_shapes_chain`: upstream's shape, the `*_shapes` wrappers
 //!    tried in turn (each re-matches the enum): 54 670 / 1 966 870 / 2 198 450.
-//! 4. `alternatives::contact_manifold_outlined`: the winner behind a call: 556 300 gas for every
-//!    pair (the most expensive arm), 565 / 3 221 / 208 steps.
+//! 5. `alternatives::contact_manifold_plain_outlined`: the plain match behind a call: 556 300 gas
+//!    for every pair (the most expensive arm), 565 / 3 221 / 208 steps.
 //!
-//! Why the attribute: Sierra gas charges a called function its worst-case path, so an outlined
-//! dispatcher costs the most expensive generator on every pair (ball–ball would cost 14 times the
-//! generator). Inlined into its caller, the arms are separate paths and the caller pays only the
-//! generator it reaches; the generators themselves stay real calls. Capsule–cuboid and
-//! segment–cuboid cost 6.8k more than the others because only the `*_shapes` wrapper of their
-//! generator reaches the flipped implementation (it re-matches the pair).
+//! Why the metering: Sierra gas charges a loop-free called function its worst-case path, so a plain
+//! outlined dispatcher costs the most expensive generator on every pair (ball–ball would cost 14
+//! times the generator). The one-iteration loops defer the generator charge until the reached arm's
+//! loop body runs; that costs about 265 Cairo steps per pair and preserves the real pipeline's gas
+//! ranking when the dispatcher is called from outlined narrow-phase code.
 
 use fixed::Fixed;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -101,101 +103,129 @@ pub fn contact_manifold(
         (
             Shape::Ball(ball1), Shape::Ball(ball2),
         ) => {
-            contact_manifold_ball_ball(pos12, ball1, ball2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_ball_ball(pos12, ball1, ball2, prediction, ref manifold);
+                pending = false;
+            }
             true
         },
         (
             Shape::Cuboid(cuboid1), Shape::Cuboid(cuboid2),
         ) => {
-            contact_manifold_cuboid_cuboid(pos12, cuboid1, cuboid2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_cuboid_cuboid(pos12, cuboid1, cuboid2, prediction, ref manifold);
+                pending = false;
+            }
             true
         },
         (
             Shape::Capsule(capsule1), Shape::Capsule(capsule2),
         ) => {
-            contact_manifold_capsule_capsule(pos12, capsule1, capsule2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_capsule_capsule(
+                    pos12, capsule1, capsule2, prediction, ref manifold,
+                );
+                pending = false;
+            }
             true
         },
         (
             Shape::Ball(ball1), _,
         ) => {
-            contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+                pending = false;
+            }
             true
         },
         (
             _, Shape::Ball(ball2),
         ) => {
-            contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
+                pending = false;
+            }
             true
         },
         (
             Shape::Cuboid(cuboid1), Shape::Capsule(capsule2),
         ) => {
-            contact_manifold_cuboid_capsule(pos12, cuboid1, capsule2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_cuboid_capsule(pos12, cuboid1, capsule2, prediction, ref manifold);
+                pending = false;
+            }
             true
         },
         (
             Shape::Capsule(_), Shape::Cuboid(_),
-        ) => contact_manifold_cuboid_capsule_shapes(
-            pos12, shape1, shape2, prediction, ref manifold,
-        ),
+        ) => {
+            let mut supported = false;
+            let mut pending = true;
+            while pending {
+                supported =
+                    contact_manifold_cuboid_capsule_shapes(
+                        pos12, shape1, shape2, prediction, ref manifold,
+                    );
+                pending = false;
+            }
+            supported
+        },
         (
             Shape::Cuboid(cuboid1), Shape::Segment(segment2),
         ) => {
-            contact_manifold_cuboid_segment(pos12, cuboid1, segment2, prediction, ref manifold);
+            let mut pending = true;
+            while pending {
+                contact_manifold_cuboid_segment(pos12, cuboid1, segment2, prediction, ref manifold);
+                pending = false;
+            }
             true
         },
         (
             Shape::Segment(_), Shape::Cuboid(_),
-        ) => contact_manifold_cuboid_segment_shapes(
-            pos12, shape1, shape2, prediction, ref manifold,
-        ),
-        (
-            Shape::HalfSpace(halfspace1), Shape::Cuboid(_),
         ) => {
-            contact_manifold_halfspace_pfm(
-                pos12, halfspace1, shape2, prediction, ref manifold, false,
-            );
-            true
+            let mut supported = false;
+            let mut pending = true;
+            while pending {
+                supported =
+                    contact_manifold_cuboid_segment_shapes(
+                        pos12, shape1, shape2, prediction, ref manifold,
+                    );
+                pending = false;
+            }
+            supported
         },
-        (
-            Shape::HalfSpace(halfspace1), Shape::Segment(_),
-        ) => {
-            contact_manifold_halfspace_pfm(
-                pos12, halfspace1, shape2, prediction, ref manifold, false,
-            );
-            true
-        },
+        (Shape::HalfSpace(halfspace1), Shape::Cuboid(_)) |
+        (Shape::HalfSpace(halfspace1), Shape::Segment(_)) |
         (
             Shape::HalfSpace(halfspace1), Shape::Capsule(_),
         ) => {
-            contact_manifold_halfspace_pfm(
-                pos12, halfspace1, shape2, prediction, ref manifold, false,
-            );
+            let mut pending = true;
+            while pending {
+                contact_manifold_halfspace_pfm(
+                    pos12, halfspace1, shape2, prediction, ref manifold, false,
+                );
+                pending = false;
+            }
             true
         },
-        (
-            Shape::Cuboid(_), Shape::HalfSpace(halfspace2),
-        ) => {
-            contact_manifold_halfspace_pfm(
-                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
-            );
-            true
-        },
-        (
-            Shape::Segment(_), Shape::HalfSpace(halfspace2),
-        ) => {
-            contact_manifold_halfspace_pfm(
-                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
-            );
-            true
-        },
+        (Shape::Cuboid(_), Shape::HalfSpace(halfspace2)) |
+        (Shape::Segment(_), Shape::HalfSpace(halfspace2)) |
         (
             Shape::Capsule(_), Shape::HalfSpace(halfspace2),
         ) => {
-            contact_manifold_halfspace_pfm(
-                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
-            );
+            let mut pending = true;
+            while pending {
+                contact_manifold_halfspace_pfm(
+                    pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+                );
+                pending = false;
+            }
             true
         },
         _ => {
@@ -231,7 +261,8 @@ mod tests {
     use crate::contact_generators::halfspace_pfm::contact_manifold_halfspace_pfm;
     use crate::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
     use super::alternatives::{
-        contact_manifold_helpers, contact_manifold_outlined, contact_manifold_shapes_chain,
+        contact_manifold_helpers, contact_manifold_outlined, contact_manifold_plain,
+        contact_manifold_plain_outlined, contact_manifold_shapes_chain,
     };
     use super::contact_manifold;
 
@@ -326,6 +357,19 @@ mod tests {
         true
     }
 
+    fn same_metered_plain(pose: Pose2, shape1: Shape, shape2: Shape, supported: bool) -> bool {
+        let mut metered: ContactManifold = Default::default();
+        let mut plain: ContactManifold = Default::default();
+        assert_eq!(contact_manifold(pose, shape1, shape2, PREDICTION, ref metered), supported);
+        assert_eq!(contact_manifold_plain(pose, shape1, shape2, PREDICTION, ref plain), supported);
+        assert_eq!(metered, plain);
+        metered = with_impulse(metered, 11);
+        plain = with_impulse(plain, 11);
+        assert_eq!(contact_manifold(pose, shape1, shape2, PREDICTION, ref metered), supported);
+        assert_eq!(contact_manifold_plain(pose, shape1, shape2, PREDICTION, ref plain), supported);
+        metered == plain
+    }
+
     /// The dispatcher gives, for the 25 ordered pairs, the same result and the same manifold as
     /// upstream's chain of `*_shapes` wrappers, on a fresh manifold and on a warm one; every
     /// supported pair produces contacts under one of the two poses.
@@ -341,6 +385,15 @@ mod tests {
             }
         }
         assert_eq!(supported, 21);
+    }
+
+    /// Metering is a gas-only wrapper around GG's plain typed match: same support result and
+    /// identical manifold for the 25 ordered pairs, fresh and warm.
+    #[test]
+    fn test_metered_equals_plain() {
+        for (s1, s2, ok) in all_pairs().span() {
+            assert!(same_metered_plain(pose_direct(), *s1, *s2, *ok));
+        }
     }
 
     /// Ball–ball goes to the ball–ball generator, not to the convex–ball one (which accepts
@@ -423,6 +476,18 @@ mod tests {
     fn gas_outlined_ball_ball() {
         let mut m: ContactManifold = Default::default();
         let _ = contact_manifold_outlined(pd(), ball(), ball(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_ball_ball() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain(pd(), ball(), ball(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_outlined_ball_ball() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain_outlined(pd(), ball(), ball(), PREDICTION, ref m);
     }
 
     #[test]
@@ -535,6 +600,18 @@ mod tests {
     fn gas_outlined_cuboid_segment() {
         let mut m: ContactManifold = Default::default();
         let _ = contact_manifold_outlined(pd(), cuboid(), segment(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_cuboid_segment() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain(pd(), cuboid(), segment(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_outlined_cuboid_segment() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain_outlined(pd(), cuboid(), segment(), PREDICTION, ref m);
     }
 
     #[test]
@@ -654,6 +731,18 @@ mod tests {
     }
 
     #[test]
+    fn gas_plain_capsule_halfspace() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain(pr(), capsule(), halfspace(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_outlined_capsule_halfspace() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain_outlined(pr(), capsule(), halfspace(), PREDICTION, ref m);
+    }
+
+    #[test]
     fn gas_helpers_capsule_halfspace() {
         let mut m: ContactManifold = Default::default();
         let _ = contact_manifold_helpers(pr(), capsule(), halfspace(), PREDICTION, ref m);
@@ -675,6 +764,18 @@ mod tests {
     fn gas_outlined_segment_segment() {
         let mut m: ContactManifold = Default::default();
         let _ = contact_manifold_outlined(pd(), segment(), segment(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_segment_segment() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain(pd(), segment(), segment(), PREDICTION, ref m);
+    }
+
+    #[test]
+    fn gas_plain_outlined_segment_segment() {
+        let mut m: ContactManifold = Default::default();
+        let _ = contact_manifold_plain_outlined(pd(), segment(), segment(), PREDICTION, ref m);
     }
 
     #[test]
