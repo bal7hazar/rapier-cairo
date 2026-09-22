@@ -1,0 +1,29 @@
+[package]
+name = "ball_drop"
+description = "rapier.cairo example: a physics scene stepped in an executable, for scarb execute and scarb prove."
+version = "0.1.0"
+edition = "2024_07"
+cairo-version = "2.19.4"
+license = "MIT"
+
+[dependencies]
+fixed = { git = "https://github.com/bal7hazar/glam.cairo", rev = "ce18a0b501970b67cf711214a79bb309136c3c65" }
+glam = { git = "https://github.com/bal7hazar/glam.cairo", rev = "ce18a0b501970b67cf711214a79bb309136c3c65" }
+rapier2d = { path = "../../crates/rapier2d" }
+# Not in `rapier2d::prelude` yet: `Pose2`, `Rot2`, `COLLISION_EVENTS`.
+rapier_core = { path = "../../crates/rapier_core" }
+rapier_math = { path = "../../crates/rapier_math" }
+cairo_execute = "2.19.4"
+
+[dev-dependencies]
+assert_macros = "2.19.4"
+cairo_test = "2.19.4"
+
+[executable]
+
+[cairo]
+enable-gas = false
+
+[tool.fmt]
+sort-module-level-items = true
+max-line-length = 100
