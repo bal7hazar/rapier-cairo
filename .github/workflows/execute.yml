@@ -1,0 +1,24 @@
+name: Execute example
+
+# P4: run the standalone `examples/ball_drop` executable through `scarb execute` (execute-only:
+# the Stwo prover needs more memory than a hosted runner has, see examples/ball_drop/README.md).
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "examples/**"
+      - "scripts/prove-example.sh"
+      - ".github/workflows/execute.yml"
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1
+      - name: Execute 10 steps of ball_drop
+        run: scripts/prove-example.sh ball_drop 10
+      - name: Execute 10 steps of box_stack3
+        run: scripts/prove-example.sh box_stack3 10
