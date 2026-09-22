@@ -129,8 +129,14 @@ python3 scripts/gas.py check                                  # CI and orchestra
   `pop_front` iteration.
 - Value types derive `Copy, Drop, Serde, PartialEq, Debug` and are passed by value.
 - `#[inline(always)]` on leaf arithmetic only; avoid `unwrap()` and panics inside inlined hot code.
-- In an enum `match`, an inlined computing arm is charged to **every** arm (measured in DB: 49k vs
-  21k): put each computing arm behind an `#[inline(never)]` helper.
+- Sierra gas charges a loop-free function its **most expensive path**, not the path taken (GF2:
+  482k on every regime; GG: an outlined dispatcher costs 556k for every pair). Only Cairo steps
+  follow the executed path, so early-exit variants are compared with `--tracked-resource
+  cairo-steps` too. Practical rules (measured in DB, GG, P1): keep a dispatching `match`
+  `#[inline(always)]` in its caller; a computing arm that must stay inside an outlined function
+  goes behind a one-iteration `while pending { …; pending = false; }` ("metered" call, ~265 steps),
+  because a `while` body is only charged when it runs (`loop { …; break; }` is not); an
+  `#[inline(never)]` helper per arm is the cheap fix only when the `match` itself is inlined.
 - Traits: `FooTrait` / `FooImpl` (via `#[generate_trait]` when there is a single impl); operators
   through core traits; `Zero`, `One`, `Default` where meaningful.
 - Errors: `pub mod errors { pub const X: felt252 = 'Type: reason'; }` with `assert(cond, errors::X)`;
