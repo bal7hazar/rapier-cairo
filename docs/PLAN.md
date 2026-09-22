@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.12, 2026-09-23** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.13, 2026-09-23, paused** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -154,6 +154,14 @@ dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k step
 pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
 Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
 brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
+
+**Paused 2026-09-23 (owner's decision: the shared machine hit its CPU ceiling overnight; glam.cairo has
+priority).** No executor running, no open PR. Resume point: lot DM (`feat/dm-midpoint-anchors`, three
+`wip:` commits pushed: midpoint lever arms in `solver/contact.cairo`, substep mock witnesses, slope
+diagnostics) — resume with `scripts/executor-unit.sh resume dm-midpoint-anchors claude:opus "<follow-up>"`
+(the worktree `.claude/worktrees/exec-dm-midpoint-anchors` still exists) or relaunch from the branch;
+then GS (regenerate slope traces with correct feature ids, un-ignore the slope tests), MF (flaky
+`mass.cairo:520` fuzz), then optimisation lots from `docs/BUDGETS.md`.
 
 P4 ✅ (#57, execute-only): `examples/ball_drop` (`#[executable]`, scenes ball_drop / box_stack3 / pendulum,
 standalone package outside the workspace because of `enable-gas = false`), `scripts/prove-example.sh`
