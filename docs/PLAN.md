@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.9, 2026-09-22** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.10, 2026-09-22** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -154,6 +154,16 @@ dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k step
 pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
 Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
 brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
+
+P1 ✅ (#50, claude opus, 116 turns): `rapier2d::World` + `step()` in upstream order, events as an array,
+`prelude`. One step: free fall 1.76M gas | 14.7k steps · ball resting 5.15M | 42.7k · BOX_STACK3
+17.9M | 151k (solver 81 %, narrow phase 13.5 %) · PENDULUM 5.06M | 41.6k. **Finding: the "metered"
+dispatcher** — each generator call wrapped in a one-iteration `while` inside the `match` — makes an
+outlined caller pay only the reached generator (4 ball pairs 1.49M vs 3.36M with GG's plain inlined
+match, cuboids 3.20M), at ~265 steps per pair; rule recorded in `AGENTS.md` §7. Fused user-changes
+pass 262k vs 500k; touching-only manifolds to the solver; static-proxy cache rejected (D9, +5 % on a
+stack, −28 % only with many statics). Follow-ups: GM (move the metering into `dispatch`, P1's
+escalation A), P2/P3/P4 briefs written 2026-09-22.
 
 GG ✅ (#48, claude sonnet): dispatcher = one inlined typed `match`, 87 golden cases pass in both orders;
 overhead 1.2–6.9k gas | 12–69 steps per pair. **Finding: the dispatcher must stay `#[inline(always)]`**
