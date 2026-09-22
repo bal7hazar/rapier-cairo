@@ -27,13 +27,139 @@ use crate::contact_generators::halfspace_pfm::{
 use crate::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
 use super::contact_manifold;
 
-/// The winner behind a call: the whole `match` is charged as one function, i.e. the most
-/// expensive arm on every pair.
+/// GG's original winner: one typed `#[inline(always)]` match and direct generator calls.
+///
+/// This remains the cheapest form when fully inlined into a caller. Behind an outlined caller, the
+/// loop-free match is charged as one function, i.e. the most expensive arm on every pair; see
+/// [`contact_manifold_plain_outlined`].
+#[inline(always)]
+pub fn contact_manifold_plain(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
+) -> bool {
+    match (shape1, shape2) {
+        (
+            Shape::Ball(ball1), Shape::Ball(ball2),
+        ) => {
+            contact_manifold_ball_ball(pos12, ball1, ball2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Cuboid(cuboid1), Shape::Cuboid(cuboid2),
+        ) => {
+            contact_manifold_cuboid_cuboid(pos12, cuboid1, cuboid2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Capsule(capsule1), Shape::Capsule(capsule2),
+        ) => {
+            contact_manifold_capsule_capsule(pos12, capsule1, capsule2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Ball(ball1), _,
+        ) => {
+            contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::Ball(ball2),
+        ) => {
+            contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Cuboid(cuboid1), Shape::Capsule(capsule2),
+        ) => {
+            contact_manifold_cuboid_capsule(pos12, cuboid1, capsule2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Capsule(_), Shape::Cuboid(_),
+        ) => contact_manifold_cuboid_capsule_shapes(
+            pos12, shape1, shape2, prediction, ref manifold,
+        ),
+        (
+            Shape::Cuboid(cuboid1), Shape::Segment(segment2),
+        ) => {
+            contact_manifold_cuboid_segment(pos12, cuboid1, segment2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Segment(_), Shape::Cuboid(_),
+        ) => contact_manifold_cuboid_segment_shapes(
+            pos12, shape1, shape2, prediction, ref manifold,
+        ),
+        (
+            Shape::HalfSpace(halfspace1), Shape::Cuboid(_),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12, halfspace1, shape2, prediction, ref manifold, false,
+            );
+            true
+        },
+        (
+            Shape::HalfSpace(halfspace1), Shape::Segment(_),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12, halfspace1, shape2, prediction, ref manifold, false,
+            );
+            true
+        },
+        (
+            Shape::HalfSpace(halfspace1), Shape::Capsule(_),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12, halfspace1, shape2, prediction, ref manifold, false,
+            );
+            true
+        },
+        (
+            Shape::Cuboid(_), Shape::HalfSpace(halfspace2),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
+        (
+            Shape::Segment(_), Shape::HalfSpace(halfspace2),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
+        (
+            Shape::Capsule(_), Shape::HalfSpace(halfspace2),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
+        _ => {
+            manifold.clear();
+            false
+        },
+    }
+}
+
+/// The metered winner behind a call: each generator is still charged only when its one-iteration
+/// loop body runs.
 #[inline(never)]
 pub fn contact_manifold_outlined(
     pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
 ) -> bool {
     contact_manifold(pos12, shape1, shape2, prediction, ref manifold)
+}
+
+/// GG's plain typed match behind a call: the whole `match` is charged as one function, i.e. the
+/// most expensive arm on every pair.
+#[inline(never)]
+pub fn contact_manifold_plain_outlined(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
+) -> bool {
+    contact_manifold_plain(pos12, shape1, shape2, prediction, ref manifold)
 }
 
 /// The winner with one `#[inline(never)]` helper per arm (AGENTS.md section 7): same path

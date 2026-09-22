@@ -1,64 +1,29 @@
 //! The contact dispatcher of the step: `rapier_dynamics2d::ContactDispatcher` over
-//! `rapier_geometry2d`'s contact generators (upstream: the `DefaultQueryDispatcher` a
+//! `rapier_geometry2d::dispatch::contact_manifold` (upstream: the `DefaultQueryDispatcher` a
 //! `PhysicsPipeline` hands to its narrow phase).
 //!
 //! [`DefaultDispatcher`] is an impl, not a type: `ContactDispatcher` has no `Self`, so the
 //! dispatcher is zero-size by construction and selected statically
 //! (`compute_contacts::<DefaultDispatcher>`).
 //!
-//! # Cost model and candidates
+//! # Cost model
 //!
-//! Sierra gas charges a loop-free function its most expensive path. DD's narrow phase calls the
-//! dispatcher from `update_manifold`, an outlined loop-free function, inside its pair loop: with
-//! `rapier_geometry2d::dispatch::contact_manifold` there (inlined or not), **every pair pays the
-//! cuboid–cuboid generator** — measured through `compute_contacts`, 4 ball–ball pairs cost
-//! exactly as much as 4 cuboid–cuboid pairs (3 362 856 gas, 841k per pair). A loop, on the other
-//! hand, withdraws its gas when an iteration starts: [`DefaultDispatcher`] is GG's `match`, arm
-//! for arm and in the same order, with each generator call wrapped in a one-iteration `while`
-//! loop, so the caller's static cost holds no generator and each pair pays its own.
-//!
-//! Narrow-phase stage, second step, Sierra gas | Cairo steps (`crate::pipeline::benches`):
-//!
-//! | candidate | 4 ball–ball | 4 cuboid–cuboid | ball on half-space | `BOX_STACK3` |
-//! |---|---|---|---|---|
-//! | **`DefaultDispatcher`** | **1 486 460** \| 12 066 | **3 197 940** \| 14 894 | **509 505** \| 3
-//! 783 | **2 422 715** \| 11 403 |
-//! | GG's `dispatch::contact_manifold` inlined | 3 362 856 \| 11 014 | 3 362 856 \| 13 822 | 916
-//! 344 \| 3 500 | 2 546 002 \| 10 596 |
-//! | the same `#[inline(never)]` | 3 394 056 \| 11 578 | 3 394 056 \| 14 386 | — | — |
-//!
-//! One dispatch behind a call (this module's probes, net of `gas_baseline`): ball–ball 107 560
-//! vs 553 100, half-space–cuboid 283 160 vs 553 100, cuboid–cuboid 508 060 vs 553 100.
-//!
-//! The price is ~265 Cairo steps per pair (+8 to +10 % of the narrow phase) for the loop frames;
-//! the same arms written `loop { …; break; }` measured identical to GG's match (no gain). The
-//! pipeline-level candidates (per-kind `match` in the pair loop, per-kind bucket loops, per-kind
-//! one-iteration loops around `process_pair`) are in `crate::pipeline::alternatives`, all
-//! beaten.
+//! The metered typed match lives in `rapier_geometry2d::dispatch`. The one-iteration loops around
+//! each generator make an outlined narrow-phase caller pay only the reached generator while keeping
+//! the dispatcher as the single source of truth. P1 measured the accepted real-pipeline target at
+//! 1 486 460 Sierra gas for four warm ball-ball pairs and 3 197 940 for four warm cuboid-cuboid
+//! pairs, with about 265 Cairo steps per pair for the loop frames.
 
 use fixed::Fixed;
 use rapier_dynamics2d::narrow_phase::ContactDispatcher;
-use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
-use rapier_geometry2d::contact_generators::ball_ball::contact_manifold_ball_ball;
-use rapier_geometry2d::contact_generators::capsule_capsule::contact_manifold_capsule_capsule;
-use rapier_geometry2d::contact_generators::convex_ball::{
-    contact_manifold_ball_convex, contact_manifold_convex_ball,
-};
-use rapier_geometry2d::contact_generators::cuboid_capsule::{
-    contact_manifold_cuboid_capsule, contact_manifold_cuboid_capsule_shapes,
-};
-use rapier_geometry2d::contact_generators::cuboid_cuboid::contact_manifold_cuboid_cuboid;
-use rapier_geometry2d::contact_generators::cuboid_segment::{
-    contact_manifold_cuboid_segment, contact_manifold_cuboid_segment_shapes,
-};
-use rapier_geometry2d::contact_generators::halfspace_pfm::contact_manifold_halfspace_pfm;
+use rapier_geometry2d::contact::ContactManifold;
+use rapier_geometry2d::dispatch::contact_manifold as dispatch_contact_manifold;
 use rapier_geometry2d::shape::Shape;
-use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::pose2::Pose2;
 
-/// The default dispatcher: every convex pair of the closed `Shape` enum, with exactly the
-/// generators, arm order and results of `rapier_geometry2d::dispatch::contact_manifold`
-/// (unsupported pairs clear the manifold and return `false`); see the module documentation for
-/// why the match is repeated here.
+/// The default dispatcher: every convex pair of the closed `Shape` enum, delegated to
+/// `rapier_geometry2d::dispatch::contact_manifold` (unsupported pairs clear the manifold and return
+/// `false`).
 ///
 /// # Panics
 /// As `rapier_geometry2d::dispatch::contact_manifold`.
@@ -71,146 +36,7 @@ pub impl DefaultDispatcher of ContactDispatcher {
         prediction: Fixed,
         ref manifold: ContactManifold,
     ) -> bool {
-        match (shape1, shape2) {
-            (
-                Shape::Ball(ball1), Shape::Ball(ball2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_ball_ball(pos12, ball1, ball2, prediction, ref manifold);
-                    pending = false;
-                }
-                true
-            },
-            (
-                Shape::Cuboid(cuboid1), Shape::Cuboid(cuboid2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_cuboid_cuboid(
-                        pos12, cuboid1, cuboid2, prediction, ref manifold,
-                    );
-                    pending = false;
-                }
-                true
-            },
-            (
-                Shape::Capsule(capsule1), Shape::Capsule(capsule2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_capsule_capsule(
-                        pos12, capsule1, capsule2, prediction, ref manifold,
-                    );
-                    pending = false;
-                }
-                true
-            },
-            (
-                Shape::Ball(ball1), _,
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
-                    pending = false;
-                }
-                true
-            },
-            (
-                _, Shape::Ball(ball2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
-                    pending = false;
-                }
-                true
-            },
-            (
-                Shape::Cuboid(cuboid1), Shape::Capsule(capsule2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_cuboid_capsule(
-                        pos12, cuboid1, capsule2, prediction, ref manifold,
-                    );
-                    pending = false;
-                }
-                true
-            },
-            (
-                Shape::Capsule(_), Shape::Cuboid(_),
-            ) => {
-                let mut supported = false;
-                let mut pending = true;
-                while pending {
-                    supported =
-                        contact_manifold_cuboid_capsule_shapes(
-                            pos12, shape1, shape2, prediction, ref manifold,
-                        );
-                    pending = false;
-                }
-                supported
-            },
-            (
-                Shape::Cuboid(cuboid1), Shape::Segment(segment2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_cuboid_segment(
-                        pos12, cuboid1, segment2, prediction, ref manifold,
-                    );
-                    pending = false;
-                }
-                true
-            },
-            (
-                Shape::Segment(_), Shape::Cuboid(_),
-            ) => {
-                let mut supported = false;
-                let mut pending = true;
-                while pending {
-                    supported =
-                        contact_manifold_cuboid_segment_shapes(
-                            pos12, shape1, shape2, prediction, ref manifold,
-                        );
-                    pending = false;
-                }
-                supported
-            },
-            (Shape::HalfSpace(halfspace1), Shape::Cuboid(_)) |
-            (Shape::HalfSpace(halfspace1), Shape::Segment(_)) |
-            (
-                Shape::HalfSpace(halfspace1), Shape::Capsule(_),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_halfspace_pfm(
-                        pos12, halfspace1, shape2, prediction, ref manifold, false,
-                    );
-                    pending = false;
-                }
-                true
-            },
-            (Shape::Cuboid(_), Shape::HalfSpace(halfspace2)) |
-            (Shape::Segment(_), Shape::HalfSpace(halfspace2)) |
-            (
-                Shape::Capsule(_), Shape::HalfSpace(halfspace2),
-            ) => {
-                let mut pending = true;
-                while pending {
-                    contact_manifold_halfspace_pfm(
-                        pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
-                    );
-                    pending = false;
-                }
-                true
-            },
-            _ => {
-                manifold.clear();
-                false
-            },
-        }
+        dispatch_contact_manifold(pos12, shape1, shape2, prediction, ref manifold)
     }
 }
 
@@ -348,7 +174,7 @@ mod tests {
         DefaultDispatcher::contact_manifold(pos12, s1, s2, opaque(Fixed { raw: PREDICTION }), ref m)
     }
 
-    /// The same with the rejected `InlineDispatcher`.
+    /// The same through the pipeline candidate that now reaches the shared metered dispatcher.
     #[inline(never)]
     fn probe_inline(case: ManifoldCase) -> bool {
         let mut m: ContactManifold = Default::default();
