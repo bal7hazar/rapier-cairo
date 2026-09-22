@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.10, 2026-09-22** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.11, 2026-09-23** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -154,6 +154,21 @@ dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k step
 pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
 Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
 brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
+
+Wave 5 (2026-09-22/23): GM ✅ (#54, one metered dispatcher in `rapier_geometry2d::dispatch`, P1's numbers
+hold: 4 ball pairs 1.49M, 4 cuboid pairs 3.20M). P3 ✅ (#52, `docs/BUDGETS.md`: one settled step = free
+fall 0.81M gas | 7.3k steps per body, ball on ground 4.6M | 38k per body, cuboid stack 3.1M | 26k per
+manifold point, joint 4.3M | 35k; `#[available_gas]` ceilings at +10 %; targets: solver sweeps 81 %,
+narrow phase 13.5 %, proxies 1.9 %). P2 ✅ (#53, six traces through `World::step` over 120 steps:
+ball_drop, ball_bounce, pendulum, box_stack3 pass — stack judged on rest invariants, two 60-step
+windows because of the VM step budget; **box_slope_stick / box_slope_slide diverge at step 3, the
+first contact step** (stick: constant offset along the slope; slide: +3.4e4 ulp per step while
+step-end velocities agree) → `#[ignore]`d, lot SD (brief `sd-slope-divergence.md`) instruments the
+Rust harness and locates the cause). P4 (execute-only, see below) in progress. **Prover finding:**
+`scarb prove` (Stwo) is OOM-killed above a 22 GB cap even for one step (4 781 Cairo steps,
+`prover_input.json` 105 MB): the proven-step milestone needs a ≥ 64 GB machine; CI runs
+`scarb execute` only. Compile budget: CI `test` job reached 5 min with P2/P3 — no new integration
+test file without removing one.
 
 P1 ✅ (#50, claude opus, 116 turns): `rapier2d::World` + `step()` in upstream order, events as an array,
 `prelude`. One step: free fall 1.76M gas | 14.7k steps · ball resting 5.15M | 42.7k · BOX_STACK3
