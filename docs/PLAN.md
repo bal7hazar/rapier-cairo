@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.11, 2026-09-23** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.12, 2026-09-23** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -154,6 +154,20 @@ dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k step
 pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
 Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
 brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
+
+P4 ✅ (#57, execute-only): `examples/ball_drop` (`#[executable]`, scenes ball_drop / box_stack3 / pendulum,
+standalone package outside the workspace because of `enable-gas = false`), `scripts/prove-example.sh`
+(execute always; prove + verify behind `PROVE=1` and the build lock), nightly job `.github/workflows/execute.yml`.
+`scarb execute`: 10 steps of ball drop = 143 976 Cairo steps (14.4k per step, matches P1's 14.7k), 60 steps
+= 1.58M (contact from step ~50). **Milestone "a proven step" is blocked on hardware** (Stwo > 22 GB).
+SD ✅ (#56, codex gpt-6-astra xhigh): slope divergence explained — (1) the port takes each contact's lever
+arms from its own surface point while upstream freezes a **common midpoint** for both bodies
+(`pair_update.rs` "Localize solver contacts"): tangent inverse effective mass 1717986916 vs 1708349407
+raw; the midpoint alone brings step-3 velocity errors from ~2.5e6 to < 700 ulp → lot DM (brief
+`dm-midpoint-anchors.md`); (2) from step 4 the **upstream f64 trace is itself wrong** (duplicate cuboid
+feature ids warm-start both regenerated points): the slope references must be regenerated with correct
+ids (f32 engine or patched ids) → lot GS after DM. Also: one flaky `mass.cairo:520` fuzz
+counterexample (30447 vs 30441 raw) to investigate.
 
 Wave 5 (2026-09-22/23): GM ✅ (#54, one metered dispatcher in `rapier_geometry2d::dispatch`, P1's numbers
 hold: 4 ball pairs 1.49M, 4 cuboid pairs 3.20M). P3 ✅ (#52, `docs/BUDGETS.md`: one settled step = free
