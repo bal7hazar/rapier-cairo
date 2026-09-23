@@ -14,20 +14,6 @@ use rapier_math::pose2::Pose2Trait;
 use super::builder::{body_handle, build_world, f};
 use super::{Stats, compare};
 
-/// Counterfactual: freeze both world lever arms at the contact midpoint, as upstream
-/// `pair_update.rs` does for `ContactData::solver_dp1/2`. Shapes have no skins or hooks.
-fn midpoint(mut m: ContactManifold, com1: Vec2, com2: Vec2) -> ContactManifold {
-    let [mut a, mut b] = m.data.solver_contacts;
-    let point = (com1 + a.anchor1 + com2 + a.anchor2).mul_scalar(f(2147483648));
-    a.anchor1 = point - com1;
-    a.anchor2 = point - com2;
-    let point = (com1 + b.anchor1 + com2 + b.anchor2).mul_scalar(f(2147483648));
-    b.anchor1 = point - com1;
-    b.anchor2 = point - com2;
-    m.data.solver_contacts = [a, b];
-    m
-}
-
 fn geometry(m: ContactManifold) {
     println!("normal {:?} {:?}; world {:?}", m.local_n1, m.local_n2, m.data.normal);
     println!(
@@ -128,7 +114,7 @@ fn trace(ref world: World, m: ContactManifold) -> SolverBody {
     *bodies.at(1)
 }
 
-// Modes: 0 current engine; 1 midpoint arms; 2 midpoint plus f64 last-match aliasing.
+// Modes: 0 current engine (midpoint arms since DM); 1 same; 2 plus f64 last-match aliasing.
 fn diagnostic_step(ref world: World, mode: u8, verbose: bool) {
     pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
     let old = if world.narrow_phase.pairs.is_empty() {
@@ -155,12 +141,10 @@ fn diagnostic_step(ref world: World, mode: u8, verbose: bool) {
     let _ = pipeline::detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );
+    // DM moved the shared-midpoint lever arms into the engine: mode 1 is now mode 0.
     if mode != 0 {
-        let com1 = world.body(body_handle(0)).unwrap().mprops.world_com;
-        let com2 = world.body(body_handle(1)).unwrap().mprops.world_com;
         let mut pairs = array![];
         while let Some(mut pair) = world.narrow_phase.pairs.pop_front() {
-            pair.manifold = midpoint(pair.manifold, com1, com2);
             if let Some(data) = old_last {
                 println!(
                     "f64 alias warm {} {}",
@@ -225,7 +209,7 @@ fn test_slope_first_contact_and_f64_matching() {
             while step != 11 {
                 diagnostic_step(ref world, mode, step == 3);
                 stats = compare(ref world, scene, *scene.samples.span().at(step), stats);
-                if step == 3 && mode != 0 {
+                if step == 3 {
                     assert_eq!(stats.violations, 0, "midpoint recovers first contact");
                     let m = *world.narrow_phase.pairs.at(0).manifold;
                     assert_first_geometry(m);
@@ -233,9 +217,7 @@ fn test_slope_first_contact_and_f64_matching() {
                 step += 1;
             }
             println!("violations {}", stats.violations);
-            assert_eq!(stats.violations, if mode == 0 {
-                8
-            } else if mode == 1 {
+            assert_eq!(stats.violations, if mode != 2 {
                 7
             } else {
                 0

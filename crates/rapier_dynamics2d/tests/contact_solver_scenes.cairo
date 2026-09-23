@@ -10,7 +10,7 @@ use rapier_dynamics2d::solver::contact::ContactConstraintsSetTrait;
 use rapier_geometry2d::contact::{
     ContactManifold, ContactManifoldTrait, NEW_CONTACT_BIT, SolverContact, SolverFlags,
 };
-use rapier_golden::compare::within;
+use rapier_golden::compare::{abs_diff, within};
 use rapier_golden::scenes;
 use rapier_golden::types::SceneCase;
 use rapier_math::pose2::Pose2;
@@ -250,14 +250,10 @@ fn box_manifold(
             } else {
                 id
             };
-            // World midpoint of the two witnesses, relative to each body's centre of mass.
-            let midpoint = scale(world + surface, HALF);
+            // Per-surface witnesses, as the narrow phase emits them; the solver builds the
+            // common midpoint lever arms itself.
             let sc = SolverContact {
-                anchor1: midpoint,
-                anchor2: midpoint - b.position.translation,
-                dist,
-                contact_id,
-                ..Default::default(),
+                anchor1: surface, anchor2: anchor, dist, contact_id, ..Default::default(),
             };
             let [a, b] = contacts;
             contacts = if m.data.num_solver_contacts == 0 {
@@ -398,6 +394,55 @@ fn test_box_slope_golden_samples() {
             }
         }
         assert_eq!(sample, 22);
+    }
+}
+
+// SD's first-impulse step (tools/golden/README.md): upstream's common-midpoint lever arms
+// recover the step-3 velocities; separate witness arms missed by 0.5M to 4.5M ulp.
+#[test]
+fn test_box_slope_first_contact_velocities() {
+    let mut cases = array![(scenes::BOX_SLOPE_STICK, 1000_u64), (scenes::BOX_SLOPE_SLIDE, 2000)]
+        .span();
+    while let Some((scene, bound)) = cases.pop_front() {
+        let s = *scene;
+        let description = *s.bodies.span().at(1);
+        let rotation = Rot2 {
+            re: FixedTrait::from_raw(description.pose.rotation.re),
+            im: FixedTrait::from_raw(description.pose.rotation.im),
+        };
+        let normal = rotation.rotate(v(ZERO, ONE));
+        let mut b = box_body(rotation, normal, ONE);
+        b
+            .position
+            .translation =
+                v(
+                    FixedTrait::from_raw(description.pose.translation.x),
+                    FixedTrait::from_raw(description.pose.translation.y),
+                );
+        let friction = FixedTrait::from_raw(*description.colliders.span().at(0).friction);
+        let mut bs = array![b];
+        let mut m = Default::default();
+        let mut frame = 0;
+        while frame != 3 {
+            m = box_manifold(m, *bs.at(0), normal, HALF, friction, true);
+            let mut ms = array![m];
+            step(ref bs, ref ms, FixedTrait::from_raw(s.gravity.y));
+            m = *ms.at(0);
+            frame += 1;
+        }
+        let sample = *s.samples.span().at(3);
+        assert_eq!(sample.step, 3);
+        let expected = *sample.states.span().at(0);
+        let got = *bs.at(0);
+        let errors = array![
+            abs_diff(got.linvel.x.raw, expected.linvel.x),
+            abs_diff(got.linvel.y.raw, expected.linvel.y),
+            abs_diff(got.angvel.raw, expected.angvel),
+        ];
+        println!("{} step 3 velocity ulps {:?}", s.id, errors);
+        for e in errors.span() {
+            assert!(*e <= *bound, "{} step 3 velocity error {} > {}", s.id, *e, *bound);
+        }
     }
 }
 

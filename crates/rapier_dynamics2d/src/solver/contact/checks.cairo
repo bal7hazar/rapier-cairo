@@ -5,9 +5,96 @@ mod tests {
     use glam::Vec2;
     use rapier_core::data::handle::Handle;
     use rapier_core::integration_parameters::IntegrationParametersTrait;
-    use rapier_geometry2d::contact::{ContactManifoldTrait, NEW_CONTACT_BIT};
+    use rapier_geometry2d::contact::{ContactManifoldTrait, NEW_CONTACT_BIT, SolverContact};
+    use rapier_math::math_ext::gcross_vv;
+    use rapier_math::pose2::{Pose2, Pose2Trait};
+    use rapier_math::rot2::Rot2;
     use super::super::fixtures::{fixture, prepared};
-    use super::super::{ContactConstraintNormalPartTrait, ContactConstraintTrait, alternatives};
+    use super::super::{
+        ContactConstraintNormalPartTrait, ContactConstraintTrait, alternatives, midpoint,
+    };
+
+    fn raw(x: i64, y: i64) -> Vec2 {
+        Vec2 { x: FixedTrait::from_raw(x), y: FixedTrait::from_raw(y) }
+    }
+
+    // Upstream `pair_update.rs`: shift = (wp2 - wp1).n - dist, p1 = wp1 + n shift, point =
+    // (p1 + wp2) / 2. Normal (0, 1), so dir1 = (0, -1). Rows: wp1, wp2 (world), dist, point.
+    #[test]
+    fn test_midpoint_matches_upstream_localization() {
+        let h = 2147483648_i64;
+        let one = 2 * h;
+        let mut cases = array![
+            ((0, 0), (0, one), one, (0, h)), // consistent pair: plain midpoint
+            ((0, 0), (858993459, one), one, (429496729, h)), // tangential offset halves (floor)
+            ((0, 0), (0, one), h, (0, 3 * h / 2)), // dist wins: witness 1 slides to 0.5
+            ((one, -h), (one, h), -one, (one, one)) // penetration: shift = 2
+        ]
+            .span();
+        let dir = raw(0, -one);
+        let com2 = raw(h, -one);
+        while let Some(((x1, y1), (x2, y2), dist, (px, py))) = cases.pop_front() {
+            let wp2 = raw(*x2, *y2);
+            let sc = SolverContact {
+                anchor1: raw(*x1, *y1),
+                anchor2: wp2 - com2,
+                dist: FixedTrait::from_raw(*dist),
+                ..Default::default(),
+            };
+            let expected = raw(*px, *py);
+            assert_eq!(midpoint(sc, dir, Default::default(), com2), expected);
+            assert_eq!(
+                alternatives::midpoint_two_stage(sc, dir, Default::default(), com2), expected,
+            );
+        }
+    }
+
+    // Both local anchors freeze the common midpoint; the base separation is the contact's.
+    #[test]
+    fn test_generated_anchors_share_the_midpoint() {
+        let (mut m, mut bs, p) = fixture(1);
+        let mut b = bs.pop_front().unwrap();
+        b
+            .position =
+                Pose2 {
+                    translation: raw(858993459, 4294967296),
+                    rotation: Rot2 {
+                        re: FixedTrait::from_raw(3719550787), im: FixedTrait::from_raw(2147483648),
+                    },
+                };
+        bs.append(b);
+        let [mut sc, sc1] = m.data.solver_contacts;
+        sc.anchor1 = raw(0, 21474836);
+        sc.anchor2 = raw(-2147483648, -4294967296);
+        sc.dist = FixedTrait::from_raw(-21474836);
+        m.data.solver_contacts = [sc, sc1];
+        let c = ContactConstraintTrait::generate(m, bs.span(), p, p.substep_dt());
+        let [e, _] = c.elements;
+        let point = midpoint(sc, c.dir1, Default::default(), b.position.translation);
+        assert_eq!(e.local_p1, point);
+        let back = b.position.transform_point(e.local_p2) - point;
+        assert!(back.x.abs() <= FixedTrait::from_raw(4) && back.y.abs() <= FixedTrait::from_raw(4));
+        assert_eq!(e.dist, sc.dist);
+        let arm = point - b.position.translation;
+        assert_eq!(e.normal_part.gcross2, gcross_vv(arm.x, arm.y, -c.dir1.x, -c.dir1.y));
+    }
+
+    #[test]
+    #[fuzzer(runs: 32, seed: 20260922)]
+    fn fuzz_midpoint_candidates_match(ax: i16, ay: i16, bx: i16, by: i16, dist: i16) {
+        let sc = SolverContact {
+            anchor1: raw(ax.into() * 65537, ay.into() * 65539),
+            anchor2: raw(bx.into() * 65541, by.into() * 65543),
+            dist: FixedTrait::from_raw(dist.into() * 4099),
+            ..Default::default(),
+        };
+        let dir = raw(-2147483648, -3719550787);
+        let com1 = raw(ay.into() * 131071, 7);
+        let com2 = raw(-3, bx.into() * 131073);
+        assert_eq!(
+            midpoint(sc, dir, com1, com2), alternatives::midpoint_two_stage(sc, dir, com1, com2),
+        );
+    }
 
     #[test]
     fn gas_baseline() {
@@ -286,6 +373,8 @@ mod tests {
         b.ii = MAX;
         let mut m = m;
         let [mut sc, sc1] = m.data.solver_contacts;
+        // Both witnesses at x = 2, so the common-midpoint lever arm is 2 as well.
+        sc.anchor1.x = TWO;
         sc.anchor2.x = TWO;
         m.data.solver_contacts = [sc, sc1];
         bs.append(b);

@@ -131,14 +131,14 @@ fn ball_manifold(previous: ContactManifold, b: SolverBody, restitution: Fixed) -
     m.data.rigid_body2 = Some(b.handle);
     m.data.normal = v(ZERO, ONE);
     m.data.restitution = restitution;
-    let midpoint = v(b.position.translation.x, dist * HALF);
+    // Per-surface witnesses; the solver builds the common midpoint lever arms itself.
     m
         .data
         .solver_contacts =
             [
                 SolverContact {
-                    anchor1: midpoint,
-                    anchor2: midpoint - b.position.translation,
+                    anchor1: v(b.position.translation.x, ZERO),
+                    anchor2: v(ZERO, -HALF),
                     dist,
                     contact_id: if previous.num_points == 0 {
                         NEW_CONTACT_BIT
@@ -231,14 +231,9 @@ fn box_manifold(
             } else {
                 id
             };
-            // World midpoint of the two witnesses, relative to each body's centre of mass.
-            let midpoint = scale(world + surface, HALF);
+            // Per-surface witnesses; the solver builds the common midpoint lever arms itself.
             let sc = SolverContact {
-                anchor1: midpoint,
-                anchor2: midpoint - b.position.translation,
-                dist,
-                contact_id,
-                ..Default::default(),
+                anchor1: surface, anchor2: anchor, dist, contact_id, ..Default::default(),
             };
             let [a, b] = contacts;
             contacts = if m.data.num_solver_contacts == 0 {
@@ -407,13 +402,14 @@ fn stack_manifold(
         }, -HALF);
         let world = b.position.translation + b.position.rotation.rotate(corner);
         let dist = dot(world - surface, normal);
-        let midpoint = world - scale(normal, dist * HALF);
+        // Per-surface witnesses; the solver builds the common midpoint lever arms itself.
+        let witness1 = world - scale(normal, dist);
         let id: u32 = i.into();
         contacts
             .append(
                 SolverContact {
-                    anchor1: midpoint - lower_pos,
-                    anchor2: midpoint - b.position.translation,
+                    anchor1: witness1 - lower_pos,
+                    anchor2: world - b.position.translation,
                     dist,
                     contact_id: if previous.num_points == 0 {
                         id + NEW_CONTACT_BIT
