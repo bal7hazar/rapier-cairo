@@ -7,8 +7,9 @@ cairo-version = "2.19.4"
 license = "MIT"
 
 [dependencies]
-fixed = { git = "https://github.com/bal7hazar/glam.cairo", rev = "ce18a0b501970b67cf711214a79bb309136c3c65" }
-glam = { git = "https://github.com/bal7hazar/glam.cairo", rev = "ce18a0b501970b67cf711214a79bb309136c3c65" }
+# Same versions as the root workspace (two sources of `fixed` would mean two `Fixed` types).
+fixed = "0.3.0"
+glam = "0.3.0"
 rapier2d = { path = "../../crates/rapier2d" }
 # Not in `rapier2d::prelude` yet: `Pose2`, `Rot2`, `COLLISION_EVENTS`.
 rapier_core = { path = "../../crates/rapier_core" }
