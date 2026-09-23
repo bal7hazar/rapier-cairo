@@ -16,7 +16,8 @@ pub use element::{
     ContactConstraintTangentPart, ContactConstraintTangentPartTrait,
 };
 use element::{apply, bounce, coefficients, dot, jv, max, min, solve_normal, solve_tangent, tangent};
-use fixed::{Fixed, ONE, ZERO};
+use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, wide_from, wide_mul};
+use fixed::{Fixed, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::spring::SpringCoefficientsTrait;
@@ -26,6 +27,7 @@ use rapier_geometry2d::contact::{
 };
 use rapier_math::math_ext::inv;
 use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::rot2::Rot2Trait;
 pub use set::{ContactConstraintsSet, ContactConstraintsSetTrait};
 use super::body::{SolverBody, SolverVel, WORLD, read, scatter, velocity};
 
@@ -65,7 +67,9 @@ pub impl ContactConstraintImpl of ContactConstraintTrait {
     /// are no-ops. Resolves full generational handles in `bodies`; absent handles are world.
     /// `dt` is the substep duration, >= 0 (zero has reciprocal zero). Checks counts, point ids,
     /// distinct bodies and nonnegative materials/masses; panics with the `errors` constants.
-    /// Effective masses use frozen world lever arms; warm starts are zeroed for NEW contacts.
+    /// Both rows' lever arms and both local anchors use upstream's common midpoint of the two
+    /// witnesses (`midpoint`), frozen until the next generate. Warm starts are zeroed for NEW
+    /// contacts.
     fn generate(
         manifold: ContactManifold,
         bodies: Span<SolverBody>,
@@ -124,9 +128,21 @@ pub impl ContactConstraintImpl of ContactConstraintTrait {
             ..Default::default(),
         };
         let [sc0, sc1] = manifold.data.solver_contacts;
-        let e0 = generate_element(sc0, manifold, result.dir1, original1, original2, b1, b2);
+        let e0 = generate_element(
+            sc0, manifold, result.dir1, original1, original2, b1, b2, id1 == WORLD, id2 == WORLD,
+        );
         let e1 = if result.num_elements == 2 {
-            let e = generate_element(sc1, manifold, result.dir1, original1, original2, b1, b2);
+            let e = generate_element(
+                sc1,
+                manifold,
+                result.dir1,
+                original1,
+                original2,
+                b1,
+                b2,
+                id1 == WORLD,
+                id2 == WORLD,
+            );
             assert(e.contact_id != e0.contact_id, errors::CONTACT_ID);
             e
         } else {
@@ -329,6 +345,8 @@ fn generate_element(
     original2: SolverBody,
     b1: SolverBody,
     b2: SolverBody,
+    world1: bool,
+    world2: bool,
 ) -> ContactConstraintElement {
     let is_new = sc.contact_id >= NEW_CONTACT_BIT;
     let cid = if is_new {
@@ -349,7 +367,10 @@ fn generate_element(
         data.warmstart_tangent_impulse
     };
     assert(ni >= ZERO, errors::NEGATIVE);
-    let (g1, g2, ig1, ig2, r) = coefficients(dir, sc.anchor1, sc.anchor2, b1, b2);
+    let point = midpoint(sc, dir, original1.position.translation, original2.position.translation);
+    let dp1 = point - original1.position.translation;
+    let dp2 = point - original2.position.translation;
+    let (g1, g2, ig1, ig2, r) = coefficients(dir, dp1, dp2, b1, b2);
     let n = ContactConstraintNormalPart {
         gcross1: g1,
         gcross2: g2,
@@ -365,7 +386,7 @@ fn generate_element(
     } else {
         ZERO
     };
-    let (g1, g2, ig1, ig2, r) = coefficients(tangent(dir), sc.anchor1, sc.anchor2, b1, b2);
+    let (g1, g2, ig1, ig2, r) = coefficients(tangent(dir), dp1, dp2, b1, b2);
     let t = ContactConstraintTangentPart {
         gcross1: g1,
         gcross2: g2,
@@ -376,17 +397,44 @@ fn generate_element(
         impulse_accumulator: -ti,
         ..Default::default(),
     };
-    let wp1 = original1.position.translation + sc.anchor1;
-    let wp2 = original2.position.translation + sc.anchor2;
+    // Both local anchors freeze the same world point, so the base separation is `sc.dist`.
     ContactConstraintElement {
         normal_part: n,
         tangent_part: t,
-        local_p1: b1.position.inverse_transform_point(wp1),
-        local_p2: b2.position.inverse_transform_point(wp2),
-        dist: sc.dist - dot(wp1 - wp2, dir),
+        local_p1: local_anchor(b1, world1, point, dp1),
+        local_p2: local_anchor(b2, world2, point, dp2),
+        dist: sc.dist,
         restitution_seed: seed,
         contact_id: cid.try_into().unwrap(),
         tangent_velocity: sc.tangent_velocity,
+    }
+}
+
+/// Upstream's frozen solver point (`pair_update.rs`, "Localize solver contacts"): the first
+/// witness slides along the normal until the pair is exactly `sc.dist` apart, then both witnesses
+/// meet halfway. `com*` are the original centres of mass the anchors are relative to. One floor
+/// per component: `floor((wp1 + wp2 - dir * shift) * HALF)`, `shift` itself floored once.
+pub(crate) fn midpoint(sc: SolverContact, dir: Vec2, com1: Vec2, com2: Vec2) -> Vec2 {
+    let wp1 = com1 + sc.anchor1;
+    let wp2 = com2 + sc.anchor2;
+    let d = wp1 - wp2;
+    let shift = dot2(d.x, dir.x, d.y, dir.y) - sc.dist;
+    let s = wp1 + wp2;
+    Vec2 {
+        x: wide_from(s.x).sub(wide_mul(dir.x, shift)).mul(HALF).narrow(),
+        y: wide_from(s.y).sub(wide_mul(dir.y, shift)).mul(HALF).narrow(),
+    }
+}
+
+/// The frozen point in the solver body's frame: world coordinates for the world (identity
+/// pose), else `R^T * dp`, equal to `inverse_transform_point(point)` because a non-world solver
+/// body is the original one (translation = centre of mass) and saves the subtraction.
+#[inline(always)]
+fn local_anchor(b: SolverBody, world: bool, point: Vec2, dp: Vec2) -> Vec2 {
+    if world {
+        point
+    } else {
+        b.position.rotation.inverse_rotate(dp)
     }
 }
 

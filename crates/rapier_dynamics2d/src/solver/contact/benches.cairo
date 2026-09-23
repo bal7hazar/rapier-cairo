@@ -2,12 +2,18 @@
 //! preparation and output consumption; subtract it to isolate each one- or two-point sweep.
 #[cfg(test)]
 mod tests {
-    use fixed::{ONE, ZERO};
+    use fixed::{FixedTrait, HALF, ONE, ZERO};
+    use glam::Vec2;
     use rapier_core::integration_parameters::IntegrationParametersTrait;
+    use rapier_geometry2d::contact::SolverContact;
+    use rapier_math::pose2::Pose2;
+    use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;
     use super::super::fixtures::fixture;
     use super::super::super::body::SolverBody;
-    use super::super::{ContactConstraint, ContactConstraintTrait, alternatives};
+    use super::super::{
+        ContactConstraint, ContactConstraintTrait, alternatives, local_anchor, midpoint,
+    };
 
     fn input(count: u8) -> (ContactConstraint, Array<SolverBody>) {
         let (mut m, mut bs, p) = fixture(2);
@@ -90,6 +96,49 @@ mod tests {
     #[test]
     fn gas_solve_substep_direct_two() {
         substep(2, true);
+    }
+
+    fn midpoint_input() -> (SolverContact, Vec2, Vec2, Vec2, SolverBody) {
+        let (m, _, _) = fixture(2);
+        let [sc, _] = m.data.solver_contacts;
+        let dir = Vec2 {
+            x: FixedTrait::from_raw(-2147483648), y: FixedTrait::from_raw(-3719550787),
+        };
+        let pose = Pose2 {
+            translation: Vec2 { x: HALF, y: ONE },
+            rotation: Rot2 {
+                re: FixedTrait::from_raw(3719550787), im: FixedTrait::from_raw(2147483648),
+            },
+        };
+        opaque(
+            (
+                sc,
+                dir,
+                Vec2 { x: ONE, y: -HALF },
+                pose.translation,
+                SolverBody { position: pose, ..Default::default() },
+            ),
+        )
+    }
+    #[test]
+    fn gas_midpoint_fused() {
+        let (sc, dir, c1, c2, _) = midpoint_input();
+        let _ = opaque(midpoint(sc, dir, c1, c2));
+    }
+    #[test]
+    fn gas_midpoint_two_stage() {
+        let (sc, dir, c1, c2, _) = midpoint_input();
+        let _ = opaque(alternatives::midpoint_two_stage(sc, dir, c1, c2));
+    }
+    #[test]
+    fn gas_local_world_frame() {
+        let (_, dir, _, _, body) = midpoint_input();
+        let _ = opaque(alternatives::local_world_frame(body.position, dir));
+    }
+    #[test]
+    fn gas_local_body_frame() {
+        let (_, dir, _, _, body) = midpoint_input();
+        let _ = opaque(local_anchor(body, opaque(false), dir, dir));
     }
 
     #[test]
