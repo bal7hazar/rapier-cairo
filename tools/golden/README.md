@@ -46,12 +46,12 @@ tests.
 | crate | version | why |
 |---|---|---|
 | `rapier2d-f64` | `=0.35.3` | latest release on crates.io (2026-09). Built with `default-features = false` and `dim2, f64, std, enhanced-determinism`, i.e. **without `block-solver`** |
-| `parry2d-f64` | `=0.30.2` | the version `rapier2d-f64 0.35.3` depends on (`^0.30.2`). `parry2d-f64 0.31.1` exists on crates.io but no published Rapier uses it; pinning 0.31 would silently put two Parry copies in the build |
+| `parry2d-f64` | `=0.30.2` | the version `rapier2d-f64 0.35.3` depends on (`^0.30.2`). `parry2d-f64 0.31.1` exists on crates.io but no published Rapier uses it; pinning 0.31 would silently put two Parry copies in the build. Built from `vendor/parry2d-f64` through `[patch.crates-io]`, with the one-line feature-id fix of [`vendor/README.md`](vendor/README.md); Rapier links the same patched copy |
 | `parry2d` (f32) | `=0.30.2` | feature ids only, see [Feature ids](#feature-ids-f64-upstream-bug) |
 
 Note that the local upstream clones used by the research reports are Rapier `master` (0.35.x +
-soft bodies) and Parry 0.31.x: the vectors come from the **published** pair above, not from the
-clones.
+soft bodies) and Parry 0.31.x: the vectors come from the **published** pair above (Parry with the
+one-line feature-id patch of `vendor/`), not from the clones.
 
 ## Quantisation rule
 
@@ -149,12 +149,27 @@ port's `SolverContact::anchor*` with **`solver_dp*`**, not with upstream's local
 Substep velocities are private upstream and are deliberately not presented as observations.
 Existing scene samples and tolerances are unchanged.
 
-Reproduce the diagnosis with `snforge test -p rapier2d slope_diagnostics`.
-The test runs three modes entirely inside the integration test: the current engine;
-a shared-midpoint counterfactual; midpoint plus emulation of upstream's duplicate-ID
-matching. It asserts geometry, step-3 recovery, and recovery through step 10 when both
-differences are included. A public-API substep tracer is checked bit-for-bit against
-`pipeline::solve` for pose and velocities. There are no production engine edits.
+The measurements of this section were taken against the **pre-GS references** (published
+`parry2d-f64`, duplicate feature ids); see "GS update" below for the current state.
+
+**GS update (corrected feature ids, after DM).** DM moved the common midpoint into the engine and
+GS regenerated the traces with correct ids; the duplicate-id emulation is gone from the tests.
+`box_slope_stick` now passes every sample (max 240 / 132 ulp on translation, 10 on rotation,
+2010 / 1944 / 6011 on velocities). `box_slope_slide` passes steps 1–3 and 9–120 but samples 4–8
+exceed the tolerance (step 4: 12 539 / 26 184 translation, 39 582 / 68 561 rotation,
+147 107 / 514 350 / 452 012 velocity ulps), then reconverge (step 120: 2508 / 1447). Cause: in
+step 4, substep 0 solves the speculative second point (gap 52 raw) so that it closes exactly;
+at substep 1 its refreshed gap is exactly `0` raw. Both engines solve a row softly
+(`cfm_factor`) when `dist <= 0` and rigidly otherwise; upstream's f64 gap at that point is a
+rounding residue whose sign decided "rigid" there. Solving that single row rigidly in a
+public-API trace (`test_slide_zero_gap_counterfactual`, one row in 120 steps) passes every
+sample: step 4 falls to 4 / 0 / 1 / 0 / 25 / 17 / 62 ulps, step 120 to 2427 / 1401 translation
+ulps. This is a tie on a discontinuity, not a porting defect; the replay stays ignored with its
+tolerance unchanged.
+
+Reproduce with `snforge test -p rapier2d slope_diagnostics`: the engine mode traces the pair with
+the public constraint API and asserts the pipeline solve reproduces it bit for bit; the zero-gap
+counterfactual writes the traced state back. There are no production engine edits.
 
 **First response, step 3.** Steps 1–2 already have two speculative manifold points;
 step 3 is the first step with nonzero impulse. Both materials have the same initial
@@ -552,11 +567,16 @@ Found while building the vectors; all visible in the JSON.
 
 `Cuboid::vertex_feature_id` extracts "sign bits" with `to_bits() >> 31` / `>> 30`. That is the sign
 bit of an `f32`, but a **mantissa** bit of an `f64` (upstream left a `TODO: is this still correct
-with the f64 version?`). In `parry2d-f64` every cuboid vertex id therefore collapses to `0` and
-every face id to `0b110000`, which defeats contact matching (warm starting) for cuboids in f64
-builds. The vectors expose the ids of an **f32 run of the same case** as `fid1` / `fid2` — the
-scheme the port should implement — and keep the f64 build's ids as `fid1_f64_build` /
-`fid2_f64_build`. When the two builds disagree on the points themselves (only allowed for
+with the f64 version?`). In the published `parry2d-f64` every cuboid vertex id therefore collapses
+to `0` and every face id to `0b110000`, which defeats contact matching (warm starting) for cuboids
+in f64 builds: both regenerated points of a cuboid manifold receive the data of the same old point.
+
+Since work package GS the harness builds a vendored `parry2d-f64 0.30.2` that reads bits `63` /
+`62` instead ([`vendor/README.md`](vendor/README.md)), so **every vector, the scene traces
+included, comes from an f64 engine with correct feature ids**. The manifold vectors still expose
+the ids of an **f32 run of the same case** as `fid1` / `fid2` — the scheme the port implements —
+and the f64 build's ids as `fid1_f64_build` / `fid2_f64_build`; with the patch the two agree on
+all 216 ids (108 points). When the two builds disagree on the points themselves (only allowed for
 `ambiguous` cases) the ids are `null` in JSON and `0` (`PackedFeatureId::UNKNOWN`) in Cairo.
 
 Packed encoding: `0b01 << 30 | code` vertex, `0b11 << 30 | code` face, `0` unknown. Three
