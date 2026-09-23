@@ -26,6 +26,14 @@ pub struct SolverVel {
     pub angular: Fixed,
 }
 
+/// Two gathered solver bodies in constraint order. WORLD is represented by the default body.
+/// Only velocities change during a sweep; poses, handles and masses are retained exactly.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub(crate) struct BodyPair {
+    pub first: SolverBody,
+    pub second: SolverBody,
+}
+
 pub(crate) const WORLD: u32 = 0xffffffff;
 
 pub(crate) fn read(bodies: Span<SolverBody>, id: u32) -> SolverBody {

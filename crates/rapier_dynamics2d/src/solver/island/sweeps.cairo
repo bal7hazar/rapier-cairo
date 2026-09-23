@@ -1,56 +1,13 @@
-//! Two-body adapters around the unchanged DC/DE APIs; indices are restored after every call.
+//! Ordered joint preparation/writeback and contact/joint sweep modules.
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_geometry2d::contact::ContactManifold;
 use crate::joint::{ImpulseJoint, JointEnabled};
 use super::super::body::{SolverBody, WORLD};
 use super::super::body_store::{BodyStep, DenseBodiesTrait};
-use super::super::contact::{ContactConstraintTrait, ContactConstraintsSet};
+#[cfg(test)]
+use super::super::contact::ContactConstraintTrait;
+use super::super::contact::{ContactConstraint, ContactConstraintsSet};
 use super::super::joint::{JointConstraint, JointConstraintTrait};
-
-pub(crate) fn contacts<B, +DenseBodiesTrait<B>, +Destruct<B>>(
-    ref cs: ContactConstraintsSet,
-    ref bodies: B,
-    ms: Span<ContactManifold>,
-    p: IntegrationParameters,
-    stage: u8,
-) {
-    let mut out = array![];
-    while let Some(mut c) = cs.constraints.pop_front() {
-        if c.num_elements != 0 {
-            let i = c.solver_vel1;
-            let j = c.solver_vel2;
-            let mut pair = array![bodies.get(i), bodies.get(j)];
-            c.solver_vel1 = if i == WORLD {
-                WORLD
-            } else {
-                0
-            };
-            c.solver_vel2 = if j == WORLD {
-                WORLD
-            } else {
-                1
-            };
-            match stage {
-                0 => {
-                    c.update(p, pair.span(), *ms.at(c.manifold_id));
-                    c.warmstart(ref pair);
-                },
-                1 => c.solve(ref pair, true, p.friction_in_bias_pass),
-                2 => {
-                    c.update_rhs_wo_bias(pair.span());
-                    c.solve(ref pair, true, true);
-                },
-                3 => c.solve(ref pair, true, true),
-                _ => c.apply_restitution(ref pair),
-            }
-            bodies.set_pair(i, *pair.at(0), j, *pair.at(1));
-            c.solver_vel1 = i;
-            c.solver_vel2 = j;
-        }
-        out.append(c);
-    }
-    cs.constraints = out;
-}
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub(crate) struct JointBuilder {
@@ -110,29 +67,6 @@ pub(crate) fn rebuild_joints<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     }
     out
 }
-pub(crate) fn joints<B, +DenseBodiesTrait<B>, +Destruct<B>>(
-    ref rows: Array<JointConstraint>, ref bodies: B, biased: bool, warmstart: bool,
-) {
-    let mut out = array![];
-    while let Some(mut c) = rows.pop_front() {
-        if c.num_rows != 0 {
-            let i = c.solver_vel1;
-            let j = c.solver_vel2;
-            let mut pair = array![bodies.get(i), bodies.get(j)];
-            c.solver_vel1 = 0;
-            c.solver_vel2 = 1;
-            if warmstart {
-                c.warmstart(ref pair);
-            }
-            c.solve(ref pair, biased);
-            bodies.set_pair(i, *pair.at(0), j, *pair.at(1));
-            c.solver_vel1 = i;
-            c.solver_vel2 = j;
-        }
-        out.append(c);
-    }
-    rows = out;
-}
 pub(crate) fn write_joints(mut rows: Span<JointConstraint>, ref js: Array<ImpulseJoint>) {
     let mut out = array![];
     while let Some(mut j) = js.pop_front() {
@@ -141,3 +75,33 @@ pub(crate) fn write_joints(mut rows: Span<JointConstraint>, ref js: Array<Impuls
     }
     js = out;
 }
+
+#[cfg(test)]
+mod alternatives;
+#[cfg(test)]
+mod benches;
+
+
+#[cfg(test)]
+mod checks;
+
+
+pub(crate) mod contact;
+#[cfg(test)]
+mod joint_benches;
+#[cfg(test)]
+use contact as zero;
+pub(crate) mod array_joint;
+
+#[cfg(test)]
+mod joint_checks;
+
+#[cfg(test)]
+mod zero_checks;
+#[cfg(test)]
+use alternatives::stages::contacts;
+#[cfg(test)]
+use alternatives::{cached, direct, metered_pair, sparse, specialized};
+
+#[cfg(test)]
+mod variants;

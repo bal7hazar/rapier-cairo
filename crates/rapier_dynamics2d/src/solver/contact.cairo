@@ -9,6 +9,7 @@
 //! be nonnegative and all intermediates representable. Normals must be unit. Masses, dt, softness,
 //! manifold membership and body-array ordering are frozen until the next `generate`.
 mod element;
+pub(crate) mod pair;
 mod set;
 use core::num::traits::DivRem;
 pub use element::{
@@ -510,6 +511,8 @@ fn write_point(e: ContactConstraintElement, ref m: ContactManifold) {
 mod alternatives;
 #[cfg(test)]
 mod benches;
+
+pub(crate) mod cached;
 #[cfg(test)]
 mod checks;
 #[cfg(test)]

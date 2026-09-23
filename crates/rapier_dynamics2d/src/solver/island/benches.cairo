@@ -72,12 +72,13 @@ fn stage_probe(n: u32, stage: u8) {
     let mut bodies: DenseBodies = DenseBodiesTrait::new(bs.span());
     let p: IntegrationParameters = opaque(Default::default());
     let mut cs = ContactConstraintsSetTrait::generate(ms.span(), bs.span(), p, p.substep_dt());
+    let directions = super::super::contact::cached::prepare(cs.constraints.span());
     let mut sub = 0;
     while sub != p.num_solver_iterations {
         if stage == 1 {
-            contacts(ref cs, ref bodies, ms.span(), p, 0);
-            contacts(ref cs, ref bodies, ms.span(), p, 1);
-            contacts(ref cs, ref bodies, ms.span(), p, 2);
+            contacts(ref cs, ref bodies, ms.span(), p, 0, directions.span());
+            contacts(ref cs, ref bodies, ms.span(), p, 1, directions.span());
+            contacts(ref cs, ref bodies, ms.span(), p, 2, directions.span());
         }
         if stage == 2 {
             add_forces(ref bodies, steps.span());
