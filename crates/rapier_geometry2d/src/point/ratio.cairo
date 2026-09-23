@@ -12,8 +12,8 @@
 //! values directly. The quotient is wanted with 32 fractional bits and the operands are at most
 //! 127 bits, so `num * 2^32` would not fit an `i128` — but it fits a `u128`, which is what the
 //! division actually runs on once the clamp has settled the sign. One `div_rem` is therefore
-//! enough, plus one comparison to round the last bit to nearest (upstream's `f64` division rounds
-//! to nearest too, while `Fixed / Fixed` truncates toward zero).
+//! enough, plus one comparison to round the last bit to nearest (upstream's `f64` division and
+//! `Fixed / Fixed` round to nearest too).
 //!
 //! # Candidates
 //!
@@ -26,7 +26,7 @@
 //!    signed 127-bit intermediate would force. Same answers, one `div_rem` more.
 //! 3. `alternatives::clamped_ratio_narrow`: narrow both operands to `Fixed`, then `Fixed / Fixed`
 //!    and `clamp`. Cheaper than either, but it panics (`'Fixed: division by zero'`) for the short
-//!    segments upstream handles, truncates instead of rounding and overflows for long ones.
+//!    segments upstream handles, loses low bits before the division and overflows for long ones.
 
 use core::num::traits::DivRem;
 use fixed::{Fixed, ONE, ZERO};
@@ -50,8 +50,8 @@ pub mod errors {
 /// * `'Ratio: denominator <= 0'` if `den` is not strictly positive.
 /// #### Deviations
 /// * The last bit is rounded to nearest (ties away from zero, i.e. up: the result is
-///   non-negative), while `Fixed / Fixed` truncates. The error is therefore at most half an ulp,
-///   against the one ulp of a truncating division.
+///   non-negative). This can differ from `Fixed / Fixed` only on exact half-ULP ties, where the
+///   scalar rounds to even.
 /// * Operands above `2^96` are shifted down by 32 bits before the division; the quotient keeps
 ///   more than 64 exact bits, far beyond the 32 it is reported with.
 pub fn clamped_ratio(num: i128, den: i128) -> Fixed {
@@ -137,7 +137,7 @@ pub mod alternatives {
     /// `clamped_ratio` written the way upstream reads: narrow both operands to `Fixed`, divide,
     /// clamp. **Wrong** for the inputs this package must handle — it panics with `'Fixed:
     /// division by zero'` as soon as the denominator is a squared length below `2^-32`, panics
-    /// with `'Fixed: overflow'` above `2^31`, and truncates toward zero instead of rounding.
+    /// with `'Fixed: overflow'` above `2^31`, and loses low bits before dividing.
     pub fn clamped_ratio_narrow(num: i128, den: i128) -> Fixed {
         let n = Fixed { raw: (num / 0x1_0000_0000).try_into().unwrap() };
         let d = Fixed { raw: (den / 0x1_0000_0000).try_into().unwrap() };
@@ -215,17 +215,16 @@ mod tests {
         clamped_ratio(1, -4);
     }
 
-    /// The narrowing candidate agrees with the winner when its operands are representable, and
-    /// truncates where the winner rounds.
+    /// The narrowing candidate agrees with the winner when its operands are representable and no
+    /// low bits are lost before the division.
     #[test]
     fn test_alternative_agrees_only_on_representable_operands() {
         assert_eq!(clamped_ratio_narrow(Q * Q, Q * Q * 2), HALF);
         assert_eq!(clamped_ratio_narrow(-Q * Q, Q * Q), ZERO);
         assert_eq!(clamped_ratio_narrow(Q * Q * 3, Q * Q), ONE);
-        // Truncation: 2/5 is 1717986918.4, the winner rounds to ...918, `/` truncates to ...918
-        // as well here, but 2/3 straddles (…530.67 against …531).
+        // The scalar division now rounds 2/3 to nearest, matching the wide quotient here.
         assert_eq!(clamped_ratio(2 * Q * Q, 3 * Q * Q), Fixed { raw: 2863311531 });
-        assert_eq!(clamped_ratio_narrow(2 * Q * Q, 3 * Q * Q), Fixed { raw: 2863311530 });
+        assert_eq!(clamped_ratio_narrow(2 * Q * Q, 3 * Q * Q), Fixed { raw: 2863311531 });
     }
 
     /// The wide division is the correctly rounded exact quotient for every pair it is given.

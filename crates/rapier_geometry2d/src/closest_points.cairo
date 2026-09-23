@@ -38,7 +38,7 @@
 //!    dropped.
 //! 3. **The divisions.** All four are clamped ratios of two `i128` quantities of the same scale,
 //!    and go through `super::point::ratio::clamped_ratio`: neither operand is rescaled to make
-//!    the division fit, and the last bit is rounded to nearest instead of truncated. `a`, `e`,
+//!    the division fit, and the last bit is rounded to nearest. `a`, `e`,
 //!    `b`, `c` and `f` themselves are `Fixed`, exactly as upstream holds them, which is what
 //!    makes [`DEGENERATE_SQ_RAW`] both upstream's threshold and the smallest safe one.
 //!
@@ -192,8 +192,8 @@ pub mod alternatives {
     /// The literal port: `a`, `e` and `denom` as `Fixed`, `Fixed / Fixed` and `Fixed::clamp`
     /// instead of the wide ratios. **Wrong** for the inputs this package must handle — `|d|^2`
     /// rescales to 0 below `2^-16` (so `denom` does too, and every transverse pair of short
-    /// segments is declared collinear), the divisions truncate toward zero instead of rounding,
-    /// and `a e` overflows above `2^15.5` just as the shipped version does.
+    /// segments is declared collinear), low bits are lost before division, and `a e` overflows
+    /// above `2^15.5` just as the shipped version does.
     pub fn closest_parameters_narrow(seg1: Segment, seg2: Segment) -> (Fixed, Fixed) {
         let d1 = seg1.scaled_direction();
         let d2 = seg2.scaled_direction();
@@ -401,8 +401,8 @@ mod tests {
         };
         let (s, t) = closest_parameters(s1, s2);
         let (sn, tn) = closest_parameters_narrow(s1, s2);
-        // The wide ratios round, the narrow ones truncate: at most one ulp apart, unless the
-        // determinant was small enough for the narrow one to fall back to `s = 0`.
+        // The wide ratios keep the full operands; the narrow ones pre-round them: at most two ulp
+        // apart unless the determinant was small enough for the narrow one to fall back to `s = 0`.
         if sn != ZERO || s == ZERO {
             assert!(s.abs_diff_eq(sn, Fixed { raw: 2 }));
             assert!(t.abs_diff_eq(tn, Fixed { raw: 2 }));

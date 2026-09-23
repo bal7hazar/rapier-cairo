@@ -99,7 +99,7 @@ pub impl JointConstraintHelperImpl of JointConstraintHelperTrait {
     }
     /// Orthogonalize in row order (modified Gram–Schmidt), then cache inverse lhs.
     /// At most three rows. Zero mass has zero inverse, including dependent rows.
-    /// Division truncates; products/dots floor. Overflow/too-small inverse panics in Fixed.
+    /// Division rounds to nearest; products/dots floor. Overflow/too-small inverse panics in Fixed.
     fn finalize(ref constraint: JointConstraint) {
         let imsum = constraint.im1 + constraint.im2;
         let [mut a, mut b, mut c] = constraint.rows;

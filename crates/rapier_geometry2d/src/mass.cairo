@@ -335,6 +335,10 @@ mod tests {
         assert!(a.abs_diff_eq(b, Fixed { raw: ulps }), "{:?} vs {:?}", a, b);
     }
 
+    fn oracle_tolerance(value: Fixed, rounded_sites: i64) -> i64 {
+        rounded_sites + value.raw / 0x10000000
+    }
+
     /// `unit_cuboid_at(-1)` / `unit_cuboid_at(1)` as literals, so that the gas probes measure the
     /// operator and not the construction of its operands (`test_probe_constants` pins them).
     const LEFT: MassProperties = MassProperties {
@@ -513,8 +517,9 @@ mod tests {
         assert_eq!(p.world_com(pose), moved.local_com);
     }
 
-    /// Fused kernels against the composed-ops oracles: a few ulp on the value, relative to the
-    /// magnitude of the product that the composed form floors several times.
+    /// Fused kernels against the composed-ops oracles. The absolute floor is the number of rounded
+    /// product/division sites in the composed oracle; the relative term covers those sites after
+    /// they are multiplied into the final value.
     #[test]
     #[fuzzer(runs: 96, seed: 20260920)]
     fn fuzz_kernels_against_composed(r: u16, hx: u16, hy: u16, len: u16, d: u8) {
@@ -526,16 +531,28 @@ mod tests {
         let length = Fixed { raw: len.into() * 0x100000 };
         let (m, inertia) = ball_mass_inertia(density, radius);
         let (m2, inertia2) = alternatives::ball_mass_inertia(density, radius);
-        near(m, m2, 4 + m.raw / 0x10000000);
-        near(inertia, inertia2, 4 + inertia.raw / 0x10000000);
+        near(m, m2, oracle_tolerance(m, 3));
+        near(inertia, inertia2, oracle_tolerance(inertia, 6));
         let (m, inertia) = cuboid_mass_inertia(density, he);
         let (m2, inertia2) = alternatives::cuboid_mass_inertia(density, he);
-        near(m, m2, 4 + m.raw / 0x10000000);
-        near(inertia, inertia2, 4 + inertia.raw / 0x10000000);
+        near(m, m2, oracle_tolerance(m, 2));
+        near(inertia, inertia2, oracle_tolerance(inertia, 7));
         let (m, inertia) = capsule_mass_inertia(density, length, radius);
         let (m2, inertia2) = alternatives::capsule_mass_inertia(density, length, radius);
-        near(m, m2, 4 + m.raw / 0x10000000);
-        near(inertia, inertia2, 4 + inertia.raw / 0x10000000);
+        near(m, m2, oracle_tolerance(m, 4));
+        near(inertia, inertia2, oracle_tolerance(inertia, 20));
+    }
+
+    #[test]
+    fn test_capsule_composed_counterexample_small_magnitude() {
+        let density = Fixed { raw: 202 * 0x4000000 };
+        let radius = Fixed { raw: 107 * 0x100000 };
+        let length = Fixed { raw: 119 * 0x100000 };
+        let (_m, inertia) = capsule_mass_inertia(density, length, radius);
+        let (_m2, inertia2) = alternatives::capsule_mass_inertia(density, length, radius);
+        assert_eq!(inertia.raw, 30447);
+        assert_eq!(inertia2.raw, 30441);
+        near(inertia, inertia2, oracle_tolerance(inertia, 20));
     }
 
     #[test]

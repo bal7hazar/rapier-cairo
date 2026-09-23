@@ -318,7 +318,7 @@ mod tests {
         );
         assert_eq!(m.num_points, 2);
         assert_eq!(m.local_n1, Vec2 { x: ZERO, y: ONE });
-        assert_eq!(m.point(0).dist, Fixed { raw: -858993460 });
+        assert_eq!(m.point(0).dist, Fixed { raw: -858993459 });
         assert_eq!(m.point(0).fid2, FeatureIdTrait::vertex(2));
         assert_eq!(m.point(1).fid2, FeatureIdTrait::vertex(0));
 

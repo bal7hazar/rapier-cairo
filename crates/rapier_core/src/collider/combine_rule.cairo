@@ -6,7 +6,7 @@
 //!
 //! | Rule | Result | `Fixed` rounding |
 //! |---|---|---|
-//! | `Average` | `(a + b) / 2` | truncated toward zero (odd raw sum: the half-ULP is dropped) |
+//! | `Average` | `(a + b) / 2` | rounded to nearest, ties to even |
 //! | `Min` | `abs(min(a, b))` (negative values tolerated, as upstream) | exact |
 //! | `Multiply` | `a * b` | floored |
 //! | `Max` | `max(a, b)` | exact |
@@ -18,10 +18,9 @@
 //!
 //! Candidates (ranked by the `gas_*` probes):
 //!
-//! * `Average`: a raw `i64` `DivRem` of the sum by 2 **(winner)** ties with
-//!   `alternatives::average_mul_half` (`* HALF`), which floors instead of truncating and so
-//!   differs on negative odd sums, hence is not preferred; `alternatives::average_div` (`Fixed`
-//!   division by `TWO`, a wide division) costs about 2.5k more;
+//! * `Average`: `Fixed` division by `TWO` **(winner by semantics)** follows the scalar's
+//!   nearest-even division; `alternatives::average_divrem` is the old raw truncating halving and
+//!   `alternatives::average_mul_half` floors, so both differ on odd raw sums;
 //! * rule resolution: comparing the priorities **(winner)** against
 //!   `alternatives::effective_eq_first` (early exit on equal rules: 400 gas cheaper for equal
 //!   rules, 1000 dearer for different ones);
@@ -30,15 +29,12 @@
 //!   (`GeometricMean`, about 5.7k above `Multiply`), whichever rule it takes. A rule known at
 //!   compile time is folded away and pays for its own arm only (`Max` is the cheapest).
 
-use fixed::{Fixed, FixedTrait, ONE, ZERO};
+use fixed::{Fixed, FixedTrait, ONE, TWO, ZERO};
 
-const NZ_TWO_I64: NonZero<i64> = 2;
-
-/// `(a + b) / 2`: a `DivRem` of the raw sum by the constant two, truncated toward zero.
+/// `(a + b) / 2`, rounded to nearest (ties to even) by the scalar division.
 #[inline(always)]
 fn average(coeff1: Fixed, coeff2: Fixed) -> Fixed {
-    let (half_sum, _) = DivRem::div_rem(coeff1.raw + coeff2.raw, NZ_TWO_I64);
-    Fixed { raw: half_sum }
+    (coeff1 + coeff2) / TWO
 }
 
 /// How to combine friction / restitution values when two colliders touch. Default `Average`.
@@ -123,11 +119,19 @@ pub impl CoefficientCombineRuleImpl of CoefficientCombineRuleTrait {
 #[cfg(test)]
 mod alternatives {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use super::{CoefficientCombineRule, CoefficientCombineRuleTrait, average};
+    use super::{CoefficientCombineRule, CoefficientCombineRuleTrait};
 
-    /// `Fixed` division by two: a wide `2^64`-scaled division for what is a raw halving.
+    const NZ_TWO_I64: NonZero<i64> = 2;
+
+    /// `Fixed` division by two: the scalar's nearest-even division.
     pub fn average_div(coeff1: Fixed, coeff2: Fixed) -> Fixed {
         (coeff1 + coeff2) / TWO
+    }
+
+    /// Raw halving by `DivRem`: this was the old winner while `Fixed / Fixed` truncated.
+    pub fn average_divrem(coeff1: Fixed, coeff2: Fixed) -> Fixed {
+        let (half_sum, _) = DivRem::div_rem(coeff1.raw + coeff2.raw, NZ_TWO_I64);
+        Fixed { raw: half_sum }
     }
 
     /// Multiplication by one half: floors instead of truncating.
@@ -139,7 +143,7 @@ mod alternatives {
     /// its own arm instead of the most expensive one.
     pub fn apply_early(rule: CoefficientCombineRule, coeff1: Fixed, coeff2: Fixed) -> Fixed {
         match rule {
-            CoefficientCombineRule::Average => { return average(coeff1, coeff2); },
+            CoefficientCombineRule::Average => { return average_div(coeff1, coeff2); },
             CoefficientCombineRule::Min => { return coeff1.min(coeff2).abs(); },
             CoefficientCombineRule::Multiply => { return coeff1 * coeff2; },
             CoefficientCombineRule::Max => { return coeff1.max(coeff2); },
@@ -168,8 +172,10 @@ mod alternatives {
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, NEG_ONE, ONE, TWO, ZERO};
     use rapier_testing::opaque;
-    use super::alternatives::{apply_early, average_div, average_mul_half, effective_eq_first};
-    use super::{CoefficientCombineRule, CoefficientCombineRuleTrait, average};
+    use super::alternatives::{
+        apply_early, average_div, average_divrem, average_mul_half, effective_eq_first,
+    };
+    use super::{CoefficientCombineRule, CoefficientCombineRuleTrait};
 
     const AVERAGE: CoefficientCombineRule = CoefficientCombineRule::Average;
     const MIN: CoefficientCombineRule = CoefficientCombineRule::Min;
@@ -213,21 +219,21 @@ mod tests {
     /// `mul = floor(a * b / 2^32)`, `clamped = min(a + b, 2^32)`, `geo = isqrt(mul * 2^32)`.
     #[test]
     fn test_average() {
-        assert_eq!(same(A, B, AVERAGE).raw, 1932735283);
-        assert_eq!(same(B, A, AVERAGE).raw, 1932735283);
+        assert_eq!(same(A, B, AVERAGE).raw, 1932735284);
+        assert_eq!(same(B, A, AVERAGE).raw, 1932735284);
         assert_eq!(same(C, D, AVERAGE).raw, 2362232012);
         assert_eq!(same(ONE, ONE, AVERAGE), ONE);
         assert_eq!(same(ZERO, ONE, AVERAGE), HALF);
         assert_eq!(same(NEG_ONE, HALF, AVERAGE).raw, -1073741824);
     }
 
-    /// The halving truncates toward zero, on both signs.
+    /// Half-ULP ties round to the even raw integer, on both signs.
     #[test]
-    fn test_average_truncates_toward_zero() {
+    fn test_average_rounds_ties_to_even() {
         assert_eq!(same(Fixed { raw: 1 }, Fixed { raw: 0 }, AVERAGE).raw, 0);
-        assert_eq!(same(Fixed { raw: 3 }, Fixed { raw: 0 }, AVERAGE).raw, 1);
+        assert_eq!(same(Fixed { raw: 3 }, Fixed { raw: 0 }, AVERAGE).raw, 2);
         assert_eq!(same(Fixed { raw: -1 }, Fixed { raw: 0 }, AVERAGE).raw, 0);
-        assert_eq!(same(Fixed { raw: -3 }, Fixed { raw: 0 }, AVERAGE).raw, -1);
+        assert_eq!(same(Fixed { raw: -3 }, Fixed { raw: 0 }, AVERAGE).raw, -2);
     }
 
     #[test]
@@ -327,8 +333,8 @@ mod tests {
         );
     }
 
-    /// `Fixed` division by two agrees with the winner on every sign; `* HALF` floors, so it
-    /// differs from the truncation on negative odd sums only.
+    /// `Fixed` division by two is the winner. The raw-halving and `* HALF` candidates document
+    /// the old truncating/flooring behavior on odd raw sums.
     #[test]
     fn test_average_candidates() {
         let values = array![
@@ -340,12 +346,10 @@ mod tests {
                 let (a, b) = (*a, *b);
                 let winner = same(a, b, AVERAGE);
                 assert_eq!(average_div(a, b), winner);
-                let odd = (a.raw + b.raw) % 2 != 0;
-                if a.raw + b.raw >= 0 || !odd {
-                    assert_eq!(average_mul_half(a, b), winner);
-                } else {
-                    assert_eq!(average_mul_half(a, b).raw, winner.raw - 1);
-                }
+                let trunc = average_divrem(a, b);
+                let floor = average_mul_half(a, b);
+                assert!(winner.abs_diff_eq(trunc, Fixed { raw: 1 }));
+                assert!(winner.abs_diff_eq(floor, Fixed { raw: 1 }));
             }
         }
     }
@@ -370,7 +374,7 @@ mod tests {
         let rule = opaque(AVERAGE);
         assert!(
             CoefficientCombineRuleTrait::combine(opaque(A), opaque(B), rule, rule)
-                .raw == 1932735283,
+                .raw == 1932735284,
         );
     }
 
@@ -444,7 +448,7 @@ mod tests {
 
     #[test]
     fn gas_apply_early_average() {
-        assert!(apply_early(opaque(AVERAGE), opaque(A), opaque(B)).raw == 1932735283);
+        assert!(apply_early(opaque(AVERAGE), opaque(A), opaque(B)).raw == 1932735284);
     }
 
     #[test]
@@ -464,7 +468,7 @@ mod tests {
 
     #[test]
     fn gas_apply_dispatch_average() {
-        assert!(opaque(AVERAGE).apply(opaque(A), opaque(B)).raw == 1932735283);
+        assert!(opaque(AVERAGE).apply(opaque(A), opaque(B)).raw == 1932735284);
     }
 
     #[test]
@@ -474,13 +478,13 @@ mod tests {
 
     #[test]
     fn gas_average_divrem() {
-        assert!(average(opaque(A), opaque(B)).raw == 1932735283);
+        assert!(average_divrem(opaque(A), opaque(B)).raw == 1932735283);
     }
 
     /// The full dispatch on a rule known at compile time (the `match` may be folded away).
     #[test]
     fn gas_apply_const_average() {
-        assert!(AVERAGE.apply(opaque(A), opaque(B)).raw == 1932735283);
+        assert!(AVERAGE.apply(opaque(A), opaque(B)).raw == 1932735284);
     }
 
     #[test]
@@ -510,7 +514,7 @@ mod tests {
 
     #[test]
     fn gas_average_div() {
-        assert!(average_div(opaque(A), opaque(B)).raw == 1932735283);
+        assert!(average_div(opaque(A), opaque(B)).raw == 1932735284);
     }
 
     #[test]

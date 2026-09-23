@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(inv(HALF), TWO);
         assert_eq!(inv(NEG_ONE), NEG_ONE);
         assert_eq!(inv(FixedTrait::from_int(4)), FixedTrait::from_ratio(1, 4));
-        // Truncation toward zero, as `recip` documents.
+        // Reciprocal division rounds to nearest, ties to even.
         assert_eq!(inv(FixedTrait::from_int(3)), FixedTrait::from_ratio(1, 3));
         assert_eq!(inv(FixedTrait::from_int(-3)), FixedTrait::from_ratio(-1, 3));
     }

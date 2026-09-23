@@ -4,7 +4,7 @@ rapier_geometry2d::polygonal_feature::tests::gas_clip 169360
 rapier_geometry2d::polygonal_feature::tests::gas_contacts 169360
 rapier_geometry2d::polygonal_feature::tests::gas_transform_by 29100
 rapier_geometry2d::polygonal_feature::tests::test_capacity_panics 165890
-rapier_geometry2d::polygonal_feature::tests::test_contacts_frames_flip_and_face_vertex 274400
-rapier_geometry2d::polygonal_feature::tests::test_empty_parallel_and_vertex_pairs 71680
+rapier_geometry2d::polygonal_feature::tests::test_contacts_frames_flip_and_face_vertex 278930
+rapier_geometry2d::polygonal_feature::tests::test_empty_parallel_and_vertex_pairs 73190
 rapier_geometry2d::polygonal_feature::tests::test_faces_order_ids_prediction_and_transform 175530
 rapier_geometry2d::polygonal_feature::tests::test_invalid_count_panics 20920

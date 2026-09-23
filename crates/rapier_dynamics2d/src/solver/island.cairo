@@ -25,7 +25,7 @@ pub mod errors {
 /// Applies force increments, joint rebuilding, contact warmstarts, biased PGS, velocity caps,
 /// linearized integration, relaxed PGS, restitution, impulse writeback, then full-step damping.
 /// Call `store.to_bodies` afterwards; do not reuse this per-step scratch for another step.
-/// Products floor, divisions truncate, rotations renormalize. All intermediates must fit
+/// Products floor, divisions round to nearest, rotations renormalize. All intermediates must fit
 /// Q32.32. Zero dt is a no-op; zero solver iterations and negative dt/caps panic.
 pub fn solve_island(
     params: IntegrationParameters,

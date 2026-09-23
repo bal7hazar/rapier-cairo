@@ -9,4 +9,4 @@ rapier_geometry2d::contact_generators::halfspace_pfm::tests::gas_halfspace_segme
 rapier_geometry2d::contact_generators::halfspace_pfm::tests::gas_halfspace_segment_generic 154240
 rapier_geometry2d::contact_generators::halfspace_pfm::tests::gas_halfspace_segment_winner 154240
 rapier_geometry2d::contact_generators::halfspace_pfm::tests::test_capsule_radius_and_segment_prediction 435860
-rapier_geometry2d::contact_generators::halfspace_pfm::tests::test_cuboid_flat_tilted_and_flipped 673180
+rapier_geometry2d::contact_generators::halfspace_pfm::tests::test_cuboid_flat_tilted_and_flipped 682550

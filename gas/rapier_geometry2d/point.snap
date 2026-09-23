@@ -48,10 +48,10 @@ rapier_geometry2d::point::halfspace::tests::test_projection_table 137330
 rapier_geometry2d::point::ratio::tests::gas_baseline 13620
 rapier_geometry2d::point::ratio::tests::gas_clamped_ratio_clamped_low 38980
 rapier_geometry2d::point::ratio::tests::gas_clamped_ratio_interior 55970
-rapier_geometry2d::point::ratio::tests::gas_clamped_ratio_narrow 48590
+rapier_geometry2d::point::ratio::tests::gas_clamped_ratio_narrow 50100
 rapier_geometry2d::point::ratio::tests::gas_clamped_ratio_two_step 64280
 rapier_geometry2d::point::ratio::tests::gas_clamped_ratio_wide_operands 70870
-rapier_geometry2d::point::ratio::tests::test_alternative_agrees_only_on_representable_operands 159170
+rapier_geometry2d::point::ratio::tests::test_alternative_agrees_only_on_representable_operands 165210
 rapier_geometry2d::point::ratio::tests::test_exact_and_clamped_values 206620
 rapier_geometry2d::point::ratio::tests::test_negative_denominator_panics 14620
 rapier_geometry2d::point::ratio::tests::test_rounding_is_to_nearest_and_bounded 559480

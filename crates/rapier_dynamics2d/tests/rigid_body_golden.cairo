@@ -178,9 +178,9 @@ fn test_compound_body_world_mass_properties() {
 fn test_damping_matches_core_factors() {
     let dt = Fixed { raw: integration_parameters::DT_Q32.dt };
     let v = RigidBodyVelocityTrait::new(Vec2 { x: ONE, y: -ONE }, ONE);
-    // `1 / (1 + dt * d)` for `d = 0`, `0.5` and `1`, the factors `rapier_core` documents.
+    // `1 / (1 + dt * d)` for `d = 0`, `0.5` and `1`, rounded as `rapier_core` documents.
     for (coefficient, factor) in array![
-        (0_i64, 4294967296_i64), (2147483648_i64, 4259471698_i64), (4294967296_i64, 4224557996_i64),
+        (0_i64, 4294967296_i64), (2147483648_i64, 4259471699_i64), (4294967296_i64, 4224557996_i64),
     ]
         .span() {
         let damping = RigidBodyDamping {
