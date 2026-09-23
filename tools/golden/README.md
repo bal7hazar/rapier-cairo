@@ -154,16 +154,16 @@ The measurements of this section were taken against the **pre-GS references** (p
 
 **GS update (corrected feature ids, after DM).** DM moved the common midpoint into the engine and
 GS regenerated the traces with correct ids; the duplicate-id emulation is gone from the tests.
-`box_slope_stick` now passes every sample (max 240 / 132 ulp on translation, 10 on rotation,
-2010 / 1944 / 6011 on velocities). `box_slope_slide` passes steps 1–3 and 9–120 but samples 4–8
+`box_slope_stick` now passes every sample (max 221 / 121 ulp on translation, 10 on rotation,
+2014 / 1948 / 6014 on velocities). `box_slope_slide` passes steps 1–3 and 9–120 but samples 4–8
 exceed the tolerance (step 4: 12 539 / 26 184 translation, 39 582 / 68 561 rotation,
-147 107 / 514 350 / 452 012 velocity ulps), then reconverge (step 120: 2508 / 1447). Cause: in
+147 107 / 514 352 / 452 015 velocity ulps), then reconverge (step 120: 2479 / 1431). Cause: in
 step 4, substep 0 solves the speculative second point (gap 52 raw) so that it closes exactly;
 at substep 1 its refreshed gap is exactly `0` raw. Both engines solve a row softly
 (`cfm_factor`) when `dist <= 0` and rigidly otherwise; upstream's f64 gap at that point is a
 rounding residue whose sign decided "rigid" there. Solving that single row rigidly in a
 public-API trace (`test_slide_zero_gap_counterfactual`, one row in 120 steps) passes every
-sample: step 4 falls to 4 / 0 / 1 / 0 / 25 / 17 / 62 ulps, step 120 to 2427 / 1401 translation
+sample: step 4 falls to 4 / 0 / 1 / 0 / 25 / 18 / 59 ulps, step 120 to 2382 / 1376 translation
 ulps. This is a tie on a discontinuity, not a porting defect; the replay stays ignored with its
 tolerance unchanged.
 

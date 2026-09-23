@@ -368,14 +368,14 @@ fn test_ball_bounce() {
 }
 
 /// Passes since DM (common-midpoint lever arms) and GS (references with correct cuboid feature
-/// ids): max 240 / 132 ulp on translation, 6011 ulp on angular velocity.
+/// ids): max 221 / 121 ulp on translation, 6014 ulp on angular velocity.
 #[test]
 fn test_box_slope_stick() {
     replay("box_slope_stick", scenes::BOX_SLOPE_STICK, 0, 120, Judge::Samples, NONE);
 }
 
-/// GS: samples 4–8 exceed the tolerance (step 4: vy 514 350 ulp for 32 768 allowed), then the
-/// trace reconverges (step 120: 2508 / 1447 ulp). Cause: at step 4 substep 1 a speculative
+/// GS: samples 4–8 exceed the tolerance (step 4: vy 514 352 ulp for 32 768 allowed), then the
+/// trace reconverges (step 120: 2479 / 1431 ulp). Cause: at step 4 substep 1 a speculative
 /// contact closed by the previous substep has a gap of exactly `0` in Q32.32, which the port
 /// solves softly (`dist <= 0`), while upstream's f64 residue came out `> 0` (rigid). Solving that
 /// one row rigidly passes every sample (`slope_diagnostics::test_slide_zero_gap_counterfactual`).
