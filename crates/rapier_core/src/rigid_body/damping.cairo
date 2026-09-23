@@ -6,8 +6,8 @@
 //! The vector multiplication belongs to the crates owning `Vec2`; this module provides the
 //! factor.
 //!
-//! Rounding: `dt * damping` floors (`Fixed` product) and the reciprocal truncates toward zero
-//! (`Fixed` quotient), so the factor is never above the exact value, by at most 1 ULP (`2^-32`).
+//! Rounding: `dt * damping` floors (`Fixed` product) and the reciprocal rounds to nearest, ties
+//! to even (`Fixed` quotient), so the factor is within half an ULP (`2^-33`) of the exact value.
 //! `damping == 0` gives exactly `1`.
 //!
 //! Candidates (ranked by the `gas_*` probes):
@@ -96,8 +96,8 @@ mod tests {
     /// `1 / 60` rounded to nearest, as `IntegrationParameters::default().dt`.
     const DT: Fixed = Fixed { raw: 71582788 };
 
-    /// Expected raw factors, `floor(2^64 / (2^32 + floor(DT.raw * d.raw / 2^32)))`, computed
-    /// with exact integers.
+    /// Expected raw factors, `round_half_even(2^64 / (2^32 + floor(DT.raw * d.raw / 2^32)))`,
+    /// computed with exact integers.
     fn assert_factor(damping: Fixed, expected_raw: i64) {
         let expected = Fixed { raw: expected_raw };
         assert_eq!(damping_factor(DT, damping), expected);
@@ -122,8 +122,8 @@ mod tests {
     #[test]
     fn test_factor_half() {
         // d = 0.5: dt * d = 71582788 * 2^31 / 2^32 = 35791394; 1 + it = 4330758690;
-        // 2^64 / 4330758690 = 4259471698.4 -> 4259471698 (0.99174...).
-        assert_factor(HALF, 4259471698);
+        // 2^64 / 4330758690 = 4259471698.4 -> 4259471699 (0.99174...).
+        assert_factor(HALF, 4259471699);
     }
 
     #[test]
@@ -136,8 +136,8 @@ mod tests {
     #[test]
     fn test_factor_hundred() {
         // d = 100: dt * d = 7158278800; 1 + it = 11453246096; 2^64 / 11453246096 = 1610612739.9
-        // -> 1610612739 (0.37500...).
-        assert_factor(FixedTrait::from_int(100), 1610612739);
+        // -> 1610612740 (0.37500...).
+        assert_factor(FixedTrait::from_int(100), 1610612740);
     }
 
     #[test]
@@ -157,7 +157,7 @@ mod tests {
     fn test_linear_and_angular_are_independent() {
         let damping = RigidBodyDamping { linear_damping: ONE, angular_damping: HALF };
         assert_eq!(damping.linear_factor(DT), Fixed { raw: 4224557996 });
-        assert_eq!(damping.angular_factor(DT), Fixed { raw: 4259471698 });
+        assert_eq!(damping.angular_factor(DT), Fixed { raw: 4259471699 });
     }
 
     #[test]

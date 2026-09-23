@@ -3,8 +3,8 @@
 //!
 //! Tolerances (raw Q32.32 units, "ulp"):
 //! * `dt_q32` is upstream evaluated at a `dt` that is exactly representable, so the port sees the
-//!   same inputs and is expected to agree to rounding only. The port floors / truncates, the
-//!   `f64` reference is rounded to nearest: 1 ulp. The angular frequency is compared with a
+//!   same inputs and is expected to agree to rounding only. Products floor and divisions round to
+//!   nearest, matching the `f64` reference within 1 ulp. The angular frequency is compared with a
 //!   relative tolerance (3.6e-12) because the Q32.32 `TAU` has a relative error of 1.1e-12.
 //! * `dt_f64` feeds upstream `1/60` unquantised, so the fixture differs from the port's inputs by
 //!   up to 0.5 ulp of `dt`, a relative perturbation of `0.5 / 71582788 = 7e-9` (`2.8e-8` at the
@@ -159,37 +159,34 @@ fn test_defaults_match_golden() {
 
 #[test]
 fn test_derived_match_golden_dt_q32() {
-    // Same inputs as upstream. Every derived field is a floor / truncation of the exact value
-    // while the `f64` reference is rounded to nearest, so the port lands 0 or 1 ulp below it:
-    // tolerance 1 ulp. (The scalars are exact products or truncated quotients of representable
-    // values.)
+    // Same inputs as upstream. The remaining fixed-point rounding differs from the `f64`
+    // reference by at most 1 ulp.
     let p = params_with_dt(DT_Q32.dt);
     assert_derived_within(p, DT_Q32, true, 1);
 }
 
-fn assert_below_by_at_most_one(actual: Fixed, expected: i64) {
-    let below = expected - actual.raw;
-    assert!(below >= 0 && below <= 1, "spring coefficient not 0 or 1 ulp below the reference");
+fn assert_within_one(actual: Fixed, expected: i64) {
+    assert!(ulps(actual, expected) <= 1, "spring coefficient not within 1 ulp of the reference");
 }
 
 #[test]
-fn test_derived_dt_q32_springs_are_truncations_of_the_reference() {
+fn test_derived_dt_q32_springs_are_within_one_ulp_of_the_reference() {
     let p = params_with_dt(DT_Q32.dt);
     let contact = p.contact_softness_coefficients();
     let static_contact = p.static_contact_softness_coefficients();
     let joint = p.joint_softness_coefficients(SpringCoefficientsTrait::joint_defaults());
-    assert_below_by_at_most_one(contact.erp_inv_dt, DT_Q32.contact.erp_inv_dt);
-    assert_below_by_at_most_one(contact.erp, DT_Q32.contact.erp);
-    assert_below_by_at_most_one(contact.cfm_coeff, DT_Q32.contact.cfm_coeff);
-    assert_below_by_at_most_one(contact.cfm_factor, DT_Q32.contact.cfm_factor);
-    assert_below_by_at_most_one(static_contact.erp_inv_dt, DT_Q32.static_contact.erp_inv_dt);
-    assert_below_by_at_most_one(static_contact.erp, DT_Q32.static_contact.erp);
-    assert_below_by_at_most_one(static_contact.cfm_coeff, DT_Q32.static_contact.cfm_coeff);
-    assert_below_by_at_most_one(static_contact.cfm_factor, DT_Q32.static_contact.cfm_factor);
-    assert_below_by_at_most_one(joint.erp_inv_dt, DT_Q32.joint.erp_inv_dt);
-    assert_below_by_at_most_one(joint.erp, DT_Q32.joint.erp);
-    assert_below_by_at_most_one(joint.cfm_coeff, DT_Q32.joint.cfm_coeff);
-    assert_below_by_at_most_one(joint.cfm_factor, DT_Q32.joint.cfm_factor);
+    assert_within_one(contact.erp_inv_dt, DT_Q32.contact.erp_inv_dt);
+    assert_within_one(contact.erp, DT_Q32.contact.erp);
+    assert_within_one(contact.cfm_coeff, DT_Q32.contact.cfm_coeff);
+    assert_within_one(contact.cfm_factor, DT_Q32.contact.cfm_factor);
+    assert_within_one(static_contact.erp_inv_dt, DT_Q32.static_contact.erp_inv_dt);
+    assert_within_one(static_contact.erp, DT_Q32.static_contact.erp);
+    assert_within_one(static_contact.cfm_coeff, DT_Q32.static_contact.cfm_coeff);
+    assert_within_one(static_contact.cfm_factor, DT_Q32.static_contact.cfm_factor);
+    assert_within_one(joint.erp_inv_dt, DT_Q32.joint.erp_inv_dt);
+    assert_within_one(joint.erp, DT_Q32.joint.erp);
+    assert_within_one(joint.cfm_coeff, DT_Q32.joint.cfm_coeff);
+    assert_within_one(joint.cfm_factor, DT_Q32.joint.cfm_factor);
 }
 
 #[test]

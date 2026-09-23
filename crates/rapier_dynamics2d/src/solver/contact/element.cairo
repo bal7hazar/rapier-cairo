@@ -1,4 +1,4 @@
-//! Scalar constraint rows. Products floor; effective-mass inversion truncates (zero maps to
+//! Scalar constraint rows. Products floor; effective-mass inversion rounds to nearest (zero maps to
 //! zero). Every intermediate/output must fit Q32.32, otherwise fixed/core overflow panics.
 use fixed::wide::{dot2, dot4};
 use fixed::{Fixed, ONE, ZERO};

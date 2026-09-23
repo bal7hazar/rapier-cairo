@@ -28,7 +28,7 @@ rapier_core::collider::changes::tests::test_flag_values 24004
 rapier_core::collider::changes::tests::test_needs_broad_phase_update 42478
 rapier_core::collider::changes::tests::test_needs_narrow_phase_update 19756
 rapier_core::collider::changes::tests::test_set_operations 34965
-rapier_core::collider::combine_rule::tests::gas_apply_const_average 18260
+rapier_core::collider::combine_rule::tests::gas_apply_const_average 22340
 rapier_core::collider::combine_rule::tests::gas_apply_const_clamped_sum 17920
 rapier_core::collider::combine_rule::tests::gas_apply_const_geometric_mean 23400
 rapier_core::collider::combine_rule::tests::gas_apply_const_max 15690
@@ -40,7 +40,7 @@ rapier_core::collider::combine_rule::tests::gas_apply_early_average 24100
 rapier_core::collider::combine_rule::tests::gas_apply_early_geometric_mean 24100
 rapier_core::collider::combine_rule::tests::gas_apply_early_max 24100
 rapier_core::collider::combine_rule::tests::gas_apply_early_min 24100
-rapier_core::collider::combine_rule::tests::gas_average_div 20830
+rapier_core::collider::combine_rule::tests::gas_average_div 22340
 rapier_core::collider::combine_rule::tests::gas_average_divrem 18260
 rapier_core::collider::combine_rule::tests::gas_average_mul_half 18260
 rapier_core::collider::combine_rule::tests::gas_baseline 13620
@@ -57,9 +57,9 @@ rapier_core::collider::combine_rule::tests::gas_effective_eq_first_equal_rules 1
 rapier_core::collider::combine_rule::tests::gas_effective_equal_rules 17510
 rapier_core::collider::combine_rule::tests::gas_inputs 17940
 rapier_core::collider::combine_rule::tests::test_apply_early_agrees 6986830
-rapier_core::collider::combine_rule::tests::test_average 13620
-rapier_core::collider::combine_rule::tests::test_average_candidates 2100590
-rapier_core::collider::combine_rule::tests::test_average_truncates_toward_zero 13620
+rapier_core::collider::combine_rule::tests::test_average 32750
+rapier_core::collider::combine_rule::tests::test_average_candidates 2775930
+rapier_core::collider::combine_rule::tests::test_average_rounds_ties_to_even 28900
 rapier_core::collider::combine_rule::tests::test_clamped_sum 13620
 rapier_core::collider::combine_rule::tests::test_default_is_average 13620
 rapier_core::collider::combine_rule::tests::test_geometric_mean 36340

@@ -115,7 +115,7 @@ pub impl SolverBodyStoreImpl of SolverBodyStoreTrait {
     /// Requires `ref bodies` because the frozen set API logs dictionary reads. Refreshes mass
     /// properties and computes gravity/user-force increments at `params.substep_dt()` once.
     /// Kinematic velocities must already be prepared by the caller. Products floor, divisions
-    /// truncate; fixed overflow and zero solver-iteration panics propagate.
+    /// round to nearest; fixed overflow and zero solver-iteration panics propagate.
     fn from_bodies(
         ref bodies: RigidBodySet, gravity: Vec2, params: IntegrationParameters,
     ) -> (SolverBodyStore, SolverBodyIndexMap) {

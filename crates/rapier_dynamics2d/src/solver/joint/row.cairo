@@ -1,4 +1,4 @@
-//! Scalar row maths; fused dots floor once, multiplication floors, reciprocals truncate.
+//! Scalar row maths; fused dots floor once, multiplication floors, reciprocals round to nearest.
 use fixed::Fixed;
 use fixed::wide::dot4;
 use glam::Vec2;

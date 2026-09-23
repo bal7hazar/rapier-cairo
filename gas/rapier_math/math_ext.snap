@@ -41,8 +41,8 @@ rapier_math::math_ext::scalar::tests::gas_baseline 13620
 rapier_math::math_ext::scalar::tests::gas_cap_magnitude 17480
 rapier_math::math_ext::scalar::tests::gas_cap_magnitude_copysign 20420
 rapier_math::math_ext::scalar::tests::gas_copy_sign_to 16980
-rapier_math::math_ext::scalar::tests::gas_inv 17690
-rapier_math::math_ext::scalar::tests::gas_inv_is_zero 17690
+rapier_math::math_ext::scalar::tests::gas_inv 17990
+rapier_math::math_ext::scalar::tests::gas_inv_is_zero 21100
 rapier_math::math_ext::scalar::tests::gas_smallest_abs_component 18690
 rapier_math::math_ext::scalar::tests::gas_smallest_abs_component_abs 18310
 rapier_math::math_ext::scalar::tests::gas_smallest_abs_component_index 18690
@@ -50,9 +50,9 @@ rapier_math::math_ext::scalar::tests::test_cap_magnitude 13620
 rapier_math::math_ext::scalar::tests::test_cap_magnitude_copysign_panics_on_min 19100
 rapier_math::math_ext::scalar::tests::test_cap_magnitude_of_min 13620
 rapier_math::math_ext::scalar::tests::test_copy_sign_to 13620
-rapier_math::math_ext::scalar::tests::test_inv_of_one_ulp_panics 18190
+rapier_math::math_ext::scalar::tests::test_inv_of_one_ulp_panics 18490
 rapier_math::math_ext::scalar::tests::test_inv_of_zero_is_zero 13620
-rapier_math::math_ext::scalar::tests::test_inv_round_trip 13620
+rapier_math::math_ext::scalar::tests::test_inv_round_trip 38850
 rapier_math::math_ext::scalar::tests::test_smallest_abs_component 13620
 rapier_math::math_ext::scalar::tests::test_smallest_abs_component_abs_panics_on_min 17310
 rapier_math::math_ext::scalar::tests::test_smallest_abs_component_at_min 13620

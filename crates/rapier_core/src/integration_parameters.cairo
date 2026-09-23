@@ -12,8 +12,8 @@
 //! and friends evaluate it at the **substep** length, once per step, so that the substep loop only
 //! reads precomputed [`SoftnessCoefficients`].
 //!
-//! Rounding: `*` floors and `/` truncates toward zero like every `fixed::Fixed` operator (see the
-//! item docs); the spring coefficients follow the same rule, see [`spring`].
+//! Rounding: `*` floors and `/` rounds to nearest, ties to even like every `fixed::Fixed`
+//! operator (see the item docs); raw substep splitting truncates by construction.
 
 pub mod spring;
 use fixed::{Fixed, MAX, ONE, ZERO};
@@ -113,8 +113,8 @@ pub impl IntegrationParametersDefault of Default<IntegrationParameters> {
 /// Derived quantities of [`IntegrationParameters`].
 #[generate_trait]
 pub impl IntegrationParametersImpl of IntegrationParametersTrait {
-    /// Inverse of the step length (steps per second); zero when `dt` is zero. Truncated toward
-    /// zero (one `Fixed` division).
+    /// Inverse of the step length (steps per second); zero when `dt` is zero. Rounded to nearest
+    /// (one `Fixed` division).
     ///
     /// # Panics
     /// * `Fixed: overflow` if `1 / dt` exceeds the Q32.32 range (`dt < 2^-31`).
@@ -123,7 +123,7 @@ pub impl IntegrationParametersImpl of IntegrationParametersTrait {
     }
 
     /// Sets the step length from a frequency: `dt = 1 / inv_dt`, or zero when `inv_dt` is zero.
-    /// Truncated toward zero.
+    /// Rounded to nearest.
     ///
     /// # Panics
     /// * `Fixed: overflow` if `1 / inv_dt` exceeds the Q32.32 range.
@@ -141,7 +141,7 @@ pub impl IntegrationParametersImpl of IntegrationParametersTrait {
         Fixed { raw: self.dt.raw / self.num_solver_iterations.into() }
     }
 
-    /// Inverse of [`Self::substep_dt`]; zero when it is zero. Truncated toward zero.
+    /// Inverse of [`Self::substep_dt`]; zero when it is zero. Rounded to nearest.
     ///
     /// # Panics
     /// * `IntegrationParams: zero iters` if `num_solver_iterations` is zero.
@@ -265,7 +265,7 @@ mod alternatives {
         p.dt / FixedTrait::from_int(p.num_solver_iterations.try_into().unwrap())
     }
 
-    /// `1 / x` through [`RecipTrait`]: rounded to nearest instead of truncated, one more step.
+    /// `1 / x` through [`RecipTrait`]: a wide reciprocal multiply, one more step.
     pub fn inv_recip(x: Fixed) -> Fixed {
         if x.raw == 0 {
             ZERO
@@ -346,7 +346,7 @@ mod tests {
     fn test_set_inv_dt() {
         let mut p = defaults();
         p.set_inv_dt(Fixed { raw: 60 * 0x100000000 });
-        // 1 / 60 truncated toward zero.
+        // 1 / 60 rounded to nearest.
         assert_eq!(p.dt.raw, 71582788);
         p.set_inv_dt(ZERO);
         assert_eq!(p.dt, ZERO);
@@ -424,7 +424,7 @@ mod tests {
     fn test_alternatives_agree_with_shipped() {
         let p = defaults();
         assert_eq!(substep_dt_fixed_div(p), p.substep_dt());
-        // Nearest vs truncation differ by at most one ulp.
+        // The wide reciprocal multiply differs from `/` by at most one ulp.
         let d = inv_recip(p.dt).raw - p.inv_dt().raw;
         assert!(d >= 0 && d <= 1);
         assert_eq!(inv_recip(ZERO), ZERO);
@@ -484,7 +484,7 @@ mod tests {
     #[test]
     fn gas_static_contact_softness_coefficients() {
         let c: SoftnessCoefficients = opaque(defaults()).static_contact_softness_coefficients();
-        assert_eq!(c.cfm_factor.raw, 4171843512);
+        assert_eq!(c.cfm_factor.raw, 4171843511);
     }
 
     #[test]

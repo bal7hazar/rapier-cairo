@@ -65,7 +65,7 @@ pub impl RigidBodyMassPropsImpl of RigidBodyMassPropsTrait {
     /// The mass of the body, `inv(local_mprops.inv_mass)`; `0` for an infinite mass.
     ///
     /// # Returns
-    /// A non-negative mass, truncated toward zero (`Fixed::recip`).
+    /// A non-negative mass, rounded to nearest (`Fixed::recip`).
     /// # Panics
     /// * `'Fixed: overflow'` if the inverse mass is below `2^-31`, i.e. the mass above `2^31`.
     #[inline(always)]

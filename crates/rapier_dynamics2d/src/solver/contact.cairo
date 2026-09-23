@@ -5,8 +5,8 @@
 //! then tangents in element order. `solve_restitution` means solve normal rows (upstream name).
 //!
 //! All arithmetic is checked Q32.32: fused Jacobian dots floor once, scalar products floor,
-//! divisions truncate. Overflow panics come from fixed/core; masses and coefficients must be
-//! nonnegative and all intermediates representable. Normals must be unit. Masses, dt, softness,
+//! divisions round to nearest. Overflow panics come from fixed/core; masses and coefficients must
+//! be nonnegative and all intermediates representable. Normals must be unit. Masses, dt, softness,
 //! manifold membership and body-array ordering are frozen until the next `generate`.
 mod element;
 mod set;

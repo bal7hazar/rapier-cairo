@@ -20,8 +20,9 @@
 //! is the plain `Fixed` operator chain above, in that order, except that `cfm_coeff` is evaluated
 //! as `(1 / x) / (x + 2ζ)` instead of `1 / (x · (x + 2ζ))`: the product reaches `1e10` for the
 //! default joint softness at 60 Hz with one substep, beyond the Q32.32 range, while the quotient
-//! form never overflows for a valid result. Every `*` floors and every `/` truncates. With `dt`
-//! already a Q32.32 value the outputs of the three default springs are within 1 ulp of the `f64`
+//! form never overflows for a valid result. Every `*` floors and every `/` rounds to nearest,
+//! ties to even. With `dt` already a Q32.32 value the outputs of the three default springs are
+//! within 1 ulp of the `f64`
 //! upstream, including the joint softness whose `cfm_coeff` is only ~6 ulp: Q32.32 reproduces
 //! the coefficients, the (unavoidable) coarseness is the *resolution* of `cfm_coeff` itself.
 //!
@@ -54,10 +55,10 @@ pub struct SpringCoefficients {
 }
 
 /// The four quantities the solver reads per constraint, evaluated at one step length `dt`
-/// (normally the substep length). Every field is floored or truncated, see the field docs.
+/// (normally the substep length). Every field is floored or rounded, see the field docs.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct SoftnessCoefficients {
-    /// `ω / (dt · ω + 2ζ)`: [`Self::erp`] divided by the step length. Truncated.
+    /// `ω / (dt · ω + 2ζ)`: [`Self::erp`] divided by the step length. Rounded to nearest.
     pub erp_inv_dt: Fixed,
     /// Error reduction parameter `dt · erp_inv_dt = dt · ω / (dt · ω + 2ζ)`, in `[0, 1]`.
     /// Floored.
@@ -68,7 +69,7 @@ pub struct SoftnessCoefficients {
     /// [`Self::cfm_factor`] for anything that scales with impulses.
     pub cfm_coeff: Fixed,
     /// `1 / (1 + cfm_coeff)`, in `[0, 1]`: the factor the impulse update multiplies by, computed
-    /// from the truncated `cfm_coeff`. Truncated.
+    /// from the rounded `cfm_coeff`. Rounded to nearest.
     pub cfm_factor: Fixed,
 }
 
@@ -115,7 +116,8 @@ pub impl SpringCoefficientsImpl of SpringCoefficientsTrait {
         self.natural_frequency * TAU
     }
 
-    /// `erp / dt`, i.e. `ω / (dt · ω + 2ζ)`, truncated. At `dt = 0` this is `ω / 2ζ`.
+    /// `erp / dt`, i.e. `ω / (dt · ω + 2ζ)`, rounded to nearest. At `dt = 0` this is `ω /
+    /// 2ζ`.
     ///
     /// # Panics
     /// * `Spring: negative input` if an input is negative.
@@ -136,7 +138,7 @@ pub impl SpringCoefficientsImpl of SpringCoefficientsTrait {
         dt * quotient_erp_inv_dt(omega, denom)
     }
 
-    /// `1 / (dt · ω · (dt · ω + 2ζ))`, truncated; zero when `erp` is zero.
+    /// `1 / (dt · ω · (dt · ω + 2ζ))`, rounded to nearest; zero when `erp` is zero.
     ///
     /// # Panics
     /// * The panics of [`Self::erp_inv_dt`].
@@ -149,7 +151,7 @@ pub impl SpringCoefficientsImpl of SpringCoefficientsTrait {
         cfm_of(erp, x, denom)
     }
 
-    /// `1 / (1 + cfm_coeff)` in `[0, 1]`, truncated; one when `erp` is zero.
+    /// `1 / (1 + cfm_coeff)` in `[0, 1]`, rounded to nearest; one when `erp` is zero.
     ///
     /// # Panics
     /// * The panics of [`Self::cfm_coeff`].
@@ -445,9 +447,9 @@ mod tests {
         assert_eq!(
             got,
             SoftnessCoefficients {
-                erp_inv_dt: Fixed { raw: 38949567192 },
+                erp_inv_dt: Fixed { raw: 38949567193 },
                 erp: Fixed { raw: 162289862 },
-                cfm_coeff: Fixed { raw: 263094417 },
+                cfm_coeff: Fixed { raw: 263094418 },
                 cfm_factor: Fixed { raw: 4047058867 },
             },
         );
@@ -474,7 +476,7 @@ mod tests {
         assert_eq!(got.erp, ZERO);
         assert_eq!(got.cfm_coeff, ZERO);
         assert_eq!(got.cfm_factor, ONE);
-        assert_eq!(got.erp_inv_dt.raw, 40479113113); // ω / 20, truncated
+        assert_eq!(got.erp_inv_dt.raw, 40479113114); // ω / 20, rounded to nearest
         assert_eq!(s.erp(ZERO), ZERO);
         assert_eq!(s.cfm_coeff(ZERO), ZERO);
         assert_eq!(s.cfm_factor(ZERO), ONE);
@@ -504,7 +506,7 @@ mod tests {
 
     #[test]
     fn test_large_x_underflows_to_unit_factor() {
-        // dt = 1/60 on the joint spring (one substep): x ≈ 1e5, cfm_coeff ≈ 1e-10 truncates to
+        // dt = 1/60 on the joint spring (one substep): x ≈ 1e5, cfm_coeff ≈ 1e-10 rounds to
         // 0 and the factor to exactly 1. The product form `1 / (x · denom)` overflows on this
         // input.
         let dt = Fixed { raw: 71582788 };
@@ -670,13 +672,13 @@ mod tests {
     #[test]
     fn gas_erp_inv_dt() {
         let s = opaque(SpringCoefficientsTrait::contact_defaults());
-        assert_eq!(s.erp_inv_dt(opaque(SUBSTEP)).raw, 38949567192);
+        assert_eq!(s.erp_inv_dt(opaque(SUBSTEP)).raw, 38949567193);
     }
 
     #[test]
     fn gas_cfm_coeff() {
         let s = opaque(SpringCoefficientsTrait::contact_defaults());
-        assert_eq!(s.cfm_coeff(opaque(SUBSTEP)).raw, 263094417);
+        assert_eq!(s.cfm_coeff(opaque(SUBSTEP)).raw, 263094418);
     }
 
     #[test]

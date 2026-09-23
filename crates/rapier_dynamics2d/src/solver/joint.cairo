@@ -2,7 +2,7 @@
 //! remove_bias, relaxed solve, writeback_impulses. Array order must remain fixed until discard.
 //! Body poses are at CoM: callers must shift body-local joint translations by local_com first.
 //! D4: CFM below 8 Q32.32 ulp becomes zero, preserving computed ERP. Products/dots floor;
-//! reciprocals truncate. All intermediates must fit Fixed; nonnegative masses required.
+//! reciprocals round to nearest. All intermediates must fit Fixed; nonnegative masses required.
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};

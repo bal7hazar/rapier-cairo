@@ -9,9 +9,10 @@ license = "MIT"
 repository = "https://github.com/bal7hazar/rapier.cairo"
 
 [workspace.dependencies]
-# Shared Q32.32 scalar from glam.cairo (docs/PLAN.md D12), pinned to a commit of its main branch.
-fixed = { git = "https://github.com/bal7hazar/glam.cairo", rev = "ce18a0b501970b67cf711214a79bb309136c3c65" }
-glam = { git = "https://github.com/bal7hazar/glam.cairo", rev = "ce18a0b501970b67cf711214a79bb309136c3c65" }
+# Shared Q32.32 scalar and vector types from glam.cairo (docs/PLAN.md D12), released on scarbs.xyz.
+# Pre-1.0: a MINOR bump may change numeric results (glam.cairo DESIGN §6), so it is its own PR.
+fixed = "0.3.0"
+glam = "0.3.0"
 snforge_std = "0.61.0"
 assert_macros = "2.19.4"
 
