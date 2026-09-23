@@ -383,7 +383,7 @@ fn test_box_slope_golden_samples() {
         compare_sample(b, s, sample);
         sample += 1;
         while frame != s.num_steps {
-            m = box_manifold(m, *bs.at(0), normal, HALF, friction, true);
+            m = box_manifold(m, *bs.at(0), normal, HALF, friction, false);
             let mut ms = array![m];
             step(ref bs, ref ms, FixedTrait::from_raw(s.gravity.y));
             m = *ms.at(0);
@@ -424,7 +424,7 @@ fn test_box_slope_first_contact_velocities() {
         let mut m = Default::default();
         let mut frame = 0;
         while frame != 3 {
-            m = box_manifold(m, *bs.at(0), normal, HALF, friction, true);
+            m = box_manifold(m, *bs.at(0), normal, HALF, friction, false);
             let mut ms = array![m];
             step(ref bs, ref ms, FixedTrait::from_raw(s.gravity.y));
             m = *ms.at(0);
