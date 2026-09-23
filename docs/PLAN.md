@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.15, 2026-09-23** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.16, 2026-09-24** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -154,6 +154,16 @@ dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k step
 pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
 Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
 brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
+
+GS ✅ (#66, claude opus): scene traces regenerated from a vendored `parry2d-f64 0.30.2` with correct f64
+cuboid feature ids (`>> 63 / >> 62`; 2.9 MB under `tools/golden/vendor/`); ball_drop, ball_bounce, pendulum
+unchanged; **box_slope_stick passes** all 22 samples; **box_slope_slide** stays `#[ignore]`d on an exact tie:
+at step 4, substep 1 the second point's refreshed gap is exactly `0` raw, so the port takes upstream's
+`dist <= 0` soft branch where the f64 residue fell on the rigid side (solving that one row rigidly passes
+every sample) — a legitimate fixed-vs-float divergence; **box_stack3** still fails the strict per-sample
+comparison (passes the rest invariants): candidate cause = constraint order (D8 pair order vs upstream's
+interaction-graph order), to investigate later. Launched: **OP** (per-body pipeline overhead, brief
+`op-pipeline-per-body.md`, claude opus) next to OS.
 
 DM ✅ (#63, claude opus): common-midpoint lever arms as upstream — slope step-3 tangent inverse effective
 mass 1708349406 vs upstream 1708349407 raw (was 1717986916); +5.5k gas per generated point. BX ✅ (#64,
