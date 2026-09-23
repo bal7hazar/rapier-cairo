@@ -16,10 +16,16 @@ path = "src/main.rs"
 rapier2d-f64 = { version = "=0.35.3", default-features = false, features = ["dim2", "f64", "std", "enhanced-determinism"] }
 # rapier2d-f64 0.35.3 depends on parry2d-f64 ^0.30.2; pinning it here keeps a single parry in the lock.
 parry2d-f64 = { version = "=0.30.2", features = ["enhanced-determinism"] }
-# f32 build, used ONLY to read cuboid feature ids: `Cuboid::vertex_feature_id` reads bit 31 of the
-# float, which is the sign bit in f32 but a mantissa bit in f64 (see README, "Feature ids").
+# f32 build, used ONLY to read cuboid feature ids: the published `Cuboid::vertex_feature_id` reads
+# bit 31 of the float, the sign bit in f32 but a mantissa bit in f64 (see README, "Feature ids").
+# The vendored f64 copy below is fixed; the f32 ids stay as an independent cross-check.
 parry2d = { version = "=0.30.2", features = ["enhanced-determinism"] }
 serde_json = { version = "1", features = ["float_roundtrip", "preserve_order"] }
 
 [profile.release]
 codegen-units = 1
+
+# Vendored parry2d-f64 0.30.2 with the f64 cuboid feature-id fix (see vendor/README.md).
+# Rapier's own dependency on parry2d-f64 resolves to this copy too, so the scenes use correct ids.
+[patch.crates-io]
+parry2d-f64 = { path = "vendor/parry2d-f64" }

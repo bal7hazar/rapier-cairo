@@ -4,7 +4,9 @@
 //!
 //! Tolerances (`tools/golden/README.md`): `2^12 · step` ulp on positions and rotations, twice
 //! that on velocities. `box_stack3` is judged on its rest invariants (multi-contact solver order
-//! differs from upstream by construction); its sample deviations are still measured and printed.
+//! differs from upstream by construction); its sample deviations are still measured and printed
+//! (GS: with correct feature ids in the references the strict comparison still fails, 12 and 3
+//! samples in the two windows).
 //! Every step also checks the run invariants: fixed bodies never move, energy never increases
 //! (`ball_drop`, `box_stack3`), the pendulum rod keeps its length.
 //!
@@ -365,16 +367,18 @@ fn test_ball_bounce() {
     replay("ball_bounce", scenes::BALL_BOUNCE, 0, 120, Judge::Samples, NONE);
 }
 
-/// SD diagnosis: surface-point lever arms diverge at step 3; upstream f64 duplicate IDs
-/// corrupt warm starts from step 4. See README slope diagnosis and `slope_diagnostics`.
+/// Passes since DM (common-midpoint lever arms) and GS (references with correct cuboid feature
+/// ids): max 221 / 121 ulp on translation, 6014 ulp on angular velocity.
 #[test]
-#[ignore]
 fn test_box_slope_stick() {
     replay("box_slope_stick", scenes::BOX_SLOPE_STICK, 0, 120, Judge::Samples, NONE);
 }
 
-/// SD diagnosis: transient substep velocities differ even when final linear velocities
-/// agree within 2e3 ulp. Midpoint and f64-ID counterfactuals isolate both causes.
+/// GS: samples 4–8 exceed the tolerance (step 4: vy 514 352 ulp for 32 768 allowed), then the
+/// trace reconverges (step 120: 2479 / 1431 ulp). Cause: at step 4 substep 1 a speculative
+/// contact closed by the previous substep has a gap of exactly `0` in Q32.32, which the port
+/// solves softly (`dist <= 0`), while upstream's f64 residue came out `> 0` (rigid). Solving that
+/// one row rigidly passes every sample (`slope_diagnostics::test_slide_zero_gap_counterfactual`).
 #[test]
 #[ignore]
 fn test_box_slope_slide() {

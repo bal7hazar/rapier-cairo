@@ -303,7 +303,7 @@ fn replay(scene: SceneCase) {
             } else if scene.id == 'ball_drop' || scene.id == 'ball_bounce' {
                 ball_manifold(m, b, f(co.restitution))
             } else {
-                box_manifold(m, b, normal, HALF, f(co.friction), true)
+                box_manifold(m, b, normal, HALF, f(co.friction), false)
             };
         let mut ms = array![m];
         step(ref bodies, ref ms, ref js, p, gravity);

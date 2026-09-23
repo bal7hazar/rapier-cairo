@@ -730,8 +730,8 @@
                 "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
                 "fid1": { "packed": 3221225528, "kind": "face", "code": 56 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225528, "kind": "face", "code": 56 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               },
               {
                 "local_p1": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
@@ -740,7 +740,7 @@
                 "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
                 "fid2": { "packed": 3221225533, "kind": "face", "code": 61 },
                 "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225533, "kind": "face", "code": 61 }
               }
             ]
           }
@@ -773,8 +773,8 @@
                 "dist": { "f64": 0.0, "raw": 0 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225533, "kind": "face", "code": 61 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225533, "kind": "face", "code": 61 }
               },
               {
                 "local_p1": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
@@ -783,7 +783,7 @@
                 "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
                 "fid2": { "packed": 3221225533, "kind": "face", "code": 61 },
                 "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225533, "kind": "face", "code": 61 }
               }
             ]
           }
@@ -819,8 +819,8 @@
                 "dist": { "f64": 0.419615242359696, "raw": 1802233743 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225533, "kind": "face", "code": 61 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225533, "kind": "face", "code": 61 }
               },
               {
                 "local_p1": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
@@ -832,7 +832,7 @@
                 "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
                 "fid2": { "packed": 3221225533, "kind": "face", "code": 61 },
                 "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225533, "kind": "face", "code": 61 }
               }
             ]
           }
@@ -872,7 +872,7 @@
                 "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
                 "fid2": { "packed": 3221225534, "kind": "face", "code": 62 },
                 "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 }
               },
               {
                 "local_p1": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
@@ -883,8 +883,8 @@
                 "dist": { "f64": -1.00710678123869, "raw": -4325490689 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -917,8 +917,8 @@
                 "dist": { "f64": -1.0, "raw": -4294967296 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               },
               {
                 "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
@@ -926,8 +926,8 @@
                 "dist": { "f64": -1.0, "raw": -4294967296 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -964,7 +964,7 @@
                 "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
                 "fid2": { "packed": 3221225534, "kind": "face", "code": 62 },
                 "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 }
               },
               {
                 "local_p1": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
@@ -972,8 +972,8 @@
                 "dist": { "f64": 0.0, "raw": 0 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -1006,8 +1006,8 @@
                 "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               },
               {
                 "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
@@ -1015,8 +1015,8 @@
                 "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
               }
             ]
           }
@@ -1083,7 +1083,7 @@
                 "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               },
               {
@@ -1131,7 +1131,7 @@
                 "dist": { "f64": 0.0, "raw": 0 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               },
               {
@@ -1182,7 +1182,7 @@
                 "dist": { "f64": 0.3598076211395953, "raw": 1545361966 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               },
               {
@@ -1233,7 +1233,7 @@
                 "dist": { "f64": -0.6499999999068677, "raw": -2791728742 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
               },
               {
@@ -1242,7 +1242,7 @@
                 "dist": { "f64": -0.6499999999068677, "raw": -2791728742 },
                 "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               }
             ]
@@ -1281,7 +1281,7 @@
                 "dist": { "f64": -1.25, "raw": -5368709120 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               },
               {
@@ -1967,7 +1967,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               },
               {
                 "local_p1": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
@@ -1976,7 +1976,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -2010,7 +2010,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               },
               {
                 "local_p1": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
@@ -2019,7 +2019,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -2053,7 +2053,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -2090,7 +2090,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               },
               {
                 "local_p1": { "f64": [-0.35355339059606194, 0.0], "raw": [-1518500250, 0] },
@@ -2099,7 +2099,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -2136,7 +2136,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               },
               {
                 "local_p1": { "f64": [-0.9911214919993654, 0.0], "raw": [-4256834395, 0] },
@@ -2145,7 +2145,7 @@
                 "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
                 "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
                 "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
               }
             ]
           }
@@ -2621,7 +2621,7 @@
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225528, "kind": "face", "code": 56 },
                 "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225528, "kind": "face", "code": 56 }
               },
               {
                 "local_p1": { "f64": [-0.25, -0.39999999990686774], "raw": [-1073741824, -1717986918] },
@@ -2630,7 +2630,7 @@
                 "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
                 "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
               }
             ]
           }
@@ -3191,7 +3191,7 @@
                 "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               },
               {
@@ -3238,7 +3238,7 @@
                 "dist": { "f64": 0.0, "raw": 0 },
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               },
               {
@@ -3297,7 +3297,7 @@
                 "dist": { "f64": 0.014142135636901842, "raw": 60740010 },
                 "fid1": null,
                 "fid2": null,
-                "fid1_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 },
+                "fid1_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 },
                 "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
               }
             ]
@@ -3344,7 +3344,7 @@
                 "dist": { "f64": -0.5, "raw": -2147483648 },
                 "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               }
             ]
@@ -3391,7 +3391,7 @@
                 "dist": { "f64": 0.0, "raw": 0 },
                 "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
                 "fid2": { "packed": 3221225473, "kind": "face", "code": 1 },
-                "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 },
                 "fid2_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 }
               }
             ]
@@ -3516,7 +3516,7 @@
                 "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
                 "fid2": { "packed": 3221225528, "kind": "face", "code": 56 },
                 "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225528, "kind": "face", "code": 56 }
               },
               {
                 "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
@@ -3525,7 +3525,7 @@
                 "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
                 "fid2": { "packed": 3221225528, "kind": "face", "code": 56 },
                 "fid1_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 },
-                "fid2_f64_build": { "packed": 3221225520, "kind": "face", "code": 48 }
+                "fid2_f64_build": { "packed": 3221225528, "kind": "face", "code": 56 }
               }
             ]
           }
