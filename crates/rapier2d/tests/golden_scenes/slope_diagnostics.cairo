@@ -1,18 +1,25 @@
-//! SD: isolate geometry, solver arms and integration without changing the engine.
+//! SD / GS: isolate geometry, solver arms and integration of the two slope scenes without
+//! changing the engine. Since GS the references carry correct cuboid feature ids, so the f64
+//! duplicate-id emulation is gone; what remains is a public-API tracer of the single slope pair,
+//! checked bit for bit against `pipeline::solve`, and one counterfactual: upstream switches a
+//! normal row to rigid when its refreshed gap is `> 0`, and a speculative contact that the
+//! previous substep closed exactly sits at a gap of `0` in Q32.32 but at an f64 rounding residue
+//! of either sign upstream.
 use glam::Vec2Trait;
 use rapier2d::pipeline;
 use rapier2d::prelude::{RigidBodyTrait, Vec2, World, WorldTrait};
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_dynamics2d::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use rapier_dynamics2d::solver::body::SolverBody;
-use rapier_dynamics2d::solver::contact::ContactConstraintTrait;
+use rapier_dynamics2d::solver::contact::{ContactConstraint, ContactConstraintTrait};
 use rapier_geometry2d::contact::{ContactManifold, NEW_CONTACT_BIT};
-use rapier_geometry2d::manifold::ManifoldTrait;
 use rapier_golden::compare::abs_diff;
 use rapier_golden::scenes;
-use rapier_math::pose2::Pose2Trait;
 use super::builder::{body_handle, build_world, f};
 use super::{Stats, compare};
+
+/// `1` in Q32.32.
+const ONE: i64 = 0x100000000;
 
 fn geometry(m: ContactManifold) {
     println!("normal {:?} {:?}; world {:?}", m.local_n1, m.local_n2, m.data.normal);
@@ -52,8 +59,13 @@ fn geometry(m: ContactManifold) {
 }
 
 /// Public DC calls in DF order, specific to this single pair, with no joints/damping/caps.
-/// Cross-checked against the actual pipeline solve below so a diagnostic drift fails loudly.
-fn trace(ref world: World, m: ContactManifold) -> SolverBody {
+/// Cross-checked against the actual pipeline solve so a diagnostic drift fails loudly.
+/// With `zero_rigid`, a normal row whose refreshed gap is exactly zero (`rhs == 0`: a gap of
+/// -1 raw already gives `rhs <= -17`) is solved rigidly, as upstream does when its f64 gap
+/// rounds to `+0`. Returns the solved body, the constraint and the number of such rows.
+fn trace(
+    ref world: World, m: ContactManifold, zero_rigid: bool, verbose: bool,
+) -> (SolverBody, ContactConstraint, u32) {
     let rb = world.body(body_handle(1)).unwrap();
     let b = SolverBody {
         handle: body_handle(1),
@@ -68,166 +80,156 @@ fn trace(ref world: World, m: ContactManifold) -> SolverBody {
     let p = world.integration_parameters;
     let dt = p.substep_dt();
     let mut c = ContactConstraintTrait::generate(m, bodies.span(), p, dt);
-    println!(
-        "coeff invdt {} erp_invdt {} cfm {}", c.inv_dt.raw, c.erp_inv_dt.raw, c.soft_cfm_factor.raw,
-    );
-    for e in c.elements.span() {
+    if verbose {
         println!(
-            "row ng {} {} nr {} tg {} {} tr {} base {}",
-            e.normal_part.gcross1.raw,
-            e.normal_part.gcross2.raw,
-            e.normal_part.r.raw,
-            e.tangent_part.gcross1.raw,
-            e.tangent_part.gcross2.raw,
-            e.tangent_part.r.raw,
-            e.dist.raw,
+            "coeff invdt {} erp_invdt {} cfm {}",
+            c.inv_dt.raw,
+            c.erp_inv_dt.raw,
+            c.soft_cfm_factor.raw,
         );
     }
+    let mut flips = 0;
     let mut sub = 0;
     while sub != p.num_solver_iterations {
         let mut b = *bodies.at(1);
         b.linvel = b.linvel + world.gravity.mul_scalar(dt);
         bodies = array![fixed_body, b];
         c.update(p, bodies.span(), m);
-        println!(
-            "rhs {} {}",
-            c.elements.span().at(0).normal_part.rhs.raw,
-            c.elements.span().at(1).normal_part.rhs.raw,
-        );
+        let [mut e0, mut e1] = c.elements;
+        if zero_rigid && e0.normal_part.rhs == f(0) && e0.normal_part.cfm_factor != f(ONE) {
+            e0.normal_part.cfm_factor = f(ONE);
+            flips += 1;
+        }
+        if zero_rigid
+            && c.num_elements == 2
+            && e1.normal_part.rhs == f(0)
+            && e1.normal_part.cfm_factor != f(ONE) {
+            e1.normal_part.cfm_factor = f(ONE);
+            flips += 1;
+        }
+        c.elements = [e0, e1];
         c.warmstart(ref bodies);
         c.solve(ref bodies, true, p.friction_in_bias_pass);
         let mut b = *bodies.at(1);
-        println!(
-            "sub {} integrate v {} {} w {}", sub, b.linvel.x.raw, b.linvel.y.raw, b.angvel.raw,
-        );
+        if verbose {
+            println!(
+                "sub {} rhs {} {} integrate v {} {} w {}",
+                sub,
+                e0.normal_part.rhs.raw,
+                e1.normal_part.rhs.raw,
+                b.linvel.x.raw,
+                b.linvel.y.raw,
+                b.angvel.raw,
+            );
+        }
         b
             .position = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel }
             .integrate(dt, b.position, Default::default());
         bodies = array![fixed_body, b];
         c.update_rhs_wo_bias(bodies.span());
         c.solve(ref bodies, true, true);
-        let b = *bodies.at(1);
-        println!("sub {} relaxed v {} {} w {}", sub, b.linvel.x.raw, b.linvel.y.raw, b.angvel.raw);
         sub += 1;
     }
     c.apply_restitution(ref bodies);
-    *bodies.at(1)
+    (*bodies.at(1), c, flips)
 }
 
-// Modes: 0 current engine (midpoint arms since DM); 1 same; 2 plus f64 last-match aliasing.
-fn diagnostic_step(ref world: World, mode: u8, verbose: bool) {
+/// One `World::step` split into its pipeline stages. Engine mode solves with the pipeline and,
+/// when `verbose`, also traces the single slope pair with the public constraint API and asserts
+/// that the pipeline reproduces the trace bit for bit. The `zero_rigid` counterfactual always
+/// traces and writes the traced state and impulses back instead of solving (one solve per step
+/// keeps 120 steps within the VM budget). Returns the number of counterfactual rows.
+fn diagnostic_step(ref world: World, zero_rigid: bool, verbose: bool) -> u32 {
     pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
-    let old = if world.narrow_phase.pairs.is_empty() {
-        None
-    } else {
-        Some(*world.narrow_phase.pairs.at(0).manifold)
-    };
-    let pos12 = world
-        .body(body_handle(0))
-        .unwrap()
-        .position()
-        .inv_mul(world.body(body_handle(1)).unwrap().position());
-    let old_last = match old {
-        Some(mut m) => {
-            let last = *m.points.span().at(1);
-            if mode == 2 && !m.try_update_contacts(pos12) {
-                Some(last.data)
-            } else {
-                None
-            }
-        },
-        None => None,
-    };
     let _ = pipeline::detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );
-    // DM moved the shared-midpoint lever arms into the engine: mode 1 is now mode 0.
-    if mode != 0 {
-        let mut pairs = array![];
-        while let Some(mut pair) = world.narrow_phase.pairs.pop_front() {
-            if let Some(data) = old_last {
-                println!(
-                    "f64 alias warm {} {}",
-                    data.warmstart_impulse.raw,
-                    data.warmstart_tangent_impulse.raw,
-                );
-                let [mut p0, mut p1] = pair.manifold.points;
-                p0.data = data;
-                p1.data = data;
-                pair.manifold.points = [p0, p1];
-                let [mut c0, mut c1] = pair.manifold.data.solver_contacts;
-                c0.contact_id = if data.impulse.raw == 0 {
-                    NEW_CONTACT_BIT
-                } else {
-                    0
-                };
-                c1.contact_id = c0.contact_id + 1;
-                pair.manifold.data.solver_contacts = [c0, c1];
-            }
-            pairs.append(pair);
-        }
-        world.narrow_phase.pairs = pairs;
-    }
-    let expected = if verbose {
-        let m = *world.narrow_phase.pairs.at(0).manifold;
-        geometry(m);
-        Some(trace(ref world, m))
-    } else {
+    let traced = if world.narrow_phase.pairs.is_empty() {
         None
+    } else {
+        let m = *world.narrow_phase.pairs.at(0).manifold;
+        if verbose {
+            geometry(m);
+        }
+        if m.data.num_solver_contacts == 0 || !(zero_rigid || verbose) {
+            None
+        } else {
+            Some((m, trace(ref world, m, zero_rigid, verbose)))
+        }
     };
-    pipeline::solve(
-        world.gravity,
-        world.integration_parameters,
-        ref world.bodies,
-        ref world.narrow_phase,
-        ref world.impulse_joints,
-    );
-    pipeline::advance_to_final_positions(ref world.bodies, ref world.colliders);
-    if let Some(b) = expected {
-        let rb = world.body(body_handle(1)).unwrap();
-        println!(
-            "position {} {} rotation {} {}",
-            b.position.translation.x.raw,
-            b.position.translation.y.raw,
-            b.position.rotation.re.raw,
-            b.position.rotation.im.raw,
+    let flips = match traced {
+        Some((_, (_, _, n))) => n,
+        None => 0,
+    };
+    let adopt = zero_rigid && traced.is_some();
+    if !adopt {
+        pipeline::solve(
+            world.gravity,
+            world.integration_parameters,
+            ref world.bodies,
+            ref world.narrow_phase,
+            ref world.impulse_joints,
         );
+    } else if let Some((m, (b, c, _))) = traced {
+        let mut solved = array![m];
+        c.writeback_impulses(ref solved);
+        let mut pair = world.narrow_phase.pairs.pop_front().unwrap();
+        pair.manifold = *solved.at(0);
+        world.narrow_phase.pairs = array![pair];
+        let mut rb = world.body(body_handle(1)).unwrap();
+        rb.pos.next_position = b.position;
+        rb.vels = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel };
+        assert!(world.set_body(body_handle(1), rb));
+    }
+    pipeline::advance_to_final_positions(ref world.bodies, ref world.colliders);
+    if let Some((_, (b, _, _))) = traced {
+        // Engine mode: the cross-check; counterfactual: the write-back reached the body.
+        let rb = world.body(body_handle(1)).unwrap();
         assert_eq!(rb.position(), b.position);
         assert_eq!(rb.linvel(), b.linvel);
         assert_eq!(rb.vels.angvel, b.angvel);
     }
+    flips
 }
 
+/// Upstream samples beyond tolerance over steps 1–10 per scene and mode (engine, zero-gap
+/// rigid counterfactual), and the counterfactual rows it needed.
 #[test]
-fn test_slope_first_contact_and_f64_matching() {
-    for scene in array![scenes::BOX_SLOPE_STICK, scenes::BOX_SLOPE_SLIDE] {
-        for mode in array![0_u8, 1, 2] {
-            println!("scene {} mode {}", scene.id, mode);
+fn test_slope_first_steps() {
+    for (scene, want_engine, want_cf) in array![
+        (scenes::BOX_SLOPE_STICK, 0_u32, 0_u32), (scenes::BOX_SLOPE_SLIDE, 5, 0),
+    ] {
+        for zero_rigid in array![false, true] {
+            println!("scene {} zero_rigid {}", scene.id, zero_rigid);
             let mut world = build_world(scene);
             let mut stats: Stats = Default::default();
+            let mut flips = 0;
             let mut step = 1_u32;
             while step != 11 {
-                diagnostic_step(ref world, mode, step == 3);
+                let n = diagnostic_step(ref world, zero_rigid, step == 3 || step == 4);
+                if n != 0 {
+                    println!("step {}: {} zero-gap rows solved rigidly", step, n);
+                }
+                flips += n;
                 stats = compare(ref world, scene, *scene.samples.span().at(step), stats);
                 if step == 3 {
-                    assert_eq!(stats.violations, 0, "midpoint recovers first contact");
-                    let m = *world.narrow_phase.pairs.at(0).manifold;
-                    assert_first_geometry(m);
+                    assert_eq!(stats.violations, 0, "first contact within tolerance");
+                    assert_first_geometry(*world.narrow_phase.pairs.at(0).manifold);
                 }
                 step += 1;
             }
-            println!("violations {}", stats.violations);
-            assert_eq!(stats.violations, if mode != 2 {
-                7
+            println!("violations {} zero-gap rows {}", stats.violations, flips);
+            assert_eq!(stats.violations, if zero_rigid {
+                want_cf
             } else {
-                0
+                want_engine
             });
         }
     }
 }
 
-// Upstream step 3 in scenes.json, identical for both materials. IDs intentionally retain
-// the port's correct f32 sign-bit convention instead of the f64 duplicate-ID bug.
+/// Upstream step 3 in scenes.json, identical for both materials. Since GS the references carry
+/// the corrected f64 feature ids, equal to the port's.
 fn assert_first_geometry(m: ContactManifold) {
     assert_eq!(m.num_points, 2);
     assert_eq!(m.data.num_solver_contacts, 2);
@@ -248,45 +250,34 @@ fn assert_first_geometry(m: ContactManifold) {
     }
 }
 
+/// The whole slide trace under the zero-gap counterfactual: every sample within tolerance.
 #[test]
-fn test_slide_late_integration() {
-    late(scenes::BOX_SLOPE_SLIDE, 0);
-}
-
-#[test]
-fn test_slide_f64_counterfactual() {
-    late(scenes::BOX_SLOPE_SLIDE, 2);
-}
-
-#[test]
-fn test_stick_f64_counterfactual() {
-    late(scenes::BOX_SLOPE_STICK, 2);
-}
-
-fn late(scene: rapier_golden::types::SceneCase, mode: u8) {
+fn test_slide_zero_gap_counterfactual() {
+    let scene = scenes::BOX_SLOPE_SLIDE;
     let mut world = build_world(scene);
-    let mut step = 1_u32;
-    let mut next = 1;
     let mut stats: Stats = Default::default();
+    let mut flips = 0;
+    let mut next = 1;
+    let mut step = 1_u32;
     while step != 121 {
-        diagnostic_step(ref world, mode, step == 120);
-        if step == 119 {
-            let b = world.body(body_handle(1)).unwrap();
-            println!(
-                "position119 {} {}", b.position().translation.x.raw, b.position().translation.y.raw,
-            );
-        }
+        flips += diagnostic_step(ref world, true, false);
         if *scene.samples.span().at(next).step == step {
             stats = compare(ref world, scene, *scene.samples.span().at(next), stats);
             next += 1;
         }
         step += 1;
     }
-    if mode == 2 {
-        assert_eq!(stats.violations, 0, "f64 counterfactual recovers all samples");
-    } else {
-        let last = compare(ref world, scene, *scene.samples.span().at(21), Default::default());
-        assert!(last.vx.ulps <= 2000 && last.vy.ulps <= 2000);
-        assert!(last.tx.ulps > 4096 * 120 && last.ty.ulps > 4096 * 120);
-    }
+    println!(
+        "zero-gap rows {}; max ulps tx {} ty {} re {} im {} vx {} vy {} w {}",
+        flips,
+        stats.tx.ulps,
+        stats.ty.ulps,
+        stats.re.ulps,
+        stats.im.ulps,
+        stats.vx.ulps,
+        stats.vy.ulps,
+        stats.w.ulps,
+    );
+    assert!(flips != 0);
+    assert_eq!(stats.violations, 0, "zero-gap counterfactual recovers all samples");
 }
