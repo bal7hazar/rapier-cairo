@@ -32,15 +32,52 @@ jobs:
       - run: scarb build --workspace
 
   test:
+    # One job per crate group: the test crates are the compile-time bottleneck (docs/PLAN.md), so
+    # they build in parallel; the `gas` job checks the snapshot on the merged logs.
+    name: test (${{ matrix.group }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: core-math-golden
+            packages: rapier_testing rapier_math rapier_core rapier_golden
+          - group: geometry2d
+            packages: rapier_geometry2d
+          - group: dynamics2d
+            packages: rapier_dynamics2d
+          - group: rapier2d
+            packages: rapier2d
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
       - uses: foundry-rs/setup-snfoundry@v6
       - name: Run tests
-        run: snforge test --workspace --tracked-resource sierra-gas | tee snforge.log
+        run: |
+          set -o pipefail
+          : > snforge-${{ matrix.group }}.log
+          for p in ${{ matrix.packages }}; do
+            snforge test -p "$p" --tracked-resource sierra-gas | tee -a snforge-${{ matrix.group }}.log
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snforge-${{ matrix.group }}
+          path: snforge-${{ matrix.group }}.log
+
+  gas:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: snforge-*
+          merge-multiple: true
       - name: Check gas snapshot
-        run: python3 scripts/gas.py check --from-log snforge.log
+        run: |
+          cat snforge-*.log > snforge.log
+          python3 scripts/gas.py check --from-log snforge.log
       - name: Gas delta summary
         if: always()
         run: python3 scripts/gas.py diff --from-log snforge.log >> "$GITHUB_STEP_SUMMARY"
