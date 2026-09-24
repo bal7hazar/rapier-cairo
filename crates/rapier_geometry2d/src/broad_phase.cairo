@@ -2,9 +2,11 @@
 //!
 //! `find_pairs` returns index pairs `(i, j)` with `i < j`, in ascending lexicographic order.
 //! Static-static pairs are skipped; group filtering and add/remove pair events are deferred to the
-//! narrow phase packages. The measured dispatch is tail scan below 32 proxies, four-unit
-//! x strips for 32–63, and a four-unit 2D grid from 64. Boxes wider than two cells (grounds)
-//! are paired in one scan each instead of being inserted. Crowded cells fall back to a scan;
+//! narrow phase packages. The measured dispatch is tail scan below 32 proxies, x strips for
+//! 32–63, and a 2D grid from 64. The cell is a power of two derived from the proxies (median
+//! of five sampled extents, `scale`): the cost is the same in a world scaled by any factor.
+//! Boxes wider than two cells (grounds) are paired in one scan each instead of being inserted.
+//! Crowded cells fall back to a scan;
 //! the emitted-pair density chooses direct append for dense sets and the tail scan otherwise.
 //! All scratch is per call. Cells use floor division over the full signed raw range and large
 //! AABBs never expand into unbounded cell counts. Proxies are inserted in descending index
@@ -165,6 +167,11 @@ mod grid;
 mod merge_sorted;
 
 mod ordering;
+mod scale;
+#[cfg(test)]
+mod scale_benches;
+#[cfg(test)]
+mod scale_tests;
 mod strip;
 #[cfg(test)]
 mod tests;
