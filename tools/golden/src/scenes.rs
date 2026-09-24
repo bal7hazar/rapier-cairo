@@ -11,6 +11,9 @@ const STACK_DIAGNOSTIC_STEPS: usize = 8;
 /// Re-seed step of the second `box_stack3` window: its contact impulses are recorded too (SO).
 const STACK_RESEED_STEP: usize = 60;
 
+#[cfg(test)]
+mod kd_checks;
+
 struct ColliderSpec {
     shape: ShapeSpec,
     pose_wrt_parent: QPose,
