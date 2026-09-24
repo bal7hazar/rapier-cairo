@@ -38,8 +38,11 @@ Non-negotiable frame:
 
 9. Memory: the machine (31 GB, no swap) is shared with other projects' agents. Never run two
    `scarb`/`snforge` commands concurrently and never in the background. `scarb` and `snforge` on your
-   PATH are shims that serialise heavy builds through a machine-wide lock: a command may wait
-   silently for several minutes before starting, that is normal. If a build or test run dies with
+   PATH are shims: every rapier build/test takes a per-project lock (one at a time), and a
+   workspace-wide test run (`snforge test --workspace`, `scripts/gas.py`) also takes the machine-wide
+   heavy lock shared with other projects — it may wait silently for many minutes, that is normal. Prefer
+   `snforge test -p <crate> <filter>` while iterating: it only waits for the project lock. Rust builds
+   (`cargo` in `tools/golden`) take no lock. If a build or test run dies with
    "Killed", signal 9 or exit code 137/144, it was the OOM killer, not your code: wait a minute and
    re-run it. While iterating prefer `snforge test -p <crate> <filter>`; keep the full workspace gate
    for the end. A shell command may run for up to one hour in the foreground (the
