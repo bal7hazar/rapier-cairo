@@ -26,4 +26,5 @@ pub use closest_points::{
 pub use dispatch::contact_manifold;
 pub use mass::MassPropertiesTrait;
 pub use point::{PointProjection, SegmentPointLocation};
+pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub use shape::{Shape, ShapeTrait, ShapeType};

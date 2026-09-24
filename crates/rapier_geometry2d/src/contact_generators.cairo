@@ -7,3 +7,5 @@ pub mod cuboid_capsule;
 pub mod cuboid_cuboid;
 pub mod cuboid_segment;
 pub mod halfspace_pfm;
+pub mod polygon_polygon;
+pub mod polygon_segment;
