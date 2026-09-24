@@ -27,6 +27,13 @@
 //! public stage functions stay, with the same results (`fused_alternatives::step_staged`, raw
 //! equivalence on scenes and random worlds in `tests`).
 //!
+//! Stages 3–4 are fused too (work package OI), in [`solve_and_advance`]: only the bodies a
+//! touching manifold or an enabled joint references go through the `SolverBodyStore`; every
+//! other body (nothing acts on it) is solved alone by `FreeBodySolverTrait::solve`, the same
+//! expressions in the same order, and each moving body is read from the [`user_changes_bodies`]
+//! walk and written once. Same results as [`solve`] then [`advance_to_final_positions`] (raw
+//! equivalence in `tests`, candidate by candidate and on random worlds).
+//!
 //! Every loop runs in ascending slot / pair order; no dict is iterated (determinism, AGENTS.md
 //! §2.4). Change flags are only raised by user mutations: stages 3–4 move bodies and colliders
 //! without raising them, as upstream's internal motion.
@@ -54,7 +61,25 @@
 //! `solve_island`, `to_bodies`), `find_pairs` 97k (O(n²) pair tests), position update 115k
 //! (body write 22k, world mass 17k, collider pose and write), user changes 59k (the two walks).
 //!
-//! Candidates (`alternatives` and `fused_alternatives`, equivalence in `tests`):
+//! OI (`solve_benches`, stages 3–4 of one step, Sierra gas | Cairo steps): `free_fall(32)`
+//! 17 284 958 | 153 262 → 10 080 648 | 84 638 (540k → 315k per falling body), `BOX_STACK3`
+//! 13 800 934 | 124 124 → 13 696 574 | 123 072, `PENDULUM` 4 644 766 | 37 413 → 4 602 816 |
+//! 36 990, one resting ball 4 193 914 | 34 792 → 4 183 474 | 34 662. Whole `free_fall(32)` step
+//! 23 281 428 | 210 294 → 16 072 618 | 141 708 (P3 `gas_scenes`).
+//!
+//! Candidates (`alternatives`, `fused_alternatives` and `solve_alternatives`, equivalence in
+//! `tests`):
+//! * stages 3–4 fused (shipped) vs staged (`solve` then `advance_with_snapshot`): above; vs the
+//!   free-body arm behind a one-iteration `while` (`solve_and_advance_metered`), vs marking the
+//!   constrained bodies in a second walk over `touching_manifolds`
+//!   (`solve_and_advance_separate_marking`), vs matching the next member handle instead of a
+//!   second dict read (`solve_and_advance_member_handles`), vs building the free-body constants
+//!   on the first free body (`solve_and_advance_lazy`), vs calling `solve_island` with nothing
+//!   to solve (`solve_and_advance_island_always`), gas on `free_fall(32)` / `BOX_STACK3` /
+//!   resting ball: 10 080 648 / 13 696 574 / 4 183 474 shipped vs 10 679 588 / 13 730 814 /
+//!   4 194 954, 10 090 038 / 13 730 174 / 4 200 934, 10 092 608 / 13 700 864 / 4 186 474,
+//!   10 388 488 / 13 719 024 / 4 192 744, 10 286 388 / 13 696 964 / 4 183 864 (Cairo steps
+//!   rank the same);
 //! * fused step (shipped) vs the staged stage functions (`step_staged`): above;
 //! * parent read of a sparse set inlined in the proxy loop (shipped) vs behind a call
 //!   (`collision_inputs_outlined_fallback`), vs field-by-field reads through the snapshot
@@ -81,6 +106,7 @@
 //!   (`compute_contacts_metered`): 4 ball pairs 3 477 356 / 1 778 206 / 1 651 356 vs 1 486 460
 //!   shipped, 4 cuboid pairs 3 477 356 / 3 548 006 / 3 252 676 vs 3 197 940 shipped.
 
+use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
@@ -96,7 +122,7 @@ use rapier_core::rigid_body::{
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
-use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
+use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, JointEnabled};
 use rapier_dynamics2d::narrow_phase::{
     CarryOver, ContactPair, NarrowPhase, NarrowPhaseTrait, PairCollider, SortedMerge,
     dropped_events, process_pair,
@@ -104,7 +130,7 @@ use rapier_dynamics2d::narrow_phase::{
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
-use rapier_dynamics2d::solver::island::solve_island;
+use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
 use rapier_geometry2d::contact::ContactManifold;
@@ -122,6 +148,10 @@ pub(crate) mod fixtures;
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
 #[cfg(test)]
+pub(crate) mod solve_alternatives;
+#[cfg(test)]
+mod solve_benches;
+#[cfg(test)]
 mod tests;
 
 
@@ -131,21 +161,23 @@ mod tests;
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+    let (snapshot, infos, entries) = user_changes_bodies(ref world.bodies, ref world.colliders);
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span());
     let events = contacts_from_scratch(
         ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
     );
-    solve(
+    solve_and_advance(
         world.gravity,
         world.integration_parameters,
         ref world.bodies,
+        ref world.colliders,
         ref world.narrow_phase,
         ref world.impulse_joints,
+        entries,
+        snapshot,
     );
-    advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
     events
 }
 
@@ -206,10 +238,20 @@ fn snapshot_collider(
 /// [`handle_user_changes`] that also returns what the rest of the step reads from the sets:
 /// every `(handle, collider)` after the changes in ascending slot (as `ColliderSetTrait::iter`)
 /// and one [`BodyInfo`] per body in ascending slot. The collider walk is reused when no change
-/// flag was raised, taken again otherwise.
+/// flag was raised, taken again otherwise. [`user_changes_bodies`] without the bodies.
 pub fn user_changes_snapshot(
     ref bodies: RigidBodySet, ref colliders: ColliderSet,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>) {
+    let (snapshot, infos, _) = user_changes_bodies(ref bodies, ref colliders);
+    (snapshot, infos)
+}
+
+/// [`user_changes_snapshot`] that also returns every `(handle, body)` after the changes in
+/// ascending slot (as `RigidBodySetTrait::iter`); both walks are reused when no change flag was
+/// raised, taken again otherwise.
+pub fn user_changes_bodies(
+    ref bodies: RigidBodySet, ref colliders: ColliderSet,
+) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>) {
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     for (handle, collider) in snapshot {
@@ -218,12 +260,14 @@ pub fn user_changes_snapshot(
             dirty = true;
         }
     }
+    let mut entries = bodies.iter().span();
+    let mut bodies_dirty = false;
     let mut infos = array![];
-    for (handle, body) in bodies.iter().span() {
+    for (handle, body) in entries {
         let (body_type, world_com, dominance) = if body.changes.is_empty() {
             (*body.body_type, *body.mprops.world_com, *body.dominance)
         } else {
-            dirty = true;
+            bodies_dirty = true;
             let body = body_changes(*handle, *body, ref bodies, ref colliders);
             (body.body_type, body.mprops.world_com, body.dominance)
         };
@@ -237,10 +281,13 @@ pub fn user_changes_snapshot(
                 },
             );
     }
-    if dirty {
+    if dirty || bodies_dirty {
         snapshot = colliders.iter().span();
     }
-    (snapshot, infos.span())
+    if bodies_dirty {
+        entries = bodies.iter().span();
+    }
+    (snapshot, infos.span(), entries)
 }
 
 /// The broad-phase proxies (as `ColliderSetTrait::broad_phase_proxies`) and the narrow-phase
@@ -489,6 +536,92 @@ pub fn solve(
     write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
 }
 
+/// Stages 3 and 4 fused (work package OI), with the same results as [`solve`] then
+/// [`advance_with_snapshot`]: only the bodies a touching manifold or an enabled joint references
+/// enter the `SolverBodyStore`; every other body is solved alone by `FreeBodySolverTrait::solve`
+/// (bit-identical: nothing else acts on it), and each moving body is written once, after its
+/// velocities, `next_position`, position, world mass properties and collider poses.
+/// `entries` and `snapshot` are the bodies and colliders as [`user_changes_bodies`] left them.
+pub fn solve_and_advance(
+    gravity: Vec2,
+    params: IntegrationParameters,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    ref narrow_phase: NarrowPhase,
+    ref impulse_joints: ImpulseJointSet,
+    entries: Span<(Handle, RigidBody)>,
+    snapshot: Span<(Handle, Collider)>,
+) {
+    let mut constrained: Felt252Dict<bool> = Default::default();
+    let mut manifolds = array![];
+    for pair in narrow_phase.pairs.span() {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            let manifold = *pair.manifold;
+            if let Some(h) = manifold.data.rigid_body1 {
+                constrained.insert(h.into(), true);
+            }
+            if let Some(h) = manifold.data.rigid_body2 {
+                constrained.insert(h.into(), true);
+            }
+            manifolds.append(manifold);
+        }
+    }
+    let joint_entries = impulse_joints.to_array();
+    let mut joints = joint_values(joint_entries.span());
+    for joint in joints.span() {
+        if *joint.data.enabled == JointEnabled::Enabled {
+            constrained.insert((*joint.body1).into(), true);
+            constrained.insert((*joint.body2).into(), true);
+        }
+    }
+    let any = !manifolds.is_empty() || !joints.is_empty();
+    let mut members = array![];
+    let mut has_free = false;
+    if any {
+        for entry in entries {
+            let (handle, body) = entry;
+            if constrained.get((*handle).into()) {
+                members.append(*entry);
+            } else if *body.enabled && *body.body_type != RigidBodyType::Fixed {
+                has_free = true;
+            }
+        }
+    }
+    let mut store = SolverBodyStoreTrait::from_entries(members.span(), gravity, params);
+    // With no manifold and no joint, `solve_island` would only validate the parameters, which
+    // `FreeBodySolverTrait::new` does with the same panics; with constraints it is only built
+    // when a moving body is free.
+    let free = if !any || has_free {
+        FreeBodySolverTrait::new(params, gravity)
+    } else {
+        Default::default()
+    };
+    if any {
+        solve_island(params, ref store, ref manifolds, ref joints);
+        if !manifolds.is_empty() {
+            narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+        }
+        write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
+    }
+    let mut dense: u32 = 0;
+    for (handle, body) in entries {
+        let member = any && constrained.get((*handle).into());
+        if *body.enabled && *body.body_type != RigidBodyType::Fixed {
+            let body = if member {
+                let mut body = *body;
+                store.write_body(dense, ref body);
+                body
+            } else {
+                free.solve(*handle, *body)
+            };
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+        }
+        if member {
+            dense += 1;
+        }
+    }
+}
+
 /// The manifolds of the pairs that have at least one solver contact, in pair order (D8).
 pub fn touching_manifolds(pairs: Span<ContactPair>) -> Array<ContactManifold> {
     let mut out = array![];
@@ -517,7 +650,7 @@ pub fn scatter_touching(
     out
 }
 
-fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
+pub(crate) fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
     let mut out = array![];
     for (_, joint) in entries {
         out.append(*joint);
@@ -525,7 +658,7 @@ fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
     out
 }
 
-fn write_joints(
+pub(crate) fn write_joints(
     entries: Span<(Handle, ImpulseJoint)>,
     solved: Span<ImpulseJoint>,
     ref impulse_joints: ImpulseJointSet,

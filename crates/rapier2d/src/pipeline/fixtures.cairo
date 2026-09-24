@@ -8,7 +8,7 @@ use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::{Collider, ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
-use rapier_dynamics2d::rigid_body_set::RigidBodyTrait;
+use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};
 use rapier_geometry2d::shape::{
     BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape,
 };
@@ -252,4 +252,41 @@ fn random_collider(ref state: u64) -> Collider {
         builder = builder.enabled(false);
     }
     builder.build()
+}
+
+/// [`random_world`] plus what the fused solve (work package OI) splits on: free bodies far above
+/// the others (a spinning dynamic one with damping and a user force, a velocity-based kinematic
+/// one), a disabled dynamic body, and a revolute joint between the first two bodies of the set
+/// (enabled or not, from `seed`) so that constrained, free and fixed bodies all mix.
+pub fn oi_world(seed: u32) -> World {
+    let mut world = random_world(seed);
+    let mut state: u64 = seed.into() + 7;
+    let mut spinning = RigidBodyTrait::dynamic(at(f(-8589934592), f(214748364800)));
+    spinning.vels.angvel = f(4294967296 * (draw(ref state) % 5).into());
+    spinning.vels.linvel = v(f(2147483648), ZERO);
+    spinning.damping.linear_damping = f(429496730);
+    spinning.damping.angular_damping = f(858993459 * (draw(ref state) % 2).into());
+    spinning.forces.user_force = v(f(4294967296), ZERO);
+    let _ = world.insert(spinning, random_collider(ref state));
+    let mut kinematic = RigidBodyTrait::new(
+        rapier_core::rigid_body::RigidBodyType::KinematicVelocityBased,
+        at(f(42949672960), f(214748364800)),
+    );
+    kinematic.vels.linvel = v(ZERO, f(-4294967296));
+    let _ = world.insert(kinematic, ColliderBuilderTrait::ball(HALF).build());
+    let mut disabled = RigidBodyTrait::dynamic(at(f(85899345920), f(214748364800)));
+    disabled.enabled = false;
+    let _ = world.insert(disabled, ColliderBuilderTrait::ball(HALF).build());
+    let bodies = world.bodies.iter();
+    let (first, _) = *bodies.at(0);
+    let (second, _) = *bodies.at(1);
+    let mut joint = RevoluteJointBuilderTrait::new()
+        .local_anchor1(v(HALF, ZERO))
+        .local_anchor2(v(-HALF, ZERO))
+        .build();
+    if draw(ref state) % 3 == 0 {
+        joint.enabled = rapier_dynamics2d::joint::JointEnabled::Disabled;
+    }
+    let _ = world.insert_impulse_joint(first, second, joint);
+    world
 }
