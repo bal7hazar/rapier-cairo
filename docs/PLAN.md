@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.18, 2026-09-24** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.19, 2026-09-24** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -154,6 +154,15 @@ dense `Felt252Dict` body store (wins every size: stack 5 = 22.8M gas | 206k step
 pendulum 5.4M | 45k, slope 5.6M | 50k, stack 3 = 13.8M | 124k; contact sweeps ≈ 80 % of a stack step.
 Wave 5 prepared: crate `rapier2d` pre-declared (`world`, `pipeline`, `dispatcher`, three test stubs),
 brief `p1-world-step.md`; P2–P4 briefs follow P1's API.
+
+OI ✅ (#73, claude opus): bodies referenced by no manifold/joint are solved alone (same expressions, no
+dict, 4 substeps unrolled) and the solve is fused with the position update: free fall −31 % gas / −33 %
+steps at 32 bodies (16.1M | 142k); every scene cheaper; P3 probes now have uncapped `steps_step_*` twins
+(`docs/BUDGETS.md` refreshed: since 09-22, stacks −30 %, free fall −39 to −50 %, joints −3 to −5 %).
+Rejected: carrying world mass across steps (inexact after a flagless `World::set_body`; would need
+change flags on every body edit). BP (#72) sent back: its winner was a benchmark-shaped fast path
+(sorted-and-disjoint input); rework on shuffled inputs and per-pair-test cost. Launched **SO** (brief
+`so-stack-divergence.md`, claude opus): why `box_stack3` still fails the strict comparison.
 
 OP ✅ (#69, claude opus): `compute_aabb` inlined (outlined, every collider paid the costliest shape arm)
 and one walk per set per step; free fall −10 to −12 % per body (32 bodies 26.2M → 23.3M), stack 3 −2.7 %
