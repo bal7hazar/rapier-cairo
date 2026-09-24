@@ -28,6 +28,12 @@
 //!   the joined `match`: for a rule unknown at compile time every call pays for the dearest arm
 //!   (`GeometricMean`, about 5.7k above `Multiply`), whichever rule it takes. A rule known at
 //!   compile time is folded away and pays for its own arm only (`Max` is the cheapest).
+//! * inlining (work package CL): `apply` is `#[inline(always)]` **(winner)**, so that a caller
+//!   that runs it in a loop body (the narrow phase's pair loop) pays the reached arm only;
+//!   `alternatives::apply_outlined` (the `#[inline(never)]` `apply` before CL) is charged the
+//!   `GeometricMean` arm on every call, and `alternatives::combine_average_first` (the narrow
+//!   phase's workaround before CL: `Average` inlined, the outlined `apply` for the other rules)
+//!   only saves it for `Average`. Measured by the `gas_loop_*` probes (one-iteration loop body).
 
 use fixed::{Fixed, FixedTrait, ONE, TWO, ZERO};
 
@@ -92,6 +98,10 @@ pub impl CoefficientCombineRuleImpl of CoefficientCombineRuleTrait {
     ///   leaves the Q32.32 range.
     /// * `'Fixed: overflow'` for `Multiply` if the product leaves the range.
     /// * `'Fixed: overflow'` for `Min` of `MIN` (`abs` of the most negative value).
+    ///
+    /// `#[inline(always)]`: in a loop body, only the reached arm is charged; behind a call, every
+    /// rule would pay for the `GeometricMean` square root.
+    #[inline(always)]
     fn apply(self: CoefficientCombineRule, coeff1: Fixed, coeff2: Fixed) -> Fixed {
         match self {
             CoefficientCombineRule::Average => average(coeff1, coeff2),
@@ -154,6 +164,33 @@ mod alternatives {
         }
     }
 
+    /// `apply` before work package CL: the same `match` behind a call, charged its costliest arm
+    /// (`GeometricMean`) whichever rule it takes.
+    #[inline(never)]
+    pub fn apply_outlined(rule: CoefficientCombineRule, coeff1: Fixed, coeff2: Fixed) -> Fixed {
+        match rule {
+            CoefficientCombineRule::Average => average_div(coeff1, coeff2),
+            CoefficientCombineRule::Min => coeff1.min(coeff2).abs(),
+            CoefficientCombineRule::Multiply => coeff1 * coeff2,
+            CoefficientCombineRule::Max => coeff1.max(coeff2),
+            CoefficientCombineRule::ClampedSum => (coeff1 + coeff2).clamp(ZERO, ONE),
+            CoefficientCombineRule::GeometricMean => (coeff1.max(ZERO) * coeff2.max(ZERO)).sqrt(),
+        }
+    }
+
+    /// The narrow phase's `combine` before work package CL: `Average` inlined, the outlined
+    /// `apply` for the other rules.
+    #[inline(always)]
+    pub fn combine_average_first(
+        coeff1: Fixed, coeff2: Fixed, rule1: CoefficientCombineRule, rule2: CoefficientCombineRule,
+    ) -> Fixed {
+        let rule = CoefficientCombineRuleTrait::effective(rule1, rule2);
+        match rule {
+            CoefficientCombineRule::Average => average_div(coeff1, coeff2),
+            _ => apply_outlined(rule, coeff1, coeff2),
+        }
+    }
+
     /// Rule resolution with an early return when the rules are equal (the common case).
     pub fn effective_eq_first(
         rule1: CoefficientCombineRule, rule2: CoefficientCombineRule,
@@ -173,7 +210,8 @@ mod tests {
     use fixed::{Fixed, FixedTrait, HALF, NEG_ONE, ONE, TWO, ZERO};
     use rapier_testing::opaque;
     use super::alternatives::{
-        apply_early, average_div, average_divrem, average_mul_half, effective_eq_first,
+        apply_early, apply_outlined, average_div, average_divrem, average_mul_half,
+        combine_average_first, effective_eq_first,
     };
     use super::{CoefficientCombineRule, CoefficientCombineRuleTrait};
 
@@ -520,5 +558,142 @@ mod tests {
     #[test]
     fn gas_average_mul_half() {
         assert!(average_mul_half(opaque(A), opaque(B)).raw == 1932735283);
+    }
+
+    /// `rule.apply(A, B)` in a one-iteration loop body (the narrow phase's pair loop context).
+    #[inline(always)]
+    fn loop_apply(rule: CoefficientCombineRule) -> Fixed {
+        let (rule, a, b) = (opaque(rule), opaque(A), opaque(B));
+        let mut out = ZERO;
+        let mut pending = true;
+        while pending {
+            out = rule.apply(a, b);
+            pending = false;
+        }
+        out
+    }
+
+    /// The same with `alternatives::apply_outlined`.
+    #[inline(always)]
+    fn loop_apply_outlined(rule: CoefficientCombineRule) -> Fixed {
+        let (rule, a, b) = (opaque(rule), opaque(A), opaque(B));
+        let mut out = ZERO;
+        let mut pending = true;
+        while pending {
+            out = apply_outlined(rule, a, b);
+            pending = false;
+        }
+        out
+    }
+
+    /// `combine` (shipped) or `alternatives::combine_average_first` in a one-iteration loop body.
+    #[inline(always)]
+    fn loop_combine(rule: CoefficientCombineRule, average_first: bool) -> Fixed {
+        let (rule, a, b) = (opaque(rule), opaque(A), opaque(B));
+        let mut out = ZERO;
+        let mut pending = true;
+        while pending {
+            out =
+                if average_first {
+                    combine_average_first(a, b, rule, rule)
+                } else {
+                    CoefficientCombineRuleTrait::combine(a, b, rule, rule)
+                };
+            pending = false;
+        }
+        out
+    }
+
+    /// Every rule, inlined and outlined `apply`, and both `combine` formulations, in a loop body:
+    /// same results.
+    #[test]
+    fn test_loop_candidates_agree() {
+        for rule in rules().span() {
+            let expected = same(A, B, *rule);
+            assert_eq!(loop_apply(*rule), expected);
+            assert_eq!(loop_apply_outlined(*rule), expected);
+            assert_eq!(loop_combine(*rule, false), expected);
+            assert_eq!(loop_combine(*rule, true), expected);
+        }
+    }
+
+    #[test]
+    fn gas_loop_apply_average() {
+        assert!(loop_apply(AVERAGE).raw == 1932735284);
+    }
+
+    #[test]
+    fn gas_loop_apply_min() {
+        assert!(loop_apply(MIN) == A);
+    }
+
+    #[test]
+    fn gas_loop_apply_multiply() {
+        assert!(loop_apply(MULTIPLY).raw == 773094113);
+    }
+
+    #[test]
+    fn gas_loop_apply_max() {
+        assert!(loop_apply(MAX) == B);
+    }
+
+    #[test]
+    fn gas_loop_apply_clamped_sum() {
+        assert!(loop_apply(CLAMPED_SUM).raw == 3865470567);
+    }
+
+    #[test]
+    fn gas_loop_apply_geometric_mean() {
+        assert!(loop_apply(GEOMETRIC_MEAN).raw == 1822200299);
+    }
+
+    #[test]
+    fn gas_loop_apply_outlined_average() {
+        assert!(loop_apply_outlined(AVERAGE).raw == 1932735284);
+    }
+
+    #[test]
+    fn gas_loop_apply_outlined_min() {
+        assert!(loop_apply_outlined(MIN) == A);
+    }
+
+    #[test]
+    fn gas_loop_apply_outlined_multiply() {
+        assert!(loop_apply_outlined(MULTIPLY).raw == 773094113);
+    }
+
+    #[test]
+    fn gas_loop_apply_outlined_max() {
+        assert!(loop_apply_outlined(MAX) == B);
+    }
+
+    #[test]
+    fn gas_loop_apply_outlined_clamped_sum() {
+        assert!(loop_apply_outlined(CLAMPED_SUM).raw == 3865470567);
+    }
+
+    #[test]
+    fn gas_loop_apply_outlined_geometric_mean() {
+        assert!(loop_apply_outlined(GEOMETRIC_MEAN).raw == 1822200299);
+    }
+
+    #[test]
+    fn gas_loop_combine_average() {
+        assert!(loop_combine(AVERAGE, false).raw == 1932735284);
+    }
+
+    #[test]
+    fn gas_loop_combine_max() {
+        assert!(loop_combine(MAX, false) == B);
+    }
+
+    #[test]
+    fn gas_loop_combine_average_first_average() {
+        assert!(loop_combine(AVERAGE, true).raw == 1932735284);
+    }
+
+    #[test]
+    fn gas_loop_combine_average_first_max() {
+        assert!(loop_combine(MAX, true) == B);
     }
 }

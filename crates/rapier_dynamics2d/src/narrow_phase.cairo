@@ -48,7 +48,7 @@
 //! pair (`contact_manifold` returning `false`) gets its manifold cleared.
 
 use core::num::traits::Zero;
-use fixed::{Fixed, TWO};
+use fixed::Fixed;
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED};
@@ -587,13 +587,13 @@ pub fn solver_data(
     manifold
         .data
         .friction =
-            combine(
+            CoefficientCombineRuleTrait::combine(
                 co1.friction, co2.friction, co1.friction_combine_rule, co2.friction_combine_rule,
             );
     manifold
         .data
         .restitution =
-            combine(
+            CoefficientCombineRuleTrait::combine(
                 co1.restitution,
                 co2.restitution,
                 co1.restitution_combine_rule,
@@ -622,21 +622,6 @@ pub fn solver_data(
     manifold.data.solver_contacts = [first, second];
     manifold.data.num_solver_contacts = count;
     manifold
-}
-
-/// `CoefficientCombineRuleTrait::combine` with the default `Average` arm inlined (the same
-/// expression, `(coeff1 + coeff2) / 2` rounded to nearest even): the outlined `apply` is
-/// charged its costliest arm (`GeometricMean`, a square root) on every call, so it is only
-/// called for the other rules.
-#[inline(always)]
-pub fn combine(
-    coeff1: Fixed, coeff2: Fixed, rule1: CoefficientCombineRule, rule2: CoefficientCombineRule,
-) -> Fixed {
-    let rule = CoefficientCombineRuleTrait::effective(rule1, rule2);
-    match rule {
-        CoefficientCombineRule::Average => (coeff1 + coeff2) / TWO,
-        _ => rule.apply(coeff1, coeff2),
-    }
 }
 
 /// The solver contact of point `id`: world points relative to each body's world centre of

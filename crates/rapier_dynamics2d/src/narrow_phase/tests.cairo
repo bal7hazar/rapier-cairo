@@ -5,10 +5,7 @@ use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED};
-use rapier_core::collider::{
-    ActiveEventsTrait, CoefficientCombineRule, CoefficientCombineRuleTrait,
-    CollisionEventFlagsTrait,
-};
+use rapier_core::collider::{ActiveEventsTrait, CollisionEventFlagsTrait};
 use rapier_core::interaction_groups::{
     ALL, GROUP_1, GROUP_2, InteractionGroupsTrait, InteractionTestMode,
 };
@@ -29,7 +26,7 @@ use super::alternatives::{compute_contacts_dict, pair_key};
 use super::mock::{MockDispatcher, OVERLAP, PREDICTION, RADIUS, at, ball, broad_phase, scene};
 use super::{
     CarryOver, ContactPair, ContactPairTrait, NarrowPhase, NarrowPhaseTrait, PairCollider,
-    SortedMerge, combine, dropped_events, key_before, pair_collider, pair_filtered, process_pair,
+    SortedMerge, dropped_events, key_before, pair_collider, pair_filtered, process_pair,
     solver_contact, update_manifold,
 };
 
@@ -335,31 +332,6 @@ fn test_warm_start_and_events_over_steps() {
     assert_eq!(events, array![stopped(g, b, REMOVED)]);
     assert_eq!(narrow_phase.len(), 0);
     assert!(narrow_phase.contact_pair(g, b).is_none());
-}
-
-/// `combine` (the `Average` arm inlined) is `CoefficientCombineRuleTrait::combine` for every
-/// pair of rules, on positive, negative, equal, odd-raw and out-of-`[0, 1]` coefficients.
-#[test]
-fn test_combine_matches_combine_rule() {
-    let rules = array![
-        CoefficientCombineRule::Average, CoefficientCombineRule::Min,
-        CoefficientCombineRule::Multiply, CoefficientCombineRule::Max,
-        CoefficientCombineRule::ClampedSum, CoefficientCombineRule::GeometricMean,
-    ];
-    let coefficients: Array<(Fixed, Fixed)> = array![
-        (Fixed { raw: 1288490189 }, Fixed { raw: 3006477107 }), (-HALF, Fixed { raw: 3 }),
-        (ONE, ONE), (ZERO, TWO + HALF), (Fixed { raw: 1 }, Fixed { raw: 2 }),
-    ];
-    for r1 in rules.span() {
-        for r2 in rules.span() {
-            for (c1, c2) in coefficients.span() {
-                assert_eq!(
-                    combine(*c1, *c2, *r1, *r2),
-                    CoefficientCombineRuleTrait::combine(*c1, *c2, *r1, *r2),
-                );
-            }
-        }
-    }
 }
 
 #[test]
