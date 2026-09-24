@@ -21,8 +21,15 @@ use super::alternatives::{
     compute_contacts_by_kind, compute_contacts_metered, handle_user_changes_propagate,
     solve_all_manifolds,
 };
-use super::fixtures::{ball_on_ground, mixed, row, scene_world, statics};
-use super::{advance_to_final_positions, handle_user_changes, solve};
+use super::fixtures::{ball_on_ground, free_fall, mixed, row, scene_world, statics};
+use super::fused_alternatives::{
+    advance_with_snapshot_outlined, collision_inputs_field_reads,
+    collision_inputs_outlined_fallback,
+};
+use super::{
+    advance_to_final_positions, advance_with_snapshot, collision_inputs, contacts_from_scratch,
+    handle_user_changes, solve, user_changes_snapshot,
+};
 
 /// Shipped pipeline.
 const SHIPPED: u8 = 0;
@@ -55,6 +62,10 @@ fn world_of(id: felt252) -> World {
         mixed()
     } else if id == 'statics' {
         statics(8)
+    } else if id == 'free8' {
+        free_fall(8)
+    } else if id == 'free32' {
+        free_fall(32)
     } else {
         let (world, _, _) = ball_on_ground(HALF, false);
         world
@@ -150,6 +161,68 @@ fn run(id: felt252, warmup: u32, stages: u8, variant: u8) {
         return;
     }
     advance_to_final_positions(ref world.bodies, ref world.colliders);
+}
+
+/// Fused stages as shipped.
+const FUSED: u8 = 0;
+/// `collision_inputs_outlined_fallback`.
+const OUTLINED_FALLBACK: u8 = 1;
+/// `collision_inputs_field_reads`.
+const FIELD_READS: u8 = 2;
+/// `advance_with_snapshot_outlined`.
+const OUTLINED_ADVANCE: u8 = 3;
+
+/// `run` for the fused stages `World::step` ships: 1 `user_changes_snapshot`, 2
+/// `collision_inputs` + `find_pairs`, 3 `contacts_from_scratch`, 4 `solve`, 5
+/// `advance_with_snapshot`; `variant` selects a candidate of `fused_alternatives`.
+#[inline(never)]
+fn run_fused(id: felt252, warmup: u32, stages: u8, variant: u8) {
+    let mut world = world_of(id);
+    let mut i = 0;
+    while i != warmup {
+        let _ = world.step();
+        i += 1;
+    }
+    if stages == 0 {
+        return;
+    }
+    let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+    if stages == 1 {
+        return;
+    }
+    let prediction = world.integration_parameters.prediction_distance();
+    let (proxies, scratch) = if variant == OUTLINED_FALLBACK {
+        collision_inputs_outlined_fallback(snapshot, infos, ref world.bodies, prediction)
+    } else if variant == FIELD_READS {
+        collision_inputs_field_reads(snapshot, infos, ref world.bodies, prediction)
+    } else {
+        collision_inputs(snapshot, infos, ref world.bodies, prediction)
+    };
+    let pairs = find_pairs(proxies.span());
+    if stages == 2 {
+        return;
+    }
+    let _ = contacts_from_scratch(
+        ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
+    );
+    if stages == 3 {
+        return;
+    }
+    solve(
+        world.gravity,
+        world.integration_parameters,
+        ref world.bodies,
+        ref world.narrow_phase,
+        ref world.impulse_joints,
+    );
+    if stages == 4 {
+        return;
+    }
+    if variant == OUTLINED_ADVANCE {
+        advance_with_snapshot_outlined(ref world.bodies, ref world.colliders, snapshot);
+    } else {
+        advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
+    }
 }
 
 #[test]
@@ -390,4 +463,198 @@ fn gas_stack3_narrow_phase_inline() {
 #[test]
 fn gas_resting_narrow_phase_inline() {
     run(opaque('resting'), 2, 3, INLINE);
+}
+
+// `free_fall(8)` after 2 steps: the per-body overhead with no contact at all.
+
+#[test]
+fn gas_free8_setup() {
+    run(opaque('free8'), 2, 0, SHIPPED);
+}
+
+#[test]
+fn gas_free8_user_changes() {
+    run(opaque('free8'), 2, 1, SHIPPED);
+}
+
+#[test]
+fn gas_free8_broad_phase() {
+    run(opaque('free8'), 2, 2, SHIPPED);
+}
+
+#[test]
+fn gas_free8_narrow_phase() {
+    run(opaque('free8'), 2, 3, SHIPPED);
+}
+
+#[test]
+fn gas_free8_solve() {
+    run(opaque('free8'), 2, 4, SHIPPED);
+}
+
+#[test]
+fn gas_free8_advance() {
+    run(opaque('free8'), 2, 5, SHIPPED);
+}
+
+// `free_fall(32)` after 2 steps: the per-body overhead with no contact at all.
+
+#[test]
+fn gas_free32_setup() {
+    run(opaque('free32'), 2, 0, SHIPPED);
+}
+
+#[test]
+fn gas_free32_user_changes() {
+    run(opaque('free32'), 2, 1, SHIPPED);
+}
+
+#[test]
+fn gas_free32_broad_phase() {
+    run(opaque('free32'), 2, 2, SHIPPED);
+}
+
+#[test]
+fn gas_free32_narrow_phase() {
+    run(opaque('free32'), 2, 3, SHIPPED);
+}
+
+#[test]
+fn gas_free32_solve() {
+    run(opaque('free32'), 2, 4, SHIPPED);
+}
+
+#[test]
+fn gas_free32_advance() {
+    run(opaque('free32'), 2, 5, SHIPPED);
+}
+
+// Fused stages on `free8`.
+
+#[test]
+fn gas_free8_fused_setup() {
+    run_fused(opaque('free8'), 2, 0, FUSED);
+}
+
+#[test]
+fn gas_free8_fused_user_changes() {
+    run_fused(opaque('free8'), 2, 1, FUSED);
+}
+
+#[test]
+fn gas_free8_fused_broad_phase() {
+    run_fused(opaque('free8'), 2, 2, FUSED);
+}
+
+#[test]
+fn gas_free8_fused_narrow_phase() {
+    run_fused(opaque('free8'), 2, 3, FUSED);
+}
+
+#[test]
+fn gas_free8_fused_solve() {
+    run_fused(opaque('free8'), 2, 4, FUSED);
+}
+
+#[test]
+fn gas_free8_fused_advance() {
+    run_fused(opaque('free8'), 2, 5, FUSED);
+}
+
+// Fused stages on `free32`.
+
+#[test]
+fn gas_free32_fused_setup() {
+    run_fused(opaque('free32'), 2, 0, FUSED);
+}
+
+#[test]
+fn gas_free32_fused_user_changes() {
+    run_fused(opaque('free32'), 2, 1, FUSED);
+}
+
+#[test]
+fn gas_free32_fused_broad_phase() {
+    run_fused(opaque('free32'), 2, 2, FUSED);
+}
+
+#[test]
+fn gas_free32_fused_narrow_phase() {
+    run_fused(opaque('free32'), 2, 3, FUSED);
+}
+
+#[test]
+fn gas_free32_fused_solve() {
+    run_fused(opaque('free32'), 2, 4, FUSED);
+}
+
+#[test]
+fn gas_free32_fused_advance() {
+    run_fused(opaque('free32'), 2, 5, FUSED);
+}
+
+// Fused stages on `stack3`.
+
+#[test]
+fn gas_stack3_fused_setup() {
+    run_fused(opaque('stack3'), 60, 0, FUSED);
+}
+
+#[test]
+fn gas_stack3_fused_user_changes() {
+    run_fused(opaque('stack3'), 60, 1, FUSED);
+}
+
+#[test]
+fn gas_stack3_fused_broad_phase() {
+    run_fused(opaque('stack3'), 60, 2, FUSED);
+}
+
+#[test]
+fn gas_stack3_fused_narrow_phase() {
+    run_fused(opaque('stack3'), 60, 3, FUSED);
+}
+
+#[test]
+fn gas_stack3_fused_solve() {
+    run_fused(opaque('stack3'), 60, 4, FUSED);
+}
+
+#[test]
+fn gas_stack3_fused_advance() {
+    run_fused(opaque('stack3'), 60, 5, FUSED);
+}
+
+// Fused-stage candidates on `free32`.
+
+#[test]
+fn gas_free32_fused_broad_phase_outlined_fallback() {
+    run_fused(opaque('free32'), 2, 2, OUTLINED_FALLBACK);
+}
+
+#[test]
+fn gas_free32_fused_broad_phase_field_reads() {
+    run_fused(opaque('free32'), 2, 2, FIELD_READS);
+}
+
+#[test]
+fn gas_free32_fused_advance_outlined() {
+    run_fused(opaque('free32'), 2, 5, OUTLINED_ADVANCE);
+}
+
+// Fused-stage candidates on `stack3`.
+
+#[test]
+fn gas_stack3_fused_broad_phase_outlined_fallback() {
+    run_fused(opaque('stack3'), 60, 2, OUTLINED_FALLBACK);
+}
+
+#[test]
+fn gas_stack3_fused_broad_phase_field_reads() {
+    run_fused(opaque('stack3'), 60, 2, FIELD_READS);
+}
+
+#[test]
+fn gas_stack3_fused_advance_outlined() {
+    run_fused(opaque('stack3'), 60, 5, OUTLINED_ADVANCE);
 }

@@ -294,6 +294,7 @@ pub impl ColliderImpl of ColliderTrait {
     /// The world AABB of the shape at the collider's pose (no contact skin).
     /// #### Panics
     /// * As `Shape::compute_aabb`.
+    #[inline(always)]
     fn compute_aabb(self: Collider) -> Aabb {
         self.shape.compute_aabb(self.pos.pose)
     }

@@ -67,6 +67,11 @@ pub impl ShapeImpl of ShapeTrait {
     }
 
     /// Bounding box of the shape placed at `pose`. Division-free; exact for quarter-turn poses.
+    ///
+    /// Inlined so that the caller pays the arm it reaches: out of line, Sierra gas charges every
+    /// shape the most expensive arm (`alternatives::compute_aabb_outlined`; the broad phase of
+    /// 32 balls pays 16.5k gas more per collider).
+    #[inline(always)]
     fn compute_aabb(self: Shape, pose: Pose2) -> Aabb {
         match self {
             Shape::Ball(s) => s.compute_aabb(pose),
@@ -126,6 +131,21 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::HalfSpace(s) => Some(s),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod alternatives {
+    use rapier_math::pose2::Pose2;
+    use crate::aabb::Aabb;
+    use super::{
+        BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape, ShapeTrait,
+    };
+
+    /// The pre-OP `ShapeTrait::compute_aabb`: the same `match`, out of line.
+    #[inline(never)]
+    pub fn compute_aabb_outlined(shape: Shape, pose: Pose2) -> Aabb {
+        shape.compute_aabb(pose)
     }
 }
 
@@ -257,9 +277,8 @@ mod tests {
     fn gas_compute_local_aabb() {
         let _ = opaque(Shape::Cuboid(cuboid())).compute_local_aabb();
     }
-    // Sierra gas equalises the branches of a `match`: every variant costs as much as the most
-    // expensive one, so the dispatched probes below are equal (the per-shape kernels are ranked
-    // in the shape modules).
+    // Out of line, Sierra gas equalises the branches of a `match`: every variant costs as much
+    // as the most expensive one (the `_outlined` probes are equal); inlined, each pays its arm.
     #[test]
     fn gas_compute_aabb_ball() {
         let _ = opaque(Shape::Ball(ball())).compute_aabb(opaque(pose()));
@@ -267,6 +286,27 @@ mod tests {
     #[test]
     fn gas_compute_aabb_capsule() {
         let _ = opaque(Shape::Capsule(capsule())).compute_aabb(opaque(pose()));
+    }
+    #[test]
+    fn gas_compute_aabb_ball_outlined() {
+        let _ = super::alternatives::compute_aabb_outlined(
+            opaque(Shape::Ball(ball())), opaque(pose()),
+        );
+    }
+    #[test]
+    fn gas_compute_aabb_capsule_outlined() {
+        let _ = super::alternatives::compute_aabb_outlined(
+            opaque(Shape::Capsule(capsule())), opaque(pose()),
+        );
+    }
+    #[test]
+    fn test_compute_aabb_outlined_agrees() {
+        for shape in all() {
+            assert_eq!(
+                super::alternatives::compute_aabb_outlined(*shape, pose()),
+                (*shape).compute_aabb(pose()),
+            );
+        }
     }
     #[test]
     fn gas_mass_properties_ball() {
