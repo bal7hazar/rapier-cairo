@@ -234,8 +234,8 @@ solver-state no-ops. Tests also replace the incident distance and the dormant gr
 independently: reference geometry leaves 1,591,205,863 ulps maximum position error (one ulp
 worse than the seeded control); restoring the ground cache in the uninterrupted replay reduces
 its 1,591,207,411-ulp maximum by only 1,550 ulps. Delaying ground support in that uninterrupted
-replay instead passes every later sample (max 53,057 position / 52,326 velocity ulps). Cairo's
-ground cache first differs at the sleep step 66 (warm-start 122,738,298
+replay instead passes every later sample (max 53,057 position / 52,326 velocity ulps). A larger
+difference in the ground cache appears at sleep step 66 (warm-start 122,738,298
 versus upstream 137,881,979 raw), even though both bodies' poses/velocities remain in tolerance;
 that small cache difference is distinct from wake-step solver membership.
 
