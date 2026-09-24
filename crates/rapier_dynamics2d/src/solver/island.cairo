@@ -1,12 +1,16 @@
 //! Sequential whole-world soft-step driver (D8/D9). Manifolds and joints retain caller order;
 //! each sweep solves joints before contacts. No sleeping, island discovery, CCD or colouring.
-//! DC/DE's frozen array APIs operate on two-body scratch arrays; global scattering is O(1).
+//! Contact sweeps use cached frame coefficients and two body values; joint sweeps retain
+//! their measured array adapter. Global scattering remains O(1).
+mod empty;
 mod sweeps;
 use fixed::{Fixed, MAX, ZERO};
 use glam::Vec2Trait;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::ContactManifold;
-use sweeps::{contacts, joints, prepare_joints, rebuild_joints};
+use sweeps::array_joint::joints;
+use sweeps::contact::contacts;
+use sweeps::{prepare_joints, rebuild_joints};
 use crate::joint::ImpulseJoint;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use super::body::{SolverBody, WORLD};
@@ -64,34 +68,51 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     // π/4 per FULL frame, exactly upstream's MAX_ROTATION policy.
     let max_ang = Fixed { raw: 3373259426 } * params.inv_dt();
     let initial = snapshot(ref bodies);
+    if manifolds.is_empty() {
+        let builders = prepare_joints(joint_set.span(), initial.span(), steps);
+        empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
+        return;
+    }
     let mut cs = ContactConstraintsSetTrait::generate(manifolds.span(), initial.span(), params, dt);
     let builders = prepare_joints(joint_set.span(), initial.span(), steps);
+    if empty::all_inert(cs.constraints.span()) {
+        empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
+        return;
+    }
+    let directions = super::contact::cached::prepare(cs.constraints.span());
     let mut rows = array![];
     let mut substep = 0;
     while substep != params.num_solver_iterations {
         add_forces(ref bodies, steps);
         rows = rebuild_joints(ref bodies, builders.span(), rows.span(), params, substep != 0);
-        contacts(ref cs, ref bodies, manifolds.span(), params, 0);
+        contacts(ref cs, ref bodies, manifolds.span(), params, 0, directions.span());
         let mut i = 0;
         while i != params.num_internal_pgs_iterations {
             joints(ref rows, ref bodies, true, params.warmstart_joints && i == 0);
-            contacts(ref cs, ref bodies, manifolds.span(), params, 1);
+            contacts(ref cs, ref bodies, manifolds.span(), params, 1, directions.span());
             i += 1;
         }
         integrate(ref bodies, steps, dt, max_lin, max_ang);
         let mut i = 0;
         while i != params.num_internal_stabilization_iterations {
             joints(ref rows, ref bodies, false, false);
-            contacts(ref cs, ref bodies, manifolds.span(), params, if i == 0 {
-                2
-            } else {
-                3
-            });
+            contacts(
+                ref cs,
+                ref bodies,
+                manifolds.span(),
+                params,
+                if i == 0 {
+                    2
+                } else {
+                    3
+                },
+                directions.span(),
+            );
             i += 1;
         }
         substep += 1;
     }
-    contacts(ref cs, ref bodies, manifolds.span(), params, 4);
+    contacts(ref cs, ref bodies, manifolds.span(), params, 4, directions.span());
     cs.writeback_impulses(ref manifolds);
     sweeps::write_joints(rows.span(), ref joint_set);
     damp(ref bodies, steps, params.dt);

@@ -11,6 +11,42 @@ use super::super::body_store::{DenseBodies, SolverBodyStoreTrait};
 use super::super::joint::JointConstraintTrait;
 
 #[test]
+fn test_inert_manifolds_match_absent_contacts_and_preserve_cached_data() {
+    for disabled in [false, true].span() {
+        let (bs, steps, ms) = stack(2);
+        let mut m = *ms.at(0);
+        if *disabled {
+            m.data.solver_flags.bits = 0;
+        } else {
+            m.data.num_solver_contacts = 0;
+        }
+        let [mut point, second] = m.points;
+        point.data.impulse = ONE;
+        point.data.warmstart_impulse = HALF;
+        point.data.warmstart_tangent_impulse = -HALF;
+        m.points = [point, second];
+        let mut inert = array![m, m];
+        let mut absent = array![];
+        let mut a: DenseBodies = DenseBodiesTrait::new(bs.span());
+        let mut b: DenseBodies = DenseBodiesTrait::new(bs.span());
+        let joint = ImpulseJoint {
+            body1: h(0),
+            body2: h(1),
+            data: RevoluteJointBuilderTrait::new().build(),
+            impulses: [HALF, -HALF, ZERO],
+        };
+        let mut ja = array![joint];
+        let mut jb = array![joint];
+        run(Default::default(), ref a, steps.span(), ref inert, ref ja);
+        run(Default::default(), ref b, steps.span(), ref absent, ref jb);
+        assert_eq!(a.get(0), b.get(0));
+        assert_eq!(a.get(1), b.get(1));
+        assert_eq!(ja.span(), jb.span());
+        assert_eq!(inert.span(), [m, m].span());
+    }
+}
+
+#[test]
 fn test_empty_zero_dt_and_disabled_fixed_kinematic() {
     let mut set = RigidBodySetTrait::new();
     let mut p: IntegrationParameters = Default::default();

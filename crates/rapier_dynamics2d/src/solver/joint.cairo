@@ -264,7 +264,7 @@ fn rigid_cfm(cfm: Fixed) -> Fixed {
     }
 }
 #[cfg(test)]
-mod alternatives;
+pub(crate) mod alternatives;
 #[cfg(test)]
 mod tests {
     use fixed::{FixedTrait, HALF, ONE};
