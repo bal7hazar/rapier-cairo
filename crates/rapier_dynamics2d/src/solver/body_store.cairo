@@ -2,14 +2,14 @@
 //! follow `RigidBodySet::iter`. Frozen DC/DE rows gather two bodies and scatter once per row set.
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::nullable::{FromNullableResult, NullableTrait, match_nullable};
-use fixed::ZERO;
+use fixed::{Fixed, ZERO};
 use glam::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::{RigidBodyDamping, RigidBodyType};
 use rapier_math::pose2::Pose2;
 use crate::rigid_body::{RigidBodyForcesTrait, RigidBodyMassPropsTrait, RigidBodyVelocity};
-use crate::rigid_body_set::{RigidBodySet, RigidBodySetTrait};
+use crate::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use super::body::{SolverBody, WORLD};
 
 /// Invalid dense indices or mutation of the persistent body set during a solve.
@@ -124,55 +124,28 @@ pub impl SolverBodyStoreImpl of SolverBodyStoreTrait {
         let mut steps = array![];
         let mut map: SolverBodyIndexMap = Default::default();
         for (handle, rb) in bodies.iter() {
-            let moving = rb.enabled && rb.body_type != RigidBodyType::Fixed;
-            let mp = rb.mprops.update_world_mass_properties(rb.body_type, rb.pos.position);
-            let forces = rb.forces.compute_effective_force_and_torque(gravity, mp.effective_mass());
-            let increment = if moving && rb.body_type == RigidBodyType::Dynamic {
-                forces.integrate(dt, Default::default(), mp)
-            } else {
-                Default::default()
-            };
+            let (body, step) = gather(handle, rb, gravity, dt);
             map.values.insert(handle.into(), dense.len().into() + 1_u64);
-            dense
-                .append(
-                    SolverBody {
-                        handle,
-                        position: Pose2 {
-                            translation: mp.world_com, rotation: rb.pos.position.rotation,
-                        },
-                        linvel: if moving {
-                            rb.vels.linvel
-                        } else {
-                            Default::default()
-                        },
-                        angvel: if moving {
-                            rb.vels.angvel
-                        } else {
-                            ZERO
-                        },
-                        im: if moving {
-                            mp.effective_inv_mass
-                        } else {
-                            Default::default()
-                        },
-                        ii: if moving {
-                            mp.effective_world_inv_inertia
-                        } else {
-                            ZERO
-                        },
-                    },
-                );
-            steps
-                .append(
-                    BodyStep {
-                        increment,
-                        local_com: mp.local_mprops.local_com,
-                        damping: rb.damping,
-                        moving,
-                    },
-                );
+            dense.append(body);
+            steps.append(step);
         }
         (SolverBodyStore { bodies: DenseBodiesTrait::new(dense.span()), steps: steps.span() }, map)
+    }
+    /// [`Self::from_bodies`] over given `(handle, body)` entries, in their order, without the
+    /// index map and without reading a set: the pipeline passes only the bodies a constraint
+    /// references. Same arithmetic and panics as `from_bodies`.
+    fn from_entries(
+        entries: Span<(Handle, RigidBody)>, gravity: Vec2, params: IntegrationParameters,
+    ) -> SolverBodyStore {
+        let dt = params.substep_dt();
+        let mut dense = array![];
+        let mut steps = array![];
+        for (handle, rb) in entries {
+            let (body, step) = gather(*handle, *rb, gravity, dt);
+            dense.append(body);
+            steps.append(step);
+        }
+        SolverBodyStore { bodies: DenseBodiesTrait::new(dense.span()), steps: steps.span() }
     }
     /// Read a dense solver body at its centre of mass. Invalid non-world ids panic.
     fn get(ref self: SolverBodyStore, index: u32) -> SolverBody {
@@ -193,22 +166,82 @@ pub impl SolverBodyStoreImpl of SolverBodyStoreTrait {
         while i != n {
             let sb = self.bodies.get(i);
             let mut rb = bodies.get(sb.handle).expect(errors::BODY);
-            if *self.steps.at(i).moving {
-                rb.vels = RigidBodyVelocity { linvel: sb.linvel, angvel: sb.angvel };
-                if rb.body_type != RigidBodyType::KinematicPositionBased {
-                    rb
-                        .pos
-                        .next_position =
-                            Pose2 {
-                                translation: sb.position.translation
-                                    - sb.position.rotation.rotate(*self.steps.at(i).local_com),
-                                rotation: sb.position.rotation,
-                            };
-                }
+            let step = *self.steps.at(i);
+            if step.moving {
+                writeback(sb, step, ref rb);
                 assert(bodies.set(sb.handle, rb), errors::BODY);
             }
             i += 1;
         }
+    }
+    /// [`Self::to_bodies`] for the dense body `index` applied to the value `rb` (the body of
+    /// that handle) instead of the set; a non-moving body is left unchanged. Invalid ids panic.
+    fn write_body(ref self: SolverBodyStore, index: u32, ref rb: RigidBody) {
+        let step = *self.steps.at(index);
+        if step.moving {
+            writeback(self.bodies.get(index), step, ref rb);
+        }
+    }
+}
+
+/// The solver body and step data of one body, as `from_bodies` gathers it: world mass
+/// properties at the current pose, force increment over one substep `dt`.
+#[inline(always)]
+pub(crate) fn gather(
+    handle: Handle, rb: RigidBody, gravity: Vec2, dt: Fixed,
+) -> (SolverBody, BodyStep) {
+    let moving = rb.enabled && rb.body_type != RigidBodyType::Fixed;
+    let mp = rb.mprops.update_world_mass_properties(rb.body_type, rb.pos.position);
+    let forces = rb.forces.compute_effective_force_and_torque(gravity, mp.effective_mass());
+    let increment = if moving && rb.body_type == RigidBodyType::Dynamic {
+        forces.integrate(dt, Default::default(), mp)
+    } else {
+        Default::default()
+    };
+    let body = SolverBody {
+        handle,
+        position: Pose2 { translation: mp.world_com, rotation: rb.pos.position.rotation },
+        linvel: if moving {
+            rb.vels.linvel
+        } else {
+            Default::default()
+        },
+        angvel: if moving {
+            rb.vels.angvel
+        } else {
+            ZERO
+        },
+        im: if moving {
+            mp.effective_inv_mass
+        } else {
+            Default::default()
+        },
+        ii: if moving {
+            mp.effective_world_inv_inertia
+        } else {
+            ZERO
+        },
+    };
+    (
+        body,
+        BodyStep { increment, local_com: mp.local_mprops.local_com, damping: rb.damping, moving },
+    )
+}
+
+/// The writeback of one moving body (see `to_bodies`): velocities, and `next_position` unless
+/// the body is position-based kinematic. Products floor.
+#[inline(always)]
+pub(crate) fn writeback(sb: SolverBody, step: BodyStep, ref rb: RigidBody) {
+    rb.vels = RigidBodyVelocity { linvel: sb.linvel, angvel: sb.angvel };
+    if rb.body_type != RigidBodyType::KinematicPositionBased {
+        rb
+            .pos
+            .next_position =
+                Pose2 {
+                    translation: sb.position.translation
+                        - sb.position.rotation.rotate(step.local_com),
+                    rotation: sb.position.rotation,
+                };
     }
 }
 use rapier_math::rot2::Rot2Trait;
