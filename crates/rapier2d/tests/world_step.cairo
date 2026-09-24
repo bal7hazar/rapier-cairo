@@ -57,18 +57,15 @@ fn test_kd_dynamic_pusher_control() {
     assert!(driver.linvel().x < ONE, "ordinary dynamic driver receives reaction");
 }
 
-/// Blocked by contact.cairo: immovable endpoints become WORLD and lose their velocity.
-/// Run with `snforge test -p rapier2d test_kd_ --include-ignored` to reproduce.
-/// Intentionally ignored until the orchestrator authorizes the contact-solver prerequisite.
+/// A zero-mass kinematic endpoint retains its solver velocity and substep pose.
 #[test]
-#[ignore]
 fn test_kd_kinematic_pusher_transfers_motion() {
     let (driver, passenger) = kd_pusher(RigidBodyType::KinematicVelocityBased, false);
     assert_eq!(driver.linvel().x, ONE, "kinematic velocity is unaffected");
     assert!(driver.position().translation.x > -ONE, "kinematic driver advances");
     assert!(
-        passenger.linvel().x > ZERO,
-        "moving kinematic contact must push: {}",
+        within(passenger.linvel().x.raw, 4314664388, 8192),
+        "upstream first-step passenger velocity: {}",
         passenger.linvel().x.raw,
     );
 }

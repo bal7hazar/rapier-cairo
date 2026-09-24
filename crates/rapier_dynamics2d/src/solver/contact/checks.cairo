@@ -232,6 +232,35 @@ mod tests {
         assert_eq!(c.solver_vel2, 0xffffffff);
     }
 
+    /// Equal-dominance zero-mass endpoints remain real, even at rest. This also
+    /// selects upstream's two-body softness instead of the world-contact spring.
+    #[test]
+    fn test_kinematic_endpoints_keep_identity_and_velocity() {
+        let (mut m, mut bs, p) = fixture(1);
+        let dynamic = bs.pop_front().unwrap();
+        let mut kine = dynamic;
+        kine.handle.index = 99;
+        kine.im = Default::default();
+        kine.ii = ZERO;
+        m.data.rigid_body1 = Some(kine.handle);
+        for speed in array![ZERO, ONE, -ONE] {
+            kine.linvel = Vec2 { x: speed, y: speed };
+            kine.angvel = speed;
+            let bs = array![kine, dynamic];
+            let c = ContactConstraintTrait::generate(m, bs.span(), p, p.substep_dt());
+            assert_eq!(c.solver_vel1, 0);
+            assert_eq!(c.solver_vel2, 1);
+            assert_eq!(c.im1, Default::default());
+            assert_eq!(c.soft_cfm_factor, p.contact_softness_coefficients().cfm_factor);
+            let mut swapped = m;
+            swapped.data.rigid_body1 = m.data.rigid_body2;
+            swapped.data.rigid_body2 = m.data.rigid_body1;
+            let c = ContactConstraintTrait::generate(swapped, bs.span(), p, p.substep_dt());
+            assert_eq!(c.solver_vel1, 1);
+            assert_eq!(c.solver_vel2, 0);
+        }
+    }
+
     #[test]
     fn test_separating_contact_does_not_bounce_or_attract() {
         let (mut m, mut bs, p) = fixture(1);
