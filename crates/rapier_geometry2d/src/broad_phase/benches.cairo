@@ -169,7 +169,7 @@ fn gas_cell_signed() {
 }
 #[test]
 fn gas_cell_felt() {
-    assert!(super::grid::cell(opaque(-1)) == 0x1fffffff);
+    assert!(super::alternatives::cell_grid_fixed(opaque(-1)) == 0x1fffffff);
 }
 
 #[test_case(32, 4)]

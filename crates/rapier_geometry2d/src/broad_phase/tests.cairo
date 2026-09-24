@@ -222,7 +222,7 @@ fn test_grid_boundaries_extremes_and_duplicate_cells() {
         0x7fffffffffffffff,
     ]
         .span() {
-        assert_eq!(super::grid::cell(*raw), alternatives::cell_signed(*raw));
+        assert_eq!(alternatives::cell_grid_fixed(*raw), alternatives::cell_signed(*raw));
         values.append(proxy(0, v_raw(*raw, *raw), v_raw(*raw, *raw), false));
         values.append(proxy(0, v_raw(*raw, *raw), v_raw(*raw, *raw), true));
     }

@@ -1,3 +1,4 @@
+pub(crate) mod scale;
 use super::ordering::merge_sort_pairs;
 use super::{BroadPhaseProxy, append_pair, find_pairs_brute, overlaps_fields_flat};
 
@@ -247,11 +248,30 @@ pub(crate) fn cell_signed(raw: i64) -> u32 {
     q.try_into().unwrap()
 }
 
+/// BG's fixed four-unit grid cell (u32, offset by 2^29). Superseded by `scale::floor_div`.
+#[inline(always)]
+pub(crate) fn cell_grid_fixed(raw: i64) -> u32 {
+    let biased: felt252 = raw.into();
+    let biased: u64 = (biased + 0x8000000000000000).try_into().unwrap();
+    let (q, _) = core::num::traits::DivRem::div_rem(biased, 0x400000000);
+    q.try_into().unwrap()
+}
+
+/// BG's fixed four-unit strip cell, centred on multiples of four. Superseded by
+/// `scale::cell_size`.
+#[inline(always)]
+pub(crate) fn cell_strip_fixed(raw: i64) -> u32 {
+    let biased: felt252 = raw.into();
+    let biased: u128 = (biased + 0x8000000200000000).try_into().unwrap();
+    let (q, _) = core::num::traits::DivRem::div_rem(biased, 0x400000000);
+    q.try_into().unwrap()
+}
+
 mod previous_counting {
     //! Counting-sort quantised min-x, O(n + cell range); fall back when the range exceeds 4n.
     //! Within a bucket order is arbitrary: the sweep must use cell bounds, then exact overlap.
     use core::dict::{Felt252Dict, Felt252DictEntryTrait, Felt252DictTrait};
-    use super::super::grid::cell;
+    use super::cell_grid_fixed as cell;
     use super::super::ordering::merge_sort_pairs;
     use super::super::{BroadPhaseProxy, find_pairs_tail_static_split, overlaps_raw, pair_allowed};
 
@@ -465,8 +485,8 @@ mod strip_wide_fallback {
     //! Shipped strip before large boxes got their own list: any box wider than two strips
     //! (a ground) abandons the strips for the tail scan.
     use core::dict::{Felt252Dict, Felt252DictEntryTrait, Felt252DictTrait};
+    use super::cell_strip_fixed as cell;
     use super::super::ordering::merge_sort_pairs;
-    use super::super::strip::cell;
     use super::super::{
         BroadPhaseProxy, crowded_fallback, find_pairs_tail_static_split, overlaps_raw, pair_allowed,
     };
@@ -522,8 +542,8 @@ mod counting {
     //! materialising another sorted array. Four-unit cells are centred on multiples of four.
     //! Bound the counting range by 4n and retain the tail scan for a single occupied x bucket.
     use core::dict::{Felt252Dict, Felt252DictEntryTrait, Felt252DictTrait};
+    use super::cell_strip_fixed as cell;
     use super::super::ordering::merge_sort_pairs;
-    use super::super::strip::cell;
     use super::super::{BroadPhaseProxy, find_pairs_tail_static_split, overlaps_raw, pair_allowed};
 
     #[inline(always)]

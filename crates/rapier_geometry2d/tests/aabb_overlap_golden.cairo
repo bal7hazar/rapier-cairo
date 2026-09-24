@@ -32,6 +32,37 @@ fn proxies(case: AabbOverlapCase) -> Array<BroadPhaseProxy> {
     out
 }
 
+/// The case with every coordinate multiplied by `factor` (exact, order-preserving); `None` when a
+/// coordinate would leave the `i64` range.
+fn scaled_proxies(case: AabbOverlapCase, factor: i64) -> Option<Array<BroadPhaseProxy>> {
+    let limit = 0x7fffffffffffffff / factor;
+    let boxes = case.aabbs.span();
+    let mut out = array![];
+    let mut i = 0;
+    while i != case.num_aabbs {
+        let b = boxes.at(i);
+        let coords = [*b.mins.x, *b.mins.y, *b.maxs.x, *b.maxs.y];
+        for c in coords.span() {
+            if *c > limit || *c < -limit {
+                return Option::None;
+            }
+        }
+        out
+            .append(
+                BroadPhaseProxy {
+                    collider: HandleTrait::new(i, 0),
+                    aabb: AabbTrait::new(
+                        v(*b.mins.x * factor, *b.mins.y * factor),
+                        v(*b.maxs.x * factor, *b.maxs.y * factor),
+                    ),
+                    is_static: *b.is_static,
+                },
+            );
+        i += 1;
+    }
+    Option::Some(out)
+}
+
 fn expected(case: AabbOverlapCase) -> Array<(u32, u32)> {
     let pairs = case.pairs.span();
     let mut out = array![];
@@ -62,6 +93,21 @@ fn test_all_golden_overlap_sets() {
         let expected = expected(*case);
         assert_same(actual.span(), expected.span());
     }
+}
+
+/// The same golden layouts in worlds 16, 256 and 4096 times larger give the same pairs.
+#[test]
+fn test_golden_overlap_sets_are_scale_free() {
+    let mut checked = 0_u32;
+    for case in aabb_overlap::cases() {
+        for factor in array![16_i64, 256, 4096].span() {
+            if let Option::Some(scaled) = scaled_proxies(*case, *factor) {
+                assert_same(find_pairs(scaled.span()).span(), expected(*case).span());
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked > 0);
 }
 
 #[test]
