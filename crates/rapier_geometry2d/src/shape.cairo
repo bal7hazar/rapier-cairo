@@ -162,8 +162,7 @@ mod alternatives {
         Shape,
     };
 
-    /// The pre-OP `ShapeTrait::compute_aabb`: the same `match`, out of line.
-    #[inline(never)]
+    /// Rejected direct polygon payload; increases every Shape value to 34 felts.
     #[derive(Copy, Drop)]
     pub enum UnboxedShape {
         Ball: super::Ball,
@@ -176,6 +175,7 @@ mod alternatives {
 
     /// Rejected 34-felt enum representation: existing scene probes measured the copy overhead
     /// before boxing the polygon payload. This retained AABB path exercises that representation.
+    #[inline(never)]
     pub fn compute_aabb_outlined(shape: Shape, pose: Pose2) -> Aabb {
         let shape = match shape {
             Shape::Ball(s) => UnboxedShape::Ball(s),

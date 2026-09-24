@@ -164,17 +164,6 @@ fn gas_construct() {
     );
 }
 #[test]
-fn gas_accessors() {
-    let p = opaque(square());
-    let _ = p.vertices();
-    let _ = p.points();
-    let _ = p.normals();
-    let _ = p.count();
-    let _ = p.vertex(0);
-    let _ = p.normal(0);
-    let _ = p.next(0);
-}
-#[test]
 fn gas_support() {
     let _ = opaque(square()).support_point(v(ONE, HALF));
 }
@@ -215,6 +204,11 @@ fn gas_ray() {
     let _ = cast_local_ray_convex_polygon(opaque(square()), ray(), TWO, false);
 }
 #[test]
+fn gas_aabb_loop() {
+    let _ = super::alternatives::compute_aabb_loop(opaque(square()), pose());
+}
+
+#[test]
 fn gas_aabb_support() {
     let _ = super::alternatives::compute_aabb_support(opaque(square()), pose());
 }
@@ -232,6 +226,7 @@ fn fuzz_aabb_variants(angle: u8, tx: i16, ty: i16) {
     assert_eq!(
         square().compute_aabb(pose), super::alternatives::compute_aabb_support(square(), pose),
     );
+    assert_eq!(square().compute_aabb(pose), super::alternatives::compute_aabb_loop(square(), pose));
 }
 
 #[test]
@@ -291,6 +286,13 @@ fn test_entry_rounding_to_zero_keeps_entry_face() {
 #[test]
 fn gas_bounding_sphere() {
     let polygon = opaque(square());
+    let _ = polygon.vertices();
+    let _ = polygon.points();
+    let _ = polygon.normals();
+    let _ = polygon.count();
+    let _ = polygon.vertex(0);
+    let _ = polygon.normal(0);
+    let _ = polygon.next(0);
     let _ = polygon.compute_local_bounding_sphere();
     let p = Shape::ConvexPolygon(BoxTrait::new(polygon));
     let _ = p.as_convex_polygon();

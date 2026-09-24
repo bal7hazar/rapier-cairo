@@ -220,16 +220,43 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
         bounds
     }
     /// Tight world bounds of all transformed vertices (one floor per transformed component).
-    /// Panics if a transformed point exceeds Q32.32.
+    /// Unrolled to keep the closed Shape AABB dispatch free of loop-dependent allocation-pointer
+    /// changes. This preserves existing scene step costs; the cheaper isolated gas loop remains
+    /// benchmarked under alternatives. Panics if a transformed point exceeds Q32.32.
     fn compute_aabb(self: ConvexPolygon, pose: Pose2) -> Aabb {
-        let p = pose.transform_point(self.vertex(0));
+        let [a, b, c, d, e, f, g, h] = self.vertices;
+        let p = pose.transform_point(a);
         let mut bounds = Aabb { mins: p, maxs: p };
-        let mut i = 1;
-        while i != self.count {
-            let p = pose.transform_point(self.vertex(i));
+        let p = pose.transform_point(b);
+        bounds.mins = bounds.mins.min(p);
+        bounds.maxs = bounds.maxs.max(p);
+        let p = pose.transform_point(c);
+        bounds.mins = bounds.mins.min(p);
+        bounds.maxs = bounds.maxs.max(p);
+        if self.count > 3 {
+            let p = pose.transform_point(d);
             bounds.mins = bounds.mins.min(p);
             bounds.maxs = bounds.maxs.max(p);
-            i += 1;
+        }
+        if self.count > 4 {
+            let p = pose.transform_point(e);
+            bounds.mins = bounds.mins.min(p);
+            bounds.maxs = bounds.maxs.max(p);
+        }
+        if self.count > 5 {
+            let p = pose.transform_point(f);
+            bounds.mins = bounds.mins.min(p);
+            bounds.maxs = bounds.maxs.max(p);
+        }
+        if self.count > 6 {
+            let p = pose.transform_point(g);
+            bounds.mins = bounds.mins.min(p);
+            bounds.maxs = bounds.maxs.max(p);
+        }
+        if self.count > 7 {
+            let p = pose.transform_point(h);
+            bounds.mins = bounds.mins.min(p);
+            bounds.maxs = bounds.maxs.max(p);
         }
         bounds
     }
@@ -278,6 +305,20 @@ mod alternatives {
     use rapier_math::rot2::Rot2Trait;
     use crate::aabb::Aabb;
     use super::{ConvexPolygon, ConvexPolygonTrait};
+
+    /// Bounded loop: lower isolated Sierra gas, but makes every Shape AABB call AP-unknown.
+    pub fn compute_aabb_loop(polygon: ConvexPolygon, pose: Pose2) -> Aabb {
+        let p = pose.transform_point(polygon.vertex(0));
+        let mut bounds = Aabb { mins: p, maxs: p };
+        let mut i = 1;
+        while i != polygon.count {
+            let p = pose.transform_point(polygon.vertex(i));
+            bounds.mins = bounds.mins.min(p);
+            bounds.maxs = bounds.maxs.max(p);
+            i += 1;
+        }
+        bounds
+    }
 
     pub fn compute_aabb_support(p: ConvexPolygon, pose: Pose2) -> Aabb {
         let x = Vec2 { x: ONE, y: ZERO };
