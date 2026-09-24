@@ -62,10 +62,10 @@ else
   PROMPT="$INPUT"
 fi
 
-# Machine-wide lock on memory-heavy Cairo builds (shared with the glam.cairo and nalgebra.cairo
-# orchestrators: 31 GB, no swap, a test build peaks near 10 GB). The shims wrap `scarb`/`snforge`
-# build|test|lint|check in `flock ~/orchestrator/heavy-build.lock`.
-[ -d "$HOME/orchestrator/shims" ] && export PATH="$HOME/orchestrator/shims:$PATH"
+# Build locks (scripts/build-shims/lock.sh): one rapier.cairo build at a time (project lock), and the
+# machine-wide heavy lock shared with glam.cairo / nalgebra.cairo only for workspace-wide test runs and
+# `scarb prove`. Crate-scoped builds and tests therefore run next to another project's heavy build.
+export PATH="$ROOT/scripts/build-shims:$PATH"
 
 cd "$WORKTREE"
 echo "executor $ID ($MODE): cli=$CLI model=$MODEL effort=${EFFORT:-default} branch=$BRANCH log=$LOG"
