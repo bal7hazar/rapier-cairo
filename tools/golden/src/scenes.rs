@@ -6,6 +6,10 @@ use rapier2d_f64::prelude::*;
 use serde_json::{json, Value};
 
 const NUM_STEPS: usize = 120;
+/// Steps of `box_stack3` recorded with per-pair contact diagnostics (SO).
+const STACK_DIAGNOSTIC_STEPS: usize = 8;
+/// Re-seed step of the second `box_stack3` window: its contact impulses are recorded too (SO).
+const STACK_RESEED_STEP: usize = 60;
 
 struct ColliderSpec {
     shape: ShapeSpec,
@@ -165,6 +169,44 @@ fn is_sampled(step: usize) -> bool {
     step <= 10 || step.is_multiple_of(10)
 }
 
+/// One manifold as recorded by the contact diagnostics (SD, SO).
+fn manifold_json(m: &ContactManifold) -> Value {
+    let points: Vec<Value> = m
+        .points
+        .iter()
+        .map(|p| {
+            json!({
+                "local_p1": jvec(p.local_p1), "local_p2": jvec(p.local_p2),
+                "dist": jf(p.dist), "fid1": p.fid1.0, "fid2": p.fid2.0,
+                "impulse": jf(p.data.impulse),
+                "tangent_impulse": jf(p.data.tangent_impulse.x),
+                "warmstart_impulse": jf(p.data.warmstart_impulse),
+                "warmstart_tangent_impulse": jf(p.data.warmstart_tangent_impulse.x),
+                "solver_dp1": jvec(p.data.solver_dp1),
+                "solver_dp2": jvec(p.data.solver_dp2),
+            })
+        })
+        .collect();
+    let solver_contacts: Vec<Value> = m
+        .data
+        .solver_contacts
+        .iter()
+        .map(|c| {
+            json!({
+                "contact_id": c.contact_id[0], "anchor1": jvec(c.anchor1),
+                "anchor2": jvec(c.anchor2), "dist": jf(c.dist),
+                "tangent_velocity": jvec(c.tangent_velocity),
+            })
+        })
+        .collect();
+    json!({
+        "local_n1": jvec(m.local_n1), "local_n2": jvec(m.local_n2),
+        "normal": jvec(m.data.normal), "friction": jf(m.data.friction),
+        "restitution": jf(m.data.restitution), "points": points,
+        "solver_contacts": solver_contacts,
+    })
+}
+
 fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
     // Comparability settings (decision D11). The block solver is removed at compile time by
     // building rapier without its `block-solver` default feature.
@@ -284,37 +326,28 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
         if scene.id.starts_with("box_slope_") && step <= 10 {
             let c1 = bodies[handles[0]].colliders()[0];
             let c2 = bodies[handles[1]].colliders()[0];
-            let manifolds: Vec<Value> =
-                narrow_phase
-                    .contact_pair(c1, c2)
-                    .map(|pair| {
-                        pair.manifolds.iter().map(|m| {
-                    let points: Vec<Value> = m.points.iter().map(|p| json!({
-                        "local_p1": jvec(p.local_p1), "local_p2": jvec(p.local_p2),
-                        "dist": jf(p.dist), "fid1": p.fid1.0, "fid2": p.fid2.0,
-                        "impulse": jf(p.data.impulse),
-                        "tangent_impulse": jf(p.data.tangent_impulse.x),
-                        "warmstart_impulse": jf(p.data.warmstart_impulse),
-                        "warmstart_tangent_impulse": jf(p.data.warmstart_tangent_impulse.x),
-                        "solver_dp1": jvec(p.data.solver_dp1),
-                        "solver_dp2": jvec(p.data.solver_dp2),
-                    })).collect();
-                    let solver_contacts: Vec<Value> = m.data.solver_contacts.iter().map(|c| json!({
-                        "contact_id": c.contact_id[0], "anchor1": jvec(c.anchor1),
-                        "anchor2": jvec(c.anchor2), "dist": jf(c.dist),
-                        "tangent_velocity": jvec(c.tangent_velocity),
-                    })).collect();
-                    json!({
-                        "local_n1": jvec(m.local_n1), "local_n2": jvec(m.local_n2),
-                        "normal": jvec(m.data.normal), "friction": jf(m.data.friction),
-                        "restitution": jf(m.data.restitution), "points": points,
-                        "solver_contacts": solver_contacts,
-                    })
-                }).collect()
-                    })
-                    .unwrap_or_default();
+            let manifolds: Vec<Value> = narrow_phase
+                .contact_pair(c1, c2)
+                .map(|pair| pair.manifolds.iter().map(manifold_json).collect())
+                .unwrap_or_default();
             diagnostics.push(json!({ "step": step, "manifolds": manifolds,
                 "body": sample(step, &bodies)["bodies"][0] }));
+        }
+        if scene.id == "box_stack3" && (step <= STACK_DIAGNOSTIC_STEPS || step == STACK_RESEED_STEP) {
+            // Every contact pair in upstream's contact-graph edge order.
+            let pairs: Vec<Value> = narrow_phase
+                .contact_pairs()
+                .map(|pair| {
+                    json!({
+                        "collider1": pair.collider1.into_raw_parts().0,
+                        "collider2": pair.collider2.into_raw_parts().0,
+                        "active": pair.has_any_active_contact(),
+                        "manifolds": pair.manifolds.iter().map(manifold_json).collect::<Vec<_>>(),
+                    })
+                })
+                .collect();
+            diagnostics.push(json!({ "step": step, "pairs": pairs,
+                "bodies": sample(step, &bodies)["bodies"] }));
         }
         if is_sampled(step) {
             samples.push(sample(step, &bodies));
@@ -333,6 +366,14 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             "timing": "after step; geometry and solver arms from pre-solve collision detection; impulses and body state after solve",
             "anchor_frames": "solver_contacts anchors are CoM-local (world for fixed side); solver_dp1/2 are frozen world lever arms at the common midpoint",
             "substeps": "body velocities inside a step are not exposed by the public API",
+            "steps": diagnostics,
+        });
+    } else if scene.id == "box_stack3" {
+        result["contact_diagnostics"] = json!({
+            "timing": "after step; geometry and solver arms from pre-solve collision detection; impulses and body state after solve",
+            "pair_order": "narrow_phase.contact_pairs(): contact-graph edge order; colliders by arena index (collider i belongs to body i)",
+            "solve_order": "not observable through the public API: the solver walks the persistent colour buckets (ContactPair::solver_color, pub(crate)); see README, SO",
+            "anchor_frames": "solver_contacts anchors are CoM-local (world for fixed side); solver_dp1/2 are frozen world lever arms at the common midpoint",
             "steps": diagnostics,
         });
     }

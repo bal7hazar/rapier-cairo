@@ -6,7 +6,7 @@
 //! that on velocities. `box_stack3` is judged on its rest invariants (multi-contact solver order
 //! differs from upstream by construction); its sample deviations are still measured and printed
 //! (GS: with correct feature ids in the references the strict comparison still fails, 12 and 3
-//! samples in the two windows).
+//! samples in the two windows; SO: the cause is the solve order, see `stack_diagnostics`).
 //! Every step also checks the run invariants: fixed bodies never move, energy never increases
 //! (`ball_drop`, `box_stack3`), the pendulum rod keeps its length.
 //!
@@ -26,6 +26,7 @@ use rapier_math::rot2::Rot2;
 
 mod builder;
 mod slope_diagnostics;
+mod stack_diagnostics;
 
 /// Position / rotation tolerance per step, in ulps (`2^12`); velocities get twice as much.
 const TOL_PER_STEP: u64 = 4096;
@@ -387,6 +388,10 @@ fn test_box_slope_slide() {
 
 /// Two 60-step windows: 120 continuous steps exceed snforge's default VM step budget. The
 /// second window is re-seeded from the upstream sample at step 60 (cold contact cache).
+/// SO: upstream solves the ground pair last (solver colours), the port first (pair order, D8);
+/// solving in upstream's order passes every sample of the first window
+/// (`stack_diagnostics::test_stack_colour_order_first_window`), and the second one once the
+/// re-seed also restores upstream's contact impulses (`test_stack_second_window_warm_*`).
 #[test]
 fn test_box_stack3_first_window() {
     let checks = Checks { energy_slack: Some(CONTACT_SLACK), rod: false };
