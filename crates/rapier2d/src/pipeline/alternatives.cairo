@@ -10,8 +10,8 @@ use kind::{
 };
 use rapier_core::collider::ColliderChangesTrait;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
-use rapier_core::rigid_body::RigidBodyChangesTrait;
 use rapier_core::rigid_body::changes::{COLLIDERS, LOCAL_MASS_PROPERTIES, POSITION};
+use rapier_core::rigid_body::{RigidBodyChanges, RigidBodyChangesTrait};
 use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
@@ -31,6 +31,7 @@ use rapier_geometry2d::dispatch::contact_manifold;
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
 use crate::world::World;
+use super::sleeping::wake_touched_partners;
 use super::{
     advance_to_final_positions, body_changes, collider_changes, joint_values,
     recompute_mass_properties_from_colliders, solve, write_joints,
@@ -364,10 +365,13 @@ pub fn solve_all_manifolds(
 
 /// User changes through DD's `propagate_modified_body_positions_to_colliders` (one more body
 /// scan, raises collider `POSITION` flags that a third pass clears).
-pub fn handle_user_changes_propagate(ref bodies: RigidBodySet, ref colliders: ColliderSet) {
+pub fn handle_user_changes_propagate(
+    ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
+) {
+    let mut touched = array![];
     for (handle, collider) in colliders.iter() {
         if !collider.changes.is_empty() {
-            collider_changes(handle, collider, ref bodies, ref colliders);
+            collider_changes(handle, collider, ref bodies, ref colliders, ref touched);
         }
     }
     bodies.propagate_modified_body_positions_to_colliders(ref colliders);
@@ -375,6 +379,10 @@ pub fn handle_user_changes_propagate(ref bodies: RigidBodySet, ref colliders: Co
         if !body.changes.is_empty() {
             let mut body = body;
             let changes = body.changes;
+            if changes.intersects(TOUCHING_CHANGES) {
+                body.wake_up(true);
+                touched.append_span(body.colliders);
+            }
             if changes.contains(POSITION) || changes.contains(COLLIDERS) {
                 body
                     .mprops = body
@@ -395,22 +403,34 @@ pub fn handle_user_changes_propagate(ref bodies: RigidBodySet, ref colliders: Co
             let _ = colliders.set(handle, collider);
         }
     }
+    if !touched.is_empty() && !pairs.is_empty() {
+        let _ = wake_touched_partners(touched.span(), pairs, ref bodies, ref colliders);
+    }
 }
 
+/// The body changes whose colliders the wake-up pass touches (as `pipeline::user_changes`).
+const TOUCHING_CHANGES: RigidBodyChanges = RigidBodyChanges { bits: 0xba };
+
 /// Stage 1 as shipped, returning whether any flag was set (for the proxy cache).
-pub fn handle_user_changes_flagged(ref bodies: RigidBodySet, ref colliders: ColliderSet) -> bool {
+pub fn handle_user_changes_flagged(
+    ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
+) -> bool {
     let mut any = false;
+    let mut touched = array![];
     for (handle, collider) in colliders.iter() {
         if !collider.changes.is_empty() {
             any = true;
-            collider_changes(handle, collider, ref bodies, ref colliders);
+            collider_changes(handle, collider, ref bodies, ref colliders, ref touched);
         }
     }
     for (handle, body) in bodies.iter() {
         if !body.changes.is_empty() {
             any = true;
-            body_changes(handle, body, ref bodies, ref colliders);
+            let _ = body_changes(handle, body, ref bodies, ref colliders, ref touched);
         }
+    }
+    if !touched.is_empty() && !pairs.is_empty() {
+        let _ = wake_touched_partners(touched.span(), pairs, ref bodies, ref colliders);
     }
     any
 }
@@ -483,7 +503,9 @@ fn fresh_proxy(
 
 /// A whole step with the proxy cache (invalidated by any user change).
 pub fn step_with_cache(ref world: World, ref cache: ProxyCache) -> Array<CollisionEvent> {
-    if handle_user_changes_flagged(ref world.bodies, ref world.colliders) {
+    if handle_user_changes_flagged(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    ) {
         cache.valid = false;
     }
     let prediction = world.integration_parameters.prediction_distance();
@@ -501,7 +523,7 @@ pub fn step_with_cache(ref world: World, ref cache: ProxyCache) -> Array<Collisi
         ref world.narrow_phase,
         ref world.impulse_joints,
     );
-    advance_to_final_positions(ref world.bodies, ref world.colliders);
+    advance_to_final_positions(ref world.bodies, ref world.colliders, world.integration_parameters);
     events
 }
 

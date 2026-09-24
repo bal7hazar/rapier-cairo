@@ -48,15 +48,16 @@ fn small(a: i64, tolerance: u64) -> bool {
 #[test]
 fn test_scene_table_has_the_expected_shape() {
     let cases = scenes::cases();
-    assert_eq!(cases.len(), 6);
+    assert_eq!(cases.len(), 8);
     let ids = array![
         'ball_drop', 'ball_bounce', 'box_slope_stick', 'box_slope_slide', 'box_stack3', 'pendulum',
+        'box_stack3_sleep', 'ball_drop_sleep',
     ];
-    let bodies = array![2_u32, 2, 2, 2, 4, 2];
-    let dynamic = array![1_u32, 1, 1, 1, 3, 1];
-    let joints = array![0_u32, 0, 0, 0, 0, 1];
+    let bodies = array![2_u32, 2, 2, 2, 4, 2, 4, 3];
+    let dynamic = array![1_u32, 1, 1, 1, 3, 1, 3, 2];
+    let joints = array![0_u32, 0, 0, 0, 0, 1, 0, 0];
     let mut i = 0;
-    while i != 6 {
+    while i != 8 {
         let case = cases.at(i);
         assert_eq!(*case.id, *ids.at(i));
         assert_eq!(*case.num_bodies, *bodies.at(i), "bodies of {}", *case.id);

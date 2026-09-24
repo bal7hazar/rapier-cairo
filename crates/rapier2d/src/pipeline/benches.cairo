@@ -89,9 +89,11 @@ fn run(id: felt252, warmup: u32, stages: u8, variant: u8) {
         return;
     }
     if variant == PROPAGATE {
-        handle_user_changes_propagate(ref world.bodies, ref world.colliders);
+        handle_user_changes_propagate(
+            ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+        );
     } else {
-        handle_user_changes(ref world.bodies, ref world.colliders);
+        handle_user_changes(ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span());
     }
     if stages == 1 {
         return;
@@ -160,7 +162,7 @@ fn run(id: felt252, warmup: u32, stages: u8, variant: u8) {
     if stages == 4 {
         return;
     }
-    advance_to_final_positions(ref world.bodies, ref world.colliders);
+    advance_to_final_positions(ref world.bodies, ref world.colliders, world.integration_parameters);
 }
 
 /// Fused stages as shipped.
@@ -186,7 +188,9 @@ fn run_fused(id: felt252, warmup: u32, stages: u8, variant: u8) {
     if stages == 0 {
         return;
     }
-    let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+    let (snapshot, infos) = user_changes_snapshot(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     if stages == 1 {
         return;
     }
@@ -219,9 +223,13 @@ fn run_fused(id: felt252, warmup: u32, stages: u8, variant: u8) {
         return;
     }
     if variant == OUTLINED_ADVANCE {
-        advance_with_snapshot_outlined(ref world.bodies, ref world.colliders, snapshot);
+        advance_with_snapshot_outlined(
+            ref world.bodies, ref world.colliders, snapshot, world.integration_parameters,
+        );
     } else {
-        advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
+        advance_with_snapshot(
+            ref world.bodies, ref world.colliders, snapshot, world.integration_parameters,
+        );
     }
 }
 

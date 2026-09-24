@@ -1,6 +1,7 @@
 //! D8 solve order of the step's touching manifolds (moved out of `crate::pipeline` by work
 //! package CL, file budget): pairs of two non-fixed bodies first, then pairs with a fixed body or
-//! none, each in pair order, and the scatter of the solved manifolds back into the pairs.
+//! none, each in pair order, and the scatter of the solved manifolds back into the pairs. Also
+//! the per-body status lookup ([`body_status`]) the D8 flag and the sleeping stages (SL) share.
 
 use rapier_core::Handle;
 use rapier_core::rigid_body::RigidBodyType;
@@ -20,6 +21,17 @@ pub fn touching_manifolds(pairs: Span<ContactPair>) -> Array<ContactManifold> {
     out
 }
 
+/// [`body_status`]: the manifold or joint side has no body (a standalone collider).
+pub const BODY_NONE: u8 = 0;
+/// [`body_status`]: a fixed body.
+pub const BODY_FIXED: u8 = 1;
+/// [`body_status`]: a disabled non-fixed body (not an island member, not moved by the step).
+pub const BODY_DISABLED: u8 = 2;
+/// [`body_status`]: an enabled non-fixed body that sleeps.
+pub const BODY_SLEEPING: u8 = 3;
+/// [`body_status`]: an enabled non-fixed body that is awake, or a handle `entries` lacks.
+pub const BODY_AWAKE: u8 = 4;
+
 /// D8: whether a manifold between `body1` and `body2` goes to the second solve group: it has a
 /// fixed body or no body. Upstream colours a touching pair with the lowest free colour when both
 /// bodies are non-fixed (kinematic included: `RigidBody::is_fixed` is `body_type == Fixed`) and
@@ -29,28 +41,71 @@ pub fn touching_manifolds(pairs: Span<ContactPair>) -> Array<ContactManifold> {
 pub(crate) fn fixed_last_flag(
     entries: Span<(Handle, RigidBody)>, body1: Option<Handle>, body2: Option<Handle>,
 ) -> bool {
-    match (body1, body2) {
-        (Some(h1), Some(h2)) => is_fixed_body(entries, h1) || is_fixed_body(entries, h2),
-        _ => true,
-    }
+    let (s1, s2) = link_status(entries, body1, body2);
+    fixed_last_of(s1, s2)
 }
 
-/// Whether the body of `handle` is fixed; a handle `entries` lacks counts as non-fixed. The
-/// position of a body in `entries` is at most its arena slot (equal while no body was removed),
-/// so the lookup starts at the slot and walks down over the holes.
-fn is_fixed_body(entries: Span<(Handle, RigidBody)>, handle: Handle) -> bool {
+/// [`fixed_last_flag`] on two [`body_status`] codes: either side is fixed or has no body.
+#[inline(always)]
+pub(crate) fn fixed_last_of(s1: u8, s2: u8) -> bool {
+    s1 <= BODY_FIXED || s2 <= BODY_FIXED
+}
+
+/// SL: a link (contact pair, joint) is dormant when neither side is moved by the step and one
+/// of them sleeps: both sides are `BODY_NONE`, `BODY_FIXED` or `BODY_SLEEPING`, at least one
+/// `BODY_SLEEPING`. Its pair is neither regenerated nor solved (upstream: a pair without an
+/// awake body is not updated and the sleeping body is not in the active set).
+#[inline(always)]
+pub(crate) fn dormant_of(s1: u8, s2: u8) -> bool {
+    (s1 == BODY_SLEEPING || s2 == BODY_SLEEPING)
+        && s1 != BODY_AWAKE
+        && s2 != BODY_AWAKE
+        && s1 != BODY_DISABLED
+        && s2 != BODY_DISABLED
+}
+
+/// The [`body_status`] codes of the two sides of a link; `None` is [`BODY_NONE`].
+#[inline(always)]
+pub(crate) fn link_status(
+    entries: Span<(Handle, RigidBody)>, body1: Option<Handle>, body2: Option<Handle>,
+) -> (u8, u8) {
+    let s1 = match body1 {
+        Some(h) => body_status(entries, h),
+        None => BODY_NONE,
+    };
+    let s2 = match body2 {
+        Some(h) => body_status(entries, h),
+        None => BODY_NONE,
+    };
+    (s1, s2)
+}
+
+/// The status code (`BODY_*`) of the body of `handle`; a handle `entries` lacks counts as an
+/// awake body (as the pre-SL lookup counted it non-fixed). The position of a body in `entries`
+/// is at most its arena slot (equal while no body was removed), so the lookup starts at the
+/// slot and walks down over the holes.
+pub(crate) fn body_status(entries: Span<(Handle, RigidBody)>, handle: Handle) -> u8 {
     if entries.is_empty() {
-        return false;
+        return BODY_AWAKE;
     }
     let mut position = handle.index;
     if position >= entries.len() {
         position = entries.len() - 1;
     }
-    let mut fixed = false;
+    let mut status = BODY_AWAKE;
     loop {
         let (candidate, body) = entries.at(position);
         if candidate.index == @handle.index {
-            fixed = *body.body_type == RigidBodyType::Fixed;
+            status =
+                if *body.body_type == RigidBodyType::Fixed {
+                    BODY_FIXED
+                } else if !*body.enabled {
+                    BODY_DISABLED
+                } else if *body.activation.sleeping {
+                    BODY_SLEEPING
+                } else {
+                    BODY_AWAKE
+                };
             break;
         }
         if candidate.index < @handle.index || position == 0 {
@@ -58,7 +113,7 @@ fn is_fixed_body(entries: Span<(Handle, RigidBody)>, handle: Handle) -> bool {
         }
         position -= 1;
     }
-    fixed
+    status
 }
 
 /// The stable partition of `manifolds` (pair order): the entries flagged `false` (in order), then

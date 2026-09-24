@@ -38,6 +38,9 @@ struct SceneSpec {
     note: &'static str,
     bodies: Vec<BodySpec>,
     joints: Vec<RevoluteSpec>,
+    /// Sleeping on (`RigidBodyBuilder::can_sleep(true)`, upstream's default thresholds): the
+    /// samples then carry `sleeping` per body and the scene its `sleep_transitions` (SL).
+    can_sleep: bool,
 }
 
 fn collider(shape: ShapeSpec, friction: f64, restitution: f64) -> ColliderSpec {
@@ -98,6 +101,7 @@ fn slope_scene(id: &'static str, note: &'static str, friction: f64) -> SceneSpec
             ),
         ],
         joints: vec![],
+        can_sleep: false,
     }
 }
 
@@ -111,6 +115,7 @@ fn scenes() -> Vec<SceneSpec> {
                 dynamic("ball", QPose::translation(0.0, 2.0), collider(ShapeSpec::ball(0.5), 0.5, 0.0)),
             ],
             joints: vec![],
+            can_sleep: false,
         },
         SceneSpec {
             id: "ball_bounce",
@@ -120,6 +125,7 @@ fn scenes() -> Vec<SceneSpec> {
                 dynamic("ball", QPose::translation(0.0, 2.0), collider(ShapeSpec::ball(0.5), 0.5, 0.7)),
             ],
             joints: vec![],
+            can_sleep: false,
         },
         slope_scene(
             "box_slope_stick",
@@ -141,6 +147,7 @@ fn scenes() -> Vec<SceneSpec> {
                 dynamic("box2", QPose::translation(0.0, 2.53), collider(ShapeSpec::cuboid(0.5, 0.5), 0.5, 0.0)),
             ],
             joints: vec![],
+            can_sleep: false,
         },
         SceneSpec {
             id: "pendulum",
@@ -160,6 +167,33 @@ fn scenes() -> Vec<SceneSpec> {
                 local_anchor1: QVec::ZERO,
                 local_anchor2: QVec::snap(-1.0, 0.0),
             }],
+            can_sleep: false,
+        },
+        // Sleeping on (SL): the stack settles and falls asleep as one island; the sleeping ball
+        // is hit by a second one released high enough to land after it fell asleep, which wakes
+        // it up. The first six scenes keep `can_sleep(false)`.
+        SceneSpec {
+            id: "box_stack3_sleep",
+            note: "box_stack3 with sleeping on: the three boxes settle, then the whole island falls asleep",
+            bodies: vec![
+                ground(0.5, 0.0),
+                dynamic("box0", QPose::translation(0.0, 0.51), collider(ShapeSpec::cuboid(0.5, 0.5), 0.5, 0.0)),
+                dynamic("box1", QPose::translation(0.0, 1.52), collider(ShapeSpec::cuboid(0.5, 0.5), 0.5, 0.0)),
+                dynamic("box2", QPose::translation(0.0, 2.53), collider(ShapeSpec::cuboid(0.5, 0.5), 0.5, 0.0)),
+            ],
+            joints: vec![],
+            can_sleep: true,
+        },
+        SceneSpec {
+            id: "ball_drop_sleep",
+            note: "ball_drop with sleeping on, plus a second ball (r = 0.5) released at y = 11.5 that lands on the sleeping first ball and wakes it up",
+            bodies: vec![
+                ground(0.5, 0.0),
+                dynamic("ball", QPose::translation(0.0, 2.0), collider(ShapeSpec::ball(0.5), 0.5, 0.0)),
+                dynamic("ball2", QPose::translation(0.0, 11.5), collider(ShapeSpec::ball(0.5), 0.5, 0.0)),
+            ],
+            joints: vec![],
+            can_sleep: true,
         },
     ]
 }
@@ -239,7 +273,7 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
         let handle = bodies.insert(
             builder
                 .pose(spec.pose.p())
-                .can_sleep(false)
+                .can_sleep(scene.can_sleep)
                 .ccd_enabled(false),
         );
         let mut colliders_json = Vec::new();
@@ -294,13 +328,17 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             .filter(|(spec, _)| spec.dynamic)
             .map(|(spec, handle)| {
                 let body = &bodies[*handle];
-                json!({
+                let mut state = json!({
                     "body": spec.name,
                     "translation": jvec(body.translation()),
                     "rotation": jrot(*body.rotation()),
                     "linvel": jvec(body.linvel()),
                     "angvel": jf(body.angvel()),
-                })
+                });
+                if scene.can_sleep {
+                    state["sleeping"] = json!(body.is_sleeping());
+                }
+                state
             })
             .collect();
         json!({ "step": step, "bodies": states })
@@ -308,6 +346,10 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
 
     let mut diagnostics = Vec::new();
     let mut samples = vec![sample(0, &bodies)];
+    // Sleeping (SL): every flip of `is_sleeping` of a dynamic body, with the step after which
+    // it is observed (the sleep decision and the wake-ups happen inside that step).
+    let mut sleep_transitions = Vec::new();
+    let mut was_sleeping: Vec<bool> = handles.iter().map(|h| bodies[*h].is_sleeping()).collect();
     for step in 1..=NUM_STEPS {
         pipeline.step(
             gravity.v(),
@@ -349,6 +391,17 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             diagnostics.push(json!({ "step": step, "pairs": pairs,
                 "bodies": sample(step, &bodies)["bodies"] }));
         }
+        if scene.can_sleep {
+            for (k, handle) in handles.iter().enumerate() {
+                let sleeping = bodies[*handle].is_sleeping();
+                if scene.bodies[k].dynamic && sleeping != was_sleeping[k] {
+                    sleep_transitions.push(json!({
+                        "step": step, "body": scene.bodies[k].name, "sleeping": sleeping,
+                    }));
+                }
+                was_sleeping[k] = sleeping;
+            }
+        }
         if is_sampled(step) {
             samples.push(sample(step, &bodies));
         }
@@ -357,10 +410,14 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
     let mut result = json!({
         "id": scene.id,
         "note": scene.note,
+        "can_sleep": scene.can_sleep,
         "bodies": bodies_json,
         "joints": joints_json,
         "samples": samples,
     });
+    if scene.can_sleep {
+        result["sleep_transitions"] = json!(sleep_transitions);
+    }
     if scene.id.starts_with("box_slope_") {
         result["contact_diagnostics"] = json!({
             "timing": "after step; geometry and solver arms from pre-solve collision detection; impulses and body state after solve",
@@ -399,6 +456,7 @@ pub fn generate() -> Value {
             "max_ccd_substeps": 0,
             "block_solver": false,
             "can_sleep": false,
+            "can_sleep_note": "per scene: `can_sleep` is true for box_stack3_sleep and ball_drop_sleep only (SL), whose samples carry `sleeping` and whose `sleep_transitions` list every flip",
             "ccd_enabled": false,
             "num_solver_iterations": defaults.num_solver_iterations,
             "num_internal_pgs_iterations": defaults.num_internal_pgs_iterations,

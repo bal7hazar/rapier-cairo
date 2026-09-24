@@ -100,7 +100,7 @@ pub fn solve_and_advance_metered(
                 body = free.solve(*handle, body);
                 pending = false;
             }
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
         }
         if member {
             dense += 1;
@@ -183,7 +183,7 @@ pub fn solve_and_advance_separate_marking(
             } else {
                 free.solve(*handle, *body)
             };
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
         }
         if member {
             dense += 1;
@@ -280,7 +280,7 @@ pub fn solve_and_advance_member_handles(
             } else {
                 free.solve(*handle, *body)
             };
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
         }
         if member {
             dense += 1;
@@ -376,7 +376,7 @@ pub fn solve_and_advance_lazy(
                 };
                 solver.solve(*handle, *body)
             };
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
         }
         if member {
             dense += 1;
@@ -461,7 +461,7 @@ pub fn solve_and_advance_island_always(
             } else {
                 free.solve(*handle, *body)
             };
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
         }
         if member {
             dense += 1;

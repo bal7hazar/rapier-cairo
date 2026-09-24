@@ -70,7 +70,9 @@ fn run(id: felt252, warmup: u32, stage: u8) {
         let _ = world.step();
         i += 1;
     }
-    let (snapshot, infos, entries) = user_changes_bodies(ref world.bodies, ref world.colliders);
+    let (snapshot, infos, entries, _) = user_changes_bodies(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span());
@@ -88,7 +90,9 @@ fn run(id: felt252, warmup: u32, stage: u8) {
             ref world.narrow_phase,
             ref world.impulse_joints,
         );
-        super::advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
+        super::advance_with_snapshot(
+            ref world.bodies, ref world.colliders, snapshot, world.integration_parameters,
+        );
         return;
     }
     if stage >= 8 {
@@ -252,7 +256,12 @@ fn run(id: felt252, warmup: u32, stage: u8) {
                 free.solve(*handle, *body)
             };
             advance_body_with_snapshot(
-                *handle, body, ref world.bodies, ref world.colliders, snapshot,
+                *handle,
+                body,
+                ref world.bodies,
+                ref world.colliders,
+                snapshot,
+                world.integration_parameters,
             );
         }
         if member {

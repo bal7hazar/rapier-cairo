@@ -4126,8 +4126,1387 @@ pub const PENDULUM: SceneCase = SceneCase {
     ],
 };
 
-pub const ALL: [SceneCase; 6] = [
+pub const BOX_STACK3_SLEEP: SceneCase = SceneCase {
+    id: 'box_stack3_sleep',
+    gravity: Vec2Raw { x: 0, y: -42133629174 },
+    dt: 71582788,
+    num_steps: 120,
+    num_bodies: 4,
+    bodies: [
+        SceneBodyRaw {
+            name: 'ground',
+            kind: BodyKindRaw::Fixed,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: -2147483648 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Cuboid(Vec2Raw { x: 42949672960, y: 2147483648 }),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+        SceneBodyRaw {
+            name: 'box0',
+            kind: BodyKindRaw::Dynamic,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: 2190433321 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Cuboid(Vec2Raw { x: 2147483648, y: 2147483648 }),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+        SceneBodyRaw {
+            name: 'box1',
+            kind: BodyKindRaw::Dynamic,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: 6528350290 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Cuboid(Vec2Raw { x: 2147483648, y: 2147483648 }),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+        SceneBodyRaw {
+            name: 'box2',
+            kind: BodyKindRaw::Dynamic,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: 10866267259 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Cuboid(Vec2Raw { x: 2147483648, y: 2147483648 }),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+    ],
+    num_dynamic: 3,
+    num_joints: 0,
+    joints: [
+        RevoluteJointRaw {
+            body1: 0,
+            body2: 0,
+            local_anchor1: Vec2Raw { x: 0, y: 0 },
+            local_anchor2: Vec2Raw { x: 0, y: 0 },
+        },
+    ],
+    samples: [
+        SceneSampleRaw {
+            step: 0,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2190433321 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 6528350290 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 0, y: 10866267259 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 1,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2183118455 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -702227150 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 6521035424 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -702227150 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 0, y: 10858952393 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -702227150 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 2,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2164099803 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -1404454301 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 6502016772 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -1404454301 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 0, y: 10839933741 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -1404454301 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 3,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 1281596, y: 2147798392 },
+                    rotation: RotRaw { re: 4294967250, im: 629552 },
+                    linvel: Vec2Raw { x: 150610690, y: -73021869 },
+                    angvel: -300060522,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 6471294334 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2106681451 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 0, y: 10809211303 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2106681451 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 4,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2442318, y: 2147169422 },
+                    rotation: RotRaw { re: 4294967296, im: -42514 },
+                    linvel: Vec2Raw { x: 15338420, y: -20295901 },
+                    angvel: -30672344,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 251467, y: 6440537880 },
+                    rotation: RotRaw { re: 4294967123, im: -1220072 },
+                    linvel: Vec2Raw { x: 65267371, y: -200148048 },
+                    angvel: -73002740,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 0, y: 10766785080 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2808908601 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 5,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2539513, y: 2146313731 },
+                    rotation: RotRaw { re: 4294967244, im: -668727 },
+                    linvel: Vec2Raw { x: 4332920, y: -26000593 },
+                    angvel: -8666517,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 1202109, y: 6437780120 },
+                    rotation: RotRaw { re: 4294967169, im: -1042441 },
+                    linvel: Vec2Raw { x: 46860470, y: -386400250 },
+                    angvel: 55938854,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 67906, y: 10732709007 },
+                    rotation: RotRaw { re: 4294967294, im: -119385 },
+                    linvel: Vec2Raw { x: 79025332, y: -474231834 },
+                    angvel: -119828218,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 6,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2384746, y: 2146701114 },
+                    rotation: RotRaw { re: 4294967215, im: 834380 },
+                    linvel: Vec2Raw { x: 24097061, y: 10509219 },
+                    angvel: -48211007,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2901894, y: 6442210253 },
+                    rotation: RotRaw { re: 4294966357, im: -2839330 },
+                    linvel: Vec2Raw { x: 97918347, y: 185906739 },
+                    angvel: 82219649,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 2450186, y: 10736660973 },
+                    rotation: RotRaw { re: 4294967107, im: -1275295 },
+                    linvel: Vec2Raw { x: 113714382, y: 150288129 },
+                    angvel: 10973917,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 7,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2971640, y: 2146696629 },
+                    rotation: RotRaw { re: 4294967282, im: 344039 },
+                    linvel: Vec2Raw { x: 20804903, y: -12838171 },
+                    angvel: -41613346,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 3990778, y: 6440089048 },
+                    rotation: RotRaw { re: 4294966879, im: -1892823 },
+                    linvel: Vec2Raw { x: 23584867, y: -176990077 },
+                    angvel: 29499525,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 3283760, y: 10734306324 },
+                    rotation: RotRaw { re: 4294967187, im: -965707 },
+                    linvel: Vec2Raw { x: 8554537, y: -191437904 },
+                    angvel: 550905,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 8,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2499526, y: 2146533355 },
+                    rotation: RotRaw { re: 4294967295, im: 69979 },
+                    linvel: Vec2Raw { x: -10328145, y: 837025 },
+                    angvel: 20659248,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 3934893, y: 6439137344 },
+                    rotation: RotRaw { re: 4294967023, im: -1532227 },
+                    linvel: Vec2Raw { x: -31548034, y: 14261320 },
+                    angvel: 752639,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 2987490, y: 10733016890 },
+                    rotation: RotRaw { re: 4294967239, im: -701008 },
+                    linvel: Vec2Raw { x: -32774930, y: 14732158 },
+                    angvel: 1701896,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 9,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2434110, y: 2146526526 },
+                    rotation: RotRaw { re: 4294967296, im: 26170 },
+                    linvel: Vec2Raw { x: -1375564, y: -2401108 },
+                    angvel: 2751714,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 3342901, y: 6439306302 },
+                    rotation: RotRaw { re: 4294967174, im: -1022718 },
+                    linvel: Vec2Raw { x: -36468026, y: -21526841 },
+                    angvel: 44341518,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1860098, y: 10733001442 },
+                    rotation: RotRaw { re: 4294967287, im: -276064 },
+                    linvel: Vec2Raw { x: -78273682, y: -24056986 },
+                    angvel: 39289662,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 10,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2392931, y: 2146478760 },
+                    rotation: RotRaw { re: 4294967296, im: 574 },
+                    linvel: Vec2Raw { x: -4048495, y: -2497388 },
+                    angvel: 8098770,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2683464, y: 6438793549 },
+                    rotation: RotRaw { re: 4294967267, im: -498136 },
+                    linvel: Vec2Raw { x: -35648067, y: -23660787 },
+                    angvel: 31412359,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 594737, y: 10732283135 },
+                    rotation: RotRaw { re: 4294967292, im: 177363 },
+                    linvel: Vec2Raw { x: -64425389, y: -26294933 },
+                    angvel: 26158543,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 20,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2533778, y: 2146412182 },
+                    rotation: RotRaw { re: 4294967296, im: 61641 },
+                    linvel: Vec2Raw { x: 553137, y: -529923 },
+                    angvel: -1106544,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2744788, y: 6437024256 },
+                    rotation: RotRaw { re: 4294967293, im: -164969 },
+                    linvel: Vec2Raw { x: -1638738, y: -7135156 },
+                    angvel: 2591739,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 756312, y: 10729497089 },
+                    rotation: RotRaw { re: 4294967292, im: 186549 },
+                    linvel: Vec2Raw { x: -3417743, y: -7947248 },
+                    angvel: 968270,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 30,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2608991, y: 2146392184 },
+                    rotation: RotRaw { re: 4294967296, im: 37585 },
+                    linvel: Vec2Raw { x: 402505, y: -186114 },
+                    angvel: -805210,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2872348, y: 6436148307 },
+                    rotation: RotRaw { re: 4294967295, im: -96816 },
+                    linvel: Vec2Raw { x: 1076829, y: -3070468 },
+                    angvel: -773521,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1046949, y: 10728311707 },
+                    rotation: RotRaw { re: 4294967296, im: 57348 },
+                    linvel: Vec2Raw { x: 2152848, y: -3373060 },
+                    angvel: -1379918,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 40,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 50,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 60,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 70,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 80,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 90,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 100,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 110,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 120,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 2628303, y: 2146384324 },
+                    rotation: RotRaw { re: 4294967296, im: 17360 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 2895410, y: 6435866491 },
+                    rotation: RotRaw { re: 4294967295, im: -67479 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 3,
+                    translation: Vec2Raw { x: 1110422, y: 10727956596 },
+                    rotation: RotRaw { re: 4294967296, im: 20061 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+    ],
+};
+
+pub const BALL_DROP_SLEEP: SceneCase = SceneCase {
+    id: 'ball_drop_sleep',
+    gravity: Vec2Raw { x: 0, y: -42133629174 },
+    dt: 71582788,
+    num_steps: 120,
+    num_bodies: 3,
+    bodies: [
+        SceneBodyRaw {
+            name: 'ground',
+            kind: BodyKindRaw::Fixed,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: -2147483648 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Cuboid(Vec2Raw { x: 42949672960, y: 2147483648 }),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+        SceneBodyRaw {
+            name: 'ball',
+            kind: BodyKindRaw::Dynamic,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: 8589934592 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Ball(2147483648),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+        SceneBodyRaw {
+            name: 'ball2',
+            kind: BodyKindRaw::Dynamic,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: 49392123904 },
+                rotation: RotRaw { re: 4294967296, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 4294967296,
+            num_colliders: 1,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Ball(2147483648),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 },
+                        rotation: RotRaw { re: 4294967296, im: 0 },
+                    },
+                    density: 4294967296,
+                    friction: 2147483648,
+                    restitution: 0,
+                },
+            ],
+        },
+        SceneBodyRaw {
+            name: 0,
+            kind: BodyKindRaw::Fixed,
+            pose: PoseRaw {
+                translation: Vec2Raw { x: 0, y: 0 }, rotation: RotRaw { re: 0, im: 0 },
+            },
+            linear_damping: 0,
+            angular_damping: 0,
+            gravity_scale: 0,
+            num_colliders: 0,
+            colliders: [
+                SceneColliderRaw {
+                    shape: ShapeRaw::Ball(0),
+                    pose_wrt_parent: PoseRaw {
+                        translation: Vec2Raw { x: 0, y: 0 }, rotation: RotRaw { re: 0, im: 0 },
+                    },
+                    density: 0,
+                    friction: 0,
+                    restitution: 0,
+                },
+            ],
+        },
+    ],
+    num_dynamic: 2,
+    num_joints: 0,
+    joints: [
+        RevoluteJointRaw {
+            body1: 0,
+            body2: 0,
+            local_anchor1: Vec2Raw { x: 0, y: 0 },
+            local_anchor2: Vec2Raw { x: 0, y: 0 },
+        },
+    ],
+    samples: [
+        SceneSampleRaw {
+            step: 0,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8589934592 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49392123904 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 1,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8582619726 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -702227150 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49384809038 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -702227150 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 2,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8563601074 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -1404454301 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49365790386 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -1404454301 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 3,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8532878636 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2106681451 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49335067948 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2106681451 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 4,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8490452413 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2808908601 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49292641725 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -2808908601 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 5,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8436322403 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -3511135751 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49238511715 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -3511135751 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 6,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8370488608 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -4213362902 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49172677920 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -4213362902 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 7,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8292951027 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -4915590052 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49095140339 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -4915590052 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 8,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8203709661 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -5617817202 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 49005898973 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -5617817202 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 9,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 8102764508 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -6320044353 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 48904953820 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -6320044353 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 10,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 7990115570 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -7022271503 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 48792304882 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -7022271503 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 20,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 6219917969 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -14044543006 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 47022107281 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -14044543006 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 30,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 3279341788 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -21066814509 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 44081531100 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -21066814509 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 40,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2147228091 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 39970576339 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -28089086011 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 50,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2147189362 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 34689243000 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -35111357514 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 60,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2147187303 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 28237531081 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -42133629017 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 70,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2147187214 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 20615440582 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -49155900520 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 80,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2147187214 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 11822971504 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -56178172023 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 90,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 1921387310 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 6068062113 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 13003527067 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 100,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2135182662 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 7635497594 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 5981255564 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 110,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2146548974 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 8032554496 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -1041015938 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+        SceneSampleRaw {
+            step: 120,
+            states: [
+                BodyStateRaw {
+                    body: 1,
+                    translation: Vec2Raw { x: 0, y: 2147153257 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 2,
+                    translation: Vec2Raw { x: 0, y: 7259232818 },
+                    rotation: RotRaw { re: 4294967296, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: -8063287441 },
+                    angvel: 0,
+                },
+                BodyStateRaw {
+                    body: 0,
+                    translation: Vec2Raw { x: 0, y: 0 },
+                    rotation: RotRaw { re: 0, im: 0 },
+                    linvel: Vec2Raw { x: 0, y: 0 },
+                    angvel: 0,
+                },
+            ],
+        },
+    ],
+};
+
+pub const ALL: [SceneCase; 8] = [
     BALL_DROP, BALL_BOUNCE, BOX_SLOPE_STICK, BOX_SLOPE_SLIDE, BOX_STACK3, PENDULUM,
+    BOX_STACK3_SLEEP, BALL_DROP_SLEEP,
 ];
 
 /// Every case of [`ALL`], in the order of the JSON file.

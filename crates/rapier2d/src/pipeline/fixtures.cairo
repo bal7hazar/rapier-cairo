@@ -5,6 +5,7 @@ use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
+use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_dynamics2d::collider::{Collider, ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
@@ -55,10 +56,18 @@ pub fn scene_params(scene: SceneCase) -> IntegrationParameters {
     IntegrationParameters { dt: f(scene.dt), ..Default::default() }
 }
 
-/// `scene` rebuilt in a fresh world; the bodies' handles in scene order.
+/// Whether the golden scene `id` was traced with sleeping on (`tools/golden/README.md`: every
+/// other trace uses `can_sleep(false)`).
+pub fn scene_can_sleep(id: felt252) -> bool {
+    id == 'box_stack3_sleep' || id == 'ball_drop_sleep'
+}
+
+/// `scene` rebuilt in a fresh world; the bodies' handles in scene order. Bodies of the traces
+/// recorded with `can_sleep(false)` get `RigidBodyActivationTrait::cannot_sleep`.
 pub fn scene_world(scene: SceneCase) -> (World, Array<Handle>) {
     let mut world = WorldTrait::new(vr(scene.gravity), scene_params(scene));
     let mut handles = array![];
+    let can_sleep = scene_can_sleep(scene.id);
     for desc in scene.bodies.span() {
         if handles.len() == scene.num_bodies {
             break;
@@ -67,6 +76,9 @@ pub fn scene_world(scene: SceneCase) -> (World, Array<Handle>) {
             BodyKindRaw::Fixed => RigidBodyTrait::fixed(pose(*desc.pose)),
             BodyKindRaw::Dynamic => RigidBodyTrait::dynamic(pose(*desc.pose)),
         };
+        if !can_sleep {
+            body.activation = RigidBodyActivationTrait::cannot_sleep();
+        }
         body.damping.linear_damping = f(*desc.linear_damping);
         body.damping.angular_damping = f(*desc.angular_damping);
         body.forces.gravity_scale = f(*desc.gravity_scale);

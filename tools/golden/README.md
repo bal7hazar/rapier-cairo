@@ -131,11 +131,22 @@ legitimately answer differently there; compare `dist` and treat the rest as info
 ### scenes
 
 `ball_drop`, `ball_bounce` (restitution 0.7), `box_slope_stick` (μ = 0.7 > tan 30°),
-`box_slope_slide` (μ = 0.25), `box_stack3`, `pendulum` (revolute joint). 120 steps at the
+`box_slope_slide` (μ = 0.25), `box_stack3`, `pendulum` (revolute joint), and two scenes with
+sleeping **on** (work package SL): `box_stack3_sleep` (the stack of `box_stack3`, which settles
+and falls asleep as one island) and `ball_drop_sleep` (the ball of `ball_drop` plus a second ball
+released at `y = 11.5`, which lands on the sleeping first ball and wakes it up). 120 steps at the
 quantised `dt`, gravity `(0, -9.81)` snapped to Q32.32. The file describes each scene completely
-(bodies in insertion order, colliders, material, joints) and samples every dynamic body at step 0
-(initial state), steps 1–10, then every 10th step: `translation`, `rotation` `(re, im)`,
-`linvel`, `angvel`, read after `PhysicsPipeline::step`.
+(bodies in insertion order, colliders, material, joints, `can_sleep`) and samples every dynamic
+body at step 0 (initial state), steps 1–10, then every 10th step: `translation`, `rotation`
+`(re, im)`, `linvel`, `angvel`, read after `PhysicsPipeline::step`; for the two sleep scenes also
+`sleeping` (`RigidBody::is_sleeping`), and the scene lists every flip of that flag in
+`sleep_transitions` (`step`, `body`, `sleeping`), the step being the one whose `step()` produced
+it. The Cairo fixture (`SceneCase`) does not carry the sleep flags: the generator's scene mapping
+is field by field, so `crates/rapier2d/tests/golden_scenes.cairo` transcribes the transitions from
+the JSON by hand. Upstream decides an island's sleep before solving the step (the bodies keep the
+pose of the previous step, velocities zeroed) and wakes a sleeping body in the narrow phase of the
+step where a contact starts touching it; the port does both at the same steps
+(`rapier2d::pipeline::islands`).
 
 ### Slope divergence diagnosis (SD)
 
@@ -614,7 +625,7 @@ Everything D11 asks for could be disabled through the public API or a cargo feat
 | contact recycling | on | **off** | `IntegrationParameters::contact_recycling = false` | the port recomputes every manifold every step |
 | contact clustering | on | **off** | `IntegrationParameters::contact_clustering = false` | only acts on pairs with several manifolds; never the case for the convex pairs here, disabled for clarity |
 | CCD | 1 substep | **off** | `max_ccd_substeps = 0` (skips the CCD branch entirely) and `ccd_enabled(false)`, no soft-CCD | not in the MVP |
-| sleeping | on | **off** | `RigidBodyBuilder::can_sleep(false)` on every body | not in the MVP; removes the 0.5 s sleep timer from traces |
+| sleeping | on | **off** except `box_stack3_sleep`, `ball_drop_sleep` | `RigidBodyBuilder::can_sleep(false)` on every body of the six original scenes; `can_sleep(true)` (default thresholds) in the two SL scenes | the original traces predate sleeping (SL) and stay unchanged; the two SL scenes validate the sleep and wake-up steps |
 | `dt` | `1/60` (f64) | `71582788 / 2^32` | field | quantisation rule |
 
 Left at their defaults, and **not** removable, so they remain sources of legitimate divergence:

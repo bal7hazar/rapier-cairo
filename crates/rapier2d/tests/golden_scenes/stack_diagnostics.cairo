@@ -165,7 +165,9 @@ fn permutation(
 /// returns the solve permutation (manifold indices in solve order).
 fn ordered_step(ref world: World, order: Order) -> Array<u32> {
     let params = world.integration_parameters;
-    pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
+    pipeline::handle_user_changes(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let _ = pipeline::detect_collisions(
         params, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );
@@ -206,7 +208,9 @@ fn ordered_step(ref world: World, order: Order) -> Array<u32> {
                     world.narrow_phase.pairs.span(), solved.span(), pair_order.span(),
                 );
     }
-    pipeline::advance_to_final_positions(ref world.bodies, ref world.colliders);
+    pipeline::advance_to_final_positions(
+        ref world.bodies, ref world.colliders, world.integration_parameters,
+    );
     perm
 }
 
@@ -322,7 +326,7 @@ fn test_stack_first_steps() {
             if step >= 3 && step <= 5 {
                 print_pairs(ref world, step);
             }
-            stats = compare(ref world, scene, *scene.samples.span().at(step), stats);
+            stats = compare(ref world, scene, *scene.samples.span().at(step), stats, true);
             if step == 3 {
                 assert_eq!(stats.violations, 0, "steps 1-3 within tolerance");
             }
@@ -424,7 +428,9 @@ enum Seed {
 /// Writes [`UPSTREAM_60`] into the port's manifolds of the current state; returns the number of
 /// points matched.
 pub fn seed_impulses(ref world: World) -> u32 {
-    pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
+    pipeline::handle_user_changes(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let _ = pipeline::detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );
@@ -496,7 +502,7 @@ fn window(order: Order, start: u32, end: u32, seed: Seed) -> Stats {
         let _ = ordered_step(ref world, order);
         step += 1;
         if *samples.at(next).step == step {
-            stats = compare(ref world, scene, *samples.at(next), stats);
+            stats = compare(ref world, scene, *samples.at(next), stats, true);
             next += 1;
         }
     }
@@ -551,7 +557,9 @@ fn test_stack_second_window_warm_pair() {
 /// The stack's contact pairs at step 1 (all three touching) and the body walk: the probe inputs.
 fn probe_inputs() -> (Span<ContactPair>, Span<(Handle, RigidBody)>) {
     let mut world = build_world(scenes::BOX_STACK3);
-    pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
+    pipeline::handle_user_changes(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let _ = pipeline::detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );

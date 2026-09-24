@@ -140,7 +140,9 @@ fn trace(
 /// traces and writes the traced state and impulses back instead of solving (one solve per step
 /// keeps 120 steps within the VM budget). Returns the number of counterfactual rows.
 fn diagnostic_step(ref world: World, zero_rigid: bool, verbose: bool) -> u32 {
-    pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
+    pipeline::handle_user_changes(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let _ = pipeline::detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );
@@ -181,7 +183,9 @@ fn diagnostic_step(ref world: World, zero_rigid: bool, verbose: bool) -> u32 {
         rb.vels = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel };
         assert!(world.set_body(body_handle(1), rb));
     }
-    pipeline::advance_to_final_positions(ref world.bodies, ref world.colliders);
+    pipeline::advance_to_final_positions(
+        ref world.bodies, ref world.colliders, world.integration_parameters,
+    );
     if let Some((_, (b, _, _))) = traced {
         // Engine mode: the cross-check; counterfactual: the write-back reached the body.
         let rb = world.body(body_handle(1)).unwrap();
@@ -211,7 +215,7 @@ fn test_slope_first_steps() {
                     println!("step {}: {} zero-gap rows solved rigidly", step, n);
                 }
                 flips += n;
-                stats = compare(ref world, scene, *scene.samples.span().at(step), stats);
+                stats = compare(ref world, scene, *scene.samples.span().at(step), stats, true);
                 if step == 3 {
                     assert_eq!(stats.violations, 0, "first contact within tolerance");
                     assert_first_geometry(*world.narrow_phase.pairs.at(0).manifold);
@@ -262,7 +266,7 @@ fn test_slide_zero_gap_counterfactual() {
     while step != 121 {
         flips += diagnostic_step(ref world, true, false);
         if *scene.samples.span().at(next).step == step {
-            stats = compare(ref world, scene, *scene.samples.span().at(next), stats);
+            stats = compare(ref world, scene, *scene.samples.span().at(next), stats, true);
             next += 1;
         }
         step += 1;

@@ -272,7 +272,8 @@ fn test_scene_colliders_through_the_builder() {
     }
     // ball_drop, ball_bounce: ground + ball; slope stick and slide: slope + box; stack: ground
     // + three boxes; pendulum: the bob (the pivot has no collider).
-    assert_eq!(checked, 2 + 2 + 2 + 2 + 4 + 1);
+    // Six original scenes, then the two SL sleep scenes (4 and 3 colliders).
+    assert_eq!(checked, 2 + 2 + 2 + 2 + 4 + 1 + 4 + 3);
 }
 
 /// The mass of a collider built by `mass` keeps the golden inertia-to-mass ratio of its shape.
