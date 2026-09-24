@@ -576,7 +576,10 @@ pub fn local_bounding_sphere(shape: Shape) -> (Vec2, Fixed) {
             let mut result = (Vec2Trait::ZERO, ZERO);
             let mut pending = true;
             while pending {
-                result = rapier_geometry2d::shape::ConvexPolygonTrait::compute_local_bounding_sphere(p.unbox());
+                result =
+                    rapier_geometry2d::shape::ConvexPolygonTrait::compute_local_bounding_sphere(
+                        p.unbox(),
+                    );
                 pending = false;
             }
             result

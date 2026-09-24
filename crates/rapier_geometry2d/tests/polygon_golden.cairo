@@ -2,7 +2,6 @@
 use fixed::Fixed;
 use glam::Vec2;
 use rapier_geometry2d::feature_id::FeatureIdTrait;
-use rapier_geometry2d::mass::MassPropertiesTrait;
 use rapier_geometry2d::point::convex_polygon::{
     distance_to_local_point_convex_polygon, project_local_point_and_get_feature_convex_polygon,
     project_local_point_convex_polygon,

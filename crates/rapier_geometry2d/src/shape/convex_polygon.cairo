@@ -239,7 +239,10 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
     fn compute_local_bounding_sphere(self: ConvexPolygon) -> (Vec2, Fixed) {
         let mut center = Vec2Trait::ZERO;
         let mut i = 0;
-        while i != self.count { center = center + self.vertex(i); i += 1; }
+        while i != self.count {
+            center = center + self.vertex(i);
+            i += 1;
+        }
         let n: i64 = self.count.into();
         center = Vec2 { x: Fixed { raw: center.x.raw / n }, y: Fixed { raw: center.y.raw / n } };
         let mut farthest = Vec2Trait::ZERO;
@@ -247,11 +250,14 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
         i = 0;
         while i != self.count {
             let delta = self.vertex(i) - center;
-            let sq = dot_wide(delta.x,delta.y,delta.x,delta.y);
-            if sq > max_sq { max_sq = sq; farthest = delta; }
+            let sq = dot_wide(delta.x, delta.y, delta.x, delta.y);
+            if sq > max_sq {
+                max_sq = sq;
+                farthest = delta;
+            }
             i += 1;
         }
-        (center, fixed::wide::norm2(farthest.x,farthest.y))
+        (center, fixed::wide::norm2(farthest.x, farthest.y))
     }
 
     /// Uniform density mass properties; panics on unrepresentable intermediate values/inverses.

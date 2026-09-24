@@ -338,8 +338,10 @@ fn test_unrepresentable_edge_panics() {
 #[test]
 fn test_triangle_bounding_sphere_uses_vertex_mean() {
     let p = ConvexPolygonTrait::from_convex_polyline(
-        [v(-ONE,-ONE),v(ONE,-ONE),v(ZERO,ONE)].span()).unwrap();
-    let (center,radius) = p.compute_local_bounding_sphere();
-    assert_eq!(center,v(ZERO,Fixed { raw:-1431655765 }));
-    assert_eq!(radius,Fixed { raw:5726623061 });
+        [v(-ONE, -ONE), v(ONE, -ONE), v(ZERO, ONE)].span(),
+    )
+        .unwrap();
+    let (center, radius) = p.compute_local_bounding_sphere();
+    assert_eq!(center, v(ZERO, Fixed { raw: -1431655765 }));
+    assert_eq!(radius, Fixed { raw: 5726623061 });
 }
