@@ -26,6 +26,10 @@ it and where the evidence lives.
 | 10 | Division rounding | f64 | `fixed` 0.3.0: `/`, `recip`, `from_ratio` round to nearest-even; products and wide kernels floor once | Q32.32 | BX #64 |
 | 11 | Rigid joints / tiny CFM (D4) | f64 `cfm ≈ 1.5e-9` | rigid rows special-cased below the representable cfm | Q32.32 | C2 #10, DE #32, JL #96 |
 | 12 | Revolute limit angle | f64 `atan2` | `fixed::trig::atan2` (≈ ±1 ulp) | Q32.32 | JL #96 |
+| 13 | Convex polygon construction | `from_convex_polyline` tolerates some degenerate input | strict: rejects duplicates, redundant collinear vertices, clockwise, concave, self-intersecting (`None`) | fixed-point robustness | CP1 #105 |
+| 14 | Convex polygon point projection / ray cast | GJK (search-direction features, EPA inside) | analytic: nearest edge/vertex, half-plane clipping; ties pick the first edge | no GJK/EPA in the port | CP1 #105 |
+| 15 | EPA depth | EPA can return an approximate penetration (a pentagon-origin case reports −1.5) | exact nearest distance (−1) | upstream approximation | CP1 #105 (`polygon_point` regression) |
+| 16 | `Shape::ConvexPolygon` storage | inline shape | `Box<ConvexPolygon>` so `Shape` stays six felts (inline storage measured +7 % on a one-body free-fall step) | Cairo value-type cost | CP1 #105 |
 
 ## Consequences
 
