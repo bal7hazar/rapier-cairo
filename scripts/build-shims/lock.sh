@@ -30,8 +30,11 @@ case "$(basename "$real")" in
     for a in "$@"; do [ "$a" = --workspace ] && [ "${1:-}" = test ] && heavy=1; done ;;
   *) exec "$real" "$@" ;;
 esac
+# Same CPU policy as the machine-wide shim in ~/.local/bin (8 vCPU: a sustained 100 % makes the
+# hypervisor throttle the VM): capped build parallelism, lowered priority.
+export RAYON_NUM_THREADS="${RAYON_NUM_THREADS:-4}" CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-4}"
 export RAPIER_BUILD_LOCK_HELD=1 HEAVY_BUILD_LOCK_HELD=1
 if [ "$heavy" = 1 ]; then
-  exec flock "$project_lock" flock "$heavy_lock" "$real" "$@"
+  exec nice -n 10 flock "$project_lock" flock "$heavy_lock" "$real" "$@"
 fi
-exec flock "$project_lock" "$real" "$@"
+exec nice -n 10 flock "$project_lock" "$real" "$@"
