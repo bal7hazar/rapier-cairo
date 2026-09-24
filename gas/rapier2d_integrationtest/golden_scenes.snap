@@ -16,6 +16,14 @@ rapier2d_integrationtest::golden_scenes::joint_controls::test_pendulum_limited 8
 rapier2d_integrationtest::golden_scenes::joint_controls::test_servo 792967148
 rapier2d_integrationtest::golden_scenes::joint_controls::test_slider_limited 805472648
 rapier2d_integrationtest::golden_scenes::joint_controls::test_wheel_motor 793709148
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_cache_control 775812991
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_full_delay_ground_recovery 721306095
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_full_engine_and_reverse_rust_control 786391941
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_geometry_control 361977489
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_seeded_control 366071349
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_seeded_delay_ground_recovery 307302243
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_staged_matches_engine 44931896
+rapier2d_integrationtest::golden_scenes::sleep_diagnostics::test_wake_velocity_and_restitution_controls 190727898
 rapier2d_integrationtest::golden_scenes::slope_diagnostics::test_slide_zero_gap_counterfactual 640536958
 rapier2d_integrationtest::golden_scenes::slope_diagnostics::test_slope_first_steps 308451962
 rapier2d_integrationtest::golden_scenes::stack_diagnostics::gas_order_baseline 5672397
