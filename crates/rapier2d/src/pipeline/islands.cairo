@@ -43,6 +43,17 @@
 //! (bounding spheres, upstream `recompute_max_extent`), recomputed with the mass properties from
 //! the colliders.
 //!
+//! Cost of the timer (lot SC, `update_sleep_timer`, per moving body, Sierra gas | Cairo steps,
+//! `timer_tests::gas_timer_*`): a fast-moving dynamic body (the translation of the step is at
+//! least twice the default limit) costs 10.4k | 71 instead of 18.2k | 146; a body at rest
+//! without turn 18.9k | 160 instead of 18.6k | 150, one that turns 38.6k | 343 instead of 35.3k |
+//! 301. The verdicts are the reference's, only the arithmetic differs: `floor(sqrt(x² + y²)) < k`
+//! is `x² + y² < k²` (a comparison of squares in `felt252`, one `u128` conversion), the angular
+//! gate compares the wide square of the angular velocity, and the default configuration (the
+//! default threshold, `length_unit = 1`, `dt = 1 / 60`) has its limit as a constant. What is not
+//! a plain "moving" or "cannot sleep" verdict is behind a one-iteration `while`, so that the
+//! bodies that do not need it are not charged for it. Candidates: `alternatives`.
+//!
 //! Divergences from upstream's persistent islands, all documented in the PR report:
 //! * a body put to sleep by hand (`RigidBody::sleep`) in an island that has an awake member is
 //!   woken up at the next step (upstream keeps it flagged asleep inside the awake island);
@@ -64,22 +75,30 @@ use glam::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::data::union_find::{UnionFind, UnionFindTrait};
 use rapier_core::integration_parameters::IntegrationParameters;
-use rapier_core::rigid_body::{RigidBodyActivationTrait, RigidBodyType};
+use rapier_core::rigid_body::activation::DEFAULT_NORMALIZED_LINEAR_THRESHOLD;
+use rapier_core::rigid_body::{RigidBodyActivation, RigidBodyActivationTrait, RigidBodyType};
 use rapier_dynamics2d::joint::{ImpulseJoint, JointEnabled};
 use rapier_dynamics2d::narrow_phase::ContactPair;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::{Pose2, Pose2Trait};
-use rapier_math::rot2::Rot2Trait;
+use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::ordering::{BODY_SLEEPING, body_status};
 
 #[cfg(test)]
 pub(crate) mod alternatives;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod timer_tests;
 
 /// `1e-6`, upstream's guard on `2 (1 + cos Δθ)` before the square root in the rotation chord.
 const CHORD_EPSILON: Fixed = Fixed { raw: 4295 };
+
+/// The default step (`IntegrationParameters::default().dt`, `1 / 60`) and the linear limit it
+/// gives to the default threshold at `length_unit = 1`: `0.05 · dt`, floored twice.
+const DEFAULT_DT: Fixed = Fixed { raw: 71582788 };
+const DEFAULT_LIMIT: Fixed = Fixed { raw: 3579139 };
 
 /// Whether a body takes part in islands: enabled and not fixed (upstream `ensure_body`).
 #[inline(always)]
@@ -286,33 +305,76 @@ fn link_pairs(ref forest: UnionFind, pairs: Span<ContactPair>, entries: Span<(Ha
 /// `dt` when the body passes the motion gates of its type (`RigidBodyActivationTrait::
 /// can_sleep`) and resets otherwise. `previous` is the pose before the step's position update,
 /// `body.pos.position` the pose after it and `body.vels` the velocities the solver left. The
-/// farthest-point displacement is [`relative_pose_drift`] with the body's `max_extent`; it is
-/// only computed for a dynamic body that may sleep (`normalized_linear_threshold >= 0`), the
-/// gates ignore it otherwise. A sleeping body is never passed here (the step skips it).
+/// farthest-point displacement is [`relative_pose_drift`] with the body's `max_extent`.
+///
+/// Exact and bit-identical to upstream's gates on the values (the drift, then `dynamic_gate`),
+/// with the work spread over three paths, cheapest first (lot SC, `alternatives::
+/// update_sleep_timer_v1` is the straightforward form):
+/// * a dynamic body that cannot sleep (negative threshold) stops at that test;
+/// * a dynamic body with the default threshold, `length_unit` and `dt` whose translation reaches
+///   `2 · DEFAULT_LIMIT` cannot sleep either (the drift is at least the translation, and the gate
+///   wants half of it below the limit): [`translation_near`] decides that in `felt252` arithmetic,
+///   with one integer conversion and no square root, the case of every fast-moving body;
+/// * every other dynamic body goes through [`dynamic_gate_slow`], behind a one-iteration `while`
+///   that only the bodies taking it are charged for (AGENTS.md §7); its arguments are the eleven
+///   values it reads (the whole body as a captured variable costs 4k more,
+///   `alternatives::update_sleep_timer_captured`).
+///
+/// A sleeping body is never passed here (the step skips it).
 ///
 /// # Panics
-/// `'Fixed: overflow'` if a squared velocity leaves Q32.32 (|v| above about 46 000).
+/// `'Fixed: overflow'` from the chord's products, and from `angvel²` for a body without collider.
+/// The values are those of the reference except in two ranges where it panics and this one
+/// answers: a translation of `2^31` units or more in one step (its length overflows `Fixed`), and
+/// `|angvel| ≥ 46 000` rad/s for a body with colliders (the wide square does not overflow).
 #[inline(always)]
 pub fn update_sleep_timer(ref body: RigidBody, previous: Pose2, params: IntegrationParameters) {
     // `RigidBodyActivationTrait::update_energy` arm by arm, inlined: an outlined call is
     // charged its dearest path (the drift's square roots and division) for every body.
     let can_sleep = match body.body_type {
         RigidBodyType::Dynamic => {
-            if body.activation.normalized_linear_threshold < ZERO {
-                false
-            } else {
-                let angvel = body.vels.angvel;
-                let sq_angvel = if angvel == ZERO {
-                    ZERO
+            let position = body.pos.position;
+            let dx: felt252 = position.translation.x.raw.into() - previous.translation.x.raw.into();
+            let dy: felt252 = position.translation.y.raw.into() - previous.translation.y.raw.into();
+            let mut can_sleep = false;
+            let mut pending = true;
+            let mut near = false;
+            if is_default_configuration(
+                body.activation.normalized_linear_threshold, params.length_unit, params.dt,
+            ) {
+                if translation_near(dx, dy) {
+                    near = true;
                 } else {
-                    angvel * angvel
-                };
-                let max_extent = body.mprops.max_extent;
-                let drift = relative_pose_drift(previous, body.pos.position, max_extent);
-                body
-                    .activation
-                    .dynamic_gate(params.length_unit, sq_angvel, max_extent, drift, params.dt)
+                    pending = false;
+                }
+            } else if body.activation.normalized_linear_threshold < ZERO {
+                // Cannot sleep.
+                pending = false;
             }
+            let threshold = body.activation.normalized_linear_threshold;
+            let angular_threshold = body.activation.angular_threshold;
+            let angvel = body.vels.angvel;
+            let max_extent = body.mprops.max_extent;
+            if pending {
+                while pending {
+                    can_sleep =
+                        dynamic_gate_slow(
+                            threshold,
+                            angular_threshold,
+                            angvel,
+                            max_extent,
+                            dx,
+                            dy,
+                            position.rotation,
+                            previous.rotation,
+                            params.length_unit,
+                            params.dt,
+                            near,
+                        );
+                    pending = false;
+                }
+            }
+            can_sleep
         },
         RigidBodyType::KinematicPositionBased |
         RigidBodyType::KinematicVelocityBased => body.vels.linvel == Vec2Trait::ZERO
@@ -320,6 +382,105 @@ pub fn update_sleep_timer(ref body: RigidBody, previous: Pose2, params: Integrat
         RigidBodyType::Fixed => true,
     };
     body.activation.update_timer(can_sleep, params.dt);
+}
+
+/// `2^64` and `2^128` as field elements: the weights of [`is_default_configuration`].
+const TWO_POW_64: felt252 = 0x10000000000000000;
+const TWO_POW_128: felt252 = 0x100000000000000000000000000000000;
+
+/// `threshold == DEFAULT_NORMALIZED_LINEAR_THRESHOLD && length_unit == ONE && dt == DEFAULT_DT` in
+/// one test: the three raw differences (each below `2^64` in magnitude) weighted by `1`, `2^64`
+/// and `2^128` add up to zero, in the field or not (the sum stays far below the field size), only
+/// when each is zero.
+#[inline(always)]
+fn is_default_configuration(threshold: Fixed, length_unit: Fixed, dt: Fixed) -> bool {
+    let differences: felt252 = (threshold.raw.into()
+        - DEFAULT_NORMALIZED_LINEAR_THRESHOLD.raw.into())
+        + (length_unit.raw.into() - ONE.raw.into()) * TWO_POW_64
+        + (dt.raw.into() - DEFAULT_DT.raw.into()) * TWO_POW_128;
+    differences == 0
+}
+
+/// `(2 · DEFAULT_LIMIT)² - 1`: the squared raw translation below which a body with the default
+/// configuration may still sleep (`length < 2 · limit`, see [`translation_below`]), minus one.
+const NEAR_SQ_MINUS_ONE: felt252 = 51240943925283;
+
+/// Whether the translation `(dx, dy)` (raw) is below `2 · DEFAULT_LIMIT`, i.e. `dx² + dy² <
+/// (2 · DEFAULT_LIMIT)²`, in `felt252` (exact: the squares stay far below the field size): the
+/// difference to the bound is a `u128` exactly when it is not negative.
+#[inline(always)]
+pub(crate) fn translation_near(dx: felt252, dy: felt252) -> bool {
+    let room: Option<u128> = (NEAR_SQ_MINUS_ONE - dx * dx - dy * dy).try_into();
+    room.is_some()
+}
+
+/// The gate of a dynamic body the fast tests of [`update_sleep_timer`] did not decide, from the
+/// raw translation `(dx, dy)` of the step and the rotations before and after. `near`: the
+/// translation is known to be below `2 · DEFAULT_LIMIT` (default configuration); `threshold` is
+/// not negative. Upstream's `dynamic_gate` on the drift `|Δt| + chord` (see
+/// [`relative_pose_drift`]), with the limit test done without the square root of `|Δt|`
+/// ([`translation_below`]): only the chord of a turn ([`rotation_chord`]) needs square roots.
+#[inline(always)]
+fn dynamic_gate_slow(
+    threshold: Fixed,
+    angular_threshold: Fixed,
+    angvel: Fixed,
+    max_extent: Fixed,
+    dx: felt252,
+    dy: felt252,
+    rotation: Rot2,
+    previous_rotation: Rot2,
+    length_unit: Fixed,
+    dt: Fixed,
+    near: bool,
+) -> bool {
+    let activation = RigidBodyActivation {
+        normalized_linear_threshold: threshold,
+        angular_threshold,
+        time_until_sleep: ZERO,
+        time_since_can_sleep: ZERO,
+        sleeping: false,
+    };
+    let angular_ok = if max_extent > ZERO {
+        activation.angular_gate_wide(angvel)
+    } else {
+        let sq_angvel = if angvel == ZERO {
+            ZERO
+        } else {
+            angvel * angvel
+        };
+        activation.angular_gate(sq_angvel, max_extent)
+    };
+    if !angular_ok {
+        return false;
+    }
+    let limit = if near {
+        DEFAULT_LIMIT
+    } else {
+        activation.linear_limit(length_unit, dt)
+    };
+    if max_extent == MAX {
+        // A half-space collider: the drift is `MAX`.
+        MAX * HALF < limit
+    } else if near && rotation == previous_rotation {
+        true
+    } else {
+        translation_below(dx, dy, limit, rotation_chord(previous_rotation, rotation, max_extent))
+    }
+}
+
+/// `(length(dx, dy) + chord) * HALF < limit` for a non-negative `chord`, without the square root:
+/// `length` is `floor(sqrt(dx² + dy²))` on the raw values and the sum floors when halved, so the
+/// gate holds exactly when `length < k` with `k = 2 · limit - chord`, that is when `k > 0` and
+/// `dx² + dy² < k²`. In `felt252` (exact: `k ≤ 2^64`, so `k² ≤ 2^128`); a non-positive
+/// `limit`
+/// gives a non-positive `k`, so the gate never holds, as `drift / 2 < limit` never does.
+#[inline(always)]
+pub fn translation_below(dx: felt252, dy: felt252, limit: Fixed, chord: Fixed) -> bool {
+    let k: felt252 = limit.raw.into() * 2 - chord.raw.into();
+    let positive: Option<u64> = (k - 1).try_into();
+    let room: Option<u128> = (k * k - 1 - dx * dx - dy * dy).try_into();
+    positive.is_some() && room.is_some()
 }
 
 /// Upstream `relative_pose_drift`: how far the farthest point of a body of extent `max_extent`
@@ -344,13 +505,35 @@ pub fn relative_pose_drift(base: Pose2, cur: Pose2, max_extent: Fixed) -> Fixed 
     if delta.im == ZERO && delta.re > ZERO {
         return trans;
     }
+    trans + chord(delta, max_extent)
+}
+
+/// The rotation term of [`relative_pose_drift`] (`max_extent` is not `MAX`): zero when the rotation
+/// did not change, else `chord(cur_rotation · base_rotation⁻¹)`.
+#[inline(always)]
+fn rotation_chord(base_rotation: Rot2, cur_rotation: Rot2, max_extent: Fixed) -> Fixed {
+    if cur_rotation == base_rotation {
+        return ZERO;
+    }
+    let delta = cur_rotation.mul(base_rotation.inverse());
+    if delta.im == ZERO && delta.re > ZERO {
+        return ZERO;
+    }
+    chord(delta, max_extent)
+}
+
+/// `2 sin(Δθ/2) · max_extent` for the relative rotation `delta`, with `sin(Δθ/2) = |sin Δθ|
+/// /
+/// sqrt(2 (1 + cos Δθ))`, `1` when the denominator is below `1e-6` (a half turn).
+#[inline(always)]
+fn chord(delta: Rot2, max_extent: Fixed) -> Fixed {
     let denom = TWO * (ONE + delta.re);
     let half_sin = if denom > CHORD_EPSILON {
         delta.im.abs() / denom.sqrt()
     } else {
         ONE
     };
-    trans + TWO * half_sin * max_extent
+    TWO * half_sin * max_extent
 }
 
 /// Upstream `recompute_max_extent`: the largest `|pos_wrt_parent · center − local_com| +

@@ -25,7 +25,15 @@
 //! * dispatch on the body type: a `return` per arm (`alternatives::can_sleep_early`) costs exactly
 //!   as much as the joined `match`; a non-inlined call pays for its dearest arm (the dynamic
 //!   one), whatever the body type.
+//! * the angular gate of a body with colliders: `angular_gate_wide` compares the wide square of the
+//!   angular velocity (`a² < (pi / 2)^2 · 2^32` on the raw values, one `i64` widening
+//!   multiplication) instead of rescaling it first (`angular_gate`), which saves the rescale
+//!   and its overflow panic; the pipeline's sleep timer (`rapier2d::pipeline::islands`) uses it,
+//!   `dynamic_gate` and `can_sleep` keep the rescaled form.
+//! * `linear_limit` is the `normalized_linear_threshold * length_unit * dt` of the linear gate,
+//!   split out so that the pipeline can hoist it for the default configuration.
 
+use core::num::traits::WideMul;
 use fixed::{Fixed, FixedTrait, HALF, NEG_ONE, ZERO};
 use super::body_type::RigidBodyType;
 
@@ -39,6 +47,10 @@ pub const DEFAULT_TIME_UNTIL_SLEEP: Fixed = HALF;
 /// `(pi / 2)^2` = `floor(FRAC_PI_2 * FRAC_PI_2)`: the squared angular speed above which a
 /// dynamic body with colliders is considered moving.
 const SQ_FRAC_PI_2: Fixed = Fixed { raw: 10597407030 };
+
+/// `SQ_FRAC_PI_2` at the scale of a raw square (`2^32` times its raw): `floor(a² / 2^32) <
+/// SQ_FRAC_PI_2` is `a² < SQ_FRAC_PI_2_WIDE` on the raw `a`.
+const SQ_FRAC_PI_2_WIDE: i128 = 45515516616250490880;
 
 /// When a body goes to sleep, and whether it currently sleeps.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -143,6 +155,34 @@ pub impl RigidBodyActivationImpl of RigidBodyActivationTrait {
         }
     }
 
+    /// The angular half of the dynamic gate: `sq_angvel < (pi / 2)^2` with colliders
+    /// (`max_extent > 0`, and a non-negative `angular_threshold`), `sq_angvel < angular_threshold
+    /// * |angular_threshold|` without.
+    #[inline(always)]
+    fn angular_gate(self: RigidBodyActivation, sq_angvel: Fixed, max_extent: Fixed) -> bool {
+        if max_extent > ZERO {
+            self.angular_threshold >= ZERO && sq_angvel < SQ_FRAC_PI_2
+        } else {
+            sq_angvel < self.angular_threshold * self.angular_threshold.abs()
+        }
+    }
+
+    /// [`angular_gate`](RigidBodyActivationTrait::angular_gate) of a body with colliders
+    /// (`max_extent > 0`) from its angular velocity, with a wide square instead of the rescaled
+    /// `sq_angvel` (`floor(a² / 2^32) < s` iff `a² < s · 2^32` on the raw values): the same
+    /// answer without the rescale, and without the overflow panic above `|angvel| = 46 000`.
+    #[inline(always)]
+    fn angular_gate_wide(self: RigidBodyActivation, angvel: Fixed) -> bool {
+        self.angular_threshold >= ZERO && angvel.raw.wide_mul(angvel.raw) < SQ_FRAC_PI_2_WIDE
+    }
+
+    /// The linear half of the dynamic gate is `drift / 2 < linear_limit`, with `linear_limit =
+    /// normalized_linear_threshold * length_unit * dt` (both products floor, left to right).
+    #[inline(always)]
+    fn linear_limit(self: RigidBodyActivation, length_unit: Fixed, dt: Fixed) -> Fixed {
+        self.normalized_linear_threshold * length_unit * dt
+    }
+
     /// The gate of a dynamic body: the angular gate and `drift / 2 < normalized_linear_threshold *
     /// length_unit * dt`. See [`can_sleep`](RigidBodyActivationTrait::can_sleep).
     #[inline(always)]
@@ -154,13 +194,8 @@ pub impl RigidBodyActivationImpl of RigidBodyActivationTrait {
         drift: Fixed,
         dt: Fixed,
     ) -> bool {
-        let linear_threshold = self.normalized_linear_threshold * length_unit;
-        let angular_ok = if max_extent > ZERO {
-            self.angular_threshold >= ZERO && sq_angvel < SQ_FRAC_PI_2
-        } else {
-            sq_angvel < self.angular_threshold * self.angular_threshold.abs()
-        };
-        angular_ok && drift * HALF < linear_threshold * dt
+        self.angular_gate(sq_angvel, max_extent) && drift
+            * HALF < self.linear_limit(length_unit, dt)
     }
 
     /// Does the body pass the motion gates of its type for this step?
