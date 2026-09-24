@@ -26,6 +26,7 @@
 
 pub mod ball;
 pub mod capsule;
+pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
 pub mod quotient;
@@ -121,6 +122,9 @@ pub fn cast_local_ray(
         Shape::Capsule(s) => cast_local_ray_capsule(s, ray, max_time_of_impact, solid),
         Shape::Segment(s) => cast_local_ray_segment(s, ray, max_time_of_impact, solid),
         Shape::HalfSpace(s) => cast_local_ray_halfspace(s, ray, max_time_of_impact, solid),
+        Shape::ConvexPolygon(s) => convex_polygon::cast_local_ray_convex_polygon(
+            s, ray, max_time_of_impact, solid,
+        ),
     }
 }
 
@@ -140,6 +144,9 @@ pub fn cast_local_ray_and_get_normal(
             s, ray, max_time_of_impact, solid,
         ),
         Shape::Segment(s) => cast_local_ray_and_get_normal_segment(
+            s, ray, max_time_of_impact, solid,
+        ),
+        Shape::ConvexPolygon(s) => convex_polygon::cast_local_ray_and_get_normal_convex_polygon(
             s, ray, max_time_of_impact, solid,
         ),
         Shape::HalfSpace(s) => cast_local_ray_and_get_normal_halfspace(

@@ -625,3 +625,63 @@ pub struct SleepImpactRaw {
     pub bodies: [SleepImpactBodyRaw; 2],
     pub pairs: [SleepImpactPairRaw; 2],
 }
+
+/// Fixed-capacity polygon fixture; only the first count vertices are live.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ConvexPolygonRaw {
+    pub vertices: [Vec2Raw; 8],
+    pub count: u8,
+}
+
+/// Polygon-specific fixture preserving the closed MVP fixture enum.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct PolygonProjectionCase {
+    pub id: felt252,
+    pub ambiguous: bool,
+    /// Upstream EPA returns a non-nearest boundary point on the pentagon center.
+    pub gjk_degenerate: bool,
+    pub shape: ConvexPolygonRaw,
+    pub point: Vec2Raw,
+    /// `project_local_point(point, false)`: an inside point is pushed to the boundary.
+    pub projection: ProjectionRaw,
+    /// `project_local_point(point, true)`: an inside point projects to itself.
+    pub projection_solid: ProjectionRaw,
+    /// `distance_to_local_point(point, false)`: negative inside.
+    pub distance: i64,
+    pub feature: PointFeatureRaw,
+    /// `Segment::project_local_point_and_get_location`; `NoLocation` for the other shapes.
+    pub location: SegmentLocationRaw,
+}
+
+/// Polygon-specific fixture preserving the closed MVP fixture enum.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct PolygonRayCase {
+    pub id: felt252,
+    pub shape: ConvexPolygonRaw,
+    pub pose: PoseRaw,
+    pub origin: Vec2Raw,
+    /// Not normalised: the time of impact is in units of `dir`.
+    pub dir: Vec2Raw,
+    pub max_toi: i64,
+    pub solid: RayAnswerRaw,
+    pub hollow: RayAnswerRaw,
+}
+
+/// Polygon-specific fixture preserving the closed MVP fixture enum.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct PolygonAabbCase {
+    pub id: felt252,
+    pub shape: ConvexPolygonRaw,
+    pub pose: PoseRaw,
+    pub mins: Vec2Raw,
+    pub maxs: Vec2Raw,
+}
+
+/// Polygon-specific fixture preserving the closed MVP fixture enum.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct PolygonShapeMassCase {
+    pub id: felt252,
+    pub shape: ConvexPolygonRaw,
+    pub density: i64,
+    pub expected: MassPropertiesRaw,
+}

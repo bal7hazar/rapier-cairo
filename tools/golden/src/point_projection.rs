@@ -128,6 +128,13 @@ fn ask<S: PointQuery>(s: &S, p: Vector) -> Answer {
 fn run(case: &Case) -> Value {
     let p = case.point.v();
     let answer = match case.shape {
+        ShapeSpec::ConvexPolygon { vertices, count } => ask(
+            &rapier2d_f64::parry::shape::ConvexPolygon::from_convex_polyline(
+                vertices[..count].iter().map(|p| p.v()).collect(),
+            )
+            .unwrap(),
+            p,
+        ),
         ShapeSpec::Ball { radius } => ask(&Ball::new(radius.f()), p),
         ShapeSpec::Cuboid { half_extents } => ask(&Cuboid::new(half_extents.v()), p),
         ShapeSpec::Capsule { a, b, radius } => ask(&Capsule::new(a.v(), b.v(), radius.f()), p),
@@ -167,6 +174,16 @@ pub fn generate() -> Value {
     json!({
         "family": "point_projection",
         "cases": cases().iter().map(run).collect::<Vec<_>>(),
+        "polygons": ShapeSpec::polygons().into_iter().flat_map(|(name, shape)| {
+            [("outside", 3.0, 0.123), ("inside", 0.1, 0.002), ("tie", 0.0, 0.0)].into_iter().map(move |(tag,x,y)| {
+                let mut value = run(&c(name, tag, shape, x, y, "analytic vs GJK/EPA; ties ambiguous"));
+                let degenerate = name == "poly_pent" && tag == "tie";
+                value["ambiguous"] = json!(tag == "tie" && !degenerate);
+                value["gjk_degenerate"] = json!(degenerate);
+                if degenerate { value["note"] = json!("EPA degeneracy: returns top vertex (distance 1.5) instead of bottom edge (distance 1); analytic regression"); }
+                value
+            })
+        }).collect::<Vec<_>>(),
         "non_finite_probes": [ball_center_probe()],
     })
 }

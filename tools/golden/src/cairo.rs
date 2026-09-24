@@ -13,6 +13,7 @@ use std::path::Path;
 use std::process::Command;
 
 mod leaf_families;
+mod polygons;
 mod scenes;
 mod sleep_impact;
 
@@ -667,6 +668,10 @@ fn write(path: &Path, content: &str) {
 pub fn generate(vectors: &Path, crate_dir: &Path) {
     let src = crate_dir.join("src");
     let files = [
+        ("polygon_aabb", polygons::aabb(vectors)),
+        ("polygon_mass", polygons::mass(vectors)),
+        ("polygon_point", polygons::point(vectors)),
+        ("polygon_ray", polygons::ray(vectors)),
         ("aabb", aabb(vectors)),
         ("aabb_overlap", leaf_families::aabb_overlap(vectors)),
         ("clip2d", leaf_families::clip2d(vectors)),

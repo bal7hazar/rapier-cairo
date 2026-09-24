@@ -571,5 +571,17 @@ pub fn local_bounding_sphere(shape: Shape) -> (Vec2, Fixed) {
             (center, (segment.a - center).length())
         },
         Shape::HalfSpace(_) => (Vec2Trait::ZERO, MAX),
+        Shape::ConvexPolygon(p) => {
+            // This outlined match must not charge polygon bounds to every existing shape.
+            let mut result = (Vec2Trait::ZERO, ZERO);
+            let mut pending = true;
+            while pending {
+                let bounds = rapier_geometry2d::shape::ConvexPolygonTrait::compute_local_aabb(p);
+                let center = bounds.mins.midpoint(bounds.maxs);
+                result = (center, (bounds.maxs - center).length());
+                pending = false;
+            }
+            result
+        },
     }
 }

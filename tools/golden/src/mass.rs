@@ -118,6 +118,7 @@ pub fn generate() -> Value {
     json!({
         "family": "mass_properties",
         "shapes": shapes,
+        "polygons": ShapeSpec::polygons().into_iter().map(|(id,s)| shape_case(id,s,1.0)).collect::<Vec<_>>(),
         "bodies": [compound_case()],
     })
 }

@@ -12,7 +12,7 @@ use crate::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use crate::feature_id::FeatureIdTrait;
 use crate::manifold::ManifoldTrait;
 use crate::polygonal_feature::PolygonalFeature;
-use crate::shape::{Cuboid, CuboidTrait, HalfSpace, Segment, Shape};
+use crate::shape::{ConvexPolygonTrait, Cuboid, CuboidTrait, HalfSpace, Segment, Shape};
 
 fn dot(a: Vec2, b: Vec2) -> Fixed {
     dot2(a.x, b.x, a.y, b.y)
@@ -179,6 +179,7 @@ fn halfspace_pfm_generic(
     let normal1_2 = pos12.inverse_transform_vector(halfspace1.normal);
     let maybe = match pfm2 {
         Shape::Cuboid(c) => Some((c.support_feature(-normal1_2), ZERO)),
+        Shape::ConvexPolygon(c) => Some((c.support_feature(-normal1_2), ZERO)),
         Shape::Segment(s) => Some((segment_feature(s), ZERO)),
         Shape::Capsule(c) => Some((segment_feature(c.segment), c.radius)),
         _ => None,
@@ -212,6 +213,9 @@ pub fn contact_manifold_halfspace_pfm(
         Shape::Cuboid(c) => {
             halfspace_cuboid_direct(pos12, halfspace1, c, prediction, ref manifold, flipped);
         },
+        Shape::ConvexPolygon(_) => {
+            halfspace_pfm_generic(pos12, halfspace1, pfm2, prediction, ref manifold, flipped);
+        },
         Shape::Segment(_) => {
             halfspace_pfm_generic(pos12, halfspace1, pfm2, prediction, ref manifold, flipped);
         },
@@ -234,6 +238,20 @@ pub fn contact_manifold_halfspace_pfm_shapes(
     pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
 ) -> bool {
     match (shape1, shape2) {
+        (
+            Shape::HalfSpace(h), Shape::ConvexPolygon(_),
+        ) => {
+            contact_manifold_halfspace_pfm(pos12, h, shape2, prediction, ref manifold, false);
+            true
+        },
+        (
+            Shape::ConvexPolygon(_), Shape::HalfSpace(h),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12.inverse(), h, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
         (
             Shape::HalfSpace(h), Shape::Cuboid(c),
         ) => {

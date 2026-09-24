@@ -4,8 +4,10 @@
 //! step consumes: `compute_local_aabb`, `compute_aabb`, `mass_properties`, the support maps and the
 //! cuboid feature ids. `match` on [`Shape`] replaces Parry's `dyn Shape`.
 //!
-//! Deferred: convex polygons, round shapes, compounds, `scaled`, ray casting.
+//! Deferred: convex hull construction, round shapes, compounds and `scaled`.
 
+pub mod convex_polygon;
+pub use convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub mod ball;
 pub mod capsule;
 pub mod cuboid;
@@ -29,6 +31,7 @@ pub enum ShapeType {
     Capsule,
     Segment,
     HalfSpace,
+    ConvexPolygon,
 }
 
 /// A collision shape in its local frame.
@@ -39,6 +42,7 @@ pub enum Shape {
     Capsule: Capsule,
     Segment: Segment,
     HalfSpace: HalfSpace,
+    ConvexPolygon: ConvexPolygon,
 }
 
 #[generate_trait]
@@ -52,6 +56,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(_) => ShapeType::Capsule,
             Shape::Segment(_) => ShapeType::Segment,
             Shape::HalfSpace(_) => ShapeType::HalfSpace,
+            Shape::ConvexPolygon(_) => ShapeType::ConvexPolygon,
         }
     }
 
@@ -63,6 +68,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(s) => s.compute_local_aabb(),
             Shape::Segment(s) => s.compute_local_aabb(),
             Shape::HalfSpace(s) => s.compute_local_aabb(),
+            Shape::ConvexPolygon(s) => s.compute_local_aabb(),
         }
     }
 
@@ -79,6 +85,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(s) => s.compute_aabb(pose),
             Shape::Segment(s) => s.compute_aabb(pose),
             Shape::HalfSpace(s) => s.compute_aabb(pose),
+            Shape::ConvexPolygon(s) => s.compute_aabb(pose),
         }
     }
 
@@ -90,6 +97,15 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(s) => s.mass_properties(density),
             Shape::Segment(s) => s.mass_properties(density),
             Shape::HalfSpace(s) => s.mass_properties(density),
+            Shape::ConvexPolygon(s) => s.mass_properties(density),
+        }
+    }
+
+    /// The wrapped polygon, `None` for every other shape.
+    fn as_convex_polygon(self: Shape) -> Option<ConvexPolygon> {
+        match self {
+            Shape::ConvexPolygon(s) => Some(s),
+            _ => None,
         }
     }
 
@@ -138,9 +154,7 @@ pub impl ShapeImpl of ShapeTrait {
 mod alternatives {
     use rapier_math::pose2::Pose2;
     use crate::aabb::Aabb;
-    use super::{
-        BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape, ShapeTrait,
-    };
+    use super::{Shape, ShapeTrait};
 
     /// The pre-OP `ShapeTrait::compute_aabb`: the same `match`, out of line.
     #[inline(never)]

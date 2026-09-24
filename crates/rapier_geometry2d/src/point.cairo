@@ -25,6 +25,7 @@
 
 pub mod ball;
 pub mod capsule;
+pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
 pub mod ratio;

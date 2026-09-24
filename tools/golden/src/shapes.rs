@@ -6,6 +6,10 @@ use serde_json::{json, Value};
 
 #[derive(Copy, Clone, Debug)]
 pub enum ShapeSpec {
+    ConvexPolygon {
+        vertices: [QVec; 8],
+        count: usize,
+    },
     Ball {
         radius: Q,
     },
@@ -28,6 +32,62 @@ pub enum ShapeSpec {
 }
 
 impl ShapeSpec {
+    pub fn polygon(points: &[(f64, f64)]) -> Self {
+        assert!((3..=8).contains(&points.len()));
+        let mut vertices = [QVec::ZERO; 8];
+        for (i, &(x, y)) in points.iter().enumerate() {
+            vertices[i] = QVec::snap(x, y);
+        }
+        Self::ConvexPolygon {
+            vertices,
+            count: points.len(),
+        }
+    }
+
+    pub fn polygons() -> Vec<(&'static str, Self)> {
+        vec![
+            (
+                "poly_tri",
+                Self::polygon(&[(-1.0, -1.0), (1.0, -1.0), (0.0, 1.0)]),
+            ),
+            (
+                "poly_quad",
+                Self::polygon(&[(-1.0, -0.5), (1.0, -0.5), (1.0, 0.5), (-1.0, 0.5)]),
+            ),
+            (
+                "poly_pent",
+                Self::polygon(&[
+                    (-1.0, -1.0),
+                    (1.0, -1.0),
+                    (1.5, 0.0),
+                    (0.0, 1.5),
+                    (-1.5, 0.0),
+                ]),
+            ),
+            (
+                "poly_oct",
+                Self::polygon(&[
+                    (-1.0, -2.0),
+                    (1.0, -2.0),
+                    (2.0, -1.0),
+                    (2.0, 1.0),
+                    (1.0, 2.0),
+                    (-1.0, 2.0),
+                    (-2.0, 1.0),
+                    (-2.0, -1.0),
+                ]),
+            ),
+            (
+                "poly_rot",
+                Self::polygon(&[(-0.2, -1.1), (1.0, 0.5), (0.2, 1.1), (-1.0, -0.5)]),
+            ),
+            (
+                "poly_thin",
+                Self::polygon(&[(-2.0, -0.01), (2.0, -0.01), (2.0, 0.01), (-2.0, 0.01)]),
+            ),
+        ]
+    }
+
     pub fn ball(radius: f64) -> Self {
         ShapeSpec::Ball {
             radius: Q::snap(radius),
@@ -82,6 +142,12 @@ impl ShapeSpec {
 
     pub fn shared(&self) -> SharedShape {
         match *self {
+            ShapeSpec::ConvexPolygon { vertices, count } => SharedShape::new(
+                rapier2d_f64::parry::shape::ConvexPolygon::from_convex_polyline(
+                    vertices[..count].iter().map(|p| p.v()).collect(),
+                )
+                .unwrap(),
+            ),
             ShapeSpec::Ball { radius } => SharedShape::new(Ball::new(radius.f())),
             ShapeSpec::Cuboid { half_extents } => SharedShape::new(Cuboid::new(half_extents.v())),
             ShapeSpec::Capsule { a, b, radius } => {
@@ -98,6 +164,12 @@ impl ShapeSpec {
         use parry2d::shape as sh;
         let v = |q: QVec| V::new(q.x.f() as f32, q.y.f() as f32);
         match *self {
+            ShapeSpec::ConvexPolygon { vertices, count } => sh::SharedShape::new(
+                sh::ConvexPolygon::from_convex_polyline(
+                    vertices[..count].iter().map(|p| v(*p)).collect(),
+                )
+                .unwrap(),
+            ),
             ShapeSpec::Ball { radius } => sh::SharedShape::new(sh::Ball::new(radius.f() as f32)),
             ShapeSpec::Cuboid { half_extents } => {
                 sh::SharedShape::new(sh::Cuboid::new(v(half_extents)))
@@ -112,6 +184,8 @@ impl ShapeSpec {
 
     pub fn json(&self) -> Value {
         match *self {
+            ShapeSpec::ConvexPolygon { vertices, count } => json!({ "type": "convex_polygon",
+                "vertices": vertices[..count].iter().map(|p| jqvec(*p)).collect::<Vec<_>>() }),
             ShapeSpec::Ball { radius } => json!({ "type": "ball", "radius": jq(radius) }),
             ShapeSpec::Cuboid { half_extents } => {
                 json!({ "type": "cuboid", "half_extents": jqvec(half_extents) })

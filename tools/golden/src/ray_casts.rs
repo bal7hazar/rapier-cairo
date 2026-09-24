@@ -174,6 +174,16 @@ fn ask<S: RayCast>(s: &S, case: &Case, solid: bool) -> Value {
 fn run(case: &Case) -> Value {
     let both = |f: &dyn Fn(bool) -> Value| json!({ "solid": f(true), "hollow": f(false) });
     let expected = match case.shape {
+        ShapeSpec::ConvexPolygon { vertices, count } => both(&|s| {
+            ask(
+                &rapier2d_f64::parry::shape::ConvexPolygon::from_convex_polyline(
+                    vertices[..count].iter().map(|p| p.v()).collect(),
+                )
+                .unwrap(),
+                case,
+                s,
+            )
+        }),
         ShapeSpec::Ball { radius } => both(&|s| ask(&Ball::new(radius.f()), case, s)),
         ShapeSpec::Cuboid { half_extents } => {
             both(&|s| ask(&Cuboid::new(half_extents.v()), case, s))
@@ -208,6 +218,10 @@ pub fn generate() -> Value {
     json!({
         "family": "ray_casts",
         "cases": cases().iter().map(run).collect::<Vec<_>>(),
+        "polygons": ShapeSpec::polygons().into_iter().flat_map(|(name, shape)| {
+            [("outside", (-4.0, 0.003)), ("inside", (0.0, 0.003))].into_iter().map(move |(tag,o)|
+                run(&c(name, tag, shape, o, (1.0, 0.0), DEFAULT_MAX, "unit ray; analytic clipping vs GJK")))
+        }).collect::<Vec<_>>(),
         "non_finite_probes": [ball_center_probe()],
     })
 }

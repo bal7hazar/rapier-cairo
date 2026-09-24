@@ -349,7 +349,7 @@ pub fn clip2d(vectors: &Path) -> String {
 
 // --- point_projection & segment_segment -----------------------------------------------------
 
-fn location(v: &Value) -> Node {
+pub(super) fn location(v: &Value) -> Node {
     match v["kind"].as_str().unwrap() {
         "none" => lit("SegmentLocationRaw::NoLocation"),
         "vertex" => Node::Variant("SegmentLocationRaw::OnVertex", Box::new(int(&v["vertex"]))),
@@ -358,7 +358,7 @@ fn location(v: &Value) -> Node {
     }
 }
 
-fn projection(v: &Value) -> Node {
+pub(super) fn projection(v: &Value) -> Node {
     Node::Struct(
         "ProjectionRaw",
         vec![
@@ -368,7 +368,7 @@ fn projection(v: &Value) -> Node {
     )
 }
 
-fn feature(v: &Value) -> Node {
+pub(super) fn feature(v: &Value) -> Node {
     match v["kind"].as_str().unwrap() {
         "unknown" => lit("PointFeatureRaw::Unknown"),
         "vertex" => Node::Variant("PointFeatureRaw::Vertex", Box::new(int(&v["code"]))),
@@ -456,7 +456,7 @@ fn ray_hit(v: &Value) -> Node {
     )
 }
 
-fn ray_answer(v: &Value) -> Node {
+pub(super) fn ray_answer(v: &Value) -> Node {
     let toi = &v["toi"];
     Node::Struct(
         "RayAnswerRaw",

@@ -278,6 +278,9 @@ fn project_local_point(shape: Shape, pt: Vec2, solid: bool) -> PointProjection {
         Shape::Capsule(s) => project_local_point_capsule(s, pt, solid),
         Shape::Segment(s) => project_local_point_segment(s, pt, solid),
         Shape::HalfSpace(s) => project_local_point_halfspace(s, pt, solid),
+        Shape::ConvexPolygon(s) => rapier_geometry2d::point::convex_polygon::project_local_point_convex_polygon(
+            s, pt, solid,
+        ),
     }
 }
 
@@ -290,6 +293,9 @@ fn contains_local_point(shape: Shape, pt: Vec2) -> bool {
         Shape::Capsule(s) => contains_local_point_capsule(s, pt),
         Shape::Segment(s) => contains_local_point_segment(s, pt),
         Shape::HalfSpace(s) => contains_local_point_halfspace(s, pt),
+        Shape::ConvexPolygon(s) => rapier_geometry2d::point::convex_polygon::contains_local_point_convex_polygon(
+            s, pt,
+        ),
     }
 }
 

@@ -15,6 +15,8 @@ use fixed::{Fixed, PI, ZERO};
 use glam::vec2::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::{DEFAULT_EPSILON, inv};
+use crate::point::cross_wide;
+use crate::shape::{ConvexPolygon, ConvexPolygonTrait};
 
 /// Centre of mass in the shape's local frame, inverse mass, inverse principal angular inertia
 /// (a scalar in 2D).
@@ -118,6 +120,63 @@ pub impl MassPropertiesImpl of MassPropertiesTrait {
     fn from_capsule(density: Fixed, a: Vec2, b: Vec2, radius: Fixed) -> MassProperties {
         let (mass, inertia) = capsule_mass_inertia(density, norm2(b.x - a.x, b.y - a.y), radius);
         Self::new(a.midpoint(b), mass, inertia)
+    }
+
+    /// Triangle-fan polygon mass in upstream vertex accumulation order: geometric center,
+    /// area-weighted center, then inertia about that center. Each product floors; raw constant
+    /// divisions truncate toward zero. Inputs/intermediates and nonzero inverses must fit Q32.32.
+    /// A sub-resolution area produces zero mass/inertia, retaining the geometric center.
+    fn from_convex_polygon(density: Fixed, polygon: ConvexPolygon) -> MassProperties {
+        let mut center = Vec2 { x: ZERO, y: ZERO };
+        let mut i = 0;
+        while i != polygon.count {
+            center = center + polygon.vertex(i);
+            i += 1;
+        }
+        let n: i64 = polygon.count.into();
+        center = Vec2 { x: div_raw(center.x, n), y: div_raw(center.y, n) };
+        let mut area = ZERO;
+        let mut weighted = Vec2 { x: ZERO, y: ZERO };
+        i = 0;
+        while i != polygon.count {
+            let a = polygon.vertex(i);
+            let b = polygon.vertex(polygon.next(i));
+            let e = b - a;
+            let d = center - a;
+            let raw = cross_wide(e.x, e.y, d.x, d.y) / 0x200000000;
+            let part = Fixed {
+                raw: raw.try_into().expect(crate::shape::convex_polygon::errors::AREA_OVERFLOW),
+            };
+            let sum = a + b + center;
+            let centroid = Vec2 { x: div_raw(sum.x, 3), y: div_raw(sum.y, 3) };
+            weighted = weighted + centroid.mul_scalar(part);
+            area = area + part;
+            i += 1;
+        }
+        if area == ZERO {
+            return Self::new(center, ZERO, ZERO);
+        }
+        let com = Vec2 { x: weighted.x / area, y: weighted.y / area };
+        let mut inertia = ZERO;
+        i = 0;
+        while i != polygon.count {
+            let a = polygon.vertex(i) - com;
+            let b = polygon.vertex(polygon.next(i)) - com;
+            let raw = cross_wide(a.x, a.y, b.x, b.y) / 0x200000000;
+            let part = Fixed {
+                raw: raw.try_into().expect(crate::shape::convex_polygon::errors::AREA_OVERFLOW),
+            };
+            let unit = wide_mul(a.x, a.x)
+                .add(wide_mul(b.x, a.x))
+                .add(wide_mul(b.x, b.x))
+                .add(wide_mul(a.y, a.y))
+                .add(wide_mul(b.y, a.y))
+                .add(wide_mul(b.y, b.y))
+                .narrow();
+            inertia = inertia + div_raw(unit, 6) * part;
+            i += 1;
+        }
+        Self::new(com, area * density, inertia * density)
     }
 
     /// Zero mass properties: a segment has no area (and a half-space is infinite).

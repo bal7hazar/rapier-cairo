@@ -630,5 +630,505 @@
       }
     }
   ],
+  "polygons": [
+    {
+      "id": "poly_tri/outside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "point": { "f64": [3.0, 0.1229999999050051], "raw": [12884901888, 528280977] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.9508000000379979, -0.9016000000759958], "raw": [4083654905, -3872342514] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.9508000000379979, -0.9016000000759958], "raw": [4083654905, -3872342514] },
+          "is_inside": false
+        },
+        "distance": { "f64": 2.2910752497038014, "raw": 9840093270 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_tri/inside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.4191999999806285, 0.16160000003874297], "raw": [1800450290, 694066715] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.3568764490831834, "raw": -1532772678 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_tri/tie",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.4, 0.19999999999999996], "raw": [1717986918, 858993459] },
+          "is_inside": true
+        },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -0.4472135954999579, "raw": -1920767767 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": true,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_quad/outside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+          { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+          { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          { "f64": [-1.0, 0.5], "raw": [-4294967296, 2147483648] }
+        ]
+      },
+      "point": { "f64": [3.0, 0.1229999999050051], "raw": [12884901888, 528280977] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0, 0.1229999999050051], "raw": [4294967296, 528280977] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.1229999999050051], "raw": [4294967296, 528280977] },
+          "is_inside": false
+        },
+        "distance": { "f64": 2.0, "raw": 8589934592 },
+        "feature": { "kind": "face", "code": 1 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_quad/inside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+          { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+          { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          { "f64": [-1.0, 0.5], "raw": [-4294967296, 2147483648] }
+        ]
+      },
+      "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.10000000009313226, 0.5], "raw": [429496730, 2147483648] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.4979999999050051, "raw": -2138893713 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_quad/tie",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+          { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+          { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          { "f64": [-1.0, 0.5], "raw": [-4294967296, 2147483648] }
+        ]
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.5], "raw": [0, 2147483648] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -0.5, "raw": -2147483648 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": true,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_pent/outside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "point": { "f64": [3.0, 0.1229999999050051], "raw": [12884901888, 528280977] },
+      "expected": {
+        "projection": { "point": { "f64": [1.5, 0.0], "raw": [6442450944, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [1.5, 0.0], "raw": [6442450944, 0] }, "is_inside": false },
+        "distance": { "f64": 1.5050345510906489, "raw": 6464074176 },
+        "feature": { "kind": "vertex", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_pent/inside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.7989999999990687, 0.7010000000009313], "raw": [3431678870, 3010772075] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.9885352799657675, "raw": -4245726698 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_pent/tie",
+      "note": "EPA degeneracy: returns top vertex (distance 1.5) instead of bottom edge (distance 1); analytic regression",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -1.5, "raw": -6442450944 },
+        "feature": { "kind": "vertex", "code": 4 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": true
+    },
+    {
+      "id": "poly_oct/outside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -2.0], "raw": [-4294967296, -8589934592] },
+          { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+          { "f64": [2.0, -1.0], "raw": [8589934592, -4294967296] },
+          { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
+          { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+          { "f64": [-1.0, 2.0], "raw": [-4294967296, 8589934592] },
+          { "f64": [-2.0, 1.0], "raw": [-8589934592, 4294967296] },
+          { "f64": [-2.0, -1.0], "raw": [-8589934592, -4294967296] }
+        ]
+      },
+      "point": { "f64": [3.0, 0.1229999999050051], "raw": [12884901888, 528280977] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [2.0, 0.1229999999050051], "raw": [8589934592, 528280977] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [2.0, 0.1229999999050051], "raw": [8589934592, 528280977] },
+          "is_inside": false
+        },
+        "distance": { "f64": 1.0, "raw": 4294967296 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_oct/inside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -2.0], "raw": [-4294967296, -8589934592] },
+          { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+          { "f64": [2.0, -1.0], "raw": [8589934592, -4294967296] },
+          { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
+          { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+          { "f64": [-1.0, 2.0], "raw": [-4294967296, 8589934592] },
+          { "f64": [-2.0, 1.0], "raw": [-8589934592, 4294967296] },
+          { "f64": [-2.0, -1.0], "raw": [-8589934592, -4294967296] }
+        ]
+      },
+      "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [2.0, 0.0020000000949949026], "raw": [8589934592, 8589935] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+          "is_inside": true
+        },
+        "distance": { "f64": -1.8999999999068677, "raw": -8160437862 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_oct/tie",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -2.0], "raw": [-4294967296, -8589934592] },
+          { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+          { "f64": [2.0, -1.0], "raw": [8589934592, -4294967296] },
+          { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
+          { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+          { "f64": [-1.0, 2.0], "raw": [-4294967296, 8589934592] },
+          { "f64": [-2.0, 1.0], "raw": [-8589934592, 4294967296] },
+          { "f64": [-2.0, -1.0], "raw": [-8589934592, -4294967296] }
+        ]
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, -2.0], "raw": [0, -8589934592] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -2.0, "raw": -8589934592 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": true,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_rot/outside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.19999999995343387, -1.1000000000931323], "raw": [-858993459, -4724464026] },
+          { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          { "f64": [0.19999999995343387, 1.1000000000931323], "raw": [858993459, 4724464026] },
+          { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] }
+        ]
+      },
+      "point": { "f64": [3.0, 0.1229999999050051], "raw": [12884901888, 528280977] },
+      "expected": {
+        "projection": { "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          "is_inside": false
+        },
+        "distance": { "f64": 2.0352221009196088, "raw": 8741212364 },
+        "feature": { "kind": "vertex", "code": 1 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_rot/inside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.19999999995343387, -1.1000000000931323], "raw": [-858993459, -4724464026] },
+          { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          { "f64": [0.19999999995343387, 1.1000000000931323], "raw": [858993459, 4724464026] },
+          { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] }
+        ]
+      },
+      "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.4369600001258513, -0.25071999990502775], "raw": [1876728910, -1076834200] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.4212000000261888, "raw": -1809040225 },
+        "feature": { "kind": "face", "code": 0 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_rot/tie",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.19999999995343387, -1.1000000000931323], "raw": [-858993459, -4724464026] },
+          { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+          { "f64": [0.19999999995343387, 1.1000000000931323], "raw": [858993459, 4724464026] },
+          { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] }
+        ]
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.4000000000512226, 0.3000000000093135], "raw": [-1717986919, 1288490189] },
+          "is_inside": true
+        },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -0.5000000000465662, "raw": -2147483648 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": true,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_thin/outside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-2.0, -0.010000000009313226], "raw": [-8589934592, -42949673] },
+          { "f64": [2.0, -0.010000000009313226], "raw": [8589934592, -42949673] },
+          { "f64": [2.0, 0.010000000009313226], "raw": [8589934592, 42949673] },
+          { "f64": [-2.0, 0.010000000009313226], "raw": [-8589934592, 42949673] }
+        ]
+      },
+      "point": { "f64": [3.0, 0.1229999999050051], "raw": [12884901888, 528280977] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [2.0, 0.010000000009313226], "raw": [8589934592, 42949673] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [2.0, 0.010000000009313226], "raw": [8589934592, 42949673] },
+          "is_inside": false
+        },
+        "distance": { "f64": 1.0063642481608865, "raw": 4322301534 },
+        "feature": { "kind": "vertex", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_thin/inside",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-2.0, -0.010000000009313226], "raw": [-8589934592, -42949673] },
+          { "f64": [2.0, -0.010000000009313226], "raw": [8589934592, -42949673] },
+          { "f64": [2.0, 0.010000000009313226], "raw": [8589934592, 42949673] },
+          { "f64": [-2.0, 0.010000000009313226], "raw": [-8589934592, 42949673] }
+        ]
+      },
+      "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.10000000009313226, 0.010000000009313226], "raw": [429496730, 42949673] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0020000000949949026], "raw": [429496730, 8589935] },
+          "is_inside": true
+        },
+        "distance": { "f64": -0.007999999914318323, "raw": -34359738 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": false,
+      "gjk_degenerate": false
+    },
+    {
+      "id": "poly_thin/tie",
+      "note": "analytic vs GJK/EPA; ties ambiguous",
+      "shape": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-2.0, -0.010000000009313226], "raw": [-8589934592, -42949673] },
+          { "f64": [2.0, -0.010000000009313226], "raw": [8589934592, -42949673] },
+          { "f64": [2.0, 0.010000000009313226], "raw": [8589934592, 42949673] },
+          { "f64": [-2.0, 0.010000000009313226], "raw": [-8589934592, 42949673] }
+        ]
+      },
+      "point": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.0, 0.010000000009313226], "raw": [0, 42949673] },
+          "is_inside": true
+        },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
+        "distance": { "f64": -0.010000000009313226, "raw": -42949673 },
+        "feature": { "kind": "face", "code": 2 },
+        "location": { "kind": "none" }
+      },
+      "ambiguous": true,
+      "gjk_degenerate": false
+    }
+  ],
   "non_finite_probes": [{ "id": "probe/ball_center", "projection_is_nan": true }]
 }
