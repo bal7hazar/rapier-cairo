@@ -19,7 +19,9 @@ pub mod prelude {
         FixedJointBuilderTrait, PrismaticJointBuilderTrait, RevoluteJointBuilderTrait,
     };
     pub use rapier_dynamics2d::{CollisionEvent, CollisionEventTrait, RigidBody, RigidBodyTrait};
+    pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
     pub use crate::dispatcher::DefaultDispatcher;
+    pub use crate::queries::{QueryFilter, QueryFilterTrait};
     pub use crate::world::{World, WorldTrait};
 }
