@@ -26,7 +26,7 @@ pub(super) fn generate(vectors: &Path) -> String {
                 let bodies = (0..2)
                     .map(|i| {
                         Node::Struct(
-                            "crate::types::SleepImpactBodyRaw",
+                            "SleepImpactBodyRaw",
                             vec![
                                 ("y", raw_component(&s["bodies"][i]["translation"], 1)),
                                 ("vy", raw_component(&s["bodies"][i]["linvel"], 1)),
@@ -49,7 +49,7 @@ pub(super) fn generate(vectors: &Path) -> String {
                         let m = pair.and_then(|p| p["manifolds"].as_array().unwrap().first());
                         let m = m.filter(|m| !m["solver_contacts"].as_array().unwrap().is_empty());
                         Node::Struct(
-                            "crate::types::SleepImpactPairRaw",
+                            "SleepImpactPairRaw",
                             vec![
                                 ("present", Node::Lit(m.is_some().to_string())),
                                 (
@@ -81,7 +81,7 @@ pub(super) fn generate(vectors: &Path) -> String {
                         s["step"]
                     ),
                     Node::Struct(
-                        "crate::types::SleepImpactRaw",
+                        "SleepImpactRaw",
                         vec![
                             ("step", int(&s["step"])),
                             ("bodies", Node::Array(bodies)),
@@ -92,13 +92,13 @@ pub(super) fn generate(vectors: &Path) -> String {
             })
             .collect::<Vec<_>>();
         module.table(
-            "crate::types::SleepImpactRaw",
+            "SleepImpactRaw",
             if prewake { "PREWAKE_ALL" } else { "ALL" },
             if prewake { "prewake_cases" } else { "cases" },
             &cases,
         );
     }
-    module.finish(&ALL_TYPES)
+    module.finish(&["SleepImpactBodyRaw", "SleepImpactPairRaw", "SleepImpactRaw"])
 }
 
 fn raw_component(v: &Value, i: usize) -> Node {

@@ -598,7 +598,7 @@ pub struct JointSceneCase {
 }
 
 /// SI: vertical state after a `ball_drop_sleep` step, Q32.32 raw. Upstream updates the
-/// eligibility timer at the next step's start; compare it with Cairo's pre-step timer.
+/// timer before solving; Cairo updates it after motion. Wake/sleep resets also affect it.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct SleepImpactBodyRaw {
     pub y: i64,

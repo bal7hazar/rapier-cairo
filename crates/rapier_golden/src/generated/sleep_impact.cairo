@@ -3,201 +3,145 @@
 
 //! SI: sleeping-ball impact diagnostics.
 
-pub const STEP_65: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+use crate::types::{SleepImpactBodyRaw, SleepImpactPairRaw, SleepImpactRaw};
+
+pub const STEP_65: SleepImpactRaw = SleepImpactRaw {
     step: 65,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483640, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 24572783154, vy: -45644764768, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483640, sleeping: false },
+        SleepImpactBodyRaw { y: 24572783154, vy: -45644764768, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296425, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_66: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_66: SleepImpactRaw = SleepImpactRaw {
     step: 66,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 23804722211, vy: -46346991919, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 23804722211, vy: -46346991919, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_80: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_80: SleepImpactRaw = SleepImpactRaw {
     step: 80,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 11822971504, vy: -56178172023, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 11822971504, vy: -56178172023, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_81: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_81: SleepImpactRaw = SleepImpactRaw {
     step: 81,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 10879353774, vy: -56880399173, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 10879353774, vy: -56880399173, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_82: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_82: SleepImpactRaw = SleepImpactRaw {
     step: 82,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 9924032259, vy: -57582626323, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 9924032259, vy: -57582626323, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_83: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_83: SleepImpactRaw = SleepImpactRaw {
     step: 83,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 8957006957, vy: -58284853474, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 8957006957, vy: -58284853474, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_84: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_84: SleepImpactRaw = SleepImpactRaw {
     step: 84,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 7978277870, vy: -58987080624, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 7978277870, vy: -58987080624, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_85: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_85: SleepImpactRaw = SleepImpactRaw {
     step: 85,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 6987844997, vy: -59689307774, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 6987844997, vy: -59689307774, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_86: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_86: SleepImpactRaw = SleepImpactRaw {
     step: 86,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147187214, vy: 0, timer: 2147483648, sleeping: true,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 5985708339, vy: -60391534924, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147187214, vy: 0, timer: 2147483648, sleeping: true },
+        SleepImpactBodyRaw { y: 5985708339, vy: -60391534924, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_87: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_87: SleepImpactRaw = SleepImpactRaw {
     step: 87,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 1612314858, vy: -30897994612, timer: 71582788, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 5499425385, vy: -30897994612, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 1612314858, vy: -30897994612, timer: 71582788, sleeping: false },
+        SleepImpactBodyRaw { y: 5499425385, vy: -30897994612, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -456446172,
             contact_id: 2147483648,
@@ -207,236 +151,200 @@ pub const STEP_87: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
     ],
 };
 
-pub const STEP_88: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_88: SleepImpactRaw = SleepImpactRaw {
     step: 88,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 1741118556, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 5614129587, vy: 14407981368, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 1741118556, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 5614129587, vy: 14407981368, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -535168790,
             contact_id: 0,
             impulse: 60953514375,
             warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -407856769, contact_id: 0, impulse: 36134758240, warmstart: 0,
         },
     ],
 };
 
-pub const STEP_89: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_89: SleepImpactRaw = SleepImpactRaw {
     step: 89,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 1844383213, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 5846947743, vy: 13705754218, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 1844383213, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 5846947743, vy: 13705754218, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -406365092,
             contact_id: 0,
             impulse: 551527914,
             warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -421956265, contact_id: 0, impulse: 0, warmstart: 0,
         },
     ],
 };
 
-pub const STEP_90: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_90: SleepImpactRaw = SleepImpactRaw {
     step: 90,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 1921387310, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6068062113, vy: 13003527067, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 1921387310, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6068062113, vy: 13003527067, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -303100435,
             contact_id: 0,
             impulse: 551527914,
             warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -292402766, contact_id: 2147483648, impulse: 0, warmstart: 0,
         },
     ],
 };
 
-pub const STEP_91: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_91: SleepImpactRaw = SleepImpactRaw {
     step: 91,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 1978809000, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6277472697, vy: 12301299917, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 1978809000, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6277472697, vy: 12301299917, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -226096338,
             contact_id: 0,
             impulse: 551527914,
             warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -148292493, contact_id: 2147483648, impulse: 0, warmstart: 0,
         },
     ],
 };
 
-pub const STEP_92: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_92: SleepImpactRaw = SleepImpactRaw {
     step: 92,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 2021628155, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6475179495, vy: 11599072767, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2021628155, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6475179495, vy: 11599072767, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -168674648,
             contact_id: 0,
             impulse: 551527914,
             warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: 3696401, contact_id: 2147483648, impulse: 0, warmstart: 0,
         },
     ],
 };
 
-pub const STEP_93: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_93: SleepImpactRaw = SleepImpactRaw {
     step: 93,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 2053558251, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6661182508, vy: 10896845616, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2053558251, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6661182508, vy: 10896845616, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -125855493,
             contact_id: 0,
             impulse: 551527914,
             warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_94: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_94: SleepImpactRaw = SleepImpactRaw {
     step: 94,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 2077368413, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6835481735, vy: 10194618466, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2077368413, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6835481735, vy: 10194618466, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -93925397, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_95: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_95: SleepImpactRaw = SleepImpactRaw {
     step: 95,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 2095123569, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6998077176, vy: 9492391316, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2095123569, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6998077176, vy: 9492391316, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -70115235, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_110: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_110: SleepImpactRaw = SleepImpactRaw {
     step: 110,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2146548974, vy: 0, timer: 787410668, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 8032554496, vy: -1041015938, timer: 71582788, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2146548974, vy: 0, timer: 787410668, sleeping: false },
+        SleepImpactBodyRaw { y: 8032554496, vy: -1041015938, timer: 71582788, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -1152323, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const STEP_120: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const STEP_120: SleepImpactRaw = SleepImpactRaw {
     step: 120,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2147153257, vy: 0, timer: 1503238548, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 7259232818, vy: -8063287441, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2147153257, vy: 0, timer: 1503238548, sleeping: false },
+        SleepImpactBodyRaw { y: 7259232818, vy: -8063287441, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -341962, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
-            present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0,
-        },
+        SleepImpactPairRaw { present: false, dist: 0, contact_id: 0, impulse: 0, warmstart: 0 },
     ],
 };
 
-pub const ALL: [crate::types::SleepImpactRaw; 20] = [
+pub const ALL: [SleepImpactRaw; 20] = [
     STEP_65, STEP_66, STEP_80, STEP_81, STEP_82, STEP_83, STEP_84, STEP_85, STEP_86, STEP_87,
     STEP_88, STEP_89, STEP_90, STEP_91, STEP_92, STEP_93, STEP_94, STEP_95, STEP_110, STEP_120,
 ];
 
 /// Every case of [`ALL`], in the order of the JSON file.
-pub fn cases() -> Span<crate::types::SleepImpactRaw> {
+pub fn cases() -> Span<SleepImpactRaw> {
     ALL.span()
 }
-pub const PREWAKE_STEP_87: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const PREWAKE_STEP_87: SleepImpactRaw = SleepImpactRaw {
     step: 87,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 2139988690, vy: 0, timer: 71582788, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6028411691, vy: 8129310331, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2139988690, vy: 0, timer: 71582788, sleeping: false },
+        SleepImpactBodyRaw { y: 6028411691, vy: 8129310331, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -296434, contact_id: 0, impulse: 54919201846, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true,
             dist: -456446172,
             contact_id: 2147483648,
@@ -446,89 +354,75 @@ pub const PREWAKE_STEP_87: crate::types::SleepImpactRaw = crate::types::SleepImp
     ],
 };
 
-pub const PREWAKE_STEP_88: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const PREWAKE_STEP_88: SleepImpactRaw = SleepImpactRaw {
     step: 88,
     bodies: [
-        crate::types::SleepImpactBodyRaw { y: 2141819293, vy: 0, timer: 0, sleeping: false },
-        crate::types::SleepImpactBodyRaw {
-            y: 6156585330, vy: 7427083181, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2141819293, vy: 0, timer: 0, sleeping: false },
+        SleepImpactBodyRaw { y: 6156585330, vy: 7427083181, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -7494958, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -406544295, contact_id: 0, impulse: 0, warmstart: 0,
         },
     ],
 };
 
-pub const PREWAKE_STEP_90: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const PREWAKE_STEP_90: SleepImpactRaw = SleepImpactRaw {
     step: 90,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2144202298, vy: 0, timer: 143165576, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 6377821250, vy: 6022628880, timer: 0, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2144202298, vy: 0, timer: 143165576, sleeping: false },
+        SleepImpactBodyRaw { y: 6377821250, vy: 6022628880, timer: 0, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -4299281, contact_id: 0, impulse: 551527914, warmstart: 137881979,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -165096480, contact_id: 2147483648, impulse: 0, warmstart: 0,
         },
     ],
 };
 
-pub const PREWAKE_STEP_110: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const PREWAKE_STEP_110: SleepImpactRaw = SleepImpactRaw {
     step: 110,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2146830564, vy: 0, timer: 1574821336, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 6441348646, vy: -4697244, timer: 143165576, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2146830564, vy: 0, timer: 1574821336, sleeping: false },
+        SleepImpactBodyRaw { y: 6441348646, vy: -4697244, timer: 143165576, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -676907, contact_id: 0, impulse: 1105841982, warmstart: 275696515,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -228318, contact_id: 0, impulse: 554314068, warmstart: 137814537,
         },
     ],
 };
 
-pub const PREWAKE_STEP_120: crate::types::SleepImpactRaw = crate::types::SleepImpactRaw {
+pub const PREWAKE_STEP_120: SleepImpactRaw = SleepImpactRaw {
     step: 120,
     bodies: [
-        crate::types::SleepImpactBodyRaw {
-            y: 2146892035, vy: 0, timer: 2290649216, sleeping: false,
-        },
-        crate::types::SleepImpactBodyRaw {
-            y: 6440188643, vy: -2061531, timer: 858993456, sleeping: false,
-        },
+        SleepImpactBodyRaw { y: 2146892035, vy: 0, timer: 2290649216, sleeping: false },
+        SleepImpactBodyRaw { y: 6440188643, vy: -2061531, timer: 858993456, sleeping: false },
     ],
     pairs: [
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -592392, contact_id: 0, impulse: 1103214965, warmstart: 275802474,
         },
-        crate::types::SleepImpactPairRaw {
+        SleepImpactPairRaw {
             present: true, dist: -1597925, contact_id: 0, impulse: 551687051, warmstart: 137920496,
         },
     ],
 };
 
-pub const PREWAKE_ALL: [crate::types::SleepImpactRaw; 5] = [
+pub const PREWAKE_ALL: [SleepImpactRaw; 5] = [
     PREWAKE_STEP_87, PREWAKE_STEP_88, PREWAKE_STEP_90, PREWAKE_STEP_110, PREWAKE_STEP_120,
 ];
 
 /// Every case of [`PREWAKE_ALL`], in the order of the JSON file.
-pub fn prewake_cases() -> Span<crate::types::SleepImpactRaw> {
+pub fn prewake_cases() -> Span<SleepImpactRaw> {
     PREWAKE_ALL.span()
 }
