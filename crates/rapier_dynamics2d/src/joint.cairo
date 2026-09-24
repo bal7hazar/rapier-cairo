@@ -1,6 +1,10 @@
-//! Phase-1 impulse joints. Limits, motors and coupling are stored but not solved.
+//! Impulse joints with free-axis limits and motors. Coupling remains reserved.
 //! Local frames are body-local; the solver adapter requires centre-of-mass-local frames.
 mod builders;
+mod config;
+pub use config::GenericJointTrait;
+#[cfg(test)]
+mod builder_controls;
 mod set;
 pub use builders::{
     FixedJointBuilder, FixedJointBuilderTrait, GenericJointBuilder, GenericJointBuilderTrait,
@@ -57,7 +61,7 @@ pub impl JointAxesMaskImpl of JointAxesMaskTrait {
         r != 0
     }
 }
-/// Inactive limit data. Finite Fixed extrema stand in for upstream's floating extrema.
+/// Limit data. Finite Fixed extrema stand in for upstream's floating extrema.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct JointLimits {
     pub min: Fixed,
@@ -69,13 +73,13 @@ pub impl JointLimitsDefault of Default<JointLimits> {
         JointLimits { min: MIN, max: MAX, impulse: ZERO }
     }
 }
-/// Motor model retained for future motor rows.
+/// Motor stiffness/damping interpretation.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub enum MotorModel {
     AccelerationBased,
     ForceBased,
 }
-/// Inactive motor data; units follow the corresponding linear/angular axis.
+/// Motor data; units follow the corresponding linear/angular axis.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct JointMotor {
     pub target_vel: Fixed,
@@ -106,7 +110,7 @@ pub enum JointEnabled {
     DisabledByAttachedBody,
     Disabled,
 }
-/// Joint frames, lock masks and reserved limit/motor state. Rotations must be unit;
+/// Joint frames, lock masks and limit/motor state. Rotations must be unit;
 /// positions and numeric intermediates must fit Q32.32. Softness is evaluated per substep.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct GenericJoint {

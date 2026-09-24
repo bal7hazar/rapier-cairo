@@ -2,7 +2,7 @@
 rapier2d::world::tests::gas_baseline 14120
 rapier2d::world::tests::gas_body 768120
 rapier2d::world::tests::gas_collider 767220
-rapier2d::world::tests::gas_contact_pair 10113487
+rapier2d::world::tests::gas_contact_pair 10174647
 rapier2d::world::tests::gas_impulse_joint 771120
 rapier2d::world::tests::gas_insert 1025687
 rapier2d::world::tests::gas_insert_body 805282
@@ -16,7 +16,7 @@ rapier2d::world::tests::gas_remove_impulse_joint 882326
 rapier2d::world::tests::gas_set_body 784920
 rapier2d::world::tests::gas_set_collider 783620
 rapier2d::world::tests::gas_setup 749220
-rapier2d::world::tests::gas_step 10067217
+rapier2d::world::tests::gas_step 10128377
 rapier2d::world::tests::test_insert_links_and_poses 813510
 rapier2d::world::tests::test_remove_body_detaches_colliders_and_joints 2643036
 rapier2d::world::tests::test_remove_collider_and_joint 1166429

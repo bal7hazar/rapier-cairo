@@ -568,3 +568,31 @@ pub struct RayCase {
     pub solid: RayAnswerRaw,
     pub hollow: RayAnswerRaw,
 }
+
+/// Settings of one free-axis joint, in Q32.32 raws; booleans distinguish absent controls.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SceneJointControlRaw {
+    pub body1: u32,
+    pub body2: u32,
+    pub local_anchor1: Vec2Raw,
+    pub local_anchor2: Vec2Raw,
+    pub prismatic: bool,
+    pub axis: Vec2Raw,
+    pub has_limits: bool,
+    pub min: i64,
+    pub max: i64,
+    pub has_motor: bool,
+    pub target_pos: i64,
+    pub target_vel: i64,
+    pub stiffness: i64,
+    pub damping: i64,
+    pub max_force: i64,
+    pub force_based: bool,
+}
+/// Controlled-joint scene. Base bodies/samples retain the original SceneCase layout;
+/// the single joint is described separately so existing golden fixtures remain byte-identical.
+#[derive(Copy, Drop)]
+pub struct JointSceneCase {
+    pub scene: SceneCase,
+    pub joint: SceneJointControlRaw,
+}
