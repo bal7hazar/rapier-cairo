@@ -74,8 +74,12 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         return;
     }
     let mut cs = ContactConstraintsSetTrait::generate(manifolds.span(), initial.span(), params, dt);
-    let directions = super::contact::cached::prepare(cs.constraints.span());
     let builders = prepare_joints(joint_set.span(), initial.span(), steps);
+    if empty::all_inert(cs.constraints.span()) {
+        empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
+        return;
+    }
+    let directions = super::contact::cached::prepare(cs.constraints.span());
     let mut rows = array![];
     let mut substep = 0;
     while substep != params.num_solver_iterations {
