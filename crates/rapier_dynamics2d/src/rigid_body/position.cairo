@@ -157,6 +157,7 @@ mod tests {
         world_com: Vec2 { x: ONE, y: TWO },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,
+        max_extent: ZERO,
     };
 
     fn mprops() -> RigidBodyMassProps {

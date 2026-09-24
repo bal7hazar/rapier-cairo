@@ -11,7 +11,10 @@
 //! inverses are stored, never recomputed, and the solver multiplies by them.
 //!
 //! Deferred: `additional_local_mprops` and `recompute_mass_properties_from_colliders` (they need
-//! the collider set, package DD), `max_extent` (CCD and sleeping, out of the MVP).
+//! the collider set, package DD). `max_extent` (work package SL) is stored here as upstream does
+//! and recomputed by the pipeline with the mass properties from the colliders
+//! (`rapier2d::pipeline::recompute_mass_properties_from_colliders`): the sleep test turns the
+//! angular motion of a body into a farthest-point displacement with it.
 
 use fixed::{Fixed, ZERO};
 use glam::{Vec2, Vec2Trait};
@@ -40,6 +43,12 @@ pub struct RigidBodyMassProps {
     /// World-space inverse angular inertia, zeroed when the rotation is locked or the body is
     /// not dynamic. Equal to `local_mprops.inv_principal_inertia` otherwise (2D).
     pub effective_world_inv_inertia: Fixed,
+    /// Conservative bound on the distance of any point of the body's colliders from the local
+    /// centre of mass (upstream `max_extent`): the largest `|sphere.center - local_com| +
+    /// sphere.radius` over the enabled colliders' local bounding spheres. `0` for a body without
+    /// collider; `fixed::MAX` when a collider is a half-space (upstream: infinite). Used by the
+    /// sleep test only; recomputed with the mass properties from the colliders.
+    pub max_extent: Fixed,
 }
 
 /// Accessors and world-space update of [`RigidBodyMassProps`].
@@ -59,7 +68,15 @@ pub impl RigidBodyMassPropsImpl of RigidBodyMassPropsTrait {
             world_com: Vec2Trait::ZERO,
             effective_inv_mass: Vec2Trait::ZERO,
             effective_world_inv_inertia: ZERO,
+            max_extent: ZERO,
         }
+    }
+
+    /// Distance from the local centre of mass to the farthest point of the colliders' bounding
+    /// spheres (`0` without collider, `fixed::MAX` with a half-space); see the field.
+    #[inline(always)]
+    fn max_extent(self: RigidBodyMassProps) -> Fixed {
+        self.max_extent
     }
 
     /// The mass of the body, `inv(local_mprops.inv_mass)`; `0` for an infinite mass.
@@ -149,6 +166,7 @@ pub impl RigidBodyMassPropsImpl of RigidBodyMassPropsTrait {
             } else {
                 self.local_mprops.inv_principal_inertia
             },
+            max_extent: self.max_extent,
         }
     }
 }
@@ -192,6 +210,7 @@ mod alternatives {
             } else {
                 ZERO
             },
+            max_extent: props.max_extent,
         }
     }
 }
@@ -227,6 +246,7 @@ mod tests {
         world_com: Vec2 { x: HALF, y: Fixed { raw: 12884901888 } },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,
+        max_extent: ZERO,
     };
 
     fn updated(flags: LockedAxes, body_type: RigidBodyType) -> RigidBodyMassProps {
@@ -244,6 +264,16 @@ mod tests {
         assert_eq!(props.world_com, Vec2Trait::ZERO);
         assert_eq!(props.effective_inv_mass, Vec2Trait::ZERO);
         assert_eq!(props.effective_world_inv_inertia, ZERO);
+        assert_eq!(props.max_extent(), ZERO);
+        // `max_extent` is the pipeline's to write; the world update carries it over.
+        let mut extended = props;
+        extended.max_extent = TWO;
+        let updated = extended.update_world_mass_properties(RigidBodyType::Dynamic, POSE);
+        assert_eq!(updated.max_extent(), TWO);
+        assert_eq!(
+            alternatives::update_world_mass_properties(extended, RigidBodyType::Dynamic, POSE),
+            updated,
+        );
         let default: RigidBodyMassProps = Default::default();
         assert_eq!(default.flags, LockedAxesTrait::empty());
         assert_eq!(default.mass(), ZERO);

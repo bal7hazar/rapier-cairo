@@ -269,6 +269,7 @@ mod tests {
         world_com: Vec2 { x: ONE, y: TWO },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,
+        max_extent: ZERO,
     };
     /// `-9.81` on the Y axis, the gravity of every golden scene.
     const GRAVITY: Vec2 = Vec2 { x: ZERO, y: Fixed { raw: -42133629174 } };
