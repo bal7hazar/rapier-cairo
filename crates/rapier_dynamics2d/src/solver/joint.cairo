@@ -4,6 +4,12 @@
 //! D4: CFM below 8 Q32.32 ulp becomes zero, preserving computed ERP. Products/dots floor;
 //! reciprocals round to nearest. All intermediates must fit Fixed; nonnegative masses required.
 //! OJ keeps scalar row kernels inline to avoid copying full rows at each arithmetic call.
+mod bounded;
+mod kernels;
+use kernels::{
+    generate_extended, generate_plain, remove_bias_plain, solve_plain, warmstart_plain,
+    writeback_impulses_plain,
+};
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};
@@ -28,7 +34,7 @@ pub mod errors {
 }
 /// Default joint CFM near 240 Hz is only six ulp. Values strictly below this become rigid.
 pub const RIGID_CFM_THRESHOLD: Fixed = Fixed { raw: 8 };
-/// Up to three ordered bilateral rows with resolved dense-body indices and inverse masses.
+/// Bilateral rows and optional free-axis motors/limits, with resolved dense body indices.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
 pub struct JointConstraint {
     pub solver_vel1: u32,
@@ -37,130 +43,62 @@ pub struct JointConstraint {
     pub im2: Vec2,
     pub rows: [JointGenericConstraint; 3],
     pub num_rows: u8,
+    /// Bounded rows; absent on the original bilateral-only path. num_rows=4 when present.
+    pub bounded: Option<bounded::BoundedState>,
 }
 #[generate_trait]
 pub impl JointConstraintImpl of JointConstraintTrait {
-    /// Rebuild locks from current CoM poses, resolving complete generational body handles.
+    /// Rebuild locks, limits and motors from current CoM poses and complete body handles.
     /// Disabled joints return zero rows. Missing/same bodies, negative mass/warmstart, nonunit
-    /// frames panic with errors constants; parameter/Fixed panics propagate. Reserved masks
-    /// ignored.
+    /// frames panic with errors constants; parameter/Fixed panics propagate. Coupled axes
+    /// remain reserved. Motor stiffness, damping and force caps must be nonnegative.
+    #[inline(always)]
     fn generate(
         joint: ImpulseJoint, bodies: Span<SolverBody>, params: IntegrationParameters,
     ) -> JointConstraint {
-        let (mut c, h, b1, b2, erp, cfm) = prepare(joint, bodies, params);
-        if joint.data.enabled != JointEnabled::Enabled {
-            return c;
+        if joint.data.limit_axes.bits == 0 && joint.data.motor_axes.bits == 0 {
+            generate_plain(joint, bodies, params)
+        } else {
+            generate_extended(joint, bodies, params)
         }
-        let locks = joint.data.locked_axes;
-        // Specialised rows keep the same upstream order and arithmetic as generic assembly.
-        match locks.bits {
-            3 => {
-                c
-                    .rows =
-                        [
-                            h.lock_linear(0, b1, b2, erp, cfm), h.lock_linear(1, b1, b2, erp, cfm),
-                            Default::default(),
-                        ];
-                c.num_rows = 2;
-            },
-            6 => {
-                c
-                    .rows =
-                        [
-                            h.lock_angular(b1, b2, erp, cfm), h.lock_linear(1, b1, b2, erp, cfm),
-                            Default::default(),
-                        ];
-                c.num_rows = 2;
-            },
-            7 => {
-                c
-                    .rows =
-                        [
-                            h.lock_angular(b1, b2, erp, cfm), h.lock_linear(0, b1, b2, erp, cfm),
-                            h.lock_linear(1, b1, b2, erp, cfm),
-                        ];
-                c.num_rows = 3;
-            },
-            _ => {
-                if locks.contains_axis(2) {
-                    push(ref c, h.lock_angular(b1, b2, erp, cfm));
-                }
-                if locks.contains_axis(0) {
-                    push(ref c, h.lock_linear(0, b1, b2, erp, cfm));
-                }
-                if locks.contains_axis(1) {
-                    push(ref c, h.lock_linear(1, b1, b2, erp, cfm));
-                }
-            },
-        }
-        JointConstraintHelperTrait::finalize(ref c);
-        seed(ref c, joint, params);
-        c
     }
     /// Apply seeded impulses once before solving; no division, products floor, overflow panics.
+    #[inline(always)]
     fn warmstart(self: JointConstraint, ref bodies: Array<SolverBody>) {
-        if self.num_rows == 0 {
-            return;
+        if self.num_rows == 4 {
+            let mut c = self;
+            bounded::solve(ref c, ref bodies, true, true);
+        } else {
+            warmstart_plain(self, ref bodies);
         }
-        let mut v1 = velocity(read(bodies.span(), self.solver_vel1));
-        let mut v2 = velocity(read(bodies.span(), self.solver_vel2));
-        let [a, b, c] = self.rows;
-        apply(a, a.impulse, self.im1, self.im2, ref v1, ref v2);
-        if self.num_rows >= 2 {
-            apply(b, b.impulse, self.im1, self.im2, ref v1, ref v2);
-        }
-        if self.num_rows == 3 {
-            apply(c, c.impulse, self.im1, self.im2, ref v1, ref v2);
-        }
-        scatter(ref bodies, self.solver_vel1, v1, self.solver_vel2, v2);
     }
     /// Division-free ordered Gauss–Seidel sweep. `biased=false` permanently removes rhs bias
     /// until regeneration; upstream retains softness during relaxation. Fixed overflow panics.
+    #[inline(always)]
     fn solve(ref self: JointConstraint, ref bodies: Array<SolverBody>, biased: bool) {
-        if self.num_rows == 0 {
-            return;
+        if self.num_rows == 4 {
+            bounded::solve(ref self, ref bodies, biased, false);
+        } else {
+            solve_plain(ref self, ref bodies, biased);
         }
-        if !biased {
-            self.remove_bias();
-        }
-        let mut v1 = velocity(read(bodies.span(), self.solver_vel1));
-        let mut v2 = velocity(read(bodies.span(), self.solver_vel2));
-        let [mut a, mut b, mut c] = self.rows;
-        solve_row(ref a, self.im1, self.im2, ref v1, ref v2);
-        if self.num_rows >= 2 {
-            solve_row(ref b, self.im1, self.im2, ref v1, ref v2);
-        }
-        if self.num_rows == 3 {
-            solve_row(ref c, self.im1, self.im2, ref v1, ref v2);
-        }
-        self.rows = [a, b, c];
-        scatter(ref bodies, self.solver_vel1, v1, self.solver_vel2, v2);
     }
     /// Exact rhs copies only; masses, impulses and CFM are preserved, as upstream.
     #[inline(always)]
     fn remove_bias(ref self: JointConstraint) {
-        let [mut a, mut b, mut c] = self.rows;
-        a.rhs = a.rhs_wo_bias;
-        b.rhs = b.rhs_wo_bias;
-        c.rhs = c.rhs_wo_bias;
-        self.rows = [a, b, c];
+        if self.num_rows == 4 {
+            bounded::remove_bias(ref self);
+        }
+        remove_bias_plain(ref self);
     }
     /// Persist active row impulses at their original DOF indices; no arithmetic or rounding.
     /// Disabled/no-row joints preserve previous impulses; free axes are untouched.
     #[inline(always)]
     fn writeback_impulses(self: JointConstraint, ref joint: ImpulseJoint) {
-        let [a, b, c] = self.rows;
-        let [mut x, mut y, mut w] = joint.impulses;
-        if self.num_rows != 0 {
-            write(a.axis, a.impulse, ref x, ref y, ref w);
+        if self.num_rows == 4 {
+            bounded::writeback(self, ref joint);
+        } else {
+            writeback_impulses_plain(self, ref joint);
         }
-        if self.num_rows >= 2 {
-            write(b.axis, b.impulse, ref x, ref y, ref w);
-        }
-        if self.num_rows == 3 {
-            write(c.axis, c.impulse, ref x, ref y, ref w);
-        }
-        joint.impulses = [x, y, w];
     }
 }
 #[inline(always)]

@@ -26,7 +26,19 @@ struct BodySpec {
     colliders: Vec<ColliderSpec>,
 }
 
-struct RevoluteSpec {
+struct MotorSpec {
+    target_pos: Q,
+    target_vel: Q,
+    stiffness: Q,
+    damping: Q,
+    max_force: Q,
+    force_based: bool,
+}
+
+struct JointSpec {
+    axis: Option<QVec>,
+    limits: Option<[Q; 2]>,
+    motor: Option<MotorSpec>,
     body1: usize,
     body2: usize,
     local_anchor1: QVec,
@@ -37,7 +49,7 @@ struct SceneSpec {
     id: &'static str,
     note: &'static str,
     bodies: Vec<BodySpec>,
-    joints: Vec<RevoluteSpec>,
+    joints: Vec<JointSpec>,
     /// Sleeping on (`RigidBodyBuilder::can_sleep(true)`, upstream's default thresholds): the
     /// samples then carry `sleeping` per body and the scene its `sleep_transitions` (SL).
     can_sleep: bool,
@@ -106,7 +118,7 @@ fn slope_scene(id: &'static str, note: &'static str, friction: f64) -> SceneSpec
 }
 
 fn scenes() -> Vec<SceneSpec> {
-    vec![
+    let mut scenes = vec![
         SceneSpec {
             id: "ball_drop",
             note: "ball (r = 0.5) released at y = 2 above a fixed slab, no restitution: free fall, speculative contact, rest",
@@ -161,7 +173,8 @@ fn scenes() -> Vec<SceneSpec> {
                 },
                 dynamic("bob", QPose::translation(1.0, 0.0), collider(ShapeSpec::ball(0.25), 0.5, 0.0)),
             ],
-            joints: vec![RevoluteSpec {
+            joints: vec![JointSpec {
+                axis: None, limits: None, motor: None,
                 body1: 0,
                 body2: 1,
                 local_anchor1: QVec::ZERO,
@@ -195,7 +208,53 @@ fn scenes() -> Vec<SceneSpec> {
             joints: vec![],
             can_sleep: true,
         },
-    ]
+    ];
+    for id in ["pendulum_limited", "wheel_motor", "slider_limited", "servo"] {
+        let pendulum = id == "pendulum_limited";
+        let slider = id == "slider_limited";
+        let motor = match id {
+            "wheel_motor" => Some(MotorSpec {
+                target_pos: Q::snap(0.0),
+                target_vel: Q::snap(4.0),
+                stiffness: Q::snap(0.0),
+                damping: Q::snap(10.0),
+                max_force: Q::snap(2.0),
+                force_based: false,
+            }),
+            "servo" => Some(MotorSpec {
+                target_pos: Q::snap(0.75),
+                target_vel: Q::snap(0.0),
+                stiffness: Q::snap(40.0),
+                damping: Q::snap(8.0),
+                max_force: Q::snap(3.0),
+                force_based: true,
+            }),
+            _ => None,
+        };
+        scenes.push(SceneSpec {
+            can_sleep: false,
+            id,
+            note: match id {
+                "pendulum_limited" => "pendulum falling onto its -0.5 rad angular stop and held by gravity",
+                "wheel_motor" => "free wheel pinned at its center, velocity motor target 4 rad/s, force cap 2",
+                "slider_limited" => "vertical prismatic slider, gravity drives its free axis onto the 0.5 upper stop",
+                _ => "pinned wheel with force-based angular position servo targeting 0.75 rad",
+            },
+            bodies: vec![
+                BodySpec { name: "pivot", dynamic: false, pose: QPose::translation(0.0, 2.0), colliders: vec![] },
+                dynamic("body", QPose::translation(if pendulum { 1.0 } else { 0.0 }, 2.0), collider(ShapeSpec::ball(0.25), 0.5, 0.0)),
+            ],
+            joints: vec![JointSpec {
+                body1: 0, body2: 1,
+                local_anchor1: QVec::ZERO,
+                local_anchor2: if pendulum { QVec::snap(-1.0, 0.0) } else { QVec::ZERO },
+                axis: if slider { Some(QVec::snap(0.0, -1.0)) } else { None },
+                limits: if pendulum { Some([Q::snap(-0.5), Q::snap(0.5)]) } else if slider { Some([Q::snap(0.0), Q::snap(0.5)]) } else { None },
+                motor,
+            }],
+        });
+    }
+    scenes
 }
 
 /// Steps recorded: the initial state, every step up to 10, then every 10th step.
@@ -307,17 +366,63 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
 
     let mut joints_json = Vec::new();
     for j in &scene.joints {
-        let joint = RevoluteJointBuilder::new()
-            .local_anchor1(j.local_anchor1.v())
-            .local_anchor2(j.local_anchor2.v());
+        let mut joint = if let Some(axis) = j.axis {
+            PrismaticJointBuilder::new(axis.v())
+                .local_anchor1(j.local_anchor1.v())
+                .local_anchor2(j.local_anchor2.v())
+                .build()
+                .data
+        } else {
+            RevoluteJointBuilder::new()
+                .local_anchor1(j.local_anchor1.v())
+                .local_anchor2(j.local_anchor2.v())
+                .build()
+                .data
+        };
+        let axis = if j.axis.is_some() {
+            JointAxis::LinX
+        } else {
+            JointAxis::AngX
+        };
+        if let Some(l) = j.limits {
+            joint.set_limits(axis, [l[0].f(), l[1].f()]);
+        }
+        if let Some(m) = &j.motor {
+            joint.set_motor(
+                axis,
+                m.target_pos.f(),
+                m.target_vel.f(),
+                m.stiffness.f(),
+                m.damping.f(),
+            );
+            joint.set_motor_max_force(axis, m.max_force.f());
+            joint.set_motor_model(
+                axis,
+                if m.force_based {
+                    MotorModel::ForceBased
+                } else {
+                    MotorModel::AccelerationBased
+                },
+            );
+        }
         impulse_joints.insert(handles[j.body1], handles[j.body2], joint, true);
-        joints_json.push(json!({
-            "type": "revolute",
+        let mut desc = json!({
+            "type": if j.axis.is_some() { "prismatic" } else { "revolute" },
             "body1": scene.bodies[j.body1].name,
             "body2": scene.bodies[j.body2].name,
             "local_anchor1": jqvec(j.local_anchor1),
             "local_anchor2": jqvec(j.local_anchor2),
-        }));
+        });
+        if let Some(axis) = j.axis {
+            desc["axis"] = jqvec(axis);
+        }
+        if let Some(l) = j.limits {
+            desc["limits"] = json!([jq(l[0]), jq(l[1])]);
+        }
+        if let Some(m) = &j.motor {
+            desc["motor"] = json!({ "target_pos": jq(m.target_pos), "target_vel": jq(m.target_vel), "stiffness": jq(m.stiffness), "damping": jq(m.damping), "max_force": jq(m.max_force), "force_based": m.force_based });
+        }
+        joints_json.push(desc);
     }
 
     let sample = |step: usize, bodies: &RigidBodySet| -> Value {
@@ -375,7 +480,8 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             diagnostics.push(json!({ "step": step, "manifolds": manifolds,
                 "body": sample(step, &bodies)["bodies"][0] }));
         }
-        if scene.id == "box_stack3" && (step <= STACK_DIAGNOSTIC_STEPS || step == STACK_RESEED_STEP) {
+        if scene.id == "box_stack3" && (step <= STACK_DIAGNOSTIC_STEPS || step == STACK_RESEED_STEP)
+        {
             // Every contact pair in upstream's contact-graph edge order.
             let pairs: Vec<Value> = narrow_phase
                 .contact_pairs()

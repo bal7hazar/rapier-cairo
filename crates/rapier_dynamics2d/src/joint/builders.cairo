@@ -1,11 +1,12 @@
 //! Value builders; setters copy without rounding. Frames must contain unit rotations.
+use fixed::Fixed;
 use glam::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::{
-    GenericJoint, JointAxesMask, JointEnabled, LOCKED_FIXED_AXES, LOCKED_PRISMATIC_AXES,
-    LOCKED_REVOLUTE_AXES, errors,
+    GenericJoint, GenericJointTrait, JointAxesMask, JointEnabled, LOCKED_FIXED_AXES,
+    LOCKED_PRISMATIC_AXES, LOCKED_REVOLUTE_AXES, MotorModel, errors,
 };
 
 /// Generic joint builder; build returns the shared GenericJoint representation.
@@ -59,6 +60,67 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
     /// Set softness; exact copy, no arithmetic or panics.
     fn softness(mut self: GenericJointBuilder, value: SpringCoefficients) -> GenericJointBuilder {
         self.data.softness = value;
+        self
+    }
+    /// Store limits and enable their axis; values are copied exactly.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Axis must be 0=X, 1=Y, 2=AngX; invalid axis/mask panics use Joint errors.
+    fn limits(mut self: GenericJointBuilder, axis: u8, limits: [Fixed; 2]) -> GenericJointBuilder {
+        self.data.set_limits(axis, limits);
+        self
+    }
+    /// Store the model without enabling the motor; exact copy.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Axis must be 0=X, 1=Y, 2=AngX; invalid axis/mask panics use Joint errors.
+    fn motor_model(
+        mut self: GenericJointBuilder, axis: u8, model: MotorModel,
+    ) -> GenericJointBuilder {
+        self.data.set_motor_model(axis, model);
+        self
+    }
+    /// Enable velocity control; preserve target position and clear stiffness.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Axis must be 0=X, 1=Y, 2=AngX; invalid axis/mask panics use Joint errors.
+    fn motor_velocity(
+        mut self: GenericJointBuilder, axis: u8, target_vel: Fixed, factor: Fixed,
+    ) -> GenericJointBuilder {
+        self.data.set_motor_velocity(axis, target_vel, factor);
+        self
+    }
+    /// Enable position control and clear target velocity; exact copies.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Axis must be 0=X, 1=Y, 2=AngX; invalid axis/mask panics use Joint errors.
+    fn motor_position(
+        mut self: GenericJointBuilder,
+        axis: u8,
+        target_pos: Fixed,
+        stiffness: Fixed,
+        damping: Fixed,
+    ) -> GenericJointBuilder {
+        self.data.set_motor_position(axis, target_pos, stiffness, damping);
+        self
+    }
+    /// Enable combined position/velocity control; exact copies.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Axis must be 0=X, 1=Y, 2=AngX; invalid axis/mask panics use Joint errors.
+    fn set_motor(
+        mut self: GenericJointBuilder,
+        axis: u8,
+        target_pos: Fixed,
+        target_vel: Fixed,
+        stiffness: Fixed,
+        damping: Fixed,
+    ) -> GenericJointBuilder {
+        self.data.set_motor(axis, target_pos, target_vel, stiffness, damping);
+        self
+    }
+    /// Store the force cap without enabling the motor; exact copy.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Axis must be 0=X, 1=Y, 2=AngX; invalid axis/mask panics use Joint errors.
+    fn motor_max_force(
+        mut self: GenericJointBuilder, axis: u8, max_force: Fixed,
+    ) -> GenericJointBuilder {
+        self.data.set_motor_max_force(axis, max_force);
         self
     }
     /// Return the joint; all copies are exact.
@@ -177,6 +239,58 @@ pub impl RevoluteJointBuilderImpl of RevoluteJointBuilderTrait {
         self.data.softness = value;
         self
     }
+    /// Store limits and enable their axis; values are copied exactly.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn limits(mut self: RevoluteJointBuilder, limits: [Fixed; 2]) -> RevoluteJointBuilder {
+        self.data.set_limits(2, limits);
+        self
+    }
+    /// Store the model without enabling the motor; exact copy.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_model(mut self: RevoluteJointBuilder, model: MotorModel) -> RevoluteJointBuilder {
+        self.data.set_motor_model(2, model);
+        self
+    }
+    /// Enable velocity control; preserve target position and clear stiffness.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_velocity(
+        mut self: RevoluteJointBuilder, target_vel: Fixed, factor: Fixed,
+    ) -> RevoluteJointBuilder {
+        self.data.set_motor_velocity(2, target_vel, factor);
+        self
+    }
+    /// Enable position control and clear target velocity; exact copies.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_position(
+        mut self: RevoluteJointBuilder, target_pos: Fixed, stiffness: Fixed, damping: Fixed,
+    ) -> RevoluteJointBuilder {
+        self.data.set_motor_position(2, target_pos, stiffness, damping);
+        self
+    }
+    /// Enable combined position/velocity control; exact copies.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor(
+        mut self: RevoluteJointBuilder,
+        target_pos: Fixed,
+        target_vel: Fixed,
+        stiffness: Fixed,
+        damping: Fixed,
+    ) -> RevoluteJointBuilder {
+        self.data.set_motor(2, target_pos, target_vel, stiffness, damping);
+        self
+    }
+    /// Store the force cap without enabling the motor; exact copy.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_max_force(mut self: RevoluteJointBuilder, max_force: Fixed) -> RevoluteJointBuilder {
+        self.data.set_motor_max_force(2, max_force);
+        self
+    }
     /// Return the joint; all copies are exact.
     fn build(self: RevoluteJointBuilder) -> GenericJoint {
         self.data
@@ -243,6 +357,58 @@ pub impl PrismaticJointBuilderImpl of PrismaticJointBuilderTrait {
         assert(r.is_unit(), errors::UNIT);
         self.data.local_frame1.rotation = r;
         self.data.local_frame2.rotation = r;
+        self
+    }
+    /// Store limits and enable their axis; values are copied exactly.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn limits(mut self: PrismaticJointBuilder, limits: [Fixed; 2]) -> PrismaticJointBuilder {
+        self.data.set_limits(0, limits);
+        self
+    }
+    /// Store the model without enabling the motor; exact copy.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_model(mut self: PrismaticJointBuilder, model: MotorModel) -> PrismaticJointBuilder {
+        self.data.set_motor_model(0, model);
+        self
+    }
+    /// Enable velocity control; preserve target position and clear stiffness.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_velocity(
+        mut self: PrismaticJointBuilder, target_vel: Fixed, factor: Fixed,
+    ) -> PrismaticJointBuilder {
+        self.data.set_motor_velocity(0, target_vel, factor);
+        self
+    }
+    /// Enable position control and clear target velocity; exact copies.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_position(
+        mut self: PrismaticJointBuilder, target_pos: Fixed, stiffness: Fixed, damping: Fixed,
+    ) -> PrismaticJointBuilder {
+        self.data.set_motor_position(0, target_pos, stiffness, damping);
+        self
+    }
+    /// Enable combined position/velocity control; exact copies.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn set_motor(
+        mut self: PrismaticJointBuilder,
+        target_pos: Fixed,
+        target_vel: Fixed,
+        stiffness: Fixed,
+        damping: Fixed,
+    ) -> PrismaticJointBuilder {
+        self.data.set_motor(0, target_pos, target_vel, stiffness, damping);
+        self
+    }
+    /// Store the force cap without enabling the motor; exact copy.
+    /// No rounding or numeric validation; the solver validates physical inputs.
+    /// Uses the free joint axis; valid builder state does not panic.
+    fn motor_max_force(mut self: PrismaticJointBuilder, max_force: Fixed) -> PrismaticJointBuilder {
+        self.data.set_motor_max_force(0, max_force);
         self
     }
     /// Return the joint; all copies are exact.

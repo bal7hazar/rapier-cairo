@@ -23,6 +23,7 @@ use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 
 mod builder;
+mod joint_controls;
 mod slope_diagnostics;
 mod stack_diagnostics;
 

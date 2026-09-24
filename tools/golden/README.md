@@ -130,6 +130,43 @@ legitimately answer differently there; compare `dist` and treat the rest as info
 
 ### scenes
 
+JL adds four joint-only scenes (sleeping disabled): `pendulum_limited` falls onto and remains
+at its −0.5 rad stop; `wheel_motor` drives a pinned free wheel to 4 rad/s with a force cap;
+`slider_limited` falls along a vertical prismatic axis onto its 0.5 upper stop; `servo` uses a
+ForceBased position motor to converge to 0.75 rad. Motor targets, stiffness/damping, force caps,
+model, prismatic axis and limit settings are exported from the same quantized inputs used upstream.
+The new `JOINT_CASES` / `joint_cases()` table contains `JointSceneCase { scene, joint }` wrappers;
+the original `ALL` table and every original fixture remain byte-identical. Replays use the same
+`4096 * step` ulp pose tolerance and twice that velocity tolerance as `pendulum`.
+
+The Cairo joint solver uses `fixed::trig` sin/cos/atan2 for the range-centered revolute angle;
+Q32.32 rounding can move an exact limit boundary by a few ulps. Center and half-range are formed
+in i128 and halved toward zero, so `[MIN, MAX]` disables angular limits without overflow. A range
+of at least one full turn is disabled, as upstream. Limits inherit the existing D4 cutoff that
+zeros CFM below eight ulps; motors retain their computed CFM. Motor coefficients and force caps use
+the substep duration; motor position error remains in the relaxed pass. Fixed extrema stand in
+for floating unbounded impulses, and `MAX` force saturates at `MAX` impulse when dt exceeds one.
+Uncoupled free axes are supported; coupled limits/motors remain deferred. Other unrepresentable
+fixed-point intermediates panic under the existing numeric policy.
+
+JL one-joint whole-world step costs, subtracting each matching `gas_setup_*` probe from
+`gas_step_*` (opaque scene inputs, metered one-iteration call, four substeps per quantized dt=1/60 frame).
+Active limits start from the upstream step-30 pose with cold impulses; other probes start at
+step zero. These include world bookkeeping, and are not isolated row-solve costs.
+
+| Configuration | Sierra gas | Exact Cairo steps |
+|---|---:|---:|
+| Plain revolute | 4,336,896 | 38,296 |
+| Inactive revolute limit | 7,068,716 | 61,645 |
+| Active revolute limit | 7,068,206 | 61,658 |
+| Velocity motor (AccelerationBased) | 6,887,156 | 56,515 |
+| Position motor (ForceBased) | 6,887,156 | 58,283 |
+| Active prismatic limit | 6,987,446 | 57,972 |
+
+Reproduce with `scripts/build-shims/snforge test -p rapier2d golden_scenes::joint_controls::gas_`;
+add `--tracked-resource cairo-steps --detailed-resources` for exact steps. The module also supplies
+`gas_baseline` (14,120 Sierra gas / 63 Cairo steps); paired subtraction cancels this overhead.
+
 `ball_drop`, `ball_bounce` (restitution 0.7), `box_slope_stick` (μ = 0.7 > tan 30°),
 `box_slope_slide` (μ = 0.25), `box_stack3`, `pendulum` (revolute joint), and two scenes with
 sleeping **on** (work package SL): `box_stack3_sleep` (the stack of `box_stack3`, which settles
