@@ -30,6 +30,7 @@ it and where the evidence lives.
 | 14 | Convex polygon point projection / ray cast | GJK (search-direction features, EPA inside) | analytic: nearest edge/vertex, half-plane clipping; ties pick the first edge | no GJK/EPA in the port | CP1 #105 |
 | 15 | EPA depth | EPA can return an approximate penetration (a pentagon-origin case reports −1.5) | exact nearest distance (−1) | upstream approximation | CP1 #105 (`polygon_point` regression) |
 | 16 | `Shape::ConvexPolygon` storage | inline shape | `Box<ConvexPolygon>` so `Shape` stays six felts (inline storage measured +7 % on a one-body free-fall step) | Cairo value-type cost | CP1 #105 |
+| 17 | Polygon contact manifolds | PFM–PFM: GJK/EPA + polygonal-feature clipping | SAT over face normals + the same clipping; exact penetration; first face on exact ties | no GJK/EPA in the port | CP2 #107 |
 
 ## Consequences
 
