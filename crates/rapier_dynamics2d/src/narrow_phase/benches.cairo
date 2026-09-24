@@ -2,7 +2,8 @@
 //! phase, `gas_setup_*`); `gas_step1_*` adds one `compute_contacts` on an empty narrow phase
 //! (nothing to carry over), `gas_step2_*` a second one that carries the first step's pairs over.
 //! Net costs: `step1 - setup` without carry-over, `step2 - step1` with it, per candidate
-//! (`merge`: shipped sorted merge, `dict`: `alternatives::DictCarryOver`).
+//! (`merge`: the shipped loop, sorted merge inlined; `dict`: `alternatives::DictCarryOver`
+//! through the pre-ON loop `alternatives::compute_contacts_with`).
 //!
 //! Layouts: `stack` = `n` balls stacked on a halfspace (`2n - 1` pairs, `n` touching), `sparse`
 //! = `n` balls side by side on it (`n` pairs, all touching).

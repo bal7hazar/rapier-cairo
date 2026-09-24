@@ -290,3 +290,78 @@ pub fn oi_world(seed: u32) -> World {
     let _ = world.insert_impulse_joint(first, second, joint);
     world
 }
+
+// P3 scenes (`tests/gas_scenes.cairo`), rebuilt with the same builders.
+
+fn int(n: u32) -> Fixed {
+    FixedTrait::from_int(n.try_into().unwrap())
+}
+
+/// P3 `balls_on_halfspace`: `n` balls resting on a half-space, 2 apart, no gravity.
+fn balls_on_halfspace(n: u32) -> World {
+    let mut world = WorldTrait::new(v(ZERO, ZERO), Default::default());
+    let _ = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+    let mut k = 0;
+    while k != n {
+        let x = int(k) * FixedTrait::from_int(2);
+        let _ = world
+            .insert(RigidBodyTrait::dynamic(at(x, HALF)), ColliderBuilderTrait::ball(HALF).build());
+        k += 1;
+    }
+    world
+}
+
+/// P3 `cuboid_stack`: `n` unit cuboids stacked on a half-space, no gravity.
+fn cuboid_stack(n: u32) -> World {
+    let mut world = WorldTrait::new(v(ZERO, ZERO), Default::default());
+    let _ = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+    let mut k = 0;
+    while k != n {
+        let _ = world
+            .insert(
+                RigidBodyTrait::dynamic(at(ZERO, HALF + int(k))),
+                ColliderBuilderTrait::cuboid(HALF, HALF).build(),
+            );
+        k += 1;
+    }
+    world
+}
+
+/// P3 `mixed_pile`: balls, cuboids and capsules side by side on a half-space.
+fn mixed_pile() -> World {
+    let mut world = WorldTrait::new(v(ZERO, ZERO), Default::default());
+    let _ = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+    for (x, kind) in array![
+        (ZERO, 0_u32), (ONE, 1_u32), (FixedTrait::from_int(2) + HALF, 2_u32),
+        (FixedTrait::from_int(4), 0_u32), (FixedTrait::from_int(5), 1_u32),
+        (FixedTrait::from_int(6) + HALF, 2_u32), (FixedTrait::from_int(8), 0_u32),
+        (FixedTrait::from_int(9), 1_u32),
+    ]
+        .span() {
+        let builder = if *kind == 0 {
+            ColliderBuilderTrait::ball(HALF)
+        } else if *kind == 1 {
+            ColliderBuilderTrait::cuboid(HALF, HALF)
+        } else {
+            ColliderBuilderTrait::capsule_x(HALF, HALF)
+        };
+        let _ = world.insert(RigidBodyTrait::dynamic(at(*x, HALF)), builder.build());
+    }
+    world
+}
+
+/// The P3 scene `id` of size `n` (`'balls'`, `'stack'`, `'mixed'`), or `row(n, true)` for
+/// `'row'` and `row(n, false)` for `'cubes'`.
+pub fn p3_scene(id: felt252, n: u32) -> World {
+    if id == 'balls' {
+        balls_on_halfspace(n)
+    } else if id == 'stack' {
+        cuboid_stack(n)
+    } else if id == 'row' {
+        row(n, true)
+    } else if id == 'cubes' {
+        row(n, false)
+    } else {
+        mixed_pile()
+    }
+}

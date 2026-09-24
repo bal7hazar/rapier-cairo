@@ -10,11 +10,12 @@
 use fixed::HALF;
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::narrow_phase::NarrowPhaseTrait;
+use rapier_dynamics2d::narrow_phase::{NarrowPhaseTrait, compute_contacts_from_scratch};
 use rapier_geometry2d::broad_phase::find_pairs;
 use rapier_golden::scenes;
 use rapier_testing::opaque;
 use crate::dispatcher::DefaultDispatcher;
+use crate::pipeline::step_dispatcher::StepDispatcher;
 use crate::world::{World, WorldTrait};
 use super::alternatives::{
     InlineDispatcher, OutlinedDispatcher, ProxyCacheTrait, compute_contacts_bucketed,
@@ -27,8 +28,8 @@ use super::fused_alternatives::{
     collision_inputs_outlined_fallback,
 };
 use super::{
-    advance_to_final_positions, advance_with_snapshot, collision_inputs, contacts_from_scratch,
-    handle_user_changes, solve, user_changes_snapshot,
+    advance_to_final_positions, advance_with_snapshot, collision_inputs, handle_user_changes, solve,
+    user_changes_snapshot,
 };
 
 /// Shipped pipeline.
@@ -173,7 +174,7 @@ const FIELD_READS: u8 = 2;
 const OUTLINED_ADVANCE: u8 = 3;
 
 /// `run` for the fused stages `World::step` ships: 1 `user_changes_snapshot`, 2
-/// `collision_inputs` + `find_pairs`, 3 `contacts_from_scratch`, 4 `solve`, 5
+/// `collision_inputs` + `find_pairs`, 3 `compute_contacts_from_scratch`, 4 `solve`, 5
 /// `advance_with_snapshot`; `variant` selects a candidate of `fused_alternatives`.
 #[inline(never)]
 fn run_fused(id: felt252, warmup: u32, stages: u8, variant: u8) {
@@ -202,9 +203,9 @@ fn run_fused(id: felt252, warmup: u32, stages: u8, variant: u8) {
     if stages == 2 {
         return;
     }
-    let _ = contacts_from_scratch(
-        ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
-    );
+    let _ = compute_contacts_from_scratch::<
+        StepDispatcher,
+    >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
     if stages == 3 {
         return;
     }

@@ -11,10 +11,12 @@ use core::dict::{Felt252Dict, Felt252DictTrait};
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_core::rigid_body::RigidBodyType;
 use rapier_dynamics2d::joint::{ImpulseJointSetTrait, JointEnabled};
+use rapier_dynamics2d::narrow_phase::compute_contacts_from_scratch;
 use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
 use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
 use rapier_geometry2d::broad_phase::find_pairs;
 use rapier_testing::opaque;
+use crate::pipeline::step_dispatcher::StepDispatcher;
 use crate::world::{World, WorldTrait};
 use super::fixtures::free_fall;
 use super::solve_alternatives::{
@@ -22,8 +24,8 @@ use super::solve_alternatives::{
     solve_and_advance_metered, solve_and_advance_separate_marking,
 };
 use super::{
-    advance_body_with_snapshot, collision_inputs, contacts_from_scratch, joint_values,
-    scatter_touching, solve_order, user_changes_bodies, write_joints,
+    advance_body_with_snapshot, collision_inputs, joint_values, scatter_touching, solve_order,
+    user_changes_bodies, write_joints,
 };
 
 fn world_of(id: felt252) -> World {
@@ -72,9 +74,9 @@ fn run(id: felt252, warmup: u32, stage: u8) {
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span());
-    let _ = contacts_from_scratch(
-        ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
-    );
+    let _ = compute_contacts_from_scratch::<
+        StepDispatcher,
+    >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
     if stage == 0 {
         return;
     }
