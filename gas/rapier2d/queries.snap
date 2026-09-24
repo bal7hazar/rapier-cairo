@@ -3,12 +3,12 @@ rapier2d::queries::benches::gas_baseline 13620
 rapier2d::queries::benches::gas_cast_ray_128 23629308
 rapier2d::queries::benches::gas_cast_ray_32 5986812
 rapier2d::queries::benches::gas_cast_ray_8 1576428
-rapier2d::queries::benches::gas_cast_ray_aabb_pretest_128 31225318
-rapier2d::queries::benches::gas_cast_ray_aabb_pretest_32 7938022
-rapier2d::queries::benches::gas_cast_ray_aabb_pretest_8 2116198
+rapier2d::queries::benches::gas_cast_ray_aabb_pretest_128 31682178
+rapier2d::queries::benches::gas_cast_ray_aabb_pretest_32 8052162
+rapier2d::queries::benches::gas_cast_ray_aabb_pretest_8 2144658
 rapier2d::queries::benches::gas_cast_ray_and_get_normal_32 6491832
-rapier2d::queries::benches::gas_cast_ray_grid_128 34050338
-rapier2d::queries::benches::gas_intersect_aabb_32 3902562
+rapier2d::queries::benches::gas_cast_ray_grid_128 34570978
+rapier2d::queries::benches::gas_intersect_aabb_32 4036932
 rapier2d::queries::benches::gas_intersect_point_32 4046422
 rapier2d::queries::benches::gas_intersect_ray_32 6537662
 rapier2d::queries::benches::gas_project_point_32 4811022

@@ -25,8 +25,8 @@ rapier_dynamics2d::collider::components::tests::test_defaults_and_conversions 13
 rapier_dynamics2d::collider::components::tests::test_density_and_explicit_variants 228800
 rapier_dynamics2d::collider::components::tests::test_mass_variant_scales_the_inertia 130630
 rapier_dynamics2d::collider::object::tests::gas_baseline 13620
-rapier_dynamics2d::collider::object::tests::gas_compute_aabb_ball 27400
-rapier_dynamics2d::collider::object::tests::gas_compute_aabb_cuboid_rotated 35043
+rapier_dynamics2d::collider::object::tests::gas_compute_aabb_ball 27300
+rapier_dynamics2d::collider::object::tests::gas_compute_aabb_cuboid_rotated 34943
 rapier_dynamics2d::collider::object::tests::gas_density_from_mass 46680
 rapier_dynamics2d::collider::object::tests::gas_density_stored 24340
 rapier_dynamics2d::collider::object::tests::gas_friction 23540
