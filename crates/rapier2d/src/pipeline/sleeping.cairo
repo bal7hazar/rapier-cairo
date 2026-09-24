@@ -11,8 +11,11 @@
 //! merged back in key order after the solver ([`merge_pairs`]). Their manifolds (warm-start
 //! impulses, event status) survive the sleep unchanged, as upstream's do; when the island wakes
 //! up, `pipeline::islands::update_islands` reports it and the step re-splits the dormant pairs
-//! of the woken bodies into the solver input of the same step (upstream solves the stale pair
-//! of two woken bodies at that step too).
+//! of the woken bodies into the solver input of the same step. **Deliberate divergence**
+//! (`docs/adr/0001-upstream-divergences.md`, measured by lot SI): upstream leaves a revived dormant
+//! pair out of the solver on the wake step (its awake mask and solver hints are frozen before the
+//! wake), so a ball woken while resting on the ground sinks for one frame; the port supports it
+//! immediately.
 //!
 //! User changes (upstream `pair_management::handle_user_changes`, `user_changes.rs`): a
 //! modified collider wakes its parent and every body it is in contact with, strongly, whatever

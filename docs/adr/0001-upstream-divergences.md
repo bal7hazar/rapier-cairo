@@ -1,0 +1,35 @@
+# ADR 0001 — Deliberate divergences from upstream Rapier / Parry
+
+Status: accepted (2026-09-24). Owner: orchestrator. Updated whenever a lot finds a new one.
+
+## Context
+
+`AGENTS.md` §2.5: upstream is the reference, and we diverge only for a reason that is written down.
+Validation is tolerance-based against golden vectors generated from the real `rapier2d-f64 0.35.3` /
+`parry2d-f64 0.30.2` (D11). Some divergences are forced by fixed point, some are upstream defects the
+port does not reproduce, some are design decisions of this port. Each entry names the lot that measured
+it and where the evidence lives.
+
+## Decision — the registry
+
+| # | Area | Upstream behaviour | Port behaviour | Why | Evidence |
+|---|---|---|---|---|---|
+| 1 | Cuboid feature ids (f64 builds) | `vertex_feature_id` reads f32 sign bits → every f64 cuboid vertex id 0, face id `0b110000`; warm start of both regenerated points shares one point's data | correct ids (the f32 scheme) | upstream defect | wave-1 outcome; GS #66 regenerates scene traces with a vendored parry patched `>> 63 / >> 62` (`tools/golden/vendor/README.md`) |
+| 2 | Contact solve order (D8) | touching pairs get persistent colours (non-fixed pairs lowest free colour, fixed pairs highest), solved by colour | stable partition of the ascending pair list: non-fixed pairs first, fixed-body pairs last | stateless (D9); equals upstream's order whenever the non-fixed colours ascend in pair order (every golden scene) | SO #76, DO #80; a 4-box chain differs |
+| 3 | Exact zero gap (`box_slope_slide`) | f64 residue lands a contact on the rigid side of `dist <= 0` | exactly `0` in Q32.32 → soft side | fixed-vs-float tie, not a defect | GS #66 (`test_slide_zero_gap_counterfactual`) |
+| 4 | Capsule hollow ray cast | support-map cast mixes length and direction units (`|dir| ≠ 1` gives a wrong exit time) | analytic capsule, true exit | upstream defect | QP #93 (`ray_golden`, `capsule/inside`) |
+| 5 | Capsule ray/contact normals | GJK search direction | analytic normal (≤ 285 ulp apart) | no GJK in the port (phase 1 scope) | QP #93, GF3 #44 |
+| 6 | Islands | persistent island manager | islands rebuilt every step by union-find; only per-body activation persists | D9 (persisted state minimal) | SL #95 |
+| 7 | Island wake strength | the awake toucher is woken weakly | a mixed island wakes strongly as a whole | per-step islands | SL #95 |
+| 8 | Contact-partner wake-ups of modified colliders | same step | next step's user changes | stateless pipeline order | SL #95 |
+| 9 | Revived dormant pairs on the wake step | left out of the solver for one step (a woken ball resting on the ground sinks ~12 cm for a frame) | solved in the wake step | upstream defect; delaying that one pair in the port reproduces upstream within 50 ulp | SI #100 (`sleep_diagnostics`, reverse Rust control) |
+| 10 | Division rounding | f64 | `fixed` 0.3.0: `/`, `recip`, `from_ratio` round to nearest-even; products and wide kernels floor once | Q32.32 | BX #64 |
+| 11 | Rigid joints / tiny CFM (D4) | f64 `cfm ≈ 1.5e-9` | rigid rows special-cased below the representable cfm | Q32.32 | C2 #10, DE #32, JL #96 |
+| 12 | Revolute limit angle | f64 `atan2` | `fixed::trig::atan2` (≈ ±1 ulp) | Q32.32 | JL #96 |
+
+## Consequences
+
+Golden comparisons that cross one of these entries are either regenerated from a corrected reference (1),
+judged on invariants or strict up to the divergence point with a counterfactual proving the cause (3, 9),
+or compared on the quantities the divergence does not touch (4, 5). A new divergence found by a lot is
+added here by the orchestrator in the PR that merges the lot's findings.

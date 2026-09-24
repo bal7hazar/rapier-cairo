@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.30, 2026-09-24** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.31, 2026-09-24** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -21,7 +21,7 @@ The `glam.cairo` and `nalgebra.cairo` sessions reached the same scalar conclusio
 
 ## 2. Decisions
 
-Each becomes a short ADR in `docs/adr/` when first implemented.
+Each becomes a short ADR in `docs/adr/` when first implemented; deliberate divergences from upstream are registered in `docs/adr/0001-upstream-divergences.md`.
 
 | # | Decision | Why |
 |---|---|---|
@@ -372,6 +372,12 @@ with per-step union-find islands, dominance, convex polygon (≤ 8 vertices, pol
 shapes, query pipeline (ray, point, AABB), one-way platforms as a built-in flag, contact-force
 events, optional 2×2 block solver (measure first), `rapier_starknet` storage packing (D9/D10), a
 demo game contract.
+
+SI ✅ (#100, codex gpt-6-astra high): `ball_drop_sleep`'s post-impact gap is an **upstream defect** — on the wake step
+upstream leaves the revived dormant ground pair out of the solver, so the woken lower ball sinks ~12 cm for one
+frame; the port supports it immediately. Delaying that pair in the port closes the gap from 0.37 m to 50 ulp; a
+reverse Rust control (upstream with a pre-wake) matches the port. Kept as a deliberate divergence: first ADR,
+`docs/adr/0001-upstream-divergences.md`, registers the 12 divergences found so far.
 
 JL ✅ (#96, codex gpt-6-astra high, second run after the exporter was added to its allowlist): revolute angle
 limits (`atan2` from `fixed::trig`), prismatic limits, velocity/position motors with `max_force` and both motor
