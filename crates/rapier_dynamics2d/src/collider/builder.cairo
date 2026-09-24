@@ -81,6 +81,14 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
         }
     }
 
+    /// A strictly convex CCW polygon with 3..=8 vertices. Returns `None` for invalid order,
+    /// duplicates, collinearity, concavity or count. Normalisation rounds to nearest; coordinate
+    /// differences/wide products must fit Q32.32/i128, otherwise construction panics.
+    fn convex_polygon(points: Span<Vec2>) -> Option<ColliderBuilder> {
+        let polygon = rapier_geometry2d::shape::ConvexPolygonTrait::from_convex_polyline(points)?;
+        Some(Self::new(Shape::ConvexPolygon(BoxTrait::new(polygon))))
+    }
+
     /// A disc of radius `radius`.
     fn ball(radius: Fixed) -> ColliderBuilder {
         Self::new(Shape::Ball(BallTrait::new(radius)))
@@ -403,6 +411,22 @@ mod tests {
         assert_eq!(base.density(ZERO).build().mass_properties(), Default::default());
         assert_eq!(base.build().density(), ONE);
         assert_eq!(FixedTrait::from_int(3) - TWO, ONE);
+    }
+
+    #[test]
+    fn test_convex_polygon_constructor() {
+        let points = [v(-ONE, -ONE), v(ONE, -ONE), v(ONE, ONE), v(-ONE, ONE)];
+        let polygon = ColliderBuilderTrait::convex_polygon(points.span()).unwrap().build();
+        assert_eq!(polygon.mass_properties().inv_mass, Fixed { raw: 1073741824 });
+        assert!(
+            ColliderBuilderTrait::convex_polygon([v(ZERO, ZERO), v(ONE, ZERO)].span()).is_none(),
+        );
+    }
+
+    #[test]
+    fn gas_convex_polygon() {
+        let points = opaque([v(-ONE, -ONE), v(ONE, -ONE), v(ONE, ONE), v(-ONE, ONE)]);
+        let _ = ColliderBuilderTrait::convex_polygon(points.span());
     }
 
     #[test]
