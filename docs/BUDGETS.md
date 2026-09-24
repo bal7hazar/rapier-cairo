@@ -1,5 +1,34 @@
 # Step Budgets
 
+## Current (2026-09-24, `fixed` 0.3.0, after OS #68, OP #69, OI #73)
+
+One settled `World::step`, net of setup. Sierra gas from `gas_step_*`; Cairo steps from the uncapped
+`steps_step_*` twins (`snforge test -p rapier2d gas_scenes --detailed-resources --tracked-resource
+cairo-steps`). Ceilings (`#[available_gas]` on the gross `gas_step_*` tests) are +10 % of the measured
+gross value. Δ is against the 2026-09-22 matrix below.
+
+| scene | Sierra gas | Cairo steps | Δ gas since 09-22 |
+|---|---:|---:|---:|
+| free fall 1 | 627,054 | 5,556 | −50 % |
+| free fall 8 | 3,620,842 | 31,596 | −44 % |
+| free fall 32 | 16,072,618 | 141,708 | −39 % |
+| balls on half-space 1 | 3,941,139 | 31,296 | −23 % |
+| balls on half-space 8 | 27,010,752 | 209,005 | −26 % |
+| balls on half-space 32 | 109,145,808 | 847,309 | −26 % |
+| cuboid stack 1 | 4,199,089 | 37,093 | −31 % |
+| cuboid stack 3 | 12,808,177 | 104,823 | −30 % |
+| cuboid stack 5 | 21,462,065 | 172,977 | −30 % |
+| cuboid stack 10 | 43,292,785 | 345,217 | −30 % |
+| mixed pile 8 | 48,060,297 | 382,345 | −30 % |
+| pendulum chain 1 joint | 4,823,046 | 39,120 | −5 % |
+| pendulum chain 3 joints | 13,351,774 | 107,204 | −3 % |
+
+Marginals now (least squares, gas | steps): free fall ≈ 495k | 4.3k per body; balls on half-space ≈ 3.4M |
+26k per contact body; cuboid stack ≈ 4.3M | 34k per box (2 points); joints still ≈ 4.3M | 34k per joint.
+Open targets: `find_pairs` O(n²) (lot BP), joints (untouched by OS), narrow phase per pair.
+
+## History: first matrix (2026-09-22, P3)
+
 Measured 2026-09-22 with Scarb 2.19.4 / snforge 0.61.0. Sierra gas is
 `gas_step_* - gas_setup_*` from `gas/rapier2d_integrationtest/gas_scenes.snap`; Cairo steps use
 the same subtraction from
