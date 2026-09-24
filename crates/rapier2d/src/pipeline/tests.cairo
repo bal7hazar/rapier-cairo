@@ -8,13 +8,16 @@ use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
-use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhaseTrait, pair_colliders};
+use rapier_dynamics2d::narrow_phase::{
+    ContactPair, NarrowPhaseTrait, compute_contacts_from_scratch, pair_colliders,
+};
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};
 use rapier_geometry2d::broad_phase::find_pairs;
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_golden::scenes;
 use crate::dispatcher::DefaultDispatcher;
+use crate::pipeline::step_dispatcher::StepDispatcher;
 use crate::world::{World, WorldTrait};
 use super::alternatives::{
     InlineDispatcher, OutlinedDispatcher, ProxyCacheTrait, compute_contacts_bucketed,
@@ -33,9 +36,9 @@ use super::solve_alternatives::{
     solve_and_advance_metered, solve_and_advance_separate_marking,
 };
 use super::{
-    advance_with_snapshot, collision_inputs, contacts_from_scratch, detect_collisions,
-    handle_user_changes, scatter_touching, solve, solve_order, touching_manifolds,
-    user_changes_bodies, user_changes_snapshot,
+    advance_with_snapshot, collision_inputs, detect_collisions, handle_user_changes,
+    scatter_touching, solve, solve_order, touching_manifolds, user_changes_bodies,
+    user_changes_snapshot,
 };
 
 fn world_of(id: felt252) -> World {
@@ -376,9 +379,9 @@ fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
         collision_inputs(snapshot, infos, ref world.bodies, p)
     };
     let pairs = find_pairs(proxies.span());
-    let events = contacts_from_scratch(
-        ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders,
-    );
+    let events = compute_contacts_from_scratch::<
+        StepDispatcher,
+    >(ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders);
     solve(
         world.gravity,
         world.integration_parameters,
@@ -503,9 +506,9 @@ fn oi_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
     let p = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, p);
     let pairs = find_pairs(proxies.span());
-    let events = contacts_from_scratch(
-        ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders,
-    );
+    let events = compute_contacts_from_scratch::<
+        StepDispatcher,
+    >(ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders);
     let g = world.gravity;
     let ip = world.integration_parameters;
     if variant == 1 {

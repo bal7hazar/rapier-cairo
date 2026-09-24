@@ -7,7 +7,7 @@
 //!    properties; a changed collider list or local mass recomputes the mass from the colliders);
 //!    every change flag is cleared;
 //! 2. collision detection: `ColliderSetTrait::broad_phase_proxies` → `find_pairs` →
-//!    `NarrowPhaseTrait::compute_contacts::<DefaultDispatcher>` with the prediction distance
+//!    `NarrowPhaseTrait::compute_contacts::<StepDispatcher>` with the prediction distance
 //!    (see [`detect_collisions`]);
 //! 3. [`solve`]: the manifolds that have solver contacts, in [`solve_order`] (D8: pairs of two
 //!    non-fixed bodies first, then pairs with a fixed body or none, each in pair order), and the
@@ -23,7 +23,7 @@
 //! when a change flag was raised) and one [`BodyInfo`] per body; [`collision_inputs`] builds the
 //! proxies and the narrow-phase scratch (`narrow_phase::pair_colliders`) from them in one walk
 //! with no set read (the parent is found at `infos[handle.index]` when the set has no free slot
-//! before it, read otherwise); [`contacts_from_scratch`] is `compute_contacts` on that scratch;
+//! before it, read otherwise); `narrow_phase::compute_contacts_from_scratch` runs on it;
 //! [`advance_with_snapshot`] takes the colliders from the snapshot (stages 2–3 write none). The
 //! public stage functions stay, with the same results (`fused_alternatives::step_staged`, raw
 //! equivalence on scenes and random worlds in `tests`).
@@ -101,7 +101,9 @@
 //!   and loses on the reference scene, so it is not shipped;
 //! * solver input: touching manifolds only (shipped) vs every pair: 5 156 516 vs 6 768 856 with
 //!   one non-touching pair (1.6M per inert manifold), 14 444 688 vs 14 424 288 when all touch;
-//! * narrow phase: see `crate::dispatcher` (shipped dispatcher) and, rejected, a per-kind
+//! * narrow phase (ON): `narrow_phase::compute_contacts_from_scratch` with [`StepDispatcher`]
+//!   (see `step_dispatcher` for the ranking, equivalence in `narrow_tests`); before ON, see
+//!   `crate::dispatcher` (dispatcher) and, rejected, a per-kind
 //!   `match` in the pair loop (`compute_contacts_by_kind`), per-kind bucket loops
 //!   (`compute_contacts_bucketed`) and a one-iteration loop around each per-kind `process_pair`
 //!   (`compute_contacts_metered`): 4 ball pairs 3 477 356 / 1 778 206 / 1 651 356 vs 1 486 460
@@ -125,8 +127,7 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, JointEnabled};
 use rapier_dynamics2d::narrow_phase::{
-    CarryOver, ContactPair, NarrowPhase, NarrowPhaseTrait, PairCollider, SortedMerge,
-    dropped_events, process_pair,
+    ContactPair, NarrowPhase, NarrowPhaseTrait, PairCollider, compute_contacts_from_scratch,
 };
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
@@ -137,7 +138,7 @@ use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::ShapeTrait;
-use crate::dispatcher::DefaultDispatcher;
+use crate::pipeline::step_dispatcher::StepDispatcher;
 use crate::world::World;
 
 #[cfg(test)]
@@ -149,9 +150,16 @@ pub(crate) mod fixtures;
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
 #[cfg(test)]
+pub(crate) mod narrow_alternatives;
+#[cfg(test)]
+mod narrow_benches;
+#[cfg(test)]
+mod narrow_tests;
+#[cfg(test)]
 pub(crate) mod solve_alternatives;
 #[cfg(test)]
 mod solve_benches;
+pub mod step_dispatcher;
 #[cfg(test)]
 mod tests;
 
@@ -166,9 +174,9 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span());
-    let events = contacts_from_scratch(
-        ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
-    );
+    let events = compute_contacts_from_scratch::<
+        StepDispatcher,
+    >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
     solve_and_advance(
         world.gravity,
         world.integration_parameters,
@@ -345,37 +353,6 @@ pub fn collision_inputs(
 }
 
 
-/// `NarrowPhaseTrait::compute_contacts::<DefaultDispatcher>` on a prebuilt scratch (see
-/// [`collision_inputs`]): same pair loop, carry-over and events.
-pub fn contacts_from_scratch(
-    ref narrow_phase: NarrowPhase,
-    prediction: Fixed,
-    scratch: Span<PairCollider>,
-    pairs: Span<(u32, u32)>,
-    ref colliders: ColliderSet,
-) -> Array<CollisionEvent> {
-    let mut carry: SortedMerge = CarryOver::begin(narrow_phase.pairs.span());
-    let mut current = array![];
-    let mut transitions = array![];
-    for (i, j) in pairs {
-        let co1 = *scratch.at(*i);
-        let co2 = *scratch.at(*j);
-        if !(co1.solid && co2.solid) {
-            continue;
-        }
-        let previous = carry.take(co1.handle, co2.handle);
-        let (pair, event) = process_pair::<DefaultDispatcher>(prediction, co1, co2, previous);
-        current.append(pair);
-        if let Some(event) = event {
-            transitions.append(event);
-        }
-    }
-    let mut events = dropped_events(carry.finish(), ref colliders);
-    events.append_span(transitions.span());
-    narrow_phase.pairs = current;
-    events
-}
-
 /// [`advance_to_final_positions`] reading the colliders from `snapshot` (the colliders as
 /// [`user_changes_snapshot`] left them; stages 2–3 do not write colliders).
 pub fn advance_with_snapshot(
@@ -500,7 +477,7 @@ fn move_colliders(body: RigidBody, ref colliders: ColliderSet) {
 }
 
 /// Stage 2 (upstream `detect_collisions`): stateless broad phase over proxies loosened by half
-/// the prediction distance, then the narrow phase with [`DefaultDispatcher`]. Returns the
+/// the prediction distance, then the narrow phase with [`StepDispatcher`]. Returns the
 /// collision events.
 pub fn detect_collisions(
     params: IntegrationParameters,
@@ -512,7 +489,7 @@ pub fn detect_collisions(
     let proxies = colliders.broad_phase_proxies(ref bodies, prediction);
     let pairs = find_pairs(proxies.span());
     narrow_phase
-        .compute_contacts::<DefaultDispatcher>(prediction, ref bodies, ref colliders, pairs.span())
+        .compute_contacts::<StepDispatcher>(prediction, ref bodies, ref colliders, pairs.span())
 }
 
 /// Stage 3 (upstream `build_islands_and_solve_velocity_constraints`, one island): gathers the

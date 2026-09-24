@@ -1,5 +1,9 @@
-//! Rejected carry-over candidate, kept for the gas ranking (`benches`) and the equivalence
-//! tests (`tests`).
+//! Rejected candidates, kept for the gas ranking (`benches`) and the equivalence tests
+//! (`tests`).
+//!
+//! [`compute_contacts_with`]: the pair loop shipped before ON, generic over the carry-over
+//! strategy: [`CarryOver::take`] copies the previous pair out as an `Option<ContactPair>` and
+//! the outlined [`process_pair`] is charged its costliest path on every pair.
 //!
 //! [`DictCarryOver`]: the previous pairs indexed in a `Felt252Dict` keyed by the packed handle
 //! pair, value `index + 1` (0 = absent); a found entry is zeroed so that the pairs left non-zero
@@ -14,7 +18,10 @@ use rapier_core::data::handle::HandleTrait;
 use crate::collider_set::ColliderSet;
 use crate::events::CollisionEvent;
 use crate::rigid_body_set::RigidBodySet;
-use super::{CarryOver, ContactDispatcher, ContactPair, NarrowPhase, compute_contacts_with};
+use super::{
+    CarryOver, ContactDispatcher, ContactPair, NarrowPhase, PairCollider, dropped_events,
+    pair_colliders, process_pair,
+};
 
 /// `2^64`, the weight of the first handle in the packed pair key.
 const TWO_POW_64: felt252 = 0x10000000000000000;
@@ -78,4 +85,36 @@ pub fn compute_contacts_dict<impl D: ContactDispatcher>(
     compute_contacts_with::<
         D, DictCarryOver,
     >(ref narrow_phase, prediction, ref bodies, ref colliders, pairs)
+}
+
+/// The pre-ON pair loop with the carry-over strategy `C`: `compute_contacts` built on
+/// [`CarryOver`] and the outlined [`process_pair`].
+pub fn compute_contacts_with<impl D: ContactDispatcher, S, impl C: CarryOver<S>, +Destruct<S>>(
+    ref self: NarrowPhase,
+    prediction: Fixed,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    pairs: Span<(u32, u32)>,
+) -> Array<CollisionEvent> {
+    let scratch: Span<PairCollider> = pair_colliders(ref bodies, ref colliders).span();
+    let mut carry = C::begin(self.pairs.span());
+    let mut current = array![];
+    let mut transitions = array![];
+    for (i, j) in pairs {
+        let co1 = *scratch.at(*i);
+        let co2 = *scratch.at(*j);
+        if !(co1.solid && co2.solid) {
+            continue;
+        }
+        let previous = carry.take(co1.handle, co2.handle);
+        let (pair, event) = process_pair::<D>(prediction, co1, co2, previous);
+        current.append(pair);
+        if let Some(event) = event {
+            transitions.append(event);
+        }
+    }
+    let mut events = dropped_events(carry.finish(), ref colliders);
+    events.append_span(transitions.span());
+    self.pairs = current;
+    events
 }

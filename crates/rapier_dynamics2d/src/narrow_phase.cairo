@@ -24,7 +24,22 @@
 //!    "has a solver contact" state flips and either collider has `COLLISION_EVENTS`.
 //!
 //! The dispatcher is a trait bound, as upstream's `&dyn PersistentQueryDispatcher` (static
-//! dispatch here): `rapier_geometry2d::dispatch::contact_manifold` plugs in once it exists.
+//! dispatch here): `rapier2d` plugs in `rapier_geometry2d::dispatch::contact_manifold`.
+//!
+//! # Cost
+//!
+//! Sierra gas charges a loop-free function its costliest path, and a loop body only the path it
+//! takes. The step's loop, [`compute_contacts_from_scratch`], therefore runs the whole pair
+//! (carry-over, filters, dispatcher, solver data, event) inlined in its body, and keeps large
+//! values off branch merges (work package ON). Narrow-phase stage of one P3 step, Sierra gas |
+//! Cairo steps, before ON (outlined `process_pair`, `CarryOver::take` copying the pair out) →
+//! after, with `rapier2d`'s `StepDispatcher`: `cuboid_stack(3)` 2 883 645 | 16 952 →
+//! 1 642 485 | 11 680, `balls_on_halfspace(8)` 2 897 650 | 20 150 → 2 116 880 | 12 357,
+//! `mixed_pile` 6 722 645 | 47 762 → 4 583 105 | 32 156. Per pair: ball–ball 324 585 | 2 564
+//! →
+//! 220 845 | 1 529, ball–half-space 385 945 | 2 748 → 281 305 | 1 703, resting cuboid–cuboid
+//! 758 095 | 3 271 → 274 285 | 2 000, cuboid–half-space 527 065 | 4 544 → 412 405 | 3 398
+//! (`rapier2d::pipeline::narrow_benches`, which also ranks the losing candidates).
 //!
 //! Deviations from upstream: one manifold per pair (every supported shape is convex); no
 //! contact skin, no velocity-based speculative contacts (upstream also keeps a point beyond
@@ -33,7 +48,7 @@
 //! pair (`contact_manifold` returning `false`) gets its manifold cleared.
 
 use core::num::traits::Zero;
-use fixed::Fixed;
+use fixed::{Fixed, TWO};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED};
@@ -187,7 +202,9 @@ pub fn pair_colliders(ref bodies: RigidBodySet, ref colliders: ColliderSet) -> A
     out
 }
 
-/// How the previous step's pairs are found again by key.
+/// How the previous step's pairs are found again by key: the interface of the candidate pair
+/// loops (`alternatives`, `rapier2d::pipeline::alternatives`); the shipped loop,
+/// [`compute_contacts_from_scratch`], walks [`SortedMerge`] inline.
 pub trait CarryOver<S> {
     /// Starts a lookup session over the previous pairs (ascending key).
     fn begin(previous: Span<ContactPair>) -> S;
@@ -199,8 +216,8 @@ pub trait CarryOver<S> {
 }
 
 /// Carry-over by sorted merge: both lists are ascending, so one forward walk over the previous
-/// pairs finds every key; no dict, O(previous + current) comparisons. **Winner** (see
-/// `benches`).
+/// pairs finds every key; no dict, O(previous + current) comparisons. Beats the dict (see
+/// `benches`); the shipped loop runs the same walk by index.
 #[derive(Drop)]
 pub struct SortedMerge {
     previous: Span<ContactPair>,
@@ -275,9 +292,8 @@ pub impl NarrowPhaseImpl of NarrowPhaseTrait {
         ref colliders: ColliderSet,
         pairs: Span<(u32, u32)>,
     ) -> Array<CollisionEvent> {
-        compute_contacts_with::<
-            D, SortedMerge,
-        >(ref self, prediction, ref bodies, ref colliders, pairs)
+        let scratch = pair_colliders(ref bodies, ref colliders).span();
+        compute_contacts_from_scratch::<D>(ref self, prediction, scratch, pairs, ref colliders)
     }
 
     /// Number of contact pairs.
@@ -303,17 +319,34 @@ pub impl NarrowPhaseImpl of NarrowPhaseTrait {
     }
 }
 
-/// `compute_contacts` with the carry-over strategy `C`.
-pub fn compute_contacts_with<impl D: ContactDispatcher, S, impl C: CarryOver<S>, +Destruct<S>>(
+/// `compute_contacts` on a prebuilt scratch: one [`PairCollider`] per collider, in the order of
+/// `ColliderSetTrait::iter` (as [`pair_colliders`]; `rapier2d`'s fused step builds it with the
+/// broad-phase proxies). `pairs` index into `scratch`; `colliders` is only read for the
+/// `REMOVED` flag of the pairs that are dropped.
+///
+/// The body is [`process_pair`] and [`SortedMerge`] spelled out in the loop (an impl-generic
+/// function cannot be `#[inline(always)]`): in a loop body every branch is charged only when
+/// taken, whereas an outlined loop-free function is charged its costliest path on every pair.
+/// For the same reason nothing large crosses a branch: the previous pair is a one-felt `Box`
+/// into the previous list (a fresh default pair when absent), a filtered pair leaves on its own
+/// `continue`, the event transition works on scalars and each pair is built once, in `append`.
+/// The dispatcher `D` is inlined too when its `contact_manifold` is `#[inline(always)]`.
+///
+/// # Panics
+/// As `NarrowPhaseTrait::compute_contacts`.
+pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
     ref self: NarrowPhase,
     prediction: Fixed,
-    ref bodies: RigidBodySet,
-    ref colliders: ColliderSet,
+    scratch: Span<PairCollider>,
     pairs: Span<(u32, u32)>,
+    ref colliders: ColliderSet,
 ) -> Array<CollisionEvent> {
-    let scratch = pair_colliders(ref bodies, ref colliders).span();
-    let mut carry = C::begin(self.pairs.span());
+    let previous = self.pairs.span();
+    let fresh_pair = ContactPairTrait::new(Default::default(), Default::default());
+    let fresh = BoxTrait::new(@fresh_pair);
+    let mut cursor: u32 = 0;
     let mut current = array![];
+    let mut events = array![];
     let mut transitions = array![];
     for (i, j) in pairs {
         let co1 = *scratch.at(*i);
@@ -321,17 +354,99 @@ pub fn compute_contacts_with<impl D: ContactDispatcher, S, impl C: CarryOver<S>,
         if !(co1.solid && co2.solid) {
             continue;
         }
-        let previous = carry.take(co1.handle, co2.handle);
-        let (pair, event) = process_pair::<D>(prediction, co1, co2, previous);
-        current.append(pair);
-        if let Some(event) = event {
-            transitions.append(event);
+        let h1 = co1.handle;
+        let h2 = co2.handle;
+        let mut found = fresh;
+        while let Some(boxed) = previous.get(cursor) {
+            let head = boxed.unbox();
+            let a1 = *head.collider1;
+            let a2 = *head.collider2;
+            if key_before(a1, a2, h1, h2) {
+                dropped_event(a1, a2, *head.event_status, ref colliders, ref events);
+                cursor += 1;
+                continue;
+            }
+            if a1.index == h1.index && a2.index == h2.index {
+                cursor += 1;
+                if a1 == h1 && a2 == h2 {
+                    found = boxed;
+                } else {
+                    dropped_event(a1, a2, *head.event_status, ref colliders, ref events);
+                }
+            }
+            break;
         }
+        let prev = found.unbox();
+        let status = *prev.event_status;
+        let had_contact = *prev.manifold.data.num_solver_contacts != 0;
+        if pair_filtered(co1, co2) {
+            let mut event_status = status;
+            if had_contact && events_on(co1, co2) {
+                event_status = PairEventStatusTrait::empty();
+                transitions.append(stopped(h1, h2, CollisionEventFlagsTrait::empty()));
+            }
+            current
+                .append(
+                    ContactPair {
+                        collider1: h1, collider2: h2, manifold: Default::default(), event_status,
+                    },
+                );
+            continue;
+        }
+        let mut manifold = *prev.manifold;
+        let supported = D::contact_manifold(
+            pair_pose(co1, co2), co1.shape, co2.shape, prediction, ref manifold,
+        );
+        let manifold = solver_data(prediction, co1, co2, manifold, supported);
+        let has_contact = manifold.data.num_solver_contacts != 0;
+        let mut event_status = status;
+        if has_contact != had_contact && events_on(co1, co2) {
+            if has_contact {
+                event_status = START_EVENT_EMITTED;
+                transitions.append(started(h1, h2));
+            } else {
+                event_status = PairEventStatusTrait::empty();
+                transitions.append(stopped(h1, h2, CollisionEventFlagsTrait::empty()));
+            }
+        }
+        current.append(ContactPair { collider1: h1, collider2: h2, manifold, event_status });
     }
-    let mut events = dropped_events(carry.finish(), ref colliders);
+    while let Some(boxed) = previous.get(cursor) {
+        let head = boxed.unbox();
+        dropped_event(
+            *head.collider1, *head.collider2, *head.event_status, ref colliders, ref events,
+        );
+        cursor += 1;
+    }
     events.append_span(transitions.span());
     self.pairs = current;
     events
+}
+
+/// `true` when either collider has `COLLISION_EVENTS`.
+#[inline(always)]
+fn events_on(co1: PairCollider, co2: PairCollider) -> bool {
+    (co1.active_events | co2.active_events).contains(COLLISION_EVENTS)
+}
+
+/// The `Stopped` event of a dropped previous pair, if its `Started` was emitted (see
+/// [`dropped_events`]).
+#[inline(always)]
+fn dropped_event(
+    collider1: Handle,
+    collider2: Handle,
+    status: PairEventStatus,
+    ref colliders: ColliderSet,
+    ref events: Array<CollisionEvent>,
+) {
+    if status.start_event_emitted() {
+        let flags = if colliders.contains(collider1) && colliders.contains(collider2) {
+            CollisionEventFlagsTrait::empty()
+        } else {
+            REMOVED
+        };
+        events.append(stopped(collider1, collider2, flags));
+    }
 }
 
 /// `Stopped` events of the previous pairs that are not pairs any more: flags empty when both
@@ -356,27 +471,48 @@ pub fn dropped_events(
 }
 
 /// Upstream `process_pair` for one pair of solid colliders: filters, manifold update, solver
-/// data, event transition. Returns the new pair and its event, if any.
+/// data, event transition. Returns the new pair and its event, if any. The pair loop
+/// ([`compute_contacts_from_scratch`]) runs the same composition inlined.
 pub fn process_pair<impl D: ContactDispatcher>(
     prediction: Fixed, co1: PairCollider, co2: PairCollider, previous: Option<ContactPair>,
 ) -> (ContactPair, Option<CollisionEvent>) {
-    let (manifold, status) = match previous {
-        Some(pair) => (pair.manifold, pair.event_status),
-        None => (Default::default(), PairEventStatusTrait::empty()),
-    };
+    let (manifold, status) = previous_state(previous);
     let had_contact = manifold.data.num_solver_contacts != 0;
     let manifold = if pair_filtered(co1, co2) {
         Default::default()
     } else {
         update_manifold::<D>(prediction, co1, co2, manifold)
     };
+    pair_transition(co1, co2, manifold, status, had_contact)
+}
+
+/// The manifold and event status carried over from `previous`: a default manifold and no
+/// event emitted for a new pair.
+#[inline(always)]
+pub fn previous_state(previous: Option<ContactPair>) -> (ContactManifold, PairEventStatus) {
+    match previous {
+        Some(pair) => (pair.manifold, pair.event_status),
+        None => (Default::default(), PairEventStatusTrait::empty()),
+    }
+}
+
+/// The pair built from its new `manifold`, with its `Started` / `Stopped` transition: emitted
+/// when the "has a solver contact" state differs from `had_contact` and either collider has
+/// `COLLISION_EVENTS`.
+#[inline(always)]
+pub fn pair_transition(
+    co1: PairCollider,
+    co2: PairCollider,
+    manifold: ContactManifold,
+    status: PairEventStatus,
+    had_contact: bool,
+) -> (ContactPair, Option<CollisionEvent>) {
     let mut pair = ContactPair {
         collider1: co1.handle, collider2: co2.handle, manifold, event_status: status,
     };
     let has_contact = manifold.data.num_solver_contacts != 0;
     let mut event = None;
-    if has_contact != had_contact
-        && (co1.active_events | co2.active_events).contains(COLLISION_EVENTS) {
+    if has_contact != had_contact && events_on(co1, co2) {
         if has_contact {
             pair.event_status = START_EVENT_EMITTED;
             event = Some(started(co1.handle, co2.handle));
@@ -404,13 +540,36 @@ pub fn pair_filtered(co1: PairCollider, co2: PairCollider) -> bool {
     !co1.collision_groups.test(co2.collision_groups)
 }
 
+/// The pose of collider 2 in the frame of collider 1 (`pos12` of the dispatcher).
+#[inline(always)]
+pub fn pair_pose(co1: PairCollider, co2: PairCollider) -> Pose2 {
+    co1.pose.inv_mul(co2.pose)
+}
+
 /// Runs the dispatcher on `manifold` (the previous one) and rebuilds its solver data.
 pub fn update_manifold<impl D: ContactDispatcher>(
     prediction: Fixed, co1: PairCollider, co2: PairCollider, manifold: ContactManifold,
 ) -> ContactManifold {
     let mut manifold = manifold;
-    let pos12 = co1.pose.inv_mul(co2.pose);
-    if !D::contact_manifold(pos12, co1.shape, co2.shape, prediction, ref manifold) {
+    let supported = D::contact_manifold(
+        pair_pose(co1, co2), co1.shape, co2.shape, prediction, ref manifold,
+    );
+    solver_data(prediction, co1, co2, manifold, supported)
+}
+
+/// The solver data of `manifold`, which the dispatcher just updated (`supported == false`
+/// clears its points): bodies, solver flags, combined friction and restitution, relative
+/// dominance, world normal, and one solver contact per point at `dist < prediction`.
+#[inline(always)]
+pub fn solver_data(
+    prediction: Fixed,
+    co1: PairCollider,
+    co2: PairCollider,
+    manifold: ContactManifold,
+    supported: bool,
+) -> ContactManifold {
+    let mut manifold = manifold;
+    if !supported {
         manifold.num_points = 0;
     }
     manifold.data.rigid_body1 = co1.body;
@@ -428,13 +587,13 @@ pub fn update_manifold<impl D: ContactDispatcher>(
     manifold
         .data
         .friction =
-            CoefficientCombineRuleTrait::combine(
+            combine(
                 co1.friction, co2.friction, co1.friction_combine_rule, co2.friction_combine_rule,
             );
     manifold
         .data
         .restitution =
-            CoefficientCombineRuleTrait::combine(
+            combine(
                 co1.restitution,
                 co2.restitution,
                 co1.restitution_combine_rule,
@@ -465,10 +624,25 @@ pub fn update_manifold<impl D: ContactDispatcher>(
     manifold
 }
 
+/// `CoefficientCombineRuleTrait::combine` with the default `Average` arm inlined (the same
+/// expression, `(coeff1 + coeff2) / 2` rounded to nearest even): the outlined `apply` is
+/// charged its costliest arm (`GeometricMean`, a square root) on every call, so it is only
+/// called for the other rules.
+#[inline(always)]
+pub fn combine(
+    coeff1: Fixed, coeff2: Fixed, rule1: CoefficientCombineRule, rule2: CoefficientCombineRule,
+) -> Fixed {
+    let rule = CoefficientCombineRuleTrait::effective(rule1, rule2);
+    match rule {
+        CoefficientCombineRule::Average => (coeff1 + coeff2) / TWO,
+        _ => rule.apply(coeff1, coeff2),
+    }
+}
+
 /// The solver contact of point `id`: world points relative to each body's world centre of
 /// mass, `NEW_CONTACT_BIT` when the point carries no warm-start impulse (upstream: `impulse ==
 /// 0`), no tangent velocity.
-#[inline(never)]
+#[inline(always)]
 pub fn solver_contact(
     point: TrackedContact, id: u32, co1: PairCollider, co2: PairCollider,
 ) -> SolverContact {
