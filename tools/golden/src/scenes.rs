@@ -300,7 +300,7 @@ fn manifold_json(m: &ContactManifold) -> Value {
     })
 }
 
-fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
+fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
     // Comparability settings (decision D11). The block solver is removed at compile time by
     // building rapier without its `block-solver` default feature.
     let params = IntegrationParameters {
@@ -456,6 +456,11 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
     let mut sleep_transitions = Vec::new();
     let mut was_sleeping: Vec<bool> = handles.iter().map(|h| bodies[*h].is_sleeping()).collect();
     for step in 1..=NUM_STEPS {
+        // SI control: wake before candidate collection, so the ground contact participates
+        // immediately instead of retaining its dormant solver hint through the impact.
+        if prewake && step == 87 {
+            bodies[handles[1]].wake_up(true);
+        }
         pipeline.step(
             gravity.v(),
             &params,
@@ -497,6 +502,24 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             diagnostics.push(json!({ "step": step, "pairs": pairs,
                 "bodies": sample(step, &bodies)["bodies"] }));
         }
+        if scene.id == "ball_drop_sleep" && (step == 65 || step == 66 || step >= 80) {
+            let pairs: Vec<Value> = narrow_phase.contact_pairs().map(|pair| json!({
+                "collider1": pair.collider1.into_raw_parts().0,
+                "collider2": pair.collider2.into_raw_parts().0,
+                "active": pair.has_any_active_contact(),
+                "manifolds": pair.manifolds.iter().map(|m| {
+                    let mut v = manifold_json(m);
+                    v["solver_contact_ids"] = json!(m.data.solver_contacts.iter().map(|c| c.contact_id[0]).collect::<Vec<_>>());
+                    v
+                }).collect::<Vec<_>>(),
+            })).collect();
+            let activation: Vec<Value> = handles.iter().skip(1).map(|h| {
+                let a = bodies[*h].activation();
+                json!({"sleeping": a.sleeping, "timer": jf(a.time_since_can_sleep)})
+            }).collect();
+            diagnostics.push(json!({"step": step, "bodies": sample(step, &bodies)["bodies"],
+                "activation": activation, "pairs": pairs}));
+        }
         if scene.can_sleep {
             for (k, handle) in handles.iter().enumerate() {
                 let sleeping = bodies[*handle].is_sleeping();
@@ -531,6 +554,11 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
             "substeps": "body velocities inside a step are not exposed by the public API",
             "steps": diagnostics,
         });
+    } else if scene.id == "ball_drop_sleep" {
+        result["impact_diagnostics"] = json!({
+            "timing": "after step; manifold geometry is pre-solve, impulses post-solve; timers are upstream start-of-step updates; internal solver substeps are not exposed by the public API",
+            "steps": diagnostics,
+        });
     } else if scene.id == "box_stack3" {
         result["contact_diagnostics"] = json!({
             "timing": "after step; geometry and solver arms from pre-solve collision detection; impulses and body state after solve",
@@ -546,7 +574,17 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q) -> Value {
 pub fn generate() -> Value {
     let gravity = QVec::snap(0.0, -9.81);
     let dt = Q::snap(1.0 / 60.0);
-    let cases: Vec<Value> = scenes().iter().map(|s| run(s, gravity, dt)).collect();
+    let cases: Vec<Value> = scenes().iter().map(|s| {
+        let mut trace = run(s, gravity, dt, false);
+        if s.id == "ball_drop_sleep" {
+            let control = run(s, gravity, dt, true);
+            trace["impact_diagnostics"]["prewake_steps"] =
+                control["impact_diagnostics"]["steps"].clone();
+            trace["impact_diagnostics"]["prewake_note"] = json!(
+                "counterfactual: RigidBody::wake_up(true) on lower ball immediately before step 87; all other inputs unchanged");
+        }
+        trace
+    }).collect();
     let defaults = IntegrationParameters::default();
 
     json!({

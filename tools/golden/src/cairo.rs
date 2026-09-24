@@ -14,6 +14,7 @@ use std::process::Command;
 
 mod leaf_families;
 mod scenes;
+mod sleep_impact;
 
 const MAX_WIDTH: usize = 100;
 const MAX_SHORT_STRING: usize = 31;
@@ -677,6 +678,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("ray_casts", leaf_families::ray_casts(vectors)),
         ("sat2d", leaf_families::sat2d(vectors)),
         ("scenes", scenes::generate(vectors)),
+        ("sleep_impact", sleep_impact::generate(vectors)),
         ("segment_segment", leaf_families::segment_segment(vectors)),
     ];
     let mut index = String::from(

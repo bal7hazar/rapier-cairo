@@ -596,3 +596,32 @@ pub struct JointSceneCase {
     pub scene: SceneCase,
     pub joint: SceneJointControlRaw,
 }
+
+/// SI: vertical state after a `ball_drop_sleep` step, Q32.32 raw. Upstream updates the
+/// eligibility timer at the next step's start; compare it with Cairo's pre-step timer.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SleepImpactBodyRaw {
+    pub y: i64,
+    pub vy: i64,
+    pub timer: i64,
+    pub sleeping: bool,
+}
+
+/// SI: first solver contact of a pair; absent pairs have zero fields and `present = false`.
+/// Geometry is pre-solve, impulses post-solve; contact_id includes upstream's NEW bit.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SleepImpactPairRaw {
+    pub present: bool,
+    pub dist: i64,
+    pub contact_id: u32,
+    pub impulse: i64,
+    pub warmstart: i64,
+}
+
+/// SI: lower/upper ball states and ground/ball-ball contacts in canonical order.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SleepImpactRaw {
+    pub step: u32,
+    pub bodies: [SleepImpactBodyRaw; 2],
+    pub pairs: [SleepImpactPairRaw; 2],
+}

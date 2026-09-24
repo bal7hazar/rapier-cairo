@@ -15,3 +15,4 @@ pub mod ray_casts;
 pub mod sat2d;
 pub mod scenes;
 pub mod segment_segment;
+pub mod sleep_impact;

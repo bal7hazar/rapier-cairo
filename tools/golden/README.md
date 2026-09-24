@@ -185,6 +185,76 @@ pose of the previous step, velocities zeroed) and wakes a sleeping body in the n
 step where a contact starts touching it; the port does both at the same steps
 (`rapier2d::pipeline::islands`).
 
+### Sleeping-ball impact diagnosis (SI)
+
+`ball_drop_sleep.impact_diagnostics` records steps 65, 66 and 80–120: both balls' vertical
+states and activation timers, every retained manifold, solver contact IDs (including NEW), and
+post-solve impulses. `prewake_steps` is a separate Rust counterfactual: the lower ball receives
+`RigidBody::wake_up(true)` immediately before step 87. All original scene samples and settings
+are unchanged. `generated::sleep_impact` exports selected diagnostic steps and five prewake
+checkpoints; there are no hand-transcribed reference numbers in the Cairo diagnostics.
+
+**Cause: one frame without the ground constraint upstream.** Both engines sleep the lower ball
+at step 66, zero its velocity, and wake it at step 87. Before that impact the incoming ball has
+velocity −14.061 m/s; the first ball–ball contact is already penetrating (distance
+−456,446,172 raw, about −0.10627 m), with NEW set. The normal and sphere witnesses agree; the
+uninterrupted Cairo distance differs by only 270 ulps. Every restitution coefficient and hence
+every restitution seed is zero. The subsequent upward motion comes from penetration correction.
+
+At step 87 upstream leaves the ground impulse at its dormant value, 551,527,914 raw; Cairo
+applies 54,919,242,958 raw. Upstream ends that frame with **both** balls moving downward at
+−7.194 m/s and the lower centre at 0.375396 m. Cairo keeps the lower velocity at zero and its
+centre at 0.498255 m. Upstream restores ground support at step 88, whose large penetration
+correction launches the upper ball. The retained ground manifold's `active` flag describes
+contact geometry, not membership in that frame's solver selection.
+
+This agrees with the read-only upstream clone's selection mechanism:
+`narrow_phase/contacts.rs::compute_contacts` freezes the awake mask/candidate list before
+`apply_pair_transitions` wakes the sleeping side; sleeping clears pair solver-hint counts
+(`solver_graph.rs::clear_asleep_pair_solver_hint_counts_of`), and `reconcile_pair` explicitly
+honours those hints even when they lag the live awake state. These source details are supporting
+explanation from the clone; the measured behaviour comes from the pinned published 0.35.3.
+Internal upstream substep velocities/selection are not exposed by the public API. In Cairo,
+`pipeline::step` explicitly merges revived dormant pairs into the solver input before solving.
+Both balls are awake before all four substeps; activation is not changed inside the solver.
+
+The Cairo counterfactual removes **only** the dormant ground pair from the step-87 solver input,
+then merges it back unchanged. Starting from the generated step-80 body state and ground cache:
+
+| Intervention | Max position error, samples 90/100/110/120 | Max velocity error | Samples outside tolerance |
+|---|---:|---:|---:|
+| Immediate ground support (engine) | 1,591,205,862 ulps (0.37048 m) | 8,061,226,037 ulps | 4 |
+| Ground deferred for step 87 only | 50 ulps | 81 ulps | 0 |
+
+The reverse Rust experiment (wake before collision detection) matches the uninterrupted Cairo
+trajectory within the existing scene tolerance at steps 87, 88, 90, 110 and 120. Weak-waking the
+already-awake toucher preserves its already-zero timer; restoring the sleeping velocity to
+upstream's zero and clearing NEW (zero restitution seed and zero warm-start impulse) are exact
+solver-state no-ops. Tests also replace the incident distance and the dormant ground cache
+independently: reference geometry leaves 1,591,205,863 ulps maximum position error (one ulp
+worse than the seeded control); restoring the ground cache in the uninterrupted replay reduces
+its 1,591,207,411-ulp maximum by only 1,550 ulps. Delaying ground support in that uninterrupted
+replay instead passes every later sample (max 53,057 position / 52,326 velocity ulps). Cairo's
+ground cache first differs at the sleep step 66 (warm-start 122,738,298
+versus upstream 137,881,979 raw), even though both bodies' poses/velocities remain in tolerance;
+that small cache difference is distinct from wake-step solver membership.
+
+Upstream updates eligibility timers at the start of a step; Cairo updates them after motion.
+At wake step 87 upstream reports 71,582,788 raw for the lower ball, while Cairo ends with zero
+because the impact displacement exceeds the sleep threshold. Comparing these post-step timers
+without accounting for phase would misidentify the cause.
+
+Recommendation: preserve immediate ground support as a documented divergence instead of
+reproducing the upstream one-frame loss of support. `SamplesUntil(80)` remains appropriate for
+the original trace; SI adds strict recovery and reverse-control assertions. An exact-parity
+change would remove the revived-pair merge in `pipeline::step` and retain those pairs dormant
+until after the solve, with matching staged-pipeline semantics and regression tests. This
+requires an orchestrator decision and an ADR; SI leaves engine files untouched.
+
+Reproduce with `scripts/build-shims/snforge test -p rapier2d sleep_diagnostics` and
+`cargo run --release --locked` in `tools/golden`. This is a diagnosis package, with no production
+performance candidate or new gas API; test costs are recorded in `golden_scenes.snap`.
+
 ### Slope divergence diagnosis (SD)
 
 The two slope scenes add `contact_diagnostics.steps` (steps 1–10; `box_stack3` too, see SO).

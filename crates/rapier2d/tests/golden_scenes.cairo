@@ -24,6 +24,7 @@ use rapier_math::rot2::Rot2;
 
 mod builder;
 mod joint_controls;
+mod sleep_diagnostics;
 mod slope_diagnostics;
 mod stack_diagnostics;
 
@@ -39,8 +40,8 @@ enum Judge {
     /// (`box_stack3`).
     SamplesAndRest,
     /// Every sample up to the given step within the tolerance; the later ones are printed only
-    /// (`ball_drop_sleep` after the wake-up: a ball landing on a ball is a two-body bounce whose
-    /// rounding diverges beyond the per-step tolerance, see the test).
+    /// (`ball_drop_sleep`: upstream omits the dormant ground constraint on the wake step;
+    /// Cairo revives it immediately, see `sleep_diagnostics`).
     SamplesUntil: u32,
 }
 
@@ -502,10 +503,11 @@ fn test_box_stack3_sleep() {
 /// Sleeping on (SL): `ball` rests and falls asleep at step 66 (upstream's step), `ball2` lands on
 /// it at step 87 and wakes it up (upstream's step, the contact starting in that step); the
 /// sleeping flags are checked after every step. The samples are judged up to step 80 (the last
-/// one before the impact): after it the two balls bounce on each other, a two-body impact at 13
-/// m/s whose rounding puts the later samples beyond the per-step tolerance in both the port and
-/// any other implementation (the trace is chaotic there, as `ball_bounce` after its first
-/// bounce, README); those samples are printed only, and the run invariants below hold.
+/// one before the impact). SI isolates the cause: upstream omits the dormant ground constraint
+/// in step 87, so both balls fall together for that frame; Cairo revives the support immediately.
+/// Delaying only that constraint recovers every later sample (`sleep_diagnostics`). This is a
+/// wake-step constraint-selection divergence, not chaotic rounding or restitution. Later samples
+/// are printed only; the diagnostics assert the recovery and the reverse Rust prewake control.
 #[test]
 fn test_ball_drop_sleep() {
     let mut world = build_world(scenes::BALL_DROP_SLEEP);
