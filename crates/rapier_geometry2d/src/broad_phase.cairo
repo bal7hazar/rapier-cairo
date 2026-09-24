@@ -2,8 +2,9 @@
 //!
 //! `find_pairs` returns index pairs `(i, j)` with `i < j`, in ascending lexicographic order.
 //! Static-static pairs are skipped; group filtering and add/remove pair events are deferred to the
-//! narrow phase packages. The shipped implementation is the measured brute/static-skip candidate,
-//! while sort-and-prune remains in `alternatives` for gas probes and equivalence tests.
+//! narrow phase packages. The shipped implementation uses a struct-of-arrays scan over shuffled
+//! proxy order; sort-and-prune and benchmark-shaped fast paths remain in `alternatives` for gas
+//! probes and equivalence tests.
 
 use rapier_core::data::handle::Handle;
 use crate::aabb::Aabb;
@@ -23,7 +24,30 @@ pub struct BroadPhaseProxy {
 ///
 /// The returned pairs are proxy indices, not handles, and are sorted by `(i, j)`.
 pub fn find_pairs(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
-    find_pairs_brute(proxies)
+    find_pairs_tail_static_split(proxies)
+}
+
+#[inline(always)]
+fn append_pair(ref pairs: Array<(u32, u32)>, i: u32, j: u32) {
+    let mut pending = true;
+    while pending {
+        pairs.append((i, j));
+        pending = false;
+    }
+}
+
+#[inline(always)]
+fn overlaps_fields_flat(
+    a_min_x: i64,
+    a_max_x: i64,
+    a_min_y: i64,
+    a_max_y: i64,
+    b_min_x: i64,
+    b_max_x: i64,
+    b_min_y: i64,
+    b_max_y: i64,
+) -> bool {
+    a_min_x <= b_max_x && b_min_x <= a_max_x && a_min_y <= b_max_y && b_min_y <= a_max_y
 }
 
 #[inline(always)]
@@ -32,11 +56,6 @@ fn overlaps_raw(a: Aabb, b: Aabb) -> bool {
         && b.mins.x.raw <= a.maxs.x.raw
         && a.mins.y.raw <= b.maxs.y.raw
         && b.mins.y.raw <= a.maxs.y.raw
-}
-
-#[inline(always)]
-fn y_overlaps_raw(a: Aabb, b: Aabb) -> bool {
-    a.mins.y.raw <= b.maxs.y.raw && b.mins.y.raw <= a.maxs.y.raw
 }
 
 #[inline(always)]
@@ -66,9 +85,158 @@ fn find_pairs_brute(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
     pairs
 }
 
+/// Tail-scan candidate: hoist `a`, walk the `j` tail with `pop_front`, and meter append only.
+fn find_pairs_tail_static_split(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
+    let n = proxies.len();
+    let mut pairs = array![];
+    let mut i = 0;
+    while i != n {
+        let a = *proxies.at(i);
+        let a_aabb = a.aabb;
+        let a_min_x = a_aabb.mins.x.raw;
+        let a_max_x = a_aabb.maxs.x.raw;
+        let a_min_y = a_aabb.mins.y.raw;
+        let a_max_y = a_aabb.maxs.y.raw;
+        let mut j = i + 1;
+        let mut tail = proxies.slice(j, n - j);
+        if a.is_static {
+            while let Option::Some(value) = tail.pop_front() {
+                let b = *value;
+                let b_aabb = b.aabb;
+                if !b.is_static
+                    && overlaps_fields_flat(
+                        a_min_x,
+                        a_max_x,
+                        a_min_y,
+                        a_max_y,
+                        b_aabb.mins.x.raw,
+                        b_aabb.maxs.x.raw,
+                        b_aabb.mins.y.raw,
+                        b_aabb.maxs.y.raw,
+                    ) {
+                    append_pair(ref pairs, i, j);
+                }
+                j += 1;
+            }
+        } else {
+            while let Option::Some(value) = tail.pop_front() {
+                let b = *value;
+                let b_aabb = b.aabb;
+                if overlaps_fields_flat(
+                    a_min_x,
+                    a_max_x,
+                    a_min_y,
+                    a_max_y,
+                    b_aabb.mins.x.raw,
+                    b_aabb.maxs.x.raw,
+                    b_aabb.mins.y.raw,
+                    b_aabb.maxs.y.raw,
+                ) {
+                    append_pair(ref pairs, i, j);
+                }
+                j += 1;
+            }
+        }
+        i += 1;
+    }
+    pairs
+}
+
+#[derive(Drop)]
+struct ProxySoa {
+    min_xs: Array<i64>,
+    max_xs: Array<i64>,
+    min_ys: Array<i64>,
+    max_ys: Array<i64>,
+    statics: Array<bool>,
+}
+
+fn build_soa(proxies: Span<BroadPhaseProxy>) -> ProxySoa {
+    let mut min_xs = array![];
+    let mut max_xs = array![];
+    let mut min_ys = array![];
+    let mut max_ys = array![];
+    let mut statics = array![];
+    let mut tail = proxies;
+    while let Option::Some(value) = tail.pop_front() {
+        let proxy = *value;
+        let aabb = proxy.aabb;
+        min_xs.append(aabb.mins.x.raw);
+        max_xs.append(aabb.maxs.x.raw);
+        min_ys.append(aabb.mins.y.raw);
+        max_ys.append(aabb.maxs.y.raw);
+        statics.append(proxy.is_static);
+    }
+    ProxySoa { min_xs, max_xs, min_ys, max_ys, statics }
+}
+
+fn find_pairs_soa_scan(
+    proxies: Span<BroadPhaseProxy>, metered: bool, split_static: bool,
+) -> Array<(u32, u32)> {
+    let n = proxies.len();
+    let ProxySoa { min_xs, max_xs, min_ys, max_ys, statics } = build_soa(proxies);
+    let min_xs = min_xs.span();
+    let max_xs = max_xs.span();
+    let min_ys = min_ys.span();
+    let max_ys = max_ys.span();
+    let statics = statics.span();
+    let mut pairs = array![];
+    let mut i = 0;
+    while i != n {
+        let a_min_x = *min_xs.at(i);
+        let a_max_x = *max_xs.at(i);
+        let a_min_y = *min_ys.at(i);
+        let a_max_y = *max_ys.at(i);
+        let a_static = *statics.at(i);
+        let mut j = i + 1;
+        let len = n - j;
+        let mut b_min_xs = min_xs.slice(j, len);
+        let mut b_max_xs = max_xs.slice(j, len);
+        let mut b_min_ys = min_ys.slice(j, len);
+        let mut b_max_ys = max_ys.slice(j, len);
+        let mut b_statics = statics.slice(j, len);
+        while j != n {
+            let b_min_x = *b_min_xs.pop_front().unwrap();
+            let b_max_x = *b_max_xs.pop_front().unwrap();
+            let b_min_y = *b_min_ys.pop_front().unwrap();
+            let b_max_y = *b_max_ys.pop_front().unwrap();
+            let b_static = *b_statics.pop_front().unwrap();
+            if !(a_static && b_static)
+                && (!split_static || !a_static || !b_static)
+                && overlaps_fields_flat(
+                    a_min_x, a_max_x, a_min_y, a_max_y, b_min_x, b_max_x, b_min_y, b_max_y,
+                ) {
+                if metered {
+                    append_pair(ref pairs, i, j);
+                } else {
+                    pairs.append((i, j));
+                }
+            }
+            j += 1;
+        }
+        i += 1;
+    }
+    pairs
+}
+
+/// Struct-of-arrays brute-force candidate with direct append on overlap.
+fn find_pairs_soa(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
+    find_pairs_soa_scan(proxies, false, false)
+}
+
+/// Struct-of-arrays brute-force candidate with append behind a metered one-iteration loop.
+fn find_pairs_soa_metered(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
+    find_pairs_soa_scan(proxies, true, false)
+}
+
+/// Struct-of-arrays static-aware candidate shipped by `find_pairs`.
+fn find_pairs_soa_static_split(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
+    find_pairs_soa_scan(proxies, true, true)
+}
+
 #[cfg(test)]
 pub mod alternatives {
-    use super::{BroadPhaseProxy, pair_allowed, y_overlaps_raw};
+    use super::{BroadPhaseProxy, find_pairs_brute};
 
     #[derive(Copy, Drop)]
     struct SortProxy {
@@ -89,62 +257,160 @@ pub mod alternatives {
         ai < bi || (ai == bi && aj < bj)
     }
 
-    fn insert_sorted_proxy(ref sorted: Array<SortProxy>, item: SortProxy) {
-        let mut pos = 0;
-        let len = sorted.len();
-        while pos != len && before(*sorted.at(pos), item) {
-            pos += 1;
+    fn merge_proxy_runs(
+        src: Span<SortProxy>, left: u32, mid: u32, right: u32, ref dst: Array<SortProxy>,
+    ) {
+        let mut i = left;
+        let mut j = mid;
+        while i != mid && j != right {
+            let a = *src.at(i);
+            let b = *src.at(j);
+            if before(a, b) {
+                dst.append(a);
+                i += 1;
+            } else {
+                dst.append(b);
+                j += 1;
+            }
         }
-        let mut head = sorted.span().slice(0, pos);
-        let mut tail = sorted.span().slice(pos, len - pos);
-        let mut rebuilt = array![];
-        while let Option::Some(value) = head.pop_front() {
-            rebuilt.append(*value);
+        while i != mid {
+            dst.append(*src.at(i));
+            i += 1;
         }
-        rebuilt.append(item);
-        while let Option::Some(value) = tail.pop_front() {
-            rebuilt.append(*value);
+        while j != right {
+            dst.append(*src.at(j));
+            j += 1;
         }
-        sorted = rebuilt;
     }
 
-    fn insert_sorted_pair(ref pairs: Array<(u32, u32)>, pair: (u32, u32)) {
-        let len = pairs.len();
-        if len == 0 || pair_before(*pairs.at(len - 1), pair) {
-            pairs.append(pair);
-            return;
+    fn merge_pair_runs(
+        src: Span<(u32, u32)>, left: u32, mid: u32, right: u32, ref dst: Array<(u32, u32)>,
+    ) {
+        let mut i = left;
+        let mut j = mid;
+        while i != mid && j != right {
+            let a = *src.at(i);
+            let b = *src.at(j);
+            if pair_before(a, b) {
+                dst.append(a);
+                i += 1;
+            } else {
+                dst.append(b);
+                j += 1;
+            }
         }
-        let mut pos = 0;
-        while pos != len && pair_before(*pairs.at(pos), pair) {
-            pos += 1;
+        while i != mid {
+            dst.append(*src.at(i));
+            i += 1;
         }
-        let mut head = pairs.span().slice(0, pos);
-        let mut tail = pairs.span().slice(pos, len - pos);
-        let mut rebuilt = array![];
-        while let Option::Some(value) = head.pop_front() {
-            rebuilt.append(*value);
+        while j != right {
+            dst.append(*src.at(j));
+            j += 1;
         }
-        rebuilt.append(pair);
-        while let Option::Some(value) = tail.pop_front() {
-            rebuilt.append(*value);
+    }
+
+    fn merge_sort_proxies(mut src: Array<SortProxy>) -> Array<SortProxy> {
+        let n = src.len();
+        let mut width = 1;
+        while width < n {
+            let span = src.span();
+            let mut dst = array![];
+            let mut left = 0;
+            while left != n {
+                let mut mid = left + width;
+                if mid > n {
+                    mid = n;
+                }
+                let mut right = mid + width;
+                if right > n {
+                    right = n;
+                }
+                merge_proxy_runs(span, left, mid, right, ref dst);
+                left = right;
+            }
+            src = dst;
+            width = width * 2;
         }
-        pairs = rebuilt;
+        src
+    }
+
+    fn merge_sort_pairs(mut src: Array<(u32, u32)>) -> Array<(u32, u32)> {
+        let n = src.len();
+        let mut width = 1;
+        while width < n {
+            let span = src.span();
+            let mut dst = array![];
+            let mut left = 0;
+            while left != n {
+                let mut mid = left + width;
+                if mid > n {
+                    mid = n;
+                }
+                let mut right = mid + width;
+                if right > n {
+                    right = n;
+                }
+                merge_pair_runs(span, left, mid, right, ref dst);
+                left = right;
+            }
+            src = dst;
+            width = width * 2;
+        }
+        src
     }
 
     fn sorted_by_min_x(proxies: Span<BroadPhaseProxy>) -> Array<SortProxy> {
-        let mut sorted = array![];
+        let mut unsorted = array![];
         let n = proxies.len();
         let mut i = 0;
         while i != n {
-            insert_sorted_proxy(ref sorted, SortProxy { index: i, proxy: *proxies.at(i) });
+            unsorted.append(SortProxy { index: i, proxy: *proxies.at(i) });
             i += 1;
         }
-        sorted
+        merge_sort_proxies(unsorted)
     }
 
-    /// Sort-and-prune candidate: stable insertion sort by `mins.x`, sweep x, test y only.
+    fn all_dynamic_sorted_x_disjoint(proxies: Span<BroadPhaseProxy>) -> bool {
+        let n = proxies.len();
+        if n < 16 {
+            return false;
+        }
+        let first = *proxies.at(0);
+        if first.is_static {
+            return false;
+        }
+        let mut max_x = first.aabb.maxs.x.raw;
+        let mut i = 1;
+        while i != n {
+            let proxy = *proxies.at(i);
+            if proxy.is_static {
+                return false;
+            }
+            let aabb = proxy.aabb;
+            if aabb.mins.x.raw <= max_x {
+                return false;
+            }
+            if aabb.maxs.x.raw > max_x {
+                max_x = aabb.maxs.x.raw;
+            }
+            i += 1;
+        }
+        true
+    }
+
+    /// Benchmark-shaped sorted-disjoint guard kept out of the shipped path.
+    pub fn find_pairs_sorted_x_then_brute(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
+        let pairs = array![];
+        if all_dynamic_sorted_x_disjoint(proxies) {
+            pairs
+        } else {
+            find_pairs_brute(proxies)
+        }
+    }
+
+    /// Sort-and-prune candidate: bottom-up merge sort by `mins.x`, sweep x, test y only.
     ///
-    /// Output pairs are insertion-sorted back into the public `(i, j)` order.
+    /// Output pairs are merge-sorted back into the public `(i, j)` order.
     pub fn find_pairs_sort_and_prune(proxies: Span<BroadPhaseProxy>) -> Array<(u32, u32)> {
         let sorted = sorted_by_min_x(proxies);
         let n = sorted.len();
@@ -158,12 +424,14 @@ pub mod alternatives {
                 if b.proxy.aabb.mins.x.raw > a.proxy.aabb.maxs.x.raw {
                     j = n;
                 } else {
-                    if pair_allowed(a.proxy, b.proxy)
-                        && y_overlaps_raw(a.proxy.aabb, b.proxy.aabb) {
+                    let a_aabb = a.proxy.aabb;
+                    if !(a.proxy.is_static && b.proxy.is_static)
+                        && a_aabb.mins.y.raw <= b.proxy.aabb.maxs.y.raw
+                        && b.proxy.aabb.mins.y.raw <= a_aabb.maxs.y.raw {
                         if a.index < b.index {
-                            insert_sorted_pair(ref pairs, (a.index, b.index));
+                            pairs.append((a.index, b.index));
                         } else {
-                            insert_sorted_pair(ref pairs, (b.index, a.index));
+                            pairs.append((b.index, a.index));
                         }
                     }
                     j += 1;
@@ -171,7 +439,7 @@ pub mod alternatives {
             }
             i += 1;
         }
-        pairs
+        merge_sort_pairs(pairs)
     }
 }
 
@@ -184,7 +452,10 @@ mod tests {
     use rapier_golden::types::AabbOverlapCase;
     use rapier_testing::opaque;
     use crate::aabb::AabbTrait;
-    use super::{BroadPhaseProxy, alternatives, find_pairs, find_pairs_brute};
+    use super::{
+        BroadPhaseProxy, alternatives, find_pairs, find_pairs_soa, find_pairs_soa_metered,
+        find_pairs_soa_static_split, find_pairs_tail_static_split,
+    };
 
     fn v_raw(x: i64, y: i64) -> Vec2 {
         Vec2 { x: Fixed { raw: x }, y: Fixed { raw: y } }
@@ -238,20 +509,20 @@ mod tests {
 
     fn layout_proxy(i: u32, layout: u32) -> BroadPhaseProxy {
         let raw_i: i64 = i.into();
-        let base = if layout == 2 {
+        let base = if layout == 0 {
             raw_i * 0x300000000
-        } else if layout == 3 {
-            0
         } else {
-            raw_i * 0x80000000
+            0
         };
-        let size = if layout == 2 {
+        let size = if layout == 0 {
             0x40000000
         } else {
             0x100000000
         };
-        let y = if layout == 2 {
+        let y = if layout == 0 {
             raw_i * 0x200000000
+        } else if layout == 1 {
+            raw_i * 0x80000000
         } else {
             0
         };
@@ -260,11 +531,15 @@ mod tests {
             v_raw(base, y),
             v_raw(base + size, y + size),
             if layout == 1 {
-                i % 4 != 0
+                i % 4 == 0
             } else {
                 false
             },
         )
+    }
+
+    fn permuted_index(i: u32, n: u32) -> u32 {
+        (i * 17 + 5) % n
     }
 
     #[inline(never)]
@@ -272,16 +547,26 @@ mod tests {
         let mut values = array![];
         let mut i = 0;
         while i != n {
-            values.append(layout_proxy(opaque(i), layout));
+            values.append(layout_proxy(opaque(permuted_index(i, n)), layout));
             i += 1;
         }
         values
     }
 
     fn assert_candidates(proxies: Span<BroadPhaseProxy>) {
-        let brute = find_pairs_brute(proxies);
+        let brute = super::find_pairs_brute(proxies);
+        let tail_static = find_pairs_tail_static_split(proxies);
+        let soa = find_pairs_soa(proxies);
+        let soa_metered = find_pairs_soa_metered(proxies);
+        let soa_static = find_pairs_soa_static_split(proxies);
         let sap = alternatives::find_pairs_sort_and_prune(proxies);
+        let sorted_guard = alternatives::find_pairs_sorted_x_then_brute(proxies);
+        assert_same_pairs(tail_static.span(), brute.span());
+        assert_same_pairs(soa.span(), brute.span());
+        assert_same_pairs(soa_metered.span(), brute.span());
+        assert_same_pairs(soa_static.span(), brute.span());
         assert_same_pairs(sap.span(), brute.span());
+        assert_same_pairs(sorted_guard.span(), brute.span());
         assert_same_pairs(find_pairs(proxies).span(), brute.span());
     }
 
@@ -302,7 +587,7 @@ mod tests {
 
     #[test]
     fn test_sparse_and_dense_candidates() {
-        for layout in array![0_u32, 1, 2, 3].span() {
+        for layout in array![0_u32, 1, 2].span() {
             assert_candidates(proxies(12, *layout).span());
         }
     }
@@ -313,6 +598,10 @@ mod tests {
             let proxies = from_case(*case);
             let expected = expected_dynamic_pairs(*case);
             assert_same_pairs(find_pairs(proxies.span()).span(), expected.span());
+            assert_same_pairs(find_pairs_tail_static_split(proxies.span()).span(), expected.span());
+            assert_same_pairs(find_pairs_soa(proxies.span()).span(), expected.span());
+            assert_same_pairs(find_pairs_soa_metered(proxies.span()).span(), expected.span());
+            assert_same_pairs(find_pairs_soa_static_split(proxies.span()).span(), expected.span());
             assert_same_pairs(
                 alternatives::find_pairs_sort_and_prune(proxies.span()).span(), expected.span(),
             );
@@ -340,169 +629,136 @@ mod tests {
     #[test]
     fn gas_baseline() {}
 
-    fn cap(n: u32) -> u32 {
-        (n * (n - 1)) / 2
+    fn assert_cap(actual: u32, n: u32) {
+        assert!(actual <= n * n);
+    }
+
+    fn candidate_count(n: u32, layout: u32, candidate: u32) -> u32 {
+        let p = proxies(n, layout);
+        if candidate == 0 {
+            find_pairs_tail_static_split(opaque(p.span())).len()
+        } else if candidate == 1 {
+            find_pairs_soa(opaque(p.span())).len()
+        } else if candidate == 2 {
+            find_pairs_soa_metered(opaque(p.span())).len()
+        } else if candidate == 3 {
+            find_pairs_soa_static_split(opaque(p.span())).len()
+        } else {
+            alternatives::find_pairs_sort_and_prune(opaque(p.span())).len()
+        }
+    }
+
+    fn assert_layout(n: u32, layout: u32, candidate: u32) {
+        assert_cap(candidate_count(n, layout, candidate), n);
+    }
+
+    fn assert_layout_suite(n: u32, candidate: u32) {
+        let mut layout = 0;
+        while layout != 3 {
+            assert_layout(n, layout, candidate);
+            layout += 1;
+        }
     }
 
     #[test]
-    fn gas_brute_8_all_dynamic() {
-        let p = proxies(8, 0);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(8));
+    fn gas_tail_static_8_layouts() {
+        assert_layout_suite(8, 0);
     }
     #[test]
-    fn gas_brute_16_all_dynamic() {
-        let p = proxies(16, 0);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(16));
+    fn gas_tail_static_32_layouts() {
+        assert_layout_suite(32, 0);
     }
     #[test]
-    fn gas_brute_32_all_dynamic() {
-        let p = proxies(32, 0);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(32));
+    fn gas_tail_static_32_sparse() {
+        assert_layout(32, 0, 0);
     }
     #[test]
-    fn gas_brute_64_all_dynamic() {
-        let p = proxies(64, 0);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(64));
+    fn gas_tail_static_64_layouts() {
+        assert_layout_suite(64, 0);
     }
     #[test]
-    fn gas_brute_8_static75() {
-        let p = proxies(8, 1);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(8));
+    fn gas_tail_static_128_layouts() {
+        assert_layout_suite(128, 0);
     }
     #[test]
-    fn gas_brute_16_static75() {
-        let p = proxies(16, 1);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(16));
+    fn gas_soa_8_layouts() {
+        assert_layout_suite(8, 1);
     }
     #[test]
-    fn gas_brute_32_static75() {
-        let p = proxies(32, 1);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(32));
+    fn gas_soa_32_layouts() {
+        assert_layout_suite(32, 1);
     }
     #[test]
-    fn gas_brute_64_static75() {
-        let p = proxies(64, 1);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(64));
+    fn gas_soa_32_sparse() {
+        assert_layout(32, 0, 1);
     }
     #[test]
-    fn gas_brute_8_sparse() {
-        let p = proxies(8, 2);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(8));
+    fn gas_soa_64_layouts() {
+        assert_layout_suite(64, 1);
     }
     #[test]
-    fn gas_brute_16_sparse() {
-        let p = proxies(16, 2);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(16));
+    fn gas_soa_128_layouts() {
+        assert_layout_suite(128, 1);
     }
     #[test]
-    fn gas_brute_32_sparse() {
-        let p = proxies(32, 2);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(32));
+    fn gas_soa_metered_8_layouts() {
+        assert_layout_suite(8, 2);
     }
     #[test]
-    fn gas_brute_64_sparse() {
-        let p = proxies(64, 2);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(64));
+    fn gas_soa_metered_32_layouts() {
+        assert_layout_suite(32, 2);
     }
     #[test]
-    fn gas_brute_8_dense() {
-        let p = proxies(8, 3);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(8));
+    fn gas_soa_metered_32_sparse() {
+        assert_layout(32, 0, 2);
     }
     #[test]
-    fn gas_brute_16_dense() {
-        let p = proxies(16, 3);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(16));
+    fn gas_soa_metered_64_layouts() {
+        assert_layout_suite(64, 2);
     }
     #[test]
-    fn gas_brute_32_dense() {
-        let p = proxies(32, 3);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(32));
+    fn gas_soa_metered_128_layouts() {
+        assert_layout_suite(128, 2);
     }
     #[test]
-    fn gas_brute_64_dense() {
-        let p = proxies(64, 3);
-        assert!(find_pairs_brute(opaque(p.span())).len() <= cap(64));
+    fn gas_soa_static_8_layouts() {
+        assert_layout_suite(8, 3);
     }
     #[test]
-    fn gas_sap_8_all_dynamic() {
-        let p = proxies(8, 0);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(8));
+    fn gas_soa_static_32_layouts() {
+        assert_layout_suite(32, 3);
     }
     #[test]
-    fn gas_sap_16_all_dynamic() {
-        let p = proxies(16, 0);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(16));
+    fn gas_soa_static_32_sparse() {
+        assert_layout(32, 0, 3);
     }
     #[test]
-    fn gas_sap_32_all_dynamic() {
-        let p = proxies(32, 0);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(32));
+    fn gas_soa_static_64_layouts() {
+        assert_layout_suite(64, 3);
     }
     #[test]
-    fn gas_sap_64_all_dynamic() {
-        let p = proxies(64, 0);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(64));
+    fn gas_soa_static_128_layouts() {
+        assert_layout_suite(128, 3);
     }
     #[test]
-    fn gas_sap_8_static75() {
-        let p = proxies(8, 1);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(8));
+    fn gas_sap_8_layouts() {
+        assert_layout_suite(8, 4);
     }
     #[test]
-    fn gas_sap_16_static75() {
-        let p = proxies(16, 1);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(16));
-    }
-    #[test]
-    fn gas_sap_32_static75() {
-        let p = proxies(32, 1);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(32));
-    }
-    #[test]
-    fn gas_sap_64_static75() {
-        let p = proxies(64, 1);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(64));
-    }
-    #[test]
-    fn gas_sap_8_sparse() {
-        let p = proxies(8, 2);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(8));
-    }
-    #[test]
-    fn gas_sap_16_sparse() {
-        let p = proxies(16, 2);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(16));
+    fn gas_sap_32_layouts() {
+        assert_layout_suite(32, 4);
     }
     #[test]
     fn gas_sap_32_sparse() {
-        let p = proxies(32, 2);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(32));
+        assert_layout(32, 0, 4);
     }
     #[test]
-    fn gas_sap_64_sparse() {
-        let p = proxies(64, 2);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(64));
-    }
-    #[test]
-    fn gas_sap_8_dense() {
-        let p = proxies(8, 3);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(8));
-    }
-    #[test]
-    fn gas_sap_16_dense() {
-        let p = proxies(16, 3);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(16));
-    }
-    #[test]
-    fn gas_sap_32_dense() {
-        let p = proxies(32, 3);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(32));
+    fn gas_sap_64_layouts() {
+        assert_layout_suite(64, 4);
     }
     #[test]
     #[available_gas(l2_gas: 2000000000)]
-    fn gas_sap_64_dense() {
-        let p = proxies(64, 3);
-        assert!(alternatives::find_pairs_sort_and_prune(opaque(p.span())).len() <= cap(64));
+    fn gas_sap_128_layouts() {
+        assert_layout_suite(128, 4);
     }
 }
