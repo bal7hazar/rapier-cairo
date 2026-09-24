@@ -9,5 +9,5 @@ pub mod types;
 
 pub use generated::{
     aabb, aabb_overlap, clip2d, contact_manifolds, integration_parameters, mass_properties,
-    point_projection, pose2, sat2d, scenes, segment_segment,
+    point_projection, pose2, ray_casts, sat2d, scenes, segment_segment,
 };
