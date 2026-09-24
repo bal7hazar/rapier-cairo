@@ -7,7 +7,7 @@
 //!    properties; a changed collider list or local mass recomputes the mass from the colliders);
 //!    every change flag is cleared;
 //! 2. collision detection: `ColliderSetTrait::broad_phase_proxies` → `find_pairs` →
-//!    `NarrowPhaseTrait::compute_contacts::<StepDispatcher>` with the prediction distance
+//!    `NarrowPhaseTrait::compute_contacts::<DefaultDispatcher>` with the prediction distance
 //!    (see [`detect_collisions`]);
 //! 3. [`solve`]: the manifolds that have solver contacts, in [`solve_order`] (D8: pairs of two
 //!    non-fixed bodies first, then pairs with a fixed body or none, each in pair order), and the
@@ -101,8 +101,9 @@
 //!   and loses on the reference scene, so it is not shipped;
 //! * solver input: touching manifolds only (shipped) vs every pair: 5 156 516 vs 6 768 856 with
 //!   one non-touching pair (1.6M per inert manifold), 14 444 688 vs 14 424 288 when all touch;
-//! * narrow phase (ON): `narrow_phase::compute_contacts_from_scratch` with [`StepDispatcher`]
-//!   (see `step_dispatcher` for the ranking, equivalence in `narrow_tests`); before ON, see
+//! * narrow phase (ON, CL): `narrow_phase::compute_contacts_from_scratch` with
+//!   `DefaultDispatcher`, i.e. `rapier_geometry2d::dispatch::contact_manifold_step` (ranking in
+//!   `crate::dispatcher`, equivalence in `narrow_tests`); before ON, see
 //!   `crate::dispatcher` (dispatcher) and, rejected, a per-kind
 //!   `match` in the pair loop (`compute_contacts_by_kind`), per-kind bucket loops
 //!   (`compute_contacts_bucketed`) and a one-iteration loop around each per-kind `process_pair`
@@ -127,7 +128,7 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, JointEnabled};
 use rapier_dynamics2d::narrow_phase::{
-    ContactPair, NarrowPhase, NarrowPhaseTrait, PairCollider, compute_contacts_from_scratch,
+    NarrowPhase, NarrowPhaseTrait, PairCollider, compute_contacts_from_scratch,
 };
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
@@ -135,10 +136,9 @@ use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
 use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
-use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::ShapeTrait;
-use crate::pipeline::step_dispatcher::StepDispatcher;
+use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
 
 #[cfg(test)]
@@ -155,13 +155,16 @@ pub(crate) mod narrow_alternatives;
 mod narrow_benches;
 #[cfg(test)]
 mod narrow_tests;
+
+mod ordering;
 #[cfg(test)]
 pub(crate) mod solve_alternatives;
 #[cfg(test)]
 mod solve_benches;
-pub mod step_dispatcher;
 #[cfg(test)]
 mod tests;
+pub(crate) use ordering::fixed_last_flag;
+pub use ordering::{scatter_touching, scatter_touching_split, solve_order, touching_manifolds};
 
 
 /// One step of `world` (see the module documentation for the stages); returns the collision
@@ -175,7 +178,7 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span());
     let events = compute_contacts_from_scratch::<
-        StepDispatcher,
+        DefaultDispatcher,
     >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
     solve_and_advance(
         world.gravity,
@@ -477,7 +480,7 @@ fn move_colliders(body: RigidBody, ref colliders: ColliderSet) {
 }
 
 /// Stage 2 (upstream `detect_collisions`): stateless broad phase over proxies loosened by half
-/// the prediction distance, then the narrow phase with [`StepDispatcher`]. Returns the
+/// the prediction distance, then the narrow phase with [`DefaultDispatcher`]. Returns the
 /// collision events.
 pub fn detect_collisions(
     params: IntegrationParameters,
@@ -489,7 +492,7 @@ pub fn detect_collisions(
     let proxies = colliders.broad_phase_proxies(ref bodies, prediction);
     let pairs = find_pairs(proxies.span());
     narrow_phase
-        .compute_contacts::<StepDispatcher>(prediction, ref bodies, ref colliders, pairs.span())
+        .compute_contacts::<DefaultDispatcher>(prediction, ref bodies, ref colliders, pairs.span())
 }
 
 /// Stage 3 (upstream `build_islands_and_solve_velocity_constraints`, one island): gathers the
@@ -617,146 +620,6 @@ pub fn solve_and_advance(
             dense += 1;
         }
     }
-}
-
-/// The manifolds of the pairs that have at least one solver contact, in pair order. The solver
-/// input is [`solve_order`] of this list.
-pub fn touching_manifolds(pairs: Span<ContactPair>) -> Array<ContactManifold> {
-    let mut out = array![];
-    for pair in pairs {
-        if *pair.manifold.data.num_solver_contacts != 0 {
-            out.append(*pair.manifold);
-        }
-    }
-    out
-}
-
-/// D8: whether a manifold between `body1` and `body2` goes to the second solve group: it has a
-/// fixed body or no body. Upstream colours a touching pair with the lowest free colour when both
-/// bodies are non-fixed (kinematic included: `RigidBody::is_fixed` is `body_type == Fixed`) and
-/// with the highest free colour otherwise ("fixed geometry the final say each sweep"), and solves
-/// the colours in ascending order. `entries` holds every body in ascending arena slot.
-#[inline(always)]
-fn fixed_last_flag(
-    entries: Span<(Handle, RigidBody)>, body1: Option<Handle>, body2: Option<Handle>,
-) -> bool {
-    match (body1, body2) {
-        (Some(h1), Some(h2)) => is_fixed_body(entries, h1) || is_fixed_body(entries, h2),
-        _ => true,
-    }
-}
-
-/// Whether the body of `handle` is fixed; a handle `entries` lacks counts as non-fixed. The
-/// position of a body in `entries` is at most its arena slot (equal while no body was removed),
-/// so the lookup starts at the slot and walks down over the holes.
-fn is_fixed_body(entries: Span<(Handle, RigidBody)>, handle: Handle) -> bool {
-    if entries.is_empty() {
-        return false;
-    }
-    let mut position = handle.index;
-    if position >= entries.len() {
-        position = entries.len() - 1;
-    }
-    let mut fixed = false;
-    loop {
-        let (candidate, body) = entries.at(position);
-        if candidate.index == @handle.index {
-            fixed = *body.body_type == RigidBodyType::Fixed;
-            break;
-        }
-        if candidate.index < @handle.index || position == 0 {
-            break;
-        }
-        position -= 1;
-    }
-    fixed
-}
-
-/// The stable partition of `manifolds` (pair order): the entries flagged `false` (in order), then
-/// those flagged `true`.
-fn partition(manifolds: Span<ContactManifold>, flags: Span<bool>) -> Array<ContactManifold> {
-    let mut first = array![];
-    let mut last = array![];
-    let mut next = flags;
-    for manifold in manifolds {
-        if *next.pop_front().unwrap() {
-            last.append(*manifold);
-        } else {
-            first.append(*manifold);
-        }
-    }
-    first.append_span(last.span());
-    first
-}
-
-/// D8: the touching manifolds of `pairs` (as [`touching_manifolds`]) as the stable partition of
-/// the ascending pair order into the manifolds between two non-fixed bodies, then the manifolds
-/// with a fixed body or no body (see [`fixed_last_flag`]). `entries` holds every body
-/// (`user_changes_bodies`, ascending arena slot). Returns the manifolds in solve order and, per
-/// touching pair in pair order, whether it went to the second group (the argument of
-/// [`scatter_touching`]).
-pub fn solve_order(
-    pairs: Span<ContactPair>, entries: Span<(Handle, RigidBody)>,
-) -> (Array<ContactManifold>, Array<bool>) {
-    let mut first = array![];
-    let mut last = array![];
-    let mut flags = array![];
-    for pair in pairs {
-        if *pair.manifold.data.num_solver_contacts != 0 {
-            let manifold = *pair.manifold;
-            let fixed_last = fixed_last_flag(
-                entries, manifold.data.rigid_body1, manifold.data.rigid_body2,
-            );
-            flags.append(fixed_last);
-            if fixed_last {
-                last.append(manifold);
-            } else {
-                first.append(manifold);
-            }
-        }
-    }
-    first.append_span(last.span());
-    (first, flags)
-}
-
-/// `pairs` with the manifold of each touching pair replaced by its solved manifold. `solved` is
-/// the output of `solve_island` on [`solve_order`]'s manifolds and `last` its flags: the pairs
-/// flagged `false` take `solved` from the front in pair order, the others from the point where
-/// that group ends.
-pub fn scatter_touching(
-    pairs: Span<ContactPair>, solved: Span<ContactManifold>, last: Span<bool>,
-) -> Array<ContactPair> {
-    let mut n_first = 0;
-    for fixed_last in last {
-        if !*fixed_last {
-            n_first += 1;
-        }
-    }
-    scatter_touching_split(pairs, solved, last, n_first)
-}
-
-/// [`scatter_touching`] with the size of the first group given.
-pub fn scatter_touching_split(
-    pairs: Span<ContactPair>, solved: Span<ContactManifold>, last: Span<bool>, n_first: u32,
-) -> Array<ContactPair> {
-    let mut first = solved.slice(0, n_first);
-    let mut rest = solved.slice(n_first, solved.len() - n_first);
-    let mut flags = last;
-    let mut out = array![];
-    for pair in pairs {
-        let mut pair = *pair;
-        if pair.manifold.data.num_solver_contacts != 0 {
-            pair
-                .manifold =
-                    if *flags.pop_front().unwrap() {
-                        *rest.pop_front().unwrap()
-                    } else {
-                        *first.pop_front().unwrap()
-                    };
-        }
-        out.append(pair);
-    }
-    out
 }
 
 pub(crate) fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
