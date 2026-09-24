@@ -22,6 +22,26 @@ pub struct ConvexPolygon {
     pub count: u8,
 }
 
+/// Box serialization is the polygon value, with no address or allocation identity.
+pub impl BoxedConvexPolygonSerde of Serde<Box<ConvexPolygon>> {
+    fn serialize(self: @Box<ConvexPolygon>, ref output: Array<felt252>) {
+        let value = (*self).unbox();
+        value.serialize(ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<Box<ConvexPolygon>> {
+        Some(BoxTrait::new(Serde::<ConvexPolygon>::deserialize(ref serialized)?))
+    }
+}
+/// Structural equality of boxed polygons, independent of allocation identity.
+pub impl BoxedConvexPolygonPartialEq of PartialEq<Box<ConvexPolygon>> {
+    fn eq(lhs: @Box<ConvexPolygon>, rhs: @Box<ConvexPolygon>) -> bool {
+        (*lhs).unbox() == (*rhs).unbox()
+    }
+    fn ne(lhs: @Box<ConvexPolygon>, rhs: @Box<ConvexPolygon>) -> bool {
+        !Self::eq(lhs, rhs)
+    }
+}
+
 /// Polygon invariant and arithmetic failures.
 pub mod errors {
     /// Vertex index outside the live range.
@@ -213,6 +233,27 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
         }
         bounds
     }
+    /// Upstream point-cloud sphere: arithmetic mean of the vertices, then the greatest
+    /// distance to that center. Mean components truncate toward zero; radius floors.
+    /// Panics if sums, differences, wide squared norms or radius exceed their numeric ranges.
+    fn compute_local_bounding_sphere(self: ConvexPolygon) -> (Vec2, Fixed) {
+        let mut center = Vec2Trait::ZERO;
+        let mut i = 0;
+        while i != self.count { center = center + self.vertex(i); i += 1; }
+        let n: i64 = self.count.into();
+        center = Vec2 { x: Fixed { raw: center.x.raw / n }, y: Fixed { raw: center.y.raw / n } };
+        let mut farthest = Vec2Trait::ZERO;
+        let mut max_sq = 0;
+        i = 0;
+        while i != self.count {
+            let delta = self.vertex(i) - center;
+            let sq = dot_wide(delta.x,delta.y,delta.x,delta.y);
+            if sq > max_sq { max_sq = sq; farthest = delta; }
+            i += 1;
+        }
+        (center, fixed::wide::norm2(farthest.x,farthest.y))
+    }
+
     /// Uniform density mass properties; panics on unrepresentable intermediate values/inverses.
     fn mass_properties(self: ConvexPolygon, density: Fixed) -> MassProperties {
         MassPropertiesTrait::from_convex_polygon(density, self)

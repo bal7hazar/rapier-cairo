@@ -40,7 +40,11 @@ fn emit(
         })
         .collect::<Vec<_>>();
     module.table(ty, "ALL", "cases", &cases);
-    let mut types = ALL_TYPES.to_vec();
+    let mut types: Vec<_> = ALL_TYPES
+        .iter()
+        .copied()
+        .filter(|name| !["AabbCase", "ShapeMassCase"].contains(name))
+        .collect();
     types.extend([
         "ConvexPolygonRaw",
         "PolygonAabbCase",

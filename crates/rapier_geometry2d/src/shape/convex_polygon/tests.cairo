@@ -69,7 +69,7 @@ fn test_box_queries_and_mass() {
     let bounds = Aabb { mins: v(-ONE, -ONE), maxs: v(ONE, ONE) };
     assert_eq!(p.compute_local_aabb(), bounds);
     assert_eq!(p.compute_aabb(pose()), bounds);
-    assert_eq!(Shape::ConvexPolygon(p).compute_aabb(pose()), bounds);
+    assert_eq!(Shape::ConvexPolygon(BoxTrait::new(p)).compute_aabb(pose()), bounds);
     assert_eq!(p.local_support_point(v(ONE, ZERO)), v(ONE, -ONE));
     assert_eq!(p.support_point(v(ZERO, ZERO)), v(-ONE, -ONE));
     let feature = p.support_feature(v(ONE, ZERO));
@@ -215,11 +215,6 @@ fn gas_ray() {
     let _ = cast_local_ray_convex_polygon(opaque(square()), ray(), TWO, false);
 }
 #[test]
-fn gas_ray_normal() {
-    let _ = cast_local_ray_and_get_normal_convex_polygon(opaque(square()), ray(), TWO, false);
-}
-
-#[test]
 fn gas_aabb_support() {
     let _ = super::alternatives::compute_aabb_support(opaque(square()), pose());
 }
@@ -243,7 +238,7 @@ fn fuzz_aabb_variants(angle: u8, tx: i16, ty: i16) {
 fn test_polygon_contacts_dispatch() {
     use crate::contact::ContactManifold;
     use crate::shape::{Ball, HalfSpace};
-    let polygon = Shape::ConvexPolygon(square());
+    let polygon = Shape::ConvexPolygon(BoxTrait::new(square()));
     let mut m: ContactManifold = Default::default();
     assert!(
         crate::dispatch::contact_manifold(
@@ -294,8 +289,57 @@ fn test_entry_rounding_to_zero_keeps_entry_face() {
 }
 
 #[test]
-fn gas_shape_dispatch() {
-    let p = Shape::ConvexPolygon(opaque(square()));
+fn gas_bounding_sphere() {
+    let polygon = opaque(square());
+    let _ = polygon.compute_local_bounding_sphere();
+    let p = Shape::ConvexPolygon(BoxTrait::new(polygon));
     let _ = p.as_convex_polygon();
     let _ = p.shape_type();
+}
+
+#[test]
+fn test_boxed_shape_serialization_and_equality() {
+    let a = Shape::ConvexPolygon(BoxTrait::new(square()));
+    let b = Shape::ConvexPolygon(BoxTrait::new(square()));
+    assert_eq!(a, b);
+    let mut data = array![];
+    a.serialize(ref data);
+    // Tag, 16 vertex components, 16 normal components, count; no pointer identity.
+    assert_eq!(data.len(), 34);
+    assert_eq!(*data.at(0), 5);
+    let mut serialized = data.span();
+    assert_eq!(Serde::<Shape>::deserialize(ref serialized), Some(a));
+    assert!(serialized.is_empty());
+}
+
+#[test]
+fn test_mass_density_zero_and_negative() {
+    for density in [ZERO, -ONE, TWO].span() {
+        let got = square().mass_properties(*density);
+        let expected = crate::mass::MassPropertiesTrait::from_cuboid(*density, v(ONE, ONE));
+        assert_eq!(got.local_com, expected.local_com);
+        assert_eq!(got.inv_mass, expected.inv_mass);
+        assert!(
+            rapier_golden::compare::abs_diff(
+                got.inv_principal_inertia.raw, expected.inv_principal_inertia.raw,
+            ) <= 2,
+        );
+    }
+}
+
+#[test]
+#[should_panic(expected: 'i64_sub Overflow')]
+fn test_unrepresentable_edge_panics() {
+    let _ = ConvexPolygonTrait::from_convex_polyline(
+        [v(fixed::MIN, ZERO), v(fixed::MAX, ZERO), v(ZERO, ONE)].span(),
+    );
+}
+
+#[test]
+fn test_triangle_bounding_sphere_uses_vertex_mean() {
+    let p = ConvexPolygonTrait::from_convex_polyline(
+        [v(-ONE,-ONE),v(ONE,-ONE),v(ZERO,ONE)].span()).unwrap();
+    let (center,radius) = p.compute_local_bounding_sphere();
+    assert_eq!(center,v(ZERO,Fixed { raw:-1431655765 }));
+    assert_eq!(radius,Fixed { raw:5726623061 });
 }

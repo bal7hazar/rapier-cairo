@@ -3,7 +3,7 @@
 
 //! Convex polygon golden additions (Parry f64 0.30.2).
 
-use crate::types::{AabbCase, ConvexPolygonRaw, PolygonAabbCase, PoseRaw, RotRaw, Vec2Raw};
+use crate::types::{ConvexPolygonRaw, PolygonAabbCase, PoseRaw, RotRaw, Vec2Raw};
 
 pub const POLY_TRI_IDENTITY: PolygonAabbCase = PolygonAabbCase {
     id: 'poly_tri/identity',

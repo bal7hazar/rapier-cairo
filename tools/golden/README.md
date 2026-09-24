@@ -915,3 +915,9 @@ vertices or assuming convexity. Convex hull construction and scaling remain defe
 It is tagged `gjk_degenerate`, not an ambiguous nearest-point tie. The Cairo regression checks
 both the recorded upstream distance and the exact analytic point/distance; other fixtures
 compare directly against upstream within their stated tolerances.
+
+`ConvexPolygon` retains the specified fixed arrays. `Shape::ConvexPolygon` stores
+`Box<ConvexPolygon>` so adding this shape does not enlarge every collider's enum payload
+from 6 to 34 field elements. Box serialization and equality delegate to the value. Construct
+it with `Shape::ConvexPolygon(BoxTrait::new(polygon))`; `as_convex_polygon()` returns the value.
+The rejected unboxed representation is retained in `shape::alternatives` and its AABB probes.

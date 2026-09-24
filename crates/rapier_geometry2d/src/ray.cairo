@@ -123,7 +123,7 @@ pub fn cast_local_ray(
         Shape::Segment(s) => cast_local_ray_segment(s, ray, max_time_of_impact, solid),
         Shape::HalfSpace(s) => cast_local_ray_halfspace(s, ray, max_time_of_impact, solid),
         Shape::ConvexPolygon(s) => convex_polygon::cast_local_ray_convex_polygon(
-            s, ray, max_time_of_impact, solid,
+            s.unbox(), ray, max_time_of_impact, solid,
         ),
     }
 }
@@ -147,7 +147,7 @@ pub fn cast_local_ray_and_get_normal(
             s, ray, max_time_of_impact, solid,
         ),
         Shape::ConvexPolygon(s) => convex_polygon::cast_local_ray_and_get_normal_convex_polygon(
-            s, ray, max_time_of_impact, solid,
+            s.unbox(), ray, max_time_of_impact, solid,
         ),
         Shape::HalfSpace(s) => cast_local_ray_and_get_normal_halfspace(
             s, ray, max_time_of_impact, solid,

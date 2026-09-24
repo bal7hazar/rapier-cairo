@@ -94,7 +94,7 @@ fn test_polygon_projection() {
 #[test]
 fn test_polygon_ray() {
     for c in polygon_ray::cases() {
-        let p = Shape::ConvexPolygon(polygon(*c.shape));
+        let p = Shape::ConvexPolygon(BoxTrait::new(polygon(*c.shape)));
         let r = Ray { origin: v(*c.origin), dir: v(*c.dir) };
         for (solid, expected) in [(true, *c.solid), (false, *c.hollow)].span() {
             let hit = cast_ray_and_get_normal(

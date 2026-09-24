@@ -3,9 +3,9 @@
 //! Frozen in `docs/interfaces/geometry-dynamics.md` §4; the type is fixed, the constructors per
 //! shape, `transform_by` and the combination of two properties are work package GB.
 //!
-//! Every formula is a fused kernel: exact wide products, one floor per output (the composed-ops
-//! forms live in `alternatives` and are ranked by the `gas_*` probes). Inverses go through
-//! `rapier_math::inv`, so a zero mass or inertia stays an infinite one.
+//! The disc/box/capsule formulas use fused kernels: exact wide products, one floor per output (the
+//! composed-ops forms live in `alternatives` and are ranked by the `gas_*` probes). Inverses go
+//! through `rapier_math::inv`, so a zero mass or inertia stays an infinite one.
 //! `inv_mass == 0` means infinite mass, and `rapier_math::math_ext::inv` (`inv(0) = 0`) is what
 //! makes fixed bodies work without special cases.
 

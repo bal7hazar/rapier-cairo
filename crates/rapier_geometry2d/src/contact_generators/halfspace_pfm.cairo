@@ -179,7 +179,7 @@ fn halfspace_pfm_generic(
     let normal1_2 = pos12.inverse_transform_vector(halfspace1.normal);
     let maybe = match pfm2 {
         Shape::Cuboid(c) => Some((c.support_feature(-normal1_2), ZERO)),
-        Shape::ConvexPolygon(c) => Some((c.support_feature(-normal1_2), ZERO)),
+        Shape::ConvexPolygon(c) => Some((c.unbox().support_feature(-normal1_2), ZERO)),
         Shape::Segment(s) => Some((segment_feature(s), ZERO)),
         Shape::Capsule(c) => Some((segment_feature(c.segment), c.radius)),
         _ => None,
