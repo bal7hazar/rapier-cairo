@@ -17,7 +17,6 @@ use rapier_geometry2d::broad_phase::find_pairs;
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_golden::scenes;
 use crate::dispatcher::DefaultDispatcher;
-use crate::pipeline::step_dispatcher::StepDispatcher;
 use crate::world::{World, WorldTrait};
 use super::alternatives::{
     InlineDispatcher, OutlinedDispatcher, ProxyCacheTrait, compute_contacts_bucketed,
@@ -106,7 +105,7 @@ fn narrow_phase(ref world: World, pairs: Span<(u32, u32)>, variant: u8) -> Array
     } else {
         world
             .narrow_phase
-            .compute_contacts::<DefaultDispatcher>(p, ref world.bodies, ref world.colliders, pairs)
+            .compute_contacts::<InlineDispatcher>(p, ref world.bodies, ref world.colliders, pairs)
     }
 }
 
@@ -380,7 +379,7 @@ fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
     };
     let pairs = find_pairs(proxies.span());
     let events = compute_contacts_from_scratch::<
-        StepDispatcher,
+        DefaultDispatcher,
     >(ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders);
     solve(
         world.gravity,
@@ -507,7 +506,7 @@ fn oi_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, p);
     let pairs = find_pairs(proxies.span());
     let events = compute_contacts_from_scratch::<
-        StepDispatcher,
+        DefaultDispatcher,
     >(ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders);
     let g = world.gravity;
     let ip = world.integration_parameters;

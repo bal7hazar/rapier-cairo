@@ -1,6 +1,6 @@
-//! Work package ON: the shipped narrow phase (`compute_contacts_from_scratch::<StepDispatcher>`)
+//! Work package ON: the shipped narrow phase (`compute_contacts_from_scratch::<DefaultDispatcher>`)
 //! against the loop shipped before ON (`narrow_alternatives::compute_contacts_outlined` with
-//! `DefaultDispatcher`) and against the other candidates, raw compare of the events and of every
+//! `InlineDispatcher`) and against the other candidates, raw compare of the events and of every
 //! pair (manifold points, warm-start data, solver data, event status) after each step. Between
 //! steps both worlds get the same user edits: collision events and every combine rule on, then a
 //! collision-group filter and a solver-group filter, then a removed collider and a moved body.
@@ -18,12 +18,12 @@ use rapier_dynamics2d::narrow_phase::{SortedMerge, compute_contacts_from_scratch
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
 use rapier_geometry2d::broad_phase::find_pairs;
 use crate::dispatcher::DefaultDispatcher;
+use crate::pipeline::alternatives::InlineDispatcher;
 use crate::world::{World, WorldTrait};
 use super::fixtures::{p3_scene, random_world};
 use super::narrow_alternatives::{
     PersistentDispatcher, compute_contacts_inlined, compute_contacts_outlined,
 };
-use super::step_dispatcher::StepDispatcher;
 use super::{collision_inputs, solve_and_advance, user_changes_bodies};
 
 /// 0.1 in Q32.32.
@@ -33,7 +33,7 @@ const ONE_TENTH: Fixed = Fixed { raw: 429496730 };
 const SHIPPED: u8 = 0;
 /// The pre-ON loop (reference).
 const OUTLINED: u8 = 1;
-/// The shipped loop with the metered `DefaultDispatcher`.
+/// The shipped loop with the metered `InlineDispatcher`.
 const METERED: u8 = 2;
 /// The shipped loop with `PersistentDispatcher`.
 const PERSISTENT: u8 = 3;
@@ -48,11 +48,11 @@ fn step_with(ref world: World, variant: u8) -> Array<CollisionEvent> {
     let pairs = find_pairs(proxies.span()).span();
     let events = if variant == SHIPPED {
         compute_contacts_from_scratch::<
-            StepDispatcher,
+            DefaultDispatcher,
         >(ref world.narrow_phase, prediction, scratch, pairs, ref world.colliders)
     } else if variant == METERED {
         compute_contacts_from_scratch::<
-            DefaultDispatcher,
+            InlineDispatcher,
         >(ref world.narrow_phase, prediction, scratch, pairs, ref world.colliders)
     } else if variant == PERSISTENT {
         compute_contacts_from_scratch::<
@@ -60,11 +60,11 @@ fn step_with(ref world: World, variant: u8) -> Array<CollisionEvent> {
         >(ref world.narrow_phase, prediction, scratch, pairs, ref world.colliders)
     } else if variant == INLINED {
         compute_contacts_inlined::<
-            DefaultDispatcher,
+            InlineDispatcher,
         >(ref world.narrow_phase, prediction, scratch, pairs, ref world.colliders)
     } else {
         compute_contacts_outlined::<
-            DefaultDispatcher, SortedMerge,
+            InlineDispatcher, SortedMerge,
         >(ref world.narrow_phase, prediction, scratch, pairs, ref world.colliders)
     };
     solve_and_advance(
