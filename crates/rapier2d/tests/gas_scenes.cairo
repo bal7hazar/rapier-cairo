@@ -212,7 +212,7 @@ fn gas_setup_free_fall1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 2880350)]
+#[available_gas(l2_gas: 2851681)]
 fn gas_step_free_fall1() {
     probe(opaque('free'), opaque(1), WARMUP_FREE_FALL, 1);
 }
@@ -223,7 +223,7 @@ fn gas_setup_free_fall8() {
 }
 
 #[test]
-#[available_gas(l2_gas: 17506038)]
+#[available_gas(l2_gas: 17276353)]
 fn gas_step_free_fall8() {
     probe(opaque('free'), opaque(8), WARMUP_FREE_FALL, 1);
 }
@@ -234,7 +234,7 @@ fn gas_setup_free_fall32() {
 }
 
 #[test]
-#[available_gas(l2_gas: 68308317)]
+#[available_gas(l2_gas: 67390649)]
 fn gas_step_free_fall32() {
     probe(opaque('free'), opaque(32), WARMUP_FREE_FALL, 1);
 }
@@ -245,7 +245,7 @@ fn gas_setup_balls_halfspace1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 9433471)]
+#[available_gas(l2_gas: 9430516)]
 fn gas_step_balls_halfspace1() {
     probe(opaque('balls'), opaque(1), WARMUP_CONTACTS, 1);
 }
@@ -256,7 +256,7 @@ fn gas_setup_balls_halfspace8() {
 }
 
 #[test]
-#[available_gas(l2_gas: 63902593)]
+#[available_gas(l2_gas: 63878916)]
 fn gas_step_balls_halfspace8() {
     probe(opaque('balls'), opaque(8), WARMUP_CONTACTS, 1);
 }
@@ -267,7 +267,7 @@ fn gas_setup_balls_halfspace32() {
 }
 
 #[test]
-#[available_gas(l2_gas: 254638114)]
+#[available_gas(l2_gas: 254543397)]
 fn gas_step_balls_halfspace32() {
     probe(opaque('balls'), opaque(32), WARMUP_CONTACTS, 1);
 }
@@ -278,7 +278,7 @@ fn gas_setup_cuboid_stack1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 9976673)]
+#[available_gas(l2_gas: 9973715)]
 fn gas_step_cuboid_stack1() {
     probe(opaque('stack'), opaque(1), WARMUP_CONTACTS, 1);
 }
@@ -289,7 +289,7 @@ fn gas_setup_cuboid_stack3() {
 }
 
 #[test]
-#[available_gas(l2_gas: 28932691)]
+#[available_gas(l2_gas: 28923788)]
 fn gas_step_cuboid_stack3() {
     probe(opaque('stack'), opaque(3), WARMUP_CONTACTS, 1);
 }
@@ -300,7 +300,7 @@ fn gas_setup_cuboid_stack5() {
 }
 
 #[test]
-#[available_gas(l2_gas: 47974773)]
+#[available_gas(l2_gas: 47959925)]
 fn gas_step_cuboid_stack5() {
     probe(opaque('stack'), opaque(5), WARMUP_CONTACTS, 1);
 }
@@ -311,7 +311,7 @@ fn gas_setup_cuboid_stack10() {
 }
 
 #[test]
-#[available_gas(l2_gas: 95956509)]
+#[available_gas(l2_gas: 95926795)]
 fn gas_step_cuboid_stack10() {
     probe(opaque('stack'), opaque(10), WARMUP_CONTACTS, 1);
 }
@@ -322,7 +322,7 @@ fn gas_setup_mixed_pile8() {
 }
 
 #[test]
-#[available_gas(l2_gas: 108619322)]
+#[available_gas(l2_gas: 108595478)]
 fn gas_step_mixed_pile8() {
     probe(opaque('mixed'), opaque(8), WARMUP_CONTACTS, 1);
 }
@@ -333,7 +333,7 @@ fn gas_setup_pendulum_chain1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 17311082)]
+#[available_gas(l2_gas: 17225559)]
 fn gas_step_pendulum_chain1() {
     probe(opaque('pend'), opaque(1), WARMUP_PENDULUM, 1);
 }
@@ -344,7 +344,7 @@ fn gas_setup_pendulum_chain3() {
 }
 
 #[test]
-#[available_gas(l2_gas: 46424505)]
+#[available_gas(l2_gas: 46138701)]
 fn gas_step_pendulum_chain3() {
     probe(opaque('pend'), opaque(3), WARMUP_PENDULUM, 1);
 }
