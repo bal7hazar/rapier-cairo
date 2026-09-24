@@ -98,6 +98,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `clip2d.json` | 16 | `clip/<what>` | **G2** segment-against-segment clipping |
 | `point_projection.json` | 33 | `<shape>/<what>` | **G2** point projection on ball, cuboid, capsule, segment |
 | `segment_segment.json` | 24 | `seg/<what>` | **G2** closest points between two segments |
+| `ray_casts.json` | 64 | `<shape>/<regime>` | **QP** world-space ray casts on the five shapes, solid and hollow, see [ray_casts](#ray_casts) |
 
 ### contact_manifolds
 
@@ -543,6 +544,42 @@ division), `u` 2 ulp; ball 4 ulp away from the centre; capsule 8 ulp (normalisat
 8 ulp; discrete outputs (`is_inside`, feature, location kind) exact, except that a point within a few
 ulp of a region boundary may legitimately flip `OnVertex` / `OnEdge`: compare the points.
 
+### ray_casts
+
+Upstream: `RayCast::{cast_ray, cast_ray_and_get_normal}(pose, ray, max_time_of_impact, solid)`
+on `Ball`, `Cuboid`, `Capsule`, `Segment`, `HalfSpace`, parry `0.30.2` (the vendored patched
+copy). Each case places the shape at a pose (the identity except for the `*/posed` cases) and
+casts a world-space ray with a **non-normalised** `dir`, for `solid = true` and `false`. Both entry
+points are recorded (`toi` from `cast_ray`, `hit` = time, world normal, feature from
+`cast_ray_and_get_normal`) because they do not always agree. Regimes per shape: hit from
+outside, grazing / tangent, from inside (solid and hollow), parallel miss, pointing away,
+`max_toi` cut (and, for the ball, a hit exactly at `max_toi`, kept: `<=`), zero direction, and a
+posed cast. A `None` upstream result is `has_toi = false` / `hit = false` with zeroed fields.
+
+- **Two cuboid algorithms.** `cast_local_ray` is the slab loop with `tmin = 0`, `tmax = max`:
+  a hollow ray whose entry is 0 answers `tmax`, i.e. the exit clipped to `max` (`inside_max_cut`
+  answers `max` itself; `zero_dir_inside` hollow answers `max = 100`). `cast_local_ray_and_get_normal`
+  goes through `clip_aabb_line`: from inside, the exit only within `max`; from the boundary
+  pointing in (`boundary_in`), `t = 0`. Cuboid faces are `Face(0|1)` for `-x|-y` and `Face(3|4)`
+  for `+x|+y` (upstream's `+ 3`), `Unknown` for a zero `dir` inside; a solid ray from inside has a
+  zero normal and the feature of the exit face; a corner tie has the normal `-dir / |dir|`.
+- **Capsule = GJK upstream.** The feature is `Unknown`; a zero `dir` is a miss even inside; a
+  solid ray from inside answers `-dir / |dir|`. The normal is GJK's last search direction, up to
+  ~300 ulp from the exact one (`hit_cap`, `posed`).
+- **Upstream bug, `capsule/inside` hollow.** The hollow support-map cast shifts the origin by a
+  *length* along `dir / |dir|`, casts back along `-dir` (times in units of `|dir|`) and returns
+  `shift - toi_back`: correct only for a unit `dir`. With `|dir| = 1.118` upstream answers
+  `0.18122` where the exit is at `0.15` (the point it reports is outside the capsule). The case
+  is kept and the Cairo test checks that upstream's number is exactly that unit mix applied to the
+  port's exit; a port should answer the true exit.
+- **Half-space.** A solid ray strictly inside answers `t = 0` with a zero normal; a ray parallel
+  to the plane divides by zero upstream (`±inf` / `NaN`, rejected by the comparisons).
+- The exact centre of a ball as a solid origin gives a `NaN` normal (`non_finite_probes`).
+
+Tolerances: time of impact 4 ulp (every non-capsule case matched to the ulp), normals 8 ulp (max
+2 observed); capsule time of impact 16 ulp (0 observed) and normal 1024 ulp (GJK, 285 observed);
+hit / miss, `has_toi` and features exact.
+
 ### segment_segment
 
 Upstream: `query::details::closest_points_segment_segment_with_locations(pos12, seg1, seg2)` (Ericson's
@@ -608,6 +645,7 @@ raised, write down why.
 | manifolds, analytic pairs (all but `cuboid_capsule`) | 64 ulp on `dist` and points, 64 ulp per normal component | one `sqrt`, one division, a few products on magnitudes ≤ 4 |
 | manifolds, `cuboid_capsule` / `capsule_cuboid` | 2^16 ulp (1.5e-5) | upstream runs GJK/EPA, which stops on its own epsilon; the port plans an analytic generator (report 02 §4.1), so the two agree only up to GJK's convergence threshold |
 | manifolds, discrete outputs | exact unless `ambiguous` | point count, feature ids, which point comes first |
+| ray casts | 4 ulp time of impact, 8 ulp normal; capsule 16 / 1024 ulp | one correctly rounded quotient per time; the capsule normal is GJK's search direction upstream. Hit / miss and features exact. `capsule/inside` hollow is an upstream bug, see [ray_casts](#ray_casts) |
 | scenes `ball_drop`, `ball_bounce`, `pendulum`, `box_slope_*` | `2^12 · step` ulp on positions (≈ 1e-6 per step), twice that on velocities | single-contact or joint-only scenes have no solver-order ambiguity; the error is rounding accumulated over ~10³ operations per step, growing at most linearly while the motion is not chaotic. After the first bounce of `ball_bounce`, compare bounce apex and impact step rather than samples |
 | scene `box_stack3` | invariants, not samples | rest heights within `allowed_linear_error` (0.005) of `0.5 + i`, `|x| < 0.01`, final speeds `< 1e-3`; multi-contact ordering differs from upstream by construction (SO: in upstream's colour order the samples pass the scene tolerance) |
 
@@ -716,10 +754,11 @@ Read a scene with `scenes::cases().at(i)`, then walk `samples.span()` and, per s
 
 ### Leaf-level fixtures
 
-`generated/{pose2, aabb_overlap, sat2d, clip2d, point_projection, segment_segment}.cairo` follow
+`generated/{pose2, aabb_overlap, sat2d, clip2d, point_projection, segment_segment, ray_casts}.cairo` follow
 the same pattern (`pub const <CASE>`, `ALL`, `cases()`); `pose2` also has `ALL_CHAINS` /
 `chain_cases()` for the rotation chains. Case types are in `types.cairo` (`Pose2Case`,
-`RotChainCase`, `AabbOverlapCase`, `SatCase`, `ClipCase`, `ProjectionCase`, `SegmentPairCase`).
+`RotChainCase`, `AabbOverlapCase`, `SatCase`, `ClipCase`, `ProjectionCase`, `SegmentPairCase`,
+`RayCase`).
 Deviations from the scene format worth knowing:
 
 - `AabbOverlapCase` is a fixed-size array with a count (`aabbs: [OverlapBoxRaw; 32]` +

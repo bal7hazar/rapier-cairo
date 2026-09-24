@@ -912,6 +912,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("mass_properties", mass(vectors)),
         ("point_projection", leaf_families::point_projection(vectors)),
         ("pose2", leaf_families::pose2(vectors)),
+        ("ray_casts", leaf_families::ray_casts(vectors)),
         ("sat2d", leaf_families::sat2d(vectors)),
         ("scenes", scenes(vectors)),
         ("segment_segment", leaf_families::segment_segment(vectors)),

@@ -11,6 +11,7 @@ pub mod integration_parameters;
 pub mod mass_properties;
 pub mod point_projection;
 pub mod pose2;
+pub mod ray_casts;
 pub mod sat2d;
 pub mod scenes;
 pub mod segment_segment;

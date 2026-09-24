@@ -535,3 +535,36 @@ pub struct SegmentPairCase {
     /// `|p1 - pos12 * p2|²`.
     pub dist_sq: i64,
 }
+
+/// `RayIntersection`; `hit = false` stands for upstream's `None` (the other fields are zeroed).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RayHitRaw {
+    pub hit: bool,
+    pub time_of_impact: i64,
+    pub normal: Vec2Raw,
+    pub feature: PointFeatureRaw,
+}
+
+/// Upstream's answers for one value of `solid`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RayAnswerRaw {
+    /// `cast_ray` returned `Some(toi)`.
+    pub has_toi: bool,
+    pub toi: i64,
+    /// `cast_ray_and_get_normal`.
+    pub hit: RayHitRaw,
+}
+
+/// A world-space ray cast against one shape placed at `pose`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RayCase {
+    pub id: felt252,
+    pub shape: ShapeRaw,
+    pub pose: PoseRaw,
+    pub origin: Vec2Raw,
+    /// Not normalised: the time of impact is in units of `dir`.
+    pub dir: Vec2Raw,
+    pub max_toi: i64,
+    pub solid: RayAnswerRaw,
+    pub hollow: RayAnswerRaw,
+}

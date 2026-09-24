@@ -1,0 +1,1662 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "ray_casts",
+  "cases": [
+    {
+      "id": "ball/hit",
+      "note": "enters from -x, off-centre",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.10000000009313226], "raw": [-8589934592, 429496730] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.510102051462375, "raw": 6485838925 },
+          "hit": {
+            "time_of_impact": { "f64": 1.510102051462375, "raw": 6485838925 },
+            "normal": { "f64": [-0.9797958970752503, 0.2000000001862646], "raw": [-4208191335, 858993460] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.510102051462375, "raw": 6485838925 },
+          "hit": {
+            "time_of_impact": { "f64": 1.510102051462375, "raw": 6485838925 },
+            "normal": { "f64": [-0.9797958970752503, 0.2000000001862646], "raw": [-4208191335, 858993460] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/oblique",
+      "note": "diagonal hit",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, -1.5], "raw": [-8589934592, -6442450944] },
+      "dir": { "f64": [0.8000000000465661, 0.6000000000931323], "raw": [3435973837, 2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.999999999813736, "raw": 8589934591 },
+          "hit": {
+            "time_of_impact": { "f64": 1.999999999813736, "raw": 8589934591 },
+            "normal": {
+              "f64": [-0.8000000001117586, -0.5999999998509885],
+              "raw": [-3435973837, -2576980377]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.999999999813736, "raw": 8589934591 },
+          "hit": {
+            "time_of_impact": { "f64": 1.999999999813736, "raw": 8589934591 },
+            "normal": {
+              "f64": [-0.8000000001117586, -0.5999999998509885],
+              "raw": [-3435973837, -2576980377]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/unnormalized_dir",
+      "note": "|dir| = 4: toi is in units of dir (0.375)",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.0], "raw": [-8589934592, 0] },
+      "dir": { "f64": [4.0, 0.0], "raw": [17179869184, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.375, "raw": 1610612736 },
+          "hit": {
+            "time_of_impact": { "f64": 0.375, "raw": 1610612736 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.375, "raw": 1610612736 },
+          "hit": {
+            "time_of_impact": { "f64": 0.375, "raw": 1610612736 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/grazing",
+      "note": "tangent: delta == 0, single root",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.5], "raw": [-8589934592, 2147483648] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/inside",
+      "note": "solid: 0 with the inward normal; hollow: the exit",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.10000000009313226, 0.19999999995343387], "raw": [429496730, 858993459] },
+      "dir": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": {
+              "f64": [-0.4472135959164581, -0.8944271907916659],
+              "raw": [-1920767769, -3841535533]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.270813184535634, "raw": 1163133771 },
+          "hit": {
+            "time_of_impact": { "f64": 0.270813184535634, "raw": 1163133771 },
+            "normal": {
+              "f64": [-0.7416263692575326, -0.6708131844425018],
+              "raw": [-3185261002, -2881120689]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/on_surface_out",
+      "note": "on the circle pointing out: c == 0, b > 0, counts as inside",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/miss",
+      "note": "passes above: delta < 0",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 1.0], "raw": [-8589934592, 4294967296] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "ball/pointing_away",
+      "note": "c > 0 and b > 0: early exit",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "ball/max_toi_cut",
+      "note": "hit at 1.5 > max 1.0",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.0], "raw": [-8589934592, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 1.0, "raw": 4294967296 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "ball/max_toi_equal",
+      "note": "hit at exactly max: kept (<=)",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.0], "raw": [-8589934592, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 1.5, "raw": 6442450944 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.5, "raw": 6442450944 },
+          "hit": {
+            "time_of_impact": { "f64": 1.5, "raw": 6442450944 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.5, "raw": 6442450944 },
+          "hit": {
+            "time_of_impact": { "f64": 1.5, "raw": 6442450944 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/zero_dir_inside",
+      "note": "a == 0 inside: toi 0 for solid and hollow",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.10000000009313226, 0.19999999995343387], "raw": [429496730, 858993459] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": {
+              "f64": [-0.4472135959164581, -0.8944271907916659],
+              "raw": [-1920767769, -3841535533]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": {
+              "f64": [-0.4472135959164581, -0.8944271907916659],
+              "raw": [-1920767769, -3841535533]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "ball/zero_dir_outside",
+      "note": "a == 0 outside: miss",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "ball/posed",
+      "note": "ball at (1, 2), rotated 30 deg",
+      "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [-1.0, 2.199999999953434], "raw": [-4294967296, 9448928051] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.541742430510564, "raw": 6621733318 },
+          "hit": {
+            "time_of_impact": { "f64": 1.541742430510564, "raw": 6621733318 },
+            "normal": { "f64": [-0.9165151390678148, 0.39999999994568586], "raw": [-3936402549, 1717986918] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.541742430510564, "raw": 6621733318 },
+          "hit": {
+            "time_of_impact": { "f64": 1.541742430510564, "raw": 6621733318 },
+            "normal": { "f64": [-0.9165151390678148, 0.39999999994568586], "raw": [-3936402549, 1717986918] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/hit_face",
+      "note": "-x face",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 0.19999999995343387], "raw": [-12884901888, 858993459] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/hit_face_y",
+      "note": "+y face",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.5, "raw": 6442450944 },
+          "hit": {
+            "time_of_impact": { "f64": 1.5, "raw": 6442450944 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 4 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.5, "raw": 6442450944 },
+          "hit": {
+            "time_of_impact": { "f64": 1.5, "raw": 6442450944 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 4 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/oblique",
+      "note": "enters the -x face at an angle",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, -1.0], "raw": [-12884901888, -4294967296] },
+      "dir": { "f64": [1.0, 0.39999999990686774], "raw": [4294967296, 1717986918] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/corner_diag",
+      "note": "reaches both slabs at t = 1: near_diag, normal -dir/|dir|",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, -1.5], "raw": [-8589934592, -6442450944] },
+      "dir": { "f64": [1.0, 1.0], "raw": [4294967296, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": {
+              "f64": [-0.7071067811865475, -0.7071067811865475],
+              "raw": [-3037000500, -3037000500]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": {
+              "f64": [-0.7071067811865475, -0.7071067811865475],
+              "raw": [-3037000500, -3037000500]
+            },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/grazing_edge",
+      "note": "slides along the +y face: y == maxs is not outside",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 0.5], "raw": [-12884901888, 2147483648] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/inside",
+      "note": "solid: 0 with no normal; hollow: the exit",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+      "dir": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "feature": { "kind": "face", "code": 3 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.8000000000465661, "raw": 3435973837 },
+          "hit": {
+            "time_of_impact": { "f64": 0.8000000000465661, "raw": 3435973837 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 3 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/boundary_in",
+      "note": "on the -x face pointing in: near == 0 (cast_local_ray hollow returns the exit)",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/parallel_miss",
+      "note": "parallel to x above the box",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 0.6000000000931323], "raw": [-12884901888, 2576980378] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "cuboid/pointing_away",
+      "note": "far slab behind the origin",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "cuboid/max_toi_cut",
+      "note": "hit at 2 > max 1.5",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 0.0], "raw": [-12884901888, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 1.5, "raw": 6442450944 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "cuboid/inside_max_cut",
+      "note": "hollow exit at 1 > max 0.5: cast_local_ray returns max",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 0.5, "raw": 2147483648 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "feature": { "kind": "face", "code": 3 }
+          }
+        },
+        "hollow": { "toi": { "f64": 0.5, "raw": 2147483648 }, "hit": null }
+      }
+    },
+    {
+      "id": "cuboid/zero_dir_inside",
+      "note": "zero direction inside: toi 0, feature Unknown",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 100.0, "raw": 429496729600 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid/zero_dir_outside",
+      "note": "zero direction outside: miss",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "cuboid/posed",
+      "note": "box at (1, 2) rotated 30 deg",
+      "shape": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [-2.0, 2.0], "raw": [-8589934592, 8589934592] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 4 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 4 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/hit_side",
+      "note": "flat side",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.10000000009313226], "raw": [-8589934592, 429496730] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.7500000000009786, "raw": 7516192768 },
+          "hit": {
+            "time_of_impact": { "f64": 1.7500000000009786, "raw": 7516192768 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.7500000000009786, "raw": 7516192768 },
+          "hit": {
+            "time_of_impact": { "f64": 1.7500000000009786, "raw": 7516192768 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/hit_cap",
+      "note": "top cap",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.10000000009313226, 3.0], "raw": [429496730, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.2708712152928565, "raw": 9753317603 },
+          "hit": {
+            "time_of_impact": { "f64": 2.2708712152928565, "raw": 9753317603 },
+            "normal": { "f64": [0.4000000580622208, 0.9165151136507351], "raw": [1717987168, 3936402439] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.2708712152928565, "raw": 9753317603 },
+          "hit": {
+            "time_of_impact": { "f64": 2.2708712152928565, "raw": 9753317603 },
+            "normal": { "f64": [0.4000000580622208, 0.9165151136507351], "raw": [1717987168, 3936402439] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/oblique",
+      "note": "diagonal, bottom cap region",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, -2.0], "raw": [-8589934592, -8589934592] },
+      "dir": { "f64": [1.0, 1.1999999999534339], "raw": [4294967296, 5153960755] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.75, "raw": 7516192768 },
+          "hit": {
+            "time_of_impact": { "f64": 1.75, "raw": 7516192768 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.75, "raw": 7516192768 },
+          "hit": {
+            "time_of_impact": { "f64": 1.75, "raw": 7516192768 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/inside",
+      "note": "solid: 0 with -dir/|dir|; hollow: exit through the side, WRONG upstream (|dir| != 1, see README)",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.10000000009313226, 0.19999999995343387], "raw": [429496730, 858993459] },
+      "dir": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": {
+              "f64": [-0.8944271909999159, -0.4472135954999579],
+              "raw": [-3841535534, -1920767767]
+            },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.18122013450928892, "raw": 778334551 },
+          "hit": {
+            "time_of_impact": { "f64": 0.18122013450928892, "raw": 778334551 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/inside_cap_exit",
+      "note": "hollow exit through the top cap",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 0.30000000004656613], "raw": [0, 1288490189] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.44999999995343387, "raw": 1932735283 },
+          "hit": {
+            "time_of_impact": { "f64": 0.44999999995343387, "raw": 1932735283 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/parallel_miss",
+      "note": "parallel to the axis, outside",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.5, -3.0], "raw": [2147483648, -12884901888] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "capsule/miss",
+      "note": "passes above the top cap",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 2.0], "raw": [-8589934592, 8589934592] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "capsule/pointing_away",
+      "note": "behind the origin",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "capsule/max_toi_cut",
+      "note": "hit at 1.75 > max 1.5",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-2.0, 0.0], "raw": [-8589934592, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 1.5, "raw": 6442450944 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "capsule/unnormalized_dir",
+      "note": "|dir| = 2, bottom cap at t = 1.125",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, -3.0], "raw": [0, -12884901888] },
+      "dir": { "f64": [0.0, 2.0], "raw": [0, 8589934592] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.125, "raw": 4831838208 },
+          "hit": {
+            "time_of_impact": { "f64": 1.125, "raw": 4831838208 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.125, "raw": 4831838208 },
+          "hit": {
+            "time_of_impact": { "f64": 1.125, "raw": 4831838208 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/zero_dir_inside",
+      "note": "zero direction: GJK answers None even inside",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "capsule/oblique_shape",
+      "note": "oblique capsule, side hit",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [-0.5, -0.25], "raw": [-2147483648, -1073741824] },
+        "b": { "f64": [1.0, 0.75], "raw": [4294967296, 3221225472] },
+        "radius": { "f64": 0.30000000004656613, "raw": 1288490189 }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [1.5, -1.0], "raw": [6442450944, -4294967296] },
+      "dir": { "f64": [-1.0, 1.0], "raw": [-4294967296, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.0336669234376497, "raw": 4439565631 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0336669234376497, "raw": 4439565631 },
+            "normal": { "f64": [0.5547001962628922, -0.832050294312735], "raw": [2382419202, -3573628803] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.0336669234376497, "raw": 4439565631 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0336669234376497, "raw": 4439565631 },
+            "normal": { "f64": [0.5547001962628922, -0.832050294312735], "raw": [2382419202, -3573628803] },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "capsule/posed",
+      "note": "capsule at (-1.5, 0.25) rotated -135 deg",
+      "shape": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pose": {
+        "translation": { "f64": [-1.5, 0.25], "raw": [-6442450944, 1073741824] },
+        "rotation": { "f64": [-0.7071067811921239, -0.7071067811921239], "raw": [-3037000500, -3037000500] }
+      },
+      "origin": { "f64": [-3.0, 0.5], "raw": [-12884901888, 2147483648] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.9189016791293, "raw": 3946652660 },
+          "hit": {
+            "time_of_impact": { "f64": 0.9189016791293, "raw": 3946652660 },
+            "normal": {
+              "f64": [-0.9101796911053848, -0.41421362835507836],
+              "raw": [-3909192007, -1779033987]
+            },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.9189016791293, "raw": 3946652660 },
+          "hit": {
+            "time_of_impact": { "f64": 0.9189016791293, "raw": 3946652660 },
+            "normal": {
+              "f64": [-0.9101796911053848, -0.41421362835507836],
+              "raw": [-3909192007, -1779033987]
+            },
+            "feature": { "kind": "unknown", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/from_above",
+      "note": "normal . dir > 0: Face(1) with -normal",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/from_below",
+      "note": "normal . dir < 0: Face(0)",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, -2.0], "raw": [1288490189, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/oblique",
+      "note": "oblique segment",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "b": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [1.5, -1.0], "raw": [6442450944, -4294967296] },
+      "dir": { "f64": [-0.5, 1.0], "raw": [-2147483648, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.4, "raw": 6012954214 },
+          "hit": {
+            "time_of_impact": { "f64": 1.4, "raw": 6012954214 },
+            "normal": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.4, "raw": 6012954214 },
+          "hit": {
+            "time_of_impact": { "f64": 1.4, "raw": 6012954214 },
+            "normal": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/end_point",
+      "note": "hits b exactly: t == 1 is kept",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/beyond_end",
+      "note": "line hit beyond b: t > 1",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [1.5, 2.0], "raw": [6442450944, 8589934592] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "segment/collinear_ahead",
+      "note": "collinear, segment ahead: Vertex(0)",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 0.0], "raw": [-12884901888, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "vertex", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "vertex", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/collinear_rev",
+      "note": "collinear from the b side, |dir| = 2: Vertex(1)",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+      "dir": { "f64": [-2.0, 0.0], "raw": [-8589934592, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "vertex", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "vertex", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/collinear_on",
+      "note": "collinear, origin on the segment: toi 0, Face(0)",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "segment/collinear_behind",
+      "note": "collinear, segment behind: miss",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "segment/parallel_miss",
+      "note": "parallel, not collinear",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 1.0], "raw": [-12884901888, 4294967296] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "segment/behind",
+      "note": "s < 0",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "segment/max_toi_cut",
+      "note": "hit at 2 > max 1.5",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 1.5, "raw": 6442450944 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "segment/zero_dir",
+      "note": "zero direction on the segment: dot == 0, miss",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "segment/posed",
+      "note": "oblique segment at (1, 2) rotated 30 deg, interior hit",
+      "shape": {
+        "type": "segment",
+        "a": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "b": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] }
+      },
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [0.5, 4.0], "raw": [2147483648, 17179869184] },
+      "dir": { "f64": [0.5, -1.0], "raw": [2147483648, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.5690598923390906, "raw": 6739060923 },
+          "hit": {
+            "time_of_impact": { "f64": 1.5690598923390906, "raw": 6739060923 },
+            "normal": { "f64": [-0.8345119301457564, 0.550989871541618], "raw": [-3584201448, 2366483479] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.5690598923390906, "raw": 6739060923 },
+          "hit": {
+            "time_of_impact": { "f64": 1.5690598923390906, "raw": 6739060923 },
+            "normal": { "f64": [-0.8345119301457564, 0.550989871541618], "raw": [-3584201448, 2366483479] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "halfspace/from_above",
+      "note": "outside, hits the plane at t = 2",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "dir": { "f64": [0.5, -1.0], "raw": [2147483648, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "halfspace/inside_solid",
+      "note": "inside, parallel: solid 0 with a zero normal; hollow 1/0 miss",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": { "toi": null, "hit": null }
+      }
+    },
+    {
+      "id": "halfspace/inside_up",
+      "note": "inside pointing out: hollow exit at 0.5 with -normal",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "dir": { "f64": [0.0, 2.0], "raw": [0, 8589934592] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.5, "raw": 2147483648 },
+          "hit": {
+            "time_of_impact": { "f64": 0.5, "raw": 2147483648 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "halfspace/parallel_miss",
+      "note": "outside, parallel: -1/0 miss",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "halfspace/pointing_away",
+      "note": "t < 0",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "halfspace/on_plane",
+      "note": "origin on the plane: t = 0 (not inside, so normal +n)",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "dir": { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 0.0, "raw": 0 },
+          "hit": {
+            "time_of_impact": { "f64": 0.0, "raw": 0 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "halfspace/on_plane_parallel",
+      "note": "0/0: miss",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "halfspace/max_toi_cut",
+      "note": "hit at 2 > max 1.5",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "dir": { "f64": [0.5, -1.0], "raw": [2147483648, -4294967296] },
+      "max_toi": { "f64": 1.5, "raw": 6442450944 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "halfspace/zero_dir_outside",
+      "note": "zero direction outside: miss",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "dir": { "f64": [0.0, 0.0], "raw": [0, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "halfspace/posed",
+      "note": "plane through (1, 2) rotated 30 deg",
+      "shape": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [-2.0, 4.0], "raw": [-8589934592, 17179869184] },
+      "dir": { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.366025403769426, "raw": 10162001731 },
+          "hit": {
+            "time_of_impact": { "f64": 2.366025403769426, "raw": 10162001731 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.366025403769426, "raw": 10162001731 },
+          "hit": {
+            "time_of_impact": { "f64": 2.366025403769426, "raw": 10162001731 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    }
+  ],
+  "non_finite_probes": [{ "id": "probe/ball_center_solid", "normal_is_nan": true }]
+}
