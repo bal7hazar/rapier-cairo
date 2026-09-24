@@ -300,7 +300,7 @@ mod tests;
 #[cfg(test)]
 mod alternatives {
     use fixed::{ONE, ZERO};
-    use glam::Vec2;
+    use glam::{Vec2, Vec2Trait};
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2Trait;
     use crate::aabb::Aabb;
