@@ -9,8 +9,9 @@
 //! 2. collision detection: `ColliderSetTrait::broad_phase_proxies` → `find_pairs` →
 //!    `NarrowPhaseTrait::compute_contacts::<DefaultDispatcher>` with the prediction distance
 //!    (see [`detect_collisions`]);
-//! 3. [`solve`]: the manifolds that have solver contacts, in pair order (D8), and the impulse
-//!    joints in slot order go to `solve_island` over a `SolverBodyStore`; velocities and
+//! 3. [`solve`]: the manifolds that have solver contacts, in [`solve_order`] (D8: pairs of two
+//!    non-fixed bodies first, then pairs with a fixed body or none, each in pair order), and the
+//!    impulse joints in slot order go to `solve_island` over a `SolverBodyStore`; velocities and
 //!    `next_position` go back to the bodies, the solved impulses back into the narrow-phase pairs
 //!    (next step's warm start) and into the joint set;
 //! 4. [`advance_to_final_positions`]: `position ← next_position` for every enabled non-fixed
@@ -524,14 +525,16 @@ pub fn solve(
     ref narrow_phase: NarrowPhase,
     ref impulse_joints: ImpulseJointSet,
 ) {
-    let mut manifolds = touching_manifolds(narrow_phase.pairs.span());
+    let all = bodies.iter();
+    let (mut manifolds, flags) = solve_order(narrow_phase.pairs.span(), all.span());
     let joint_entries = impulse_joints.to_array();
     let mut joints = joint_values(joint_entries.span());
     let (mut store, _) = SolverBodyStoreTrait::from_bodies(ref bodies, gravity, params);
     solve_island(params, ref store, ref manifolds, ref joints);
     store.to_bodies(ref bodies);
     if !manifolds.is_empty() {
-        narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+        narrow_phase
+            .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), flags.span());
     }
     write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
 }
@@ -553,7 +556,9 @@ pub fn solve_and_advance(
     snapshot: Span<(Handle, Collider)>,
 ) {
     let mut constrained: Felt252Dict<bool> = Default::default();
-    let mut manifolds = array![];
+    let mut first = array![];
+    let mut last = array![];
+    let mut flags = array![];
     for pair in narrow_phase.pairs.span() {
         if *pair.manifold.data.num_solver_contacts != 0 {
             let manifold = *pair.manifold;
@@ -563,9 +568,20 @@ pub fn solve_and_advance(
             if let Some(h) = manifold.data.rigid_body2 {
                 constrained.insert(h.into(), true);
             }
-            manifolds.append(manifold);
+            let fixed_last = fixed_last_flag(
+                entries, manifold.data.rigid_body1, manifold.data.rigid_body2,
+            );
+            flags.append(fixed_last);
+            if fixed_last {
+                last.append(manifold);
+            } else {
+                first.append(manifold);
+            }
         }
     }
+    let n_first = first.len();
+    first.append_span(last.span());
+    let mut manifolds = first;
     let joint_entries = impulse_joints.to_array();
     let mut joints = joint_values(joint_entries.span());
     for joint in joints.span() {
@@ -599,7 +615,11 @@ pub fn solve_and_advance(
     if any {
         solve_island(params, ref store, ref manifolds, ref joints);
         if !manifolds.is_empty() {
-            narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+            narrow_phase
+                .pairs =
+                    scatter_touching_split(
+                        narrow_phase.pairs.span(), manifolds.span(), flags.span(), n_first,
+                    );
         }
         write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
     }
@@ -622,7 +642,8 @@ pub fn solve_and_advance(
     }
 }
 
-/// The manifolds of the pairs that have at least one solver contact, in pair order (D8).
+/// The manifolds of the pairs that have at least one solver contact, in pair order. The solver
+/// input is [`solve_order`] of this list.
 pub fn touching_manifolds(pairs: Span<ContactPair>) -> Array<ContactManifold> {
     let mut out = array![];
     for pair in pairs {
@@ -633,17 +654,128 @@ pub fn touching_manifolds(pairs: Span<ContactPair>) -> Array<ContactManifold> {
     out
 }
 
-/// `pairs` with the manifold of each touching pair replaced, in order, by the next entry of
-/// `solved` (the output of `solve_island` on [`touching_manifolds`]).
+/// D8: whether a manifold between `body1` and `body2` goes to the second solve group: it has a
+/// fixed body or no body. Upstream colours a touching pair with the lowest free colour when both
+/// bodies are non-fixed (kinematic included: `RigidBody::is_fixed` is `body_type == Fixed`) and
+/// with the highest free colour otherwise ("fixed geometry the final say each sweep"), and solves
+/// the colours in ascending order. `entries` holds every body in ascending arena slot.
+#[inline(always)]
+fn fixed_last_flag(
+    entries: Span<(Handle, RigidBody)>, body1: Option<Handle>, body2: Option<Handle>,
+) -> bool {
+    match (body1, body2) {
+        (Some(h1), Some(h2)) => is_fixed_body(entries, h1) || is_fixed_body(entries, h2),
+        _ => true,
+    }
+}
+
+/// Whether the body of `handle` is fixed; a handle `entries` lacks counts as non-fixed. The
+/// position of a body in `entries` is at most its arena slot (equal while no body was removed),
+/// so the lookup starts at the slot and walks down over the holes.
+fn is_fixed_body(entries: Span<(Handle, RigidBody)>, handle: Handle) -> bool {
+    if entries.is_empty() {
+        return false;
+    }
+    let mut position = handle.index;
+    if position >= entries.len() {
+        position = entries.len() - 1;
+    }
+    let mut fixed = false;
+    loop {
+        let (candidate, body) = entries.at(position);
+        if candidate.index == @handle.index {
+            fixed = *body.body_type == RigidBodyType::Fixed;
+            break;
+        }
+        if candidate.index < @handle.index || position == 0 {
+            break;
+        }
+        position -= 1;
+    }
+    fixed
+}
+
+/// The stable partition of `manifolds` (pair order): the entries flagged `false` (in order), then
+/// those flagged `true`.
+fn partition(manifolds: Span<ContactManifold>, flags: Span<bool>) -> Array<ContactManifold> {
+    let mut first = array![];
+    let mut last = array![];
+    let mut next = flags;
+    for manifold in manifolds {
+        if *next.pop_front().unwrap() {
+            last.append(*manifold);
+        } else {
+            first.append(*manifold);
+        }
+    }
+    first.append_span(last.span());
+    first
+}
+
+/// D8: the touching manifolds of `pairs` (as [`touching_manifolds`]) as the stable partition of
+/// the ascending pair order into the manifolds between two non-fixed bodies, then the manifolds
+/// with a fixed body or no body (see [`fixed_last_flag`]). `entries` holds every body
+/// (`user_changes_bodies`, ascending arena slot). Returns the manifolds in solve order and, per
+/// touching pair in pair order, whether it went to the second group (the argument of
+/// [`scatter_touching`]).
+pub fn solve_order(
+    pairs: Span<ContactPair>, entries: Span<(Handle, RigidBody)>,
+) -> (Array<ContactManifold>, Array<bool>) {
+    let mut first = array![];
+    let mut last = array![];
+    let mut flags = array![];
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            let manifold = *pair.manifold;
+            let fixed_last = fixed_last_flag(
+                entries, manifold.data.rigid_body1, manifold.data.rigid_body2,
+            );
+            flags.append(fixed_last);
+            if fixed_last {
+                last.append(manifold);
+            } else {
+                first.append(manifold);
+            }
+        }
+    }
+    first.append_span(last.span());
+    (first, flags)
+}
+
+/// `pairs` with the manifold of each touching pair replaced by its solved manifold. `solved` is
+/// the output of `solve_island` on [`solve_order`]'s manifolds and `last` its flags: the pairs
+/// flagged `false` take `solved` from the front in pair order, the others from the point where
+/// that group ends.
 pub fn scatter_touching(
-    pairs: Span<ContactPair>, solved: Span<ContactManifold>,
+    pairs: Span<ContactPair>, solved: Span<ContactManifold>, last: Span<bool>,
 ) -> Array<ContactPair> {
-    let mut solved = solved;
+    let mut n_first = 0;
+    for fixed_last in last {
+        if !*fixed_last {
+            n_first += 1;
+        }
+    }
+    scatter_touching_split(pairs, solved, last, n_first)
+}
+
+/// [`scatter_touching`] with the size of the first group given.
+pub fn scatter_touching_split(
+    pairs: Span<ContactPair>, solved: Span<ContactManifold>, last: Span<bool>, n_first: u32,
+) -> Array<ContactPair> {
+    let mut first = solved.slice(0, n_first);
+    let mut rest = solved.slice(n_first, solved.len() - n_first);
+    let mut flags = last;
     let mut out = array![];
     for pair in pairs {
         let mut pair = *pair;
         if pair.manifold.data.num_solver_contacts != 0 {
-            pair.manifold = *solved.pop_front().unwrap();
+            pair
+                .manifold =
+                    if *flags.pop_front().unwrap() {
+                        *rest.pop_front().unwrap()
+                    } else {
+                        *first.pop_front().unwrap()
+                    };
         }
         out.append(pair);
     }

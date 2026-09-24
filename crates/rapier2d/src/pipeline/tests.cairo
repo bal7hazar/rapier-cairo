@@ -1,8 +1,9 @@
 //! Unit tests of the pipeline stages, and equivalence of every candidate in `alternatives` with
 //! the shipped stage (same state in, same state and events out).
 
-use fixed::{HALF, ONE, ZERO};
+use fixed::{FixedTrait, HALF, ONE, ZERO};
 use rapier_core::integration_parameters::IntegrationParametersTrait;
+use rapier_core::rigid_body::RigidBodyType;
 use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::events::CollisionEvent;
@@ -32,8 +33,9 @@ use super::solve_alternatives::{
     solve_and_advance_metered, solve_and_advance_separate_marking,
 };
 use super::{
-    advance_with_snapshot, collision_inputs, contacts_from_scratch, handle_user_changes,
-    scatter_touching, solve, touching_manifolds, user_changes_bodies, user_changes_snapshot,
+    advance_with_snapshot, collision_inputs, contacts_from_scratch, detect_collisions,
+    handle_user_changes, scatter_touching, solve, solve_order, touching_manifolds,
+    user_changes_bodies, user_changes_snapshot,
 };
 
 fn world_of(id: felt252) -> World {
@@ -235,9 +237,12 @@ fn test_touching_manifolds_round_trip() {
     assert!(pairs.len() >= 2);
     let touching = touching_manifolds(pairs);
     assert_eq!(touching.len(), 1);
-    let mut solved: ContactManifold = *touching.at(0);
+    let entries = world.bodies.iter();
+    let (ordered, last) = solve_order(pairs, entries.span());
+    assert_eq!(ordered.span(), touching.span());
+    let mut solved: ContactManifold = *ordered.at(0);
     solved.subshape1 = 7;
-    let out = scatter_touching(pairs, array![solved].span());
+    let out = scatter_touching(pairs, array![solved].span(), last.span());
     assert_eq!(out.len(), pairs.len());
     let mut i = 0;
     while i != pairs.len() {
@@ -387,6 +392,100 @@ fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
         advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
     }
     events
+}
+
+/// Colliders in insertion order: 0 a platform without a body, 1 a fixed body's box, 2 and 3
+/// dynamic boxes, 4 a kinematic box, side by side from `x = -1` on, all resting on the platform;
+/// no gravity. The touching pairs in pair order are `(0,2) (0,3) (1,2) (2,3) (3,4)` (fixed and
+/// kinematic bodies, and a body and a parentless collider, do not collide with the platform).
+fn order_world(hole: bool) -> World {
+    let mut world = WorldTrait::new(v(ZERO, ZERO), Default::default());
+    let spare = world.insert_body(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+    let half = ColliderBuilderTrait::cuboid(HALF, HALF);
+    let _ = world
+        .insert_collider(
+            ColliderBuilderTrait::cuboid(FixedTrait::from_int(3), HALF)
+                .position(at(HALF, -HALF))
+                .build(),
+            None,
+        );
+    let mut x = -ONE;
+    for kind in array![
+        RigidBodyType::Fixed, RigidBodyType::Dynamic, RigidBodyType::Dynamic,
+        RigidBodyType::KinematicPositionBased,
+    ] {
+        let _ = world.insert(RigidBodyTrait::new(kind, at(x, HALF)), half.build());
+        x += ONE;
+    }
+    if hole {
+        // Every body after the removed one sits at a lower position in the body walk than its
+        // arena slot.
+        let _ = world.remove_body(spare);
+    }
+    world
+}
+
+/// D8: the solver receives the pairs of two non-fixed bodies first (a kinematic body counts as
+/// non-fixed, as upstream's `is_fixed`), then the pairs with a fixed body or no body, each group
+/// in ascending pair order; `scatter_touching` puts the solved manifolds back on their pairs.
+/// Known limitation: this is a stable partition, not upstream's persistent colouring; with four
+/// stacked boxes upstream solves `(1,2), (3,4), (2,3)` where the partition solves
+/// `(1,2), (2,3), (3,4)` (`docs/PLAN.md` D8, `tools/golden/README.md`). With `hole`, a body
+/// removed before the others leaves a gap in the arena slots.
+#[test]
+fn test_solve_order_fixed_last() {
+    for hole in array![false, true] {
+        check_solve_order(hole);
+    }
+}
+
+fn check_solve_order(hole: bool) {
+    let mut world = order_world(hole);
+    let params = world.integration_parameters;
+    handle_user_changes(ref world.bodies, ref world.colliders);
+    let _ = detect_collisions(
+        params, ref world.bodies, ref world.colliders, ref world.narrow_phase,
+    );
+    let pairs = world.narrow_phase.pairs.span();
+    let touching = touching_manifolds(pairs);
+    assert_eq!(touching.len(), 5);
+    let entries = world.bodies.iter();
+    // The spare body, when kept, comes first.
+    let n = entries.len() - 4;
+    let ((f0, _), (a, _), (b, _), (k, _)) = (
+        *entries.at(n), *entries.at(n + 1), *entries.at(n + 2), *entries.at(n + 3),
+    );
+    let (ordered, last) = solve_order(pairs, entries.span());
+    let mut bodies_of = array![];
+    for m in ordered.span() {
+        bodies_of.append((*m.data.rigid_body1, *m.data.rigid_body2));
+    }
+    // Pair order: ground–A, ground–B, F–A, A–B, B–K.
+    assert_eq!(
+        bodies_of,
+        array![
+            (Some(a), Some(b)), (Some(b), Some(k)), (None, Some(a)), (None, Some(b)),
+            (Some(f0), Some(a)),
+        ],
+    );
+    assert_eq!(last, array![true, true, true, false, false]);
+    // Mark each solved manifold with its solve position + 1, scatter, read back by pair.
+    let mut solved = array![];
+    let mut i = 0;
+    for m in ordered.span() {
+        let mut m = *m;
+        i += 1;
+        m.subshape1 = i;
+        solved.append(m);
+    }
+    let out = scatter_touching(pairs, solved.span(), last.span());
+    let mut marks = array![];
+    for pair in out.span() {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            marks.append(*pair.manifold.subshape1);
+        }
+    }
+    assert_eq!(marks, array![3, 4, 5, 1, 2]);
 }
 
 /// Bodies, colliders, pairs and joints of both worlds are identical.

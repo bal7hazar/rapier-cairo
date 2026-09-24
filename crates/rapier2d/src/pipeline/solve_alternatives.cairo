@@ -15,7 +15,8 @@ use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet};
 use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
 use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
 use super::{
-    advance_body_with_snapshot, joint_values, scatter_touching, touching_manifolds, write_joints,
+    advance_body_with_snapshot, joint_values, scatter_touching, solve_order, touching_manifolds,
+    write_joints,
 };
 
 /// The free-body arm behind a one-iteration `while` (AGENTS.md §7 "metered" call).
@@ -52,6 +53,11 @@ pub fn solve_and_advance_metered(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
+    let (mut manifolds, last) = if manifolds.is_empty() {
+        (manifolds, array![])
+    } else {
+        solve_order(narrow_phase.pairs.span(), entries)
+    };
     let mut members = array![];
     let mut has_free = false;
     if any {
@@ -76,7 +82,8 @@ pub fn solve_and_advance_metered(
     if any {
         solve_island(params, ref store, ref manifolds, ref joints);
         if !manifolds.is_empty() {
-            narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+            narrow_phase
+                .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), last.span());
         }
         write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
     }
@@ -131,6 +138,11 @@ pub fn solve_and_advance_separate_marking(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
+    let (mut manifolds, last) = if manifolds.is_empty() {
+        (manifolds, array![])
+    } else {
+        solve_order(narrow_phase.pairs.span(), entries)
+    };
     let mut members = array![];
     let mut has_free = false;
     if any {
@@ -155,7 +167,8 @@ pub fn solve_and_advance_separate_marking(
     if any {
         solve_island(params, ref store, ref manifolds, ref joints);
         if !manifolds.is_empty() {
-            narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+            narrow_phase
+                .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), last.span());
         }
         write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
     }
@@ -213,6 +226,11 @@ pub fn solve_and_advance_member_handles(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
+    let (mut manifolds, last) = if manifolds.is_empty() {
+        (manifolds, array![])
+    } else {
+        solve_order(narrow_phase.pairs.span(), entries)
+    };
     let mut members = array![];
     let mut member_handles = array![];
     let mut has_free = false;
@@ -239,7 +257,8 @@ pub fn solve_and_advance_member_handles(
     if any {
         solve_island(params, ref store, ref manifolds, ref joints);
         if !manifolds.is_empty() {
-            narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+            narrow_phase
+                .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), last.span());
         }
         write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
     }
@@ -304,6 +323,11 @@ pub fn solve_and_advance_lazy(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
+    let (mut manifolds, last) = if manifolds.is_empty() {
+        (manifolds, array![])
+    } else {
+        solve_order(narrow_phase.pairs.span(), entries)
+    };
     let mut members = array![];
     let mut has_free = false;
     if any {
@@ -328,7 +352,8 @@ pub fn solve_and_advance_lazy(
     if any {
         solve_island(params, ref store, ref manifolds, ref joints);
         if !manifolds.is_empty() {
-            narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+            narrow_phase
+                .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), last.span());
         }
         write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
     }
@@ -393,6 +418,11 @@ pub fn solve_and_advance_island_always(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
+    let (mut manifolds, last) = if manifolds.is_empty() {
+        (manifolds, array![])
+    } else {
+        solve_order(narrow_phase.pairs.span(), entries)
+    };
     let mut members = array![];
     let mut has_free = false;
     if any {
@@ -416,7 +446,8 @@ pub fn solve_and_advance_island_always(
     };
     solve_island(params, ref store, ref manifolds, ref joints);
     if !manifolds.is_empty() {
-        narrow_phase.pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span());
+        narrow_phase
+            .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), last.span());
     }
     write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
     let mut dense: u32 = 0;
