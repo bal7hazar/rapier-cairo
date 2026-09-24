@@ -1,7 +1,10 @@
 //! `gas_scene_*` per-step budgets in Sierra gas and Cairo steps (work package P3).
 //!
 //! Each scene has a matching `gas_setup_*` and `gas_step_*`; subtracting them gives one
-//! settled `World::step` at the same warm-started state.
+//! settled `World::step` at the same warm-started state. `gas_step_*` carries the Sierra-gas
+//! ceiling (measured + 10 %); its uncapped `steps_step_*` twin runs the same probe so that
+//! `--tracked-resource cairo-steps` measures every scene (the ceiling is in Sierra gas and fails
+//! a cairo-steps run).
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam::Vec2;
@@ -209,7 +212,7 @@ fn gas_setup_free_fall1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 4914393)]
+#[available_gas(l2_gas: 2896158)]
 fn gas_step_free_fall1() {
     probe(opaque('free'), opaque(1), WARMUP_FREE_FALL, 1);
 }
@@ -220,7 +223,7 @@ fn gas_setup_free_fall8() {
 }
 
 #[test]
-#[available_gas(l2_gas: 26325014)]
+#[available_gas(l2_gas: 17623485)]
 fn gas_step_free_fall8() {
     probe(opaque('free'), opaque(8), WARMUP_FREE_FALL, 1);
 }
@@ -231,7 +234,7 @@ fn gas_setup_free_fall32() {
 }
 
 #[test]
-#[available_gas(l2_gas: 106951142)]
+#[available_gas(l2_gas: 75335469)]
 fn gas_step_free_fall32() {
     probe(opaque('free'), opaque(32), WARMUP_FREE_FALL, 1);
 }
@@ -242,7 +245,7 @@ fn gas_setup_balls_halfspace1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 12147006)]
+#[available_gas(l2_gas: 9582092)]
 fn gas_step_balls_halfspace1() {
     probe(opaque('balls'), opaque(1), WARMUP_CONTACTS, 1);
 }
@@ -253,7 +256,7 @@ fn gas_setup_balls_halfspace8() {
 }
 
 #[test]
-#[available_gas(l2_gas: 85578533)]
+#[available_gas(l2_gas: 65158705)]
 fn gas_step_balls_halfspace8() {
     probe(opaque('balls'), opaque(8), WARMUP_CONTACTS, 1);
 }
@@ -264,7 +267,7 @@ fn gas_setup_balls_halfspace32() {
 }
 
 #[test]
-#[available_gas(l2_gas: 344030098)]
+#[available_gas(l2_gas: 262393422)]
 fn gas_step_balls_halfspace32() {
     probe(opaque('balls'), opaque(32), WARMUP_CONTACTS, 1);
 }
@@ -275,7 +278,7 @@ fn gas_setup_cuboid_stack1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 14168036)]
+#[available_gas(l2_gas: 10147338)]
 fn gas_step_cuboid_stack1() {
     probe(opaque('stack'), opaque(1), WARMUP_CONTACTS, 1);
 }
@@ -286,7 +289,7 @@ fn gas_setup_cuboid_stack3() {
 }
 
 #[test]
-#[available_gas(l2_gas: 42554200)]
+#[available_gas(l2_gas: 30449426)]
 fn gas_step_cuboid_stack3() {
     probe(opaque('stack'), opaque(3), WARMUP_CONTACTS, 1);
 }
@@ -297,7 +300,7 @@ fn gas_setup_cuboid_stack5() {
 }
 
 #[test]
-#[available_gas(l2_gas: 71038924)]
+#[available_gas(l2_gas: 50850075)]
 fn gas_step_cuboid_stack5() {
     probe(opaque('stack'), opaque(5), WARMUP_CONTACTS, 1);
 }
@@ -308,7 +311,7 @@ fn gas_setup_cuboid_stack10() {
 }
 
 #[test]
-#[available_gas(l2_gas: 142681935)]
+#[available_gas(l2_gas: 102282896)]
 fn gas_step_cuboid_stack10() {
     probe(opaque('stack'), opaque(10), WARMUP_CONTACTS, 1);
 }
@@ -319,7 +322,7 @@ fn gas_setup_mixed_pile8() {
 }
 
 #[test]
-#[available_gas(l2_gas: 155987951)]
+#[available_gas(l2_gas: 111541329)]
 fn gas_step_mixed_pile8() {
     probe(opaque('mixed'), opaque(8), WARMUP_CONTACTS, 1);
 }
@@ -330,7 +333,7 @@ fn gas_setup_pendulum_chain1() {
 }
 
 #[test]
-#[available_gas(l2_gas: 23181826)]
+#[available_gas(l2_gas: 22268694)]
 fn gas_step_pendulum_chain1() {
     probe(opaque('pend'), opaque(1), WARMUP_PENDULUM, 1);
 }
@@ -341,7 +344,74 @@ fn gas_setup_pendulum_chain3() {
 }
 
 #[test]
-#[available_gas(l2_gas: 62555301)]
+#[available_gas(l2_gas: 61259589)]
 fn gas_step_pendulum_chain3() {
+    probe(opaque('pend'), opaque(3), WARMUP_PENDULUM, 1);
+}
+
+// Uncapped twins of the `gas_step_*` probes, for `--tracked-resource cairo-steps`.
+
+#[test]
+fn steps_step_free_fall1() {
+    probe(opaque('free'), opaque(1), WARMUP_FREE_FALL, 1);
+}
+
+#[test]
+fn steps_step_free_fall8() {
+    probe(opaque('free'), opaque(8), WARMUP_FREE_FALL, 1);
+}
+
+#[test]
+fn steps_step_free_fall32() {
+    probe(opaque('free'), opaque(32), WARMUP_FREE_FALL, 1);
+}
+
+#[test]
+fn steps_step_balls_halfspace1() {
+    probe(opaque('balls'), opaque(1), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_balls_halfspace8() {
+    probe(opaque('balls'), opaque(8), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_balls_halfspace32() {
+    probe(opaque('balls'), opaque(32), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_cuboid_stack1() {
+    probe(opaque('stack'), opaque(1), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_cuboid_stack3() {
+    probe(opaque('stack'), opaque(3), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_cuboid_stack5() {
+    probe(opaque('stack'), opaque(5), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_cuboid_stack10() {
+    probe(opaque('stack'), opaque(10), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_mixed_pile8() {
+    probe(opaque('mixed'), opaque(8), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_step_pendulum_chain1() {
+    probe(opaque('pend'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn steps_step_pendulum_chain3() {
     probe(opaque('pend'), opaque(3), WARMUP_PENDULUM, 1);
 }

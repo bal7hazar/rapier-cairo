@@ -5,16 +5,19 @@
 mod empty;
 mod sweeps;
 use fixed::{Fixed, MAX, ZERO};
-use glam::Vec2Trait;
+use glam::{Vec2, Vec2Trait};
+use rapier_core::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
+use rapier_core::rigid_body::RigidBodyDamping;
 use rapier_geometry2d::contact::ContactManifold;
 use sweeps::array_joint::joints;
 use sweeps::contact::contacts;
 use sweeps::{prepare_joints, rebuild_joints};
 use crate::joint::ImpulseJoint;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
+use crate::rigid_body_set::RigidBody;
 use super::body::{SolverBody, WORLD};
-use super::body_store::{BodyStep, DenseBodiesTrait, SolverBodyStore};
+use super::body_store::{BodyStep, DenseBodiesTrait, SolverBodyStore, gather, writeback};
 use super::contact::ContactConstraintsSetTrait;
 
 /// Invalid timestep/velocity cap. Parameter and fixed-point panics otherwise propagate.
@@ -124,9 +127,7 @@ fn add_forces<B, +DenseBodiesTrait<B>, +Destruct<B>>(ref bodies: B, steps: Span<
     while i != n {
         if *steps.at(i).moving {
             let mut b = bodies.get(i);
-            let dv = *steps.at(i).increment;
-            b.linvel = b.linvel + dv.linvel;
-            b.angvel += dv.angvel;
+            add_force(ref b, *steps.at(i).increment);
             bodies.set_pair(i, b, WORLD, Default::default());
         }
         i += 1;
@@ -140,21 +141,7 @@ fn integrate<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     while i != n {
         if *steps.at(i).moving {
             let mut b = bodies.get(i);
-            // Sentinel guard is before length computation: disabled caps need no sqrt.
-            if max_lin != MAX {
-                let length = b.linvel.length();
-                if length > max_lin {
-                    b.linvel = b.linvel.mul_scalar(max_lin / length);
-                }
-            }
-            if b.angvel > max_ang {
-                b.angvel = max_ang;
-            }
-            if b.angvel < -max_ang {
-                b.angvel = -max_ang;
-            }
-            let v = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel };
-            b.position = v.integrate(dt, b.position, Default::default());
+            integrate_body(ref b, dt, max_lin, max_ang);
             bodies.set_pair(i, b, WORLD, Default::default());
         }
         i += 1;
@@ -166,20 +153,137 @@ fn damp<B, +DenseBodiesTrait<B>, +Destruct<B>>(ref bodies: B, steps: Span<BodySt
     while i != n {
         if *steps.at(i).moving {
             let mut b = bodies.get(i);
-            let v = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel }
-                .apply_damping(dt, *steps.at(i).damping);
-            b.linvel = v.linvel;
-            b.angvel = v.angvel;
+            damp_body(ref b, *steps.at(i).damping, dt);
             bodies.set_pair(i, b, WORLD, Default::default());
         }
         i += 1;
     }
 }
+/// One body's share of `add_forces`.
+#[inline(always)]
+fn add_force(ref b: SolverBody, dv: RigidBodyVelocity) {
+    b.linvel = b.linvel + dv.linvel;
+    b.angvel += dv.angvel;
+}
+/// One body's share of `integrate`: velocity caps, then the pose update.
+#[inline(always)]
+fn integrate_body(ref b: SolverBody, dt: Fixed, max_lin: Fixed, max_ang: Fixed) {
+    // Sentinel guard is before length computation: disabled caps need no sqrt.
+    if max_lin != MAX {
+        let length = b.linvel.length();
+        if length > max_lin {
+            b.linvel = b.linvel.mul_scalar(max_lin / length);
+        }
+    }
+    if b.angvel > max_ang {
+        b.angvel = max_ang;
+    }
+    if b.angvel < -max_ang {
+        b.angvel = -max_ang;
+    }
+    let v = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel };
+    b.position = v.integrate(dt, b.position, Default::default());
+}
+/// One body's share of `damp`.
+#[inline(always)]
+fn damp_body(ref b: SolverBody, damping: RigidBodyDamping, dt: Fixed) {
+    let v = RigidBodyVelocity { linvel: b.linvel, angvel: b.angvel }.apply_damping(dt, damping);
+    b.linvel = v.linvel;
+    b.angvel = v.angvel;
+}
+
+/// Per-step constants of [`FreeBodySolverTrait::solve`], computed once per step. `Default` is
+/// a placeholder for a step without free body: zero dt, it integrates nothing.
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
+pub struct FreeBodySolver {
+    gravity: Vec2,
+    full_dt: Fixed,
+    dt: Fixed,
+    max_lin: Fixed,
+    max_ang: Fixed,
+    iterations: u32,
+}
+
+#[generate_trait]
+pub impl FreeBodySolverImpl of FreeBodySolverTrait {
+    /// The constants `solve_island` derives from `params`. Panics as `solve_island` does on
+    /// zero solver iterations (`IntegrationParameters`) and negative parameters
+    /// (`Island: negative parameter`).
+    fn new(params: IntegrationParameters, gravity: Vec2) -> FreeBodySolver {
+        let dt = params.substep_dt();
+        let max_lin = params.max_linear_velocity();
+        let max_corrective = params.max_corrective_velocity();
+        assert(params.dt >= ZERO && max_lin >= ZERO && max_corrective >= ZERO, errors::NEGATIVE);
+        // π/4 per FULL frame, exactly upstream's MAX_ROTATION policy.
+        let max_ang = Fixed { raw: 3373259426 } * params.inv_dt();
+        FreeBodySolver {
+            gravity,
+            full_dt: params.dt,
+            dt,
+            max_lin,
+            max_ang,
+            iterations: params.num_solver_iterations,
+        }
+    }
+
+    /// `rb` after `SolverBodyStoreTrait::from_bodies`, `solve_island` and `to_bodies`, when no
+    /// manifold and no enabled joint of the step references `handle`: per substep the force
+    /// increment then the capped integration, then full-step damping, then velocities and
+    /// `next_position` written back (none for a fixed or disabled body). Bit-identical to the
+    /// store path: same expressions in the same order (products floor, divisions round to
+    /// nearest, rotations renormalize). Zero dt leaves the velocities and pose unintegrated.
+    /// The default 4 substeps are unrolled (−28k gas per body against the loop,
+    /// `free_alternatives::solve_looped`); other counts loop. Inlined: the body is not copied
+    /// into a call.
+    #[inline(always)]
+    fn solve(self: @FreeBodySolver, handle: Handle, rb: RigidBody) -> RigidBody {
+        let (mut b, step) = gather(handle, rb, *self.gravity, *self.dt);
+        let mut rb = rb;
+        if !step.moving {
+            return rb;
+        }
+        let full_dt = *self.full_dt;
+        if full_dt != ZERO {
+            let (dt, max_lin, max_ang) = (*self.dt, *self.max_lin, *self.max_ang);
+            let iterations = *self.iterations;
+            if iterations == 4 {
+                add_force(ref b, step.increment);
+                integrate_body(ref b, dt, max_lin, max_ang);
+                add_force(ref b, step.increment);
+                integrate_body(ref b, dt, max_lin, max_ang);
+                add_force(ref b, step.increment);
+                integrate_body(ref b, dt, max_lin, max_ang);
+                add_force(ref b, step.increment);
+                integrate_body(ref b, dt, max_lin, max_ang);
+            } else {
+                let mut substep = 0;
+                while substep != iterations {
+                    add_force(ref b, step.increment);
+                    integrate_body(ref b, dt, max_lin, max_ang);
+                    substep += 1;
+                }
+            }
+            damp_body(ref b, step.damping, full_dt);
+        }
+        writeback(b, step, ref rb);
+        rb
+    }
+}
+
 #[cfg(test)]
 mod benches;
 
 #[cfg(test)]
 mod fixtures;
+
+#[cfg(test)]
+mod free_alternatives;
+
+#[cfg(test)]
+mod free_checks;
+
+#[cfg(test)]
+mod idle_benches;
 
 #[cfg(test)]
 mod tests;

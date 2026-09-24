@@ -20,14 +20,20 @@ use super::alternatives::{
     compute_contacts_by_kind, compute_contacts_metered, handle_user_changes_propagate,
     solve_all_manifolds, step_with_cache,
 };
-use super::fixtures::{at, ball_on_ground, mixed, random_world, row, scene_world, statics, v};
+use super::fixtures::{
+    at, ball_on_ground, free_fall, mixed, oi_world, random_world, row, scene_world, statics, v,
+};
 use super::fused_alternatives::{
     advance_with_snapshot_outlined, collision_inputs_field_reads,
     collision_inputs_outlined_fallback, step_staged,
 };
+use super::solve_alternatives::{
+    solve_and_advance_island_always, solve_and_advance_lazy, solve_and_advance_member_handles,
+    solve_and_advance_metered, solve_and_advance_separate_marking,
+};
 use super::{
     advance_with_snapshot, collision_inputs, contacts_from_scratch, handle_user_changes,
-    scatter_touching, solve, touching_manifolds, user_changes_snapshot,
+    scatter_touching, solve, touching_manifolds, user_changes_bodies, user_changes_snapshot,
 };
 
 fn world_of(id: felt252) -> World {
@@ -45,6 +51,10 @@ fn world_of(id: felt252) -> World {
     } else if id == 'pendulum' {
         let (world, _) = scene_world(scenes::PENDULUM);
         world
+    } else if id == 'free' {
+        free_fall(3)
+    } else if id == 'oi' {
+        oi_world(3)
     } else {
         let (world, _, _) = ball_on_ground(ONE, true);
         world
@@ -377,4 +387,139 @@ fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
         advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
     }
     events
+}
+
+/// Bodies, colliders, pairs and joints of both worlds are identical.
+fn same_state_and_joints(ref a: World, ref b: World) -> bool {
+    same_state(ref a, ref b) && a.impulse_joints.to_array() == b.impulse_joints.to_array()
+}
+
+/// One step with the fused solve candidate `variant` (0 = shipped `World::step`, 1–5 =
+/// `solve_alternatives`, in the order of `solve_benches`).
+fn oi_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
+    if variant == 0 {
+        return world.step();
+    }
+    let (snapshot, infos, entries) = user_changes_bodies(ref world.bodies, ref world.colliders);
+    let p = world.integration_parameters.prediction_distance();
+    let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, p);
+    let pairs = find_pairs(proxies.span());
+    let events = contacts_from_scratch(
+        ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders,
+    );
+    let g = world.gravity;
+    let ip = world.integration_parameters;
+    if variant == 1 {
+        solve_and_advance_metered(
+            g,
+            ip,
+            ref world.bodies,
+            ref world.colliders,
+            ref world.narrow_phase,
+            ref world.impulse_joints,
+            entries,
+            snapshot,
+        );
+    } else if variant == 2 {
+        solve_and_advance_separate_marking(
+            g,
+            ip,
+            ref world.bodies,
+            ref world.colliders,
+            ref world.narrow_phase,
+            ref world.impulse_joints,
+            entries,
+            snapshot,
+        );
+    } else if variant == 3 {
+        solve_and_advance_member_handles(
+            g,
+            ip,
+            ref world.bodies,
+            ref world.colliders,
+            ref world.narrow_phase,
+            ref world.impulse_joints,
+            entries,
+            snapshot,
+        );
+    } else if variant == 4 {
+        solve_and_advance_lazy(
+            g,
+            ip,
+            ref world.bodies,
+            ref world.colliders,
+            ref world.narrow_phase,
+            ref world.impulse_joints,
+            entries,
+            snapshot,
+        );
+    } else {
+        solve_and_advance_island_always(
+            g,
+            ip,
+            ref world.bodies,
+            ref world.colliders,
+            ref world.narrow_phase,
+            ref world.impulse_joints,
+            entries,
+            snapshot,
+        );
+    }
+    events
+}
+
+/// OI: the fused solve and position update, shipped and every candidate, against the staged
+/// `solve` then `advance_to_final_positions`, raw compare, on free bodies only, a joint chain,
+/// and contacts, a joint, free, fixed, kinematic and disabled bodies mixed (`oi_world`).
+#[test]
+fn test_solve_and_advance_agrees_on_scenes() {
+    for id in array!['free', 'pendulum', 'oi'].span() {
+        let mut variant = 0;
+        while variant != 6 {
+            let mut staged = world_of(*id);
+            let mut fused = world_of(*id);
+            let mut step = 0;
+            while step != 2 {
+                let expected = step_staged(ref staged);
+                let got = oi_step(ref fused, variant);
+                assert!(got == expected, "{} variant {} step {} events", *id, variant, step);
+                assert!(
+                    same_state_and_joints(ref staged, ref fused),
+                    "{} variant {} step {}",
+                    *id,
+                    variant,
+                    step,
+                );
+                step += 1;
+            }
+            if *id == 'oi' {
+                assert!(touching_manifolds(fused.narrow_phase.pairs.span()).len() != 0);
+                assert!(fused.impulse_joints.len() == 1);
+            }
+            variant += 1;
+        }
+    }
+}
+
+/// OI: `World::step` against the staged step on random worlds mixing free, constrained (contacts
+/// and a joint), fixed, kinematic and disabled bodies, with a user edit between steps.
+#[test]
+#[fuzzer(runs: 8, seed: 20260924)]
+fn fuzz_solve_and_advance_agrees(seed: u16) {
+    let mut staged = oi_world(seed.into());
+    let mut fused = oi_world(seed.into());
+    let mut step = 0;
+    while step != 3 {
+        if step == 1 {
+            // Kick the first body without a change flag, in both worlds.
+            let (handle, mut body) = *staged.bodies.iter().at(0);
+            body.vels.angvel = ONE;
+            assert!(staged.set_body(handle, body) && fused.set_body(handle, body));
+        }
+        let expected = step_staged(ref staged);
+        let got = fused.step();
+        assert!(got == expected, "step {} events", step);
+        assert!(same_state_and_joints(ref staged, ref fused), "step {}", step);
+        step += 1;
+    }
 }
