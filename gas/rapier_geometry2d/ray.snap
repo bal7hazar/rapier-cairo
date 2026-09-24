@@ -28,7 +28,7 @@ rapier_geometry2d::ray::segment::tests::gas_cast_local_ray_and_get_normal_segmen
 rapier_geometry2d::ray::segment::tests::test_cast_table 1322560
 rapier_geometry2d::ray::segment::tests::test_zero_length_segment_misses 13620
 rapier_geometry2d::ray::tests::gas_baseline 13620
-rapier_geometry2d::ray::tests::gas_cast_ray_and_get_normal_cuboid 181160
+rapier_geometry2d::ray::tests::gas_cast_ray_and_get_normal_cuboid 170330
 rapier_geometry2d::ray::tests::gas_cast_ray_ball 86700
-rapier_geometry2d::ray::tests::test_posed_casts_match_local_casts 2830180
+rapier_geometry2d::ray::tests::test_posed_casts_match_local_casts 2590450
 rapier_geometry2d::ray::tests::test_ray_transforms_round_trip 44410
