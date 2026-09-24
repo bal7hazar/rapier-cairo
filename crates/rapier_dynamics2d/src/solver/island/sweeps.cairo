@@ -105,3 +105,413 @@ use alternatives::{cached, direct, metered_pair, sparse, specialized};
 
 #[cfg(test)]
 mod variants;
+
+#[cfg(test)]
+mod joint_profile {
+    use rapier_testing::opaque;
+    use super::*;
+    use super::super::super::body_store::DenseBodies;
+    use super::super::super::joint::alternatives::original;
+    use super::super::super::joint::probes::chain;
+
+    // A matched setup for each stage; differences include its loop and dictionary access.
+    #[inline(always)]
+    fn probe(kind: u8, n: u32, stage: u8, run: bool, old: bool) {
+        let (bs, mut js, steps) = chain(opaque(n), opaque(kind));
+        let p: IntegrationParameters = opaque(Default::default());
+        let mut bodies: DenseBodies = DenseBodiesTrait::new(bs.span());
+        if stage == 0 {
+            if run {
+                let _ = opaque(prepare_joints(js.span(), bs.span(), steps.span()).span());
+            }
+        } else {
+            let builders = prepare_joints(js.span(), bs.span(), steps.span());
+            if stage == 1 {
+                if run {
+                    let mut rows = array![];
+                    let mut i = 0;
+                    while i != 4 {
+                        rows = rebuild(ref bodies, builders.span(), rows.span(), p, i != 0, old);
+                        i += 1;
+                    }
+                    let _ = opaque(rows.span());
+                }
+            } else {
+                let mut rows = rebuild(ref bodies, builders.span(), [].span(), p, false, old);
+                if run {
+                    if stage == 2 {
+                        for c in rows.span() {
+                            let i = *c.solver_vel1;
+                            let j = *c.solver_vel2;
+                            let mut pair = array![bodies.get(i), bodies.get(j)];
+                            let c = JointConstraint { solver_vel1: 0, solver_vel2: 1, ..*c };
+                            if old {
+                                original::warmstart(c, ref pair);
+                            } else {
+                                c.warmstart(ref pair);
+                            }
+                            bodies.set_pair(i, *pair.at(0), j, *pair.at(1));
+                        }
+                    } else if stage == 3 || stage == 4 {
+                        if old {
+                            sweep_old(ref rows, ref bodies, stage == 3);
+                        } else {
+                            array_joint::joints(ref rows, ref bodies, stage == 3, false);
+                        }
+                    } else {
+                        if old {
+                            let mut out = array![];
+                            let mut cs = rows.span();
+                            while let Some(mut j) = js.pop_front() {
+                                original::writeback_impulses(*cs.pop_front().unwrap(), ref j);
+                                out.append(j);
+                            }
+                            js = out;
+                        } else {
+                            write_joints(rows.span(), ref js);
+                        }
+                    }
+                }
+                let _ = opaque(rows.span());
+            }
+        }
+        let _ = opaque((js.span(), bodies.get(n)));
+    }
+    #[test]
+    fn gas_baseline() {
+        let _ = opaque(1_u32);
+    }
+    #[test]
+    fn gas_revolute_prepare_setup() {
+        probe(0, 3, 0, false, true);
+    }
+    #[test]
+    fn gas_revolute_prepare() {
+        probe(0, 3, 0, true, true);
+    }
+    #[test]
+    fn gas_revolute_rebuild4_setup() {
+        probe(0, 3, 1, false, true);
+    }
+    #[test]
+    fn gas_revolute_rebuild4() {
+        probe(0, 3, 1, true, true);
+    }
+    #[test]
+    fn gas_revolute_warm_setup() {
+        probe(0, 3, 2, false, true);
+    }
+    #[test]
+    fn gas_revolute_warm() {
+        probe(0, 3, 2, true, true);
+    }
+    #[test]
+    fn gas_revolute_biased_setup() {
+        probe(0, 3, 3, false, true);
+    }
+    #[test]
+    fn gas_revolute_biased() {
+        probe(0, 3, 3, true, true);
+    }
+    #[test]
+    fn gas_revolute_relaxed_setup() {
+        probe(0, 3, 4, false, true);
+    }
+    #[test]
+    fn gas_revolute_relaxed() {
+        probe(0, 3, 4, true, true);
+    }
+    #[test]
+    fn gas_revolute_write_setup() {
+        probe(0, 3, 5, false, true);
+    }
+    #[test]
+    fn gas_revolute_write() {
+        probe(0, 3, 5, true, true);
+    }
+    #[test]
+    fn gas_prismatic_prepare_setup() {
+        probe(1, 3, 0, false, true);
+    }
+    #[test]
+    fn gas_prismatic_prepare() {
+        probe(1, 3, 0, true, true);
+    }
+    #[test]
+    fn gas_prismatic_rebuild4_setup() {
+        probe(1, 3, 1, false, true);
+    }
+    #[test]
+    fn gas_prismatic_rebuild4() {
+        probe(1, 3, 1, true, true);
+    }
+    #[test]
+    fn gas_prismatic_warm_setup() {
+        probe(1, 3, 2, false, true);
+    }
+    #[test]
+    fn gas_prismatic_warm() {
+        probe(1, 3, 2, true, true);
+    }
+    #[test]
+    fn gas_prismatic_biased_setup() {
+        probe(1, 3, 3, false, true);
+    }
+    #[test]
+    fn gas_prismatic_biased() {
+        probe(1, 3, 3, true, true);
+    }
+    #[test]
+    fn gas_prismatic_relaxed_setup() {
+        probe(1, 3, 4, false, true);
+    }
+    #[test]
+    fn gas_prismatic_relaxed() {
+        probe(1, 3, 4, true, true);
+    }
+    #[test]
+    fn gas_prismatic_write_setup() {
+        probe(1, 3, 5, false, true);
+    }
+    #[test]
+    fn gas_prismatic_write() {
+        probe(1, 3, 5, true, true);
+    }
+    #[test]
+    fn gas_fixed_prepare_setup() {
+        probe(2, 3, 0, false, true);
+    }
+    #[test]
+    fn gas_fixed_prepare() {
+        probe(2, 3, 0, true, true);
+    }
+    #[test]
+    fn gas_fixed_rebuild4_setup() {
+        probe(2, 3, 1, false, true);
+    }
+    #[test]
+    fn gas_fixed_rebuild4() {
+        probe(2, 3, 1, true, true);
+    }
+    #[test]
+    fn gas_fixed_warm_setup() {
+        probe(2, 3, 2, false, true);
+    }
+    #[test]
+    fn gas_fixed_warm() {
+        probe(2, 3, 2, true, true);
+    }
+    #[test]
+    fn gas_fixed_biased_setup() {
+        probe(2, 3, 3, false, true);
+    }
+    #[test]
+    fn gas_fixed_biased() {
+        probe(2, 3, 3, true, true);
+    }
+    #[test]
+    fn gas_fixed_relaxed_setup() {
+        probe(2, 3, 4, false, true);
+    }
+    #[test]
+    fn gas_fixed_relaxed() {
+        probe(2, 3, 4, true, true);
+    }
+    #[test]
+    fn gas_fixed_write_setup() {
+        probe(2, 3, 5, false, true);
+    }
+    #[test]
+    fn gas_fixed_write() {
+        probe(2, 3, 5, true, true);
+    }
+
+    #[inline(always)]
+    fn rebuild(
+        ref bodies: DenseBodies,
+        mut builders: Span<JointBuilder>,
+        rows: Span<JointConstraint>,
+        p: IntegrationParameters,
+        reuse: bool,
+        old: bool,
+    ) -> Array<JointConstraint> {
+        if !old {
+            return rebuild_joints(ref bodies, builders, rows, p, reuse);
+        }
+        let mut out = array![];
+        while let Some(builder) = builders.pop_front() {
+            let JointBuilder { mut joint, i, j } = *builder;
+            if reuse {
+                original::writeback_impulses(*rows.at(out.len()), ref joint);
+            }
+            let pair = [bodies.get(i), bodies.get(j)];
+            let mut c = original::generate(joint, pair.span(), p);
+            c.solver_vel1 = i;
+            c.solver_vel2 = j;
+            out.append(c);
+        }
+        out
+    }
+    fn sweep_old(ref rows: Array<JointConstraint>, ref bodies: DenseBodies, biased: bool) {
+        let mut out = array![];
+        while let Some(mut c) = rows.pop_front() {
+            if c.num_rows != 0 {
+                let i = c.solver_vel1;
+                let j = c.solver_vel2;
+                let mut pair = array![bodies.get(i), bodies.get(j)];
+                c.solver_vel1 = 0;
+                c.solver_vel2 = 1;
+                original::solve(ref c, ref pair, biased);
+                bodies.set_pair(i, *pair.at(0), j, *pair.at(1));
+                c.solver_vel1 = i;
+                c.solver_vel2 = j;
+            }
+            out.append(c);
+        }
+        rows = out;
+    }
+    #[test]
+    fn gas_revolute_prepare_selected_setup() {
+        probe(0, 3, 0, false, false);
+    }
+    #[test]
+    fn gas_revolute_prepare_selected() {
+        probe(0, 3, 0, true, false);
+    }
+    #[test]
+    fn gas_revolute_rebuild4_selected_setup() {
+        probe(0, 3, 1, false, false);
+    }
+    #[test]
+    fn gas_revolute_rebuild4_selected() {
+        probe(0, 3, 1, true, false);
+    }
+    #[test]
+    fn gas_revolute_warm_selected_setup() {
+        probe(0, 3, 2, false, false);
+    }
+    #[test]
+    fn gas_revolute_warm_selected() {
+        probe(0, 3, 2, true, false);
+    }
+    #[test]
+    fn gas_revolute_biased_selected_setup() {
+        probe(0, 3, 3, false, false);
+    }
+    #[test]
+    fn gas_revolute_biased_selected() {
+        probe(0, 3, 3, true, false);
+    }
+    #[test]
+    fn gas_revolute_relaxed_selected_setup() {
+        probe(0, 3, 4, false, false);
+    }
+    #[test]
+    fn gas_revolute_relaxed_selected() {
+        probe(0, 3, 4, true, false);
+    }
+    #[test]
+    fn gas_revolute_write_selected_setup() {
+        probe(0, 3, 5, false, false);
+    }
+    #[test]
+    fn gas_revolute_write_selected() {
+        probe(0, 3, 5, true, false);
+    }
+    #[test]
+    fn gas_prismatic_prepare_selected_setup() {
+        probe(1, 3, 0, false, false);
+    }
+    #[test]
+    fn gas_prismatic_prepare_selected() {
+        probe(1, 3, 0, true, false);
+    }
+    #[test]
+    fn gas_prismatic_rebuild4_selected_setup() {
+        probe(1, 3, 1, false, false);
+    }
+    #[test]
+    fn gas_prismatic_rebuild4_selected() {
+        probe(1, 3, 1, true, false);
+    }
+    #[test]
+    fn gas_prismatic_warm_selected_setup() {
+        probe(1, 3, 2, false, false);
+    }
+    #[test]
+    fn gas_prismatic_warm_selected() {
+        probe(1, 3, 2, true, false);
+    }
+    #[test]
+    fn gas_prismatic_biased_selected_setup() {
+        probe(1, 3, 3, false, false);
+    }
+    #[test]
+    fn gas_prismatic_biased_selected() {
+        probe(1, 3, 3, true, false);
+    }
+    #[test]
+    fn gas_prismatic_relaxed_selected_setup() {
+        probe(1, 3, 4, false, false);
+    }
+    #[test]
+    fn gas_prismatic_relaxed_selected() {
+        probe(1, 3, 4, true, false);
+    }
+    #[test]
+    fn gas_prismatic_write_selected_setup() {
+        probe(1, 3, 5, false, false);
+    }
+    #[test]
+    fn gas_prismatic_write_selected() {
+        probe(1, 3, 5, true, false);
+    }
+    #[test]
+    fn gas_fixed_prepare_selected_setup() {
+        probe(2, 3, 0, false, false);
+    }
+    #[test]
+    fn gas_fixed_prepare_selected() {
+        probe(2, 3, 0, true, false);
+    }
+    #[test]
+    fn gas_fixed_rebuild4_selected_setup() {
+        probe(2, 3, 1, false, false);
+    }
+    #[test]
+    fn gas_fixed_rebuild4_selected() {
+        probe(2, 3, 1, true, false);
+    }
+    #[test]
+    fn gas_fixed_warm_selected_setup() {
+        probe(2, 3, 2, false, false);
+    }
+    #[test]
+    fn gas_fixed_warm_selected() {
+        probe(2, 3, 2, true, false);
+    }
+    #[test]
+    fn gas_fixed_biased_selected_setup() {
+        probe(2, 3, 3, false, false);
+    }
+    #[test]
+    fn gas_fixed_biased_selected() {
+        probe(2, 3, 3, true, false);
+    }
+    #[test]
+    fn gas_fixed_relaxed_selected_setup() {
+        probe(2, 3, 4, false, false);
+    }
+    #[test]
+    fn gas_fixed_relaxed_selected() {
+        probe(2, 3, 4, true, false);
+    }
+    #[test]
+    fn gas_fixed_write_selected_setup() {
+        probe(2, 3, 5, false, false);
+    }
+    #[test]
+    fn gas_fixed_write_selected() {
+        probe(2, 3, 5, true, false);
+    }
+}
