@@ -1,13 +1,14 @@
-//! SO: why `box_stack3` diverges from upstream. The engine is untouched: one step is replayed
-//! with the public stage functions (`pipeline::{handle_user_changes, detect_collisions,
-//! touching_manifolds, scatter_touching, advance_to_final_positions}`, `solve_island` over a
-//! `SolverBodyStore`), the only free parameter being the order in which the touching manifolds
-//! are handed to the solver. `Order::Pair` is the port (D8, ascending pair order) and reproduces
-//! `World::step` bit for bit; `Order::Colour` is upstream's order (Rapier 0.35.3 solves the
-//! persistent colour buckets in ascending colour, dynamic–dynamic pairs from colour 0 up and
-//! pairs with a fixed body from colour 127 down, so the ground contact comes last);
-//! `Order::Reversed` is upstream's contact-graph edge order in this scene, a control showing that
-//! the edge order is not what matters.
+//! SO/DO: why `box_stack3` diverged from upstream, and the check that it no longer does. One step
+//! is replayed with the public stage functions (`pipeline::{handle_user_changes,
+//! detect_collisions, touching_manifolds, scatter_touching, advance_to_final_positions}`,
+//! `solve_island` over a `SolverBodyStore`), the only free parameter being the order in which the
+//! touching manifolds are handed to the solver. `Order::Colour` is upstream's order (Rapier
+//! 0.35.3 solves the persistent colour buckets in ascending colour, dynamic–dynamic pairs from
+//! colour 0 up and pairs with a fixed body from colour 127 down, so the ground contact comes
+//! last); since DO it is also the engine's order (D8, `pipeline::solve_order`) and reproduces
+//! `World::step` bit for bit. `Order::Pair` (ascending pair order, the pre-DO engine) and
+//! `Order::Reversed` (upstream's contact-graph edge order in this scene, a control showing that
+//! the edge order is not what matters) stay as counterfactuals.
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use rapier2d::pipeline;
 use rapier2d::prelude::{Handle, RigidBody, RigidBodyTrait, World, WorldTrait};
@@ -26,11 +27,11 @@ use super::{Stats, compare};
 /// Order in which the touching manifolds of a step are solved.
 #[derive(Copy, Drop, PartialEq, Debug)]
 enum Order {
-    /// Ascending pair order (the port, D8).
+    /// Ascending pair order (the engine before DO).
     Pair,
     /// Descending pair order: upstream's contact-graph edge order in `box_stack3`.
     Reversed,
-    /// Upstream's solver colours, ascending (see [`colour_order`]).
+    /// Upstream's solver colours, ascending (see [`colour_order`]); the engine's order since DO.
     Colour,
 }
 
@@ -113,29 +114,6 @@ fn is_coloured(entries: Span<(Handle, RigidBody)>, index: u32) -> bool {
     *body.body_type != RigidBodyType::Fixed
 }
 
-/// Engine candidate for upstream's order without colouring: the touching manifolds in pair
-/// order, those with a fixed side moved after the others (stable). Same permutation as
-/// [`colour_order`] whenever the dynamic–dynamic colours ascend in pair order (the stack).
-fn fixed_last(
-    pairs: Span<ContactPair>, entries: Span<(Handle, RigidBody)>,
-) -> Array<ContactManifold> {
-    let mut first = array![];
-    let mut last = array![];
-    for pair in pairs {
-        let m = *pair.manifold;
-        if m.data.num_solver_contacts != 0 {
-            let (a, b) = body_indices(m);
-            if is_coloured(entries, a) && is_coloured(entries, b) {
-                first.append(m);
-            } else {
-                last.append(m);
-            }
-        }
-    }
-    first.append_span(last.span());
-    first
-}
-
 /// `sorted` with `item` inserted after every entry of key `<=` its key (stable).
 fn insert_sorted(sorted: Span<(u32, u32)>, item: (u32, u32)) -> Array<(u32, u32)> {
     let (key, _) = item;
@@ -214,9 +192,19 @@ fn ordered_step(ref world: World, order: Order) -> Array<u32> {
         i += 1;
     }
     if !solved.is_empty() {
+        // `solved` is in pair order: one group.
+        let mut pair_order = array![];
+        let mut i = 0;
+        while i != solved.len() {
+            pair_order.append(false);
+            i += 1;
+        }
         world
             .narrow_phase
-            .pairs = pipeline::scatter_touching(world.narrow_phase.pairs.span(), solved.span());
+            .pairs =
+                pipeline::scatter_touching(
+                    world.narrow_phase.pairs.span(), solved.span(), pair_order.span(),
+                );
     }
     pipeline::advance_to_final_positions(ref world.bodies, ref world.colliders);
     perm
@@ -279,17 +267,17 @@ fn print_pairs(ref world: World, step: u32) {
     }
 }
 
-/// `Order::Pair` through the stage functions is `World::step`, bit for bit (bodies and the
-/// narrow-phase cache), over the landing (steps 1–10).
+/// The engine solves in upstream's colour order: `Order::Colour` through the stage functions is
+/// `World::step`, bit for bit (bodies and the narrow-phase cache), over the landing (steps 1–10).
 #[test]
-fn test_stack_pair_order_is_the_port() {
+fn test_stack_engine_is_colour_order() {
     let scene = scenes::BOX_STACK3;
     let mut staged = build_world(scene);
     let mut fused = build_world(scene);
     let mut step = 0_u32;
     while step != 10 {
-        let perm = ordered_step(ref staged, Order::Pair);
-        assert_eq!(perm.span(), array![0, 1, 2].span());
+        let perm = ordered_step(ref staged, Order::Colour);
+        assert_eq!(perm.span(), array![1, 2, 0].span());
         let _ = fused.step();
         let mut i = 1;
         while i != 4 {
@@ -435,7 +423,7 @@ enum Seed {
 
 /// Writes [`UPSTREAM_60`] into the port's manifolds of the current state; returns the number of
 /// points matched.
-fn seed_impulses(ref world: World) -> u32 {
+pub fn seed_impulses(ref world: World) -> u32 {
     pipeline::handle_user_changes(ref world.bodies, ref world.colliders);
     let _ = pipeline::detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
@@ -577,7 +565,7 @@ fn gas_order_baseline() {
     assert_eq!(pairs.len() + entries.len(), 7);
 }
 
-/// Today's solver input (D8): `pipeline::touching_manifolds`.
+/// The solver input before DO: `pipeline::touching_manifolds` alone (pair order).
 #[test]
 fn gas_order_pair() {
     let (pairs, entries) = probe_inputs();
@@ -585,22 +573,23 @@ fn gas_order_pair() {
     assert_eq!(m.len() + entries.len(), 7);
 }
 
-/// Stateless fixed-last partition (candidate): same permutation as upstream on the stack.
+/// The engine's order (D8): `solve_order`.
 #[test]
-fn gas_order_fixed_last() {
+fn gas_order_partition() {
     let (pairs, entries) = probe_inputs();
-    let m = fixed_last(pairs, entries);
-    assert_eq!(m.len() + entries.len(), 7);
+    let (m, flags) = pipeline::solve_order(pairs, entries);
+    assert_eq!(m.len() + flags.len() + entries.len(), 10);
 }
 
-/// On the stack the fixed-last partition is upstream's colour order.
+/// On the stack `solve_order` is upstream's colour order.
 #[test]
-fn test_stack_fixed_last_is_colour_order() {
+fn test_stack_solve_order_is_colour_order() {
     let (pairs, entries) = probe_inputs();
     let touching = pipeline::touching_manifolds(pairs);
     let perm = colour_order(touching.span(), entries);
-    let m = fixed_last(pairs, entries);
+    let (m, flags) = pipeline::solve_order(pairs, entries);
     assert_eq!(perm.len(), m.len());
+    assert_eq!(flags.span(), array![true, false, false].span());
     let mut k = 0;
     while k != m.len() {
         assert!(*m.at(k) == *touching.at(*perm.at(k)));

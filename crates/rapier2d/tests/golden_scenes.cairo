@@ -3,10 +3,8 @@
 //! compared at every sample (`translation`, `rotation`, `linvel`, `angvel`).
 //!
 //! Tolerances (`tools/golden/README.md`): `2^12 · step` ulp on positions and rotations, twice
-//! that on velocities. `box_stack3` is judged on its rest invariants (multi-contact solver order
-//! differs from upstream by construction); its sample deviations are still measured and printed
-//! (GS: with correct feature ids in the references the strict comparison still fails, 12 and 3
-//! samples in the two windows; SO: the cause is the solve order, see `stack_diagnostics`).
+//! that on velocities. `box_stack3` is strict too since DO (the solve order is upstream's, see
+//! `stack_diagnostics`); its second window re-seeds upstream's step-60 impulses as well.
 //! Every step also checks the run invariants: fixed bodies never move, energy never increases
 //! (`ball_drop`, `box_stack3`), the pendulum rod keeps its length.
 //!
@@ -36,8 +34,9 @@ const TOL_PER_STEP: u64 = 4096;
 enum Judge {
     /// Every sample within the tolerance.
     Samples,
-    /// Rest invariants at the end of the window (`box_stack3`); samples are only reported.
-    Rest,
+    /// Every sample within the tolerance and the rest invariants at the end of the window
+    /// (`box_stack3`).
+    SamplesAndRest,
 }
 
 /// Invariants checked after every step, besides "fixed bodies never move".
@@ -257,6 +256,21 @@ fn assert_stack_at_rest(ref world: World, scene: SceneCase) {
 /// Replays `scene` from step `start` (re-seeded from the upstream sample when non-zero) to step
 /// `end`, checking the invariants after every step and comparing every sample in `(start, end]`.
 fn replay(name: ByteArray, scene: SceneCase, start: u32, end: u32, judge: Judge, checks: Checks) {
+    replay_seeded(name, scene, start, end, judge, checks, false);
+}
+
+/// [`replay`]; with `warm` the re-seed also restores upstream's contact impulses at step 60
+/// (`stack_diagnostics::seed_impulses`, `box_stack3` only), so that the first step warm-starts
+/// like upstream's.
+fn replay_seeded(
+    name: ByteArray,
+    scene: SceneCase,
+    start: u32,
+    end: u32,
+    judge: Judge,
+    checks: Checks,
+    warm: bool,
+) {
     println!("{} [{}..{}]", name, start, end);
     let mut world = build_world(scene);
     if start != 0 {
@@ -268,6 +282,9 @@ fn replay(name: ByteArray, scene: SceneCase, start: u32, end: u32, judge: Judge,
             }
         }
         assert!(found, "window start must be a sampled step");
+        if warm {
+            assert_eq!(stack_diagnostics::seed_impulses(ref world), 6, "upstream impulses matched");
+        }
     }
     let mut stats: Stats = Default::default();
     let e_start = energy(ref world, scene, None);
@@ -346,7 +363,12 @@ fn replay(name: ByteArray, scene: SceneCase, start: u32, end: u32, judge: Judge,
         Judge::Samples => assert!(
             stats.violations == 0, "{}: {} samples beyond tolerance", name, stats.violations,
         ),
-        Judge::Rest => assert_stack_at_rest(ref world, scene),
+        Judge::SamplesAndRest => {
+            assert!(
+                stats.violations == 0, "{}: {} samples beyond tolerance", name, stats.violations,
+            );
+            assert_stack_at_rest(ref world, scene);
+        },
     }
     if let Some(slack) = checks.energy_slack {
         assert!(e_rise <= slack, "{}: energy rose by {} raw in one step", name, e_rise);
@@ -387,21 +409,27 @@ fn test_box_slope_slide() {
 }
 
 /// Two 60-step windows: 120 continuous steps exceed snforge's default VM step budget. The
-/// second window is re-seeded from the upstream sample at step 60 (cold contact cache).
-/// SO: upstream solves the ground pair last (solver colours), the port first (pair order, D8);
-/// solving in upstream's order passes every sample of the first window
-/// (`stack_diagnostics::test_stack_colour_order_first_window`), and the second one once the
-/// re-seed also restores upstream's contact impulses (`test_stack_second_window_warm_*`).
+/// second window is re-seeded from the upstream sample at step 60, and also with upstream's
+/// contact impulses (the port starts with an empty contact cache, upstream warm-starts).
+/// SO: upstream solves the ground pair last (solver colours); DO: the engine solves the pairs of
+/// two non-fixed bodies first, then those with a fixed body (D8), which is upstream's order on
+/// this scene (`stack_diagnostics::test_stack_engine_is_colour_order`), and both windows pass
+/// the strict per-sample comparison.
+///
+/// Known limitation of the partition: it is upstream's order only while the colours of the
+/// non-fixed pairs ascend in pair order. With four boxes (bodies 1..4) upstream colours
+/// `(1,2)` 0, `(3,4)` 0, `(2,3)` 1 and solves `(1,2), (3,4), (2,3)`, the partition solves
+/// `(1,2), (2,3), (3,4)`; exact parity needs persisted colours (deferred).
 #[test]
 fn test_box_stack3_first_window() {
     let checks = Checks { energy_slack: Some(CONTACT_SLACK), rod: false };
-    replay("box_stack3", scenes::BOX_STACK3, 0, 60, Judge::Rest, checks);
+    replay("box_stack3", scenes::BOX_STACK3, 0, 60, Judge::SamplesAndRest, checks);
 }
 
 #[test]
 fn test_box_stack3_second_window() {
     let checks = Checks { energy_slack: Some(CONTACT_SLACK), rod: false };
-    replay("box_stack3", scenes::BOX_STACK3, 60, 120, Judge::Rest, checks);
+    replay_seeded("box_stack3", scenes::BOX_STACK3, 60, 120, Judge::SamplesAndRest, checks, true);
 }
 
 #[test]

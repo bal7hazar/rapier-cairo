@@ -23,7 +23,7 @@ use super::solve_alternatives::{
 };
 use super::{
     advance_body_with_snapshot, collision_inputs, contacts_from_scratch, joint_values,
-    scatter_touching, user_changes_bodies, write_joints,
+    scatter_touching, solve_order, user_changes_bodies, write_joints,
 };
 
 fn world_of(id: felt252) -> World {
@@ -186,6 +186,11 @@ fn run(id: felt252, warmup: u32, stage: u8) {
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
+    let (mut manifolds, last) = if manifolds.is_empty() {
+        (manifolds, array![])
+    } else {
+        solve_order(world.narrow_phase.pairs.span(), entries)
+    };
     let mut members = array![];
     let mut has_free = false;
     if any {
@@ -215,7 +220,10 @@ fn run(id: felt252, warmup: u32, stage: u8) {
         if !manifolds.is_empty() {
             world
                 .narrow_phase
-                .pairs = scatter_touching(world.narrow_phase.pairs.span(), manifolds.span());
+                .pairs =
+                    scatter_touching(
+                        world.narrow_phase.pairs.span(), manifolds.span(), last.span(),
+                    );
         }
         write_joints(joint_entries.span(), joints.span(), ref world.impulse_joints);
     }
