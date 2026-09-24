@@ -571,5 +571,18 @@ pub fn local_bounding_sphere(shape: Shape) -> (Vec2, Fixed) {
             (center, (segment.a - center).length())
         },
         Shape::HalfSpace(_) => (Vec2Trait::ZERO, MAX),
+        Shape::ConvexPolygon(p) => {
+            // Defer polygon-only work in this outlined match.
+            let mut result = (Vec2Trait::ZERO, ZERO);
+            let mut pending = true;
+            while pending {
+                result =
+                    rapier_geometry2d::shape::ConvexPolygonTrait::compute_local_bounding_sphere(
+                        p.unbox(),
+                    );
+                pending = false;
+            }
+            result
+        },
     }
 }

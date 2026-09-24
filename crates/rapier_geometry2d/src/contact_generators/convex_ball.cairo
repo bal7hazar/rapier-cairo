@@ -171,6 +171,9 @@ fn project(shape: Shape, pt: Vec2) -> (PointProjection, FeatureId) {
         Shape::Capsule(s) => project_capsule(s, pt),
         Shape::Segment(s) => project_segment(s, pt),
         Shape::HalfSpace(s) => project_halfspace(s, pt),
+        Shape::ConvexPolygon(s) => crate::point::convex_polygon::project_local_point_and_get_feature_convex_polygon(
+            s.unbox(), pt,
+        ),
     }
 }
 
@@ -362,6 +365,9 @@ pub mod alternatives {
             Shape::Capsule(s) => project_local_point_and_get_feature_capsule(s, pt),
             Shape::Segment(s) => project_local_point_and_get_feature_segment(s, pt),
             Shape::HalfSpace(s) => project_local_point_and_get_feature_halfspace(s, pt),
+            Shape::ConvexPolygon(s) => crate::point::convex_polygon::project_local_point_and_get_feature_convex_polygon(
+                s.unbox(), pt,
+            ),
         }
     }
 

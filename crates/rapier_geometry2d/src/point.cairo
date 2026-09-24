@@ -20,11 +20,12 @@
 //!   the `Face(0)` / `Face(1)` side are all read off exact `i128` quantities, never off a rounded
 //!   projection, so they never flip because the projected point landed 1 ulp away.
 //!
-//! Deferred (see `docs/PLAN.md`): support-map projection (GJK/EPA), ray casts, triangle and
-//! convex-polygon projection.
+//! Bounded convex polygons use analytic edge projection in `convex_polygon`.
+//! Deferred (see `docs/PLAN.md`): support-map projection (GJK/EPA) and triangles.
 
 pub mod ball;
 pub mod capsule;
+pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
 pub mod ratio;

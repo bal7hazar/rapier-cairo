@@ -1,11 +1,14 @@
 //! The closed shape enum of the 2D pipeline (decision D6) and its dispatch.
 //!
-//! Ball, cuboid, capsule, segment and half-space, each with the upstream Parry API that Rapier's
-//! step consumes: `compute_local_aabb`, `compute_aabb`, `mass_properties`, the support maps and the
-//! cuboid feature ids. `match` on [`Shape`] replaces Parry's `dyn Shape`.
+//! Ball, cuboid, capsule, segment, half-space and bounded convex polygon, each with the upstream
+//! Parry API that Rapier's step consumes: `compute_local_aabb`, `compute_aabb`, `mass_properties`,
+//! the support maps and the cuboid feature ids. `match` on [`Shape`] replaces Parry's `dyn Shape`.
 //!
-//! Deferred: convex polygons, round shapes, compounds, `scaled`, ray casting.
+//! Deferred: convex hull construction, round shapes, compounds and `scaled`.
 
+pub mod convex_polygon;
+use convex_polygon::{BoxedConvexPolygonPartialEq, BoxedConvexPolygonSerde};
+pub use convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub mod ball;
 pub mod capsule;
 pub mod cuboid;
@@ -29,6 +32,7 @@ pub enum ShapeType {
     Capsule,
     Segment,
     HalfSpace,
+    ConvexPolygon,
 }
 
 /// A collision shape in its local frame.
@@ -39,6 +43,9 @@ pub enum Shape {
     Capsule: Capsule,
     Segment: Segment,
     HalfSpace: HalfSpace,
+    /// Boxed to preserve the six-felt representation of existing shapes; the polygon itself
+    /// retains its fixed vertex/normal arrays. Serialization delegates to its value.
+    ConvexPolygon: Box<ConvexPolygon>,
 }
 
 #[generate_trait]
@@ -52,6 +59,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(_) => ShapeType::Capsule,
             Shape::Segment(_) => ShapeType::Segment,
             Shape::HalfSpace(_) => ShapeType::HalfSpace,
+            Shape::ConvexPolygon(_) => ShapeType::ConvexPolygon,
         }
     }
 
@@ -63,6 +71,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(s) => s.compute_local_aabb(),
             Shape::Segment(s) => s.compute_local_aabb(),
             Shape::HalfSpace(s) => s.compute_local_aabb(),
+            Shape::ConvexPolygon(s) => s.unbox().compute_local_aabb(),
         }
     }
 
@@ -79,6 +88,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(s) => s.compute_aabb(pose),
             Shape::Segment(s) => s.compute_aabb(pose),
             Shape::HalfSpace(s) => s.compute_aabb(pose),
+            Shape::ConvexPolygon(s) => s.unbox().compute_aabb(pose),
         }
     }
 
@@ -90,6 +100,15 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::Capsule(s) => s.mass_properties(density),
             Shape::Segment(s) => s.mass_properties(density),
             Shape::HalfSpace(s) => s.mass_properties(density),
+            Shape::ConvexPolygon(s) => s.unbox().mass_properties(density),
+        }
+    }
+
+    /// The wrapped polygon, `None` for every other shape.
+    fn as_convex_polygon(self: Shape) -> Option<ConvexPolygon> {
+        match self {
+            Shape::ConvexPolygon(s) => Some(s.unbox()),
+            _ => None,
         }
     }
 
@@ -139,13 +158,46 @@ mod alternatives {
     use rapier_math::pose2::Pose2;
     use crate::aabb::Aabb;
     use super::{
-        BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape, ShapeTrait,
+        BallTrait, CapsuleTrait, ConvexPolygonTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait,
+        Shape,
     };
 
-    /// The pre-OP `ShapeTrait::compute_aabb`: the same `match`, out of line.
+    /// Rejected direct polygon payload; increases every Shape value to 34 felts.
+    #[derive(Copy, Drop)]
+    pub enum UnboxedShape {
+        Ball: super::Ball,
+        Cuboid: super::Cuboid,
+        Capsule: super::Capsule,
+        Segment: super::Segment,
+        HalfSpace: super::HalfSpace,
+        ConvexPolygon: super::ConvexPolygon,
+    }
+
+    /// Rejected 34-felt enum representation: existing scene probes measured the copy overhead
+    /// before boxing the polygon payload. This retained AABB path exercises that representation.
     #[inline(never)]
     pub fn compute_aabb_outlined(shape: Shape, pose: Pose2) -> Aabb {
-        shape.compute_aabb(pose)
+        let shape = match shape {
+            Shape::Ball(s) => UnboxedShape::Ball(s),
+            Shape::Cuboid(s) => UnboxedShape::Cuboid(s),
+            Shape::Capsule(s) => UnboxedShape::Capsule(s),
+            Shape::Segment(s) => UnboxedShape::Segment(s),
+            Shape::HalfSpace(s) => UnboxedShape::HalfSpace(s),
+            Shape::ConvexPolygon(s) => UnboxedShape::ConvexPolygon(s.unbox()),
+        };
+        compute_unboxed_aabb(shape, pose)
+    }
+
+    #[inline(never)]
+    fn compute_unboxed_aabb(shape: UnboxedShape, pose: Pose2) -> Aabb {
+        match shape {
+            UnboxedShape::Ball(s) => s.compute_aabb(pose),
+            UnboxedShape::Capsule(s) => s.compute_aabb(pose),
+            UnboxedShape::Cuboid(s) => s.compute_aabb(pose),
+            UnboxedShape::HalfSpace(s) => s.compute_aabb(pose),
+            UnboxedShape::Segment(s) => s.compute_aabb(pose),
+            UnboxedShape::ConvexPolygon(s) => s.compute_aabb(pose),
+        }
     }
 }
 

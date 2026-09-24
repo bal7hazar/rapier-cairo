@@ -47,5 +47,16 @@ pub fn generate() -> Value {
         }
     }
 
-    json!({ "family": "aabb", "cases": cases })
+    let mut polygons = Vec::new();
+    for (name, shape) in ShapeSpec::polygons() {
+        for (pose_name, pose) in poses
+            .into_iter()
+            .filter(|(name, _)| ["identity", "translated", "rot30"].contains(name))
+        {
+            let aabb = shape.shared().compute_aabb(&pose.p());
+            polygons.push(json!({ "id": format!("{name}/{pose_name}"), "shape": shape.json(),
+                "pose": jqpose(pose), "expected": { "mins": jvec(aabb.mins), "maxs": jvec(aabb.maxs) } }));
+        }
+    }
+    json!({ "family": "aabb", "cases": cases, "polygons": polygons })
 }

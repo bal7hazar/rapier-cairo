@@ -89,6 +89,7 @@ pub fn contact_manifold_plain(
         ) => contact_manifold_cuboid_segment_shapes(
             pos12, shape1, shape2, prediction, ref manifold,
         ),
+        (Shape::HalfSpace(halfspace1), Shape::ConvexPolygon(_)) |
         (
             Shape::HalfSpace(halfspace1), Shape::Cuboid(_),
         ) => {
@@ -113,6 +114,7 @@ pub fn contact_manifold_plain(
             );
             true
         },
+        (Shape::ConvexPolygon(_), Shape::HalfSpace(halfspace2)) |
         (
             Shape::Cuboid(_), Shape::HalfSpace(halfspace2),
         ) => {
@@ -217,6 +219,7 @@ pub fn contact_manifold_helpers(
         (
             Shape::Segment(_), Shape::Cuboid(_),
         ) => segment_cuboid(pos12, shape1, shape2, prediction, ref manifold),
+        (Shape::HalfSpace(halfspace1), Shape::ConvexPolygon(_)) |
         (
             Shape::HalfSpace(halfspace1), Shape::Cuboid(_),
         ) => {
@@ -235,6 +238,7 @@ pub fn contact_manifold_helpers(
             halfspace_pfm_helper(pos12, halfspace1, shape2, prediction, ref manifold);
             true
         },
+        (Shape::ConvexPolygon(_), Shape::HalfSpace(halfspace2)) |
         (
             Shape::Cuboid(_), Shape::HalfSpace(halfspace2),
         ) => {

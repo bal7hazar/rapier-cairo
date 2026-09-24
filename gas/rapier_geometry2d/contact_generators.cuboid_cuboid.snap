@@ -25,7 +25,7 @@ rapier_geometry2d::contact_generators::cuboid_cuboid::tests::gas_touching_short 
 rapier_geometry2d::contact_generators::cuboid_cuboid::tests::gas_within_pred_eager 504050
 rapier_geometry2d::contact_generators::cuboid_cuboid::tests::gas_within_pred_short 504050
 rapier_geometry2d::contact_generators::cuboid_cuboid::tests::test_candidates_all_goldens_both_orders 25373940
-rapier_geometry2d::contact_generators::cuboid_cuboid::tests::test_dispatch_and_clear_preserve_metadata 2697970
+rapier_geometry2d::contact_generators::cuboid_cuboid::tests::test_dispatch_and_clear_preserve_metadata 2689070
 rapier_geometry2d::contact_generators::cuboid_cuboid::tests::test_persistence_and_regeneration_transfer_impulses 4580030
 rapier_geometry2d::contact_generators::cuboid_cuboid::tests::test_prediction_boundary_and_degenerate_extents 14134270
 rapier_geometry2d::contact_generators::cuboid_cuboid::tests::test_second_sat_rejects_and_negative_translation 2620830

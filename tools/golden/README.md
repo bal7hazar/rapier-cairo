@@ -892,3 +892,38 @@ Deviations from the scene format worth knowing:
   non-finite output, and the port needs a rule of its own there.
 - `a_rotation_used`, `b_rotation_used`, `step_norm_squared_minus_one`, the SAT / clip / projection
   `note`s stay in the JSON only.
+
+## CP1 convex polygon additions
+
+The existing `aabb`, `mass_properties`, `point_projection`, and `ray_casts` JSON families have
+an additional `polygons` table (triangle, quad, pentagon, octagon, rotated quad, thin quad).
+The original tables remain byte-identical. Polygon fixtures use separate additive Cairo types
+and `generated::polygon_{aabb,mass,point,ray}` modules, keeping `ShapeRaw` and its existing
+consumers unchanged. No additional upstream dependency or vendored modification is required.
+
+Cairo uses analytic nearest-edge projection and half-plane ray clipping instead of GJK/EPA.
+Projection ties are tagged `ambiguous` and compare signed distances; otherwise points and
+features are compared. Polygon point/ray ids use plain indices; PFM contact support uses
+upstream's doubled vertex ids and odd face ids. Ray hits report an analytic face instead of
+GJK's unknown feature. Hollow rays preserve the supplied direction units (ADR #4); golden
+hollow rays use unit directions, and Cairo unit tests cover nonunit rays. Strict construction
+rejects clockwise, concave, duplicate and collinear inputs rather than removing collinear
+vertices or assuming convexity. Convex hull construction and scaling remain deferred.
+
+`poly_pent/tie` additionally records an EPA degeneracy: at the origin the f64 query returns
+`(0, 1.5)` and signed distance `-1.5`, although the bottom edge's nearest point is `(0, -1)`.
+It is tagged `gjk_degenerate`, not an ambiguous nearest-point tie. The Cairo regression checks
+both the recorded upstream distance and the exact analytic point/distance; other fixtures
+compare directly against upstream within their stated tolerances.
+
+`ConvexPolygon` retains the specified fixed arrays. `Shape::ConvexPolygon` stores
+`Box<ConvexPolygon>` so adding this shape does not enlarge every collider's enum payload
+from 6 to 34 field elements. Box serialization and equality delegate to the value. Construct
+it with `Shape::ConvexPolygon(BoxTrait::new(polygon))`; `as_convex_polygon()` returns the value.
+The rejected unboxed representation is retained in `shape::alternatives` and its AABB probes.
+
+The polygon world-AABB scan is unrolled over the eight fixed slots, with the common
+translation applied once to the rotated extrema. A loop is cheaper in
+isolated Sierra gas, but changes allocation-pointer tracking through the closed Shape dispatch
+and adds steps to every existing scene. The unrolled scan restores the original free-fall and
+pendulum step counts. The loop, per-vertex-translation unroll and four-support-query alternatives remain benchmarked.
