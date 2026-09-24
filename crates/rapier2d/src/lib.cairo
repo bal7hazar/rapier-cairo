@@ -4,6 +4,7 @@
 
 pub mod dispatcher;
 pub mod pipeline;
+pub mod queries;
 pub mod world;
 
 /// Everything a game needs to build and step a world (requested by P1).

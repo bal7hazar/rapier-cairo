@@ -16,6 +16,7 @@ pub mod manifold;
 pub mod mass;
 pub mod point;
 pub mod polygonal_feature;
+pub mod ray;
 pub mod sat;
 pub mod shape;
 pub use closest_points::{
