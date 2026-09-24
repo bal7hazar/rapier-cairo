@@ -42,7 +42,10 @@ Non-negotiable frame:
    workspace-wide test run (`snforge test --workspace`, `scripts/gas.py`) also takes the machine-wide
    heavy lock shared with other projects — it may wait silently for many minutes, that is normal. Prefer
    `snforge test -p <crate> <filter>` while iterating: it only waits for the project lock. Rust builds
-   (`cargo` in `tools/golden`) take no lock. If a build or test run dies with
+   (`cargo` in `tools/golden`) take no lock. Check once with `command -v snforge`: if it is not
+   `<worktree>/scripts/build-shims/snforge` (codex runs commands in login shells that put
+   `~/.local/bin` first, whose machine-wide shim sends EVERY test run through the heavy lock), call
+   `scripts/build-shims/snforge` and `scripts/build-shims/scarb` explicitly for crate-scoped runs. If a build or test run dies with
    "Killed", signal 9 or exit code 137/144, it was the OOM killer, not your code: wait a minute and
    re-run it. While iterating prefer `snforge test -p <crate> <filter>`; keep the full workspace gate
    for the end. A shell command may run for up to one hour in the foreground (the
