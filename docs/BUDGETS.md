@@ -1,6 +1,34 @@
 # Step Budgets
 
-## Current (2026-09-24, `fixed` 0.3.0, after OS #68, OP #69, OI #73)
+## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
+
+One settled `World::step`, net of setup. Sierra gas from `gas_step_* − gas_setup_*`
+(`gas/rapier2d_integrationtest/gas_scenes.snap`); Cairo steps from the uncapped `steps_step_*` twins minus
+`gas_setup_*` (`snforge test -p rapier2d gas_scenes --detailed-resources --tracked-resource cairo-steps`).
+Every `#[available_gas]` ceiling (on the gross `gas_step_*` tests) is reset to +10 % of the gross value
+measured here.
+
+| scene | Sierra gas | Cairo steps | Δ gas vs 09-24 morning | Δ gas vs 09-22 |
+|---|---:|---:|---:|---:|
+| free fall 1 | 629,514 | 5,573 | +0 % | -50 % |
+| free fall 8 | 3,592,502 | 31,200 | -1 % | -44 % |
+| free fall 32 | 13,950,428 | 120,746 | -13 % | -47 % |
+| balls on half-space 1 | 3,976,369 | 31,637 | +1 % | -23 % |
+| balls on half-space 8 | 27,211,322 | 210,893 | +1 % | -26 % |
+| balls on half-space 32 | 108,685,038 | 842,894 | -0 % | -26 % |
+| cuboid stack 1 | 4,234,319 | 37,434 | +1 % | -30 % |
+| cuboid stack 3 | 12,916,927 | 105,871 | +1 % | -30 % |
+| cuboid stack 5 | 21,638,655 | 174,664 | +1 % | -30 % |
+| cuboid stack 10 | 43,614,125 | 348,204 | +1 % | -30 % |
+| mixed pile 8 | 48,471,917 | 386,326 | +1 % | -29 % |
+| pendulum chain 1 joint | 3,703,566 | 32,970 | -23 % | -27 % |
+| pendulum chain 3 joints | 9,987,414 | 88,697 | -25 % | -27 % |
+
+Since the morning matrix: joints −23 to −25 % (OJ), free fall 32 −13 % (grid broad phase BG), contact
+scenes +1 % (D8 fixed-last partition, DO). Open targets: narrow phase per pair (lot ON), per-contact solver
+cost (a resting ball still costs ≈ 3.4M per step), world-scale-aware broad-phase cell size.
+
+## Morning matrix (2026-09-24, after OS, OP, OI)
 
 One settled `World::step`, net of setup. Sierra gas from `gas_step_*`; Cairo steps from the uncapped
 `steps_step_*` twins (`snforge test -p rapier2d gas_scenes --detailed-resources --tracked-resource
