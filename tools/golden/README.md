@@ -922,7 +922,8 @@ from 6 to 34 field elements. Box serialization and equality delegate to the valu
 it with `Shape::ConvexPolygon(BoxTrait::new(polygon))`; `as_convex_polygon()` returns the value.
 The rejected unboxed representation is retained in `shape::alternatives` and its AABB probes.
 
-The polygon world-AABB scan is unrolled over the eight fixed slots. A loop is cheaper in
+The polygon world-AABB scan is unrolled over the eight fixed slots, with the common
+translation applied once to the rotated extrema. A loop is cheaper in
 isolated Sierra gas, but changes allocation-pointer tracking through the closed Shape dispatch
 and adds steps to every existing scene. The unrolled scan restores the original free-fall and
-pendulum step counts. Both the loop and four-support-query alternatives remain benchmarked.
+pendulum step counts. The loop, per-vertex-translation unroll and four-support-query alternatives remain benchmarked.

@@ -184,8 +184,8 @@ fn gas_mass() {
     let _ = opaque(square()).mass_properties(ONE);
 }
 #[test]
-fn gas_projection() {
-    let _ = project_local_point_convex_polygon(opaque(square()), v(TWO, HALF), false);
+fn gas_aabb_shift_each() {
+    let _ = super::alternatives::compute_aabb_shift_each(opaque(square()), pose());
 }
 #[test]
 fn gas_projection_feature() {
@@ -225,6 +225,9 @@ fn fuzz_aabb_variants(angle: u8, tx: i16, ty: i16) {
     };
     assert_eq!(
         square().compute_aabb(pose), super::alternatives::compute_aabb_support(square(), pose),
+    );
+    assert_eq!(
+        square().compute_aabb(pose), super::alternatives::compute_aabb_shift_each(square(), pose),
     );
     assert_eq!(square().compute_aabb(pose), super::alternatives::compute_aabb_loop(square(), pose));
 }
