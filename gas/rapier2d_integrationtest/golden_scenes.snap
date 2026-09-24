@@ -18,4 +18,4 @@ rapier2d_integrationtest::golden_scenes::test_ball_drop 512258891
 rapier2d_integrationtest::golden_scenes::test_box_slope_stick 759220812
 rapier2d_integrationtest::golden_scenes::test_box_stack3_first_window 1043897960
 rapier2d_integrationtest::golden_scenes::test_box_stack3_second_window 1037198525
-rapier2d_integrationtest::golden_scenes::test_pendulum 641545463
+rapier2d_integrationtest::golden_scenes::test_pendulum 506912663

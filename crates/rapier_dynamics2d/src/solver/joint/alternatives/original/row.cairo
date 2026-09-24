@@ -3,32 +3,12 @@ use fixed::Fixed;
 use fixed::wide::dot4;
 use glam::Vec2;
 use rapier_math::math_ext::inv;
-use super::super::body::SolverVel;
-
-/// Bilateral row in upstream's sign convention: J(v2-v1), positive impulse on body 1.
-/// Cached inertia-weighted angular Jacobians retain upstream Gram–Schmidt rounding order.
-/// All values/intermediates must fit Q32.32; overflow panics. Axis is 0=X, 1=Y, 2=AngX.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
-pub struct JointGenericConstraint {
-    pub lin_jac: Vec2,
-    pub ang_jac1: Fixed,
-    pub ang_jac2: Fixed,
-    pub ii_ang_jac1: Fixed,
-    pub ii_ang_jac2: Fixed,
-    pub inv_lhs: Fixed,
-    pub rhs: Fixed,
-    pub rhs_wo_bias: Fixed,
-    pub impulse: Fixed,
-    pub cfm_coeff: Fixed,
-    pub cfm_gain: Fixed,
-    pub erp_inv_dt: Fixed,
-    pub axis: u8,
-}
+use crate::solver::body::SolverVel;
+use crate::solver::joint::JointGenericConstraint;
 
 pub(crate) fn scale(v: Vec2, s: Fixed) -> Vec2 {
     v * Vec2 { x: s, y: s }
 }
-#[inline(always)]
 pub(crate) fn metric(a: JointGenericConstraint, b: JointGenericConstraint, imsum: Vec2) -> Fixed {
     let lin = imsum * b.lin_jac;
     dot4(
@@ -42,14 +22,12 @@ pub(crate) fn metric(a: JointGenericConstraint, b: JointGenericConstraint, imsum
         b.ang_jac2,
     )
 }
-#[inline(always)]
 pub(crate) fn finish(ref a: JointGenericConstraint, imsum: Vec2) -> Fixed {
     let mass = metric(a, a, imsum);
     a.cfm_gain = mass * a.cfm_coeff + a.cfm_gain;
     a.inv_lhs = inv(mass + a.cfm_gain);
     inv(mass)
 }
-#[inline(always)]
 pub(crate) fn project(
     ref a: JointGenericConstraint, b: JointGenericConstraint, imsum: Vec2, inverse: Fixed,
 ) {
@@ -62,7 +40,6 @@ pub(crate) fn project(
     a.rhs -= b.rhs * coeff;
     a.rhs_wo_bias -= b.rhs_wo_bias * coeff;
 }
-#[inline(always)]
 pub(crate) fn apply(
     a: JointGenericConstraint,
     impulse: Fixed,
@@ -77,7 +54,6 @@ pub(crate) fn apply(
     v1.angular += a.ii_ang_jac1 * impulse;
     v2.angular -= a.ii_ang_jac2 * impulse;
 }
-#[inline(always)]
 pub(crate) fn solve_row(
     ref a: JointGenericConstraint, im1: Vec2, im2: Vec2, ref v1: SolverVel, ref v2: SolverVel,
 ) {

@@ -100,30 +100,42 @@ pub impl JointConstraintHelperImpl of JointConstraintHelperTrait {
     /// Orthogonalize in row order (modified Gram–Schmidt), then cache inverse lhs.
     /// At most three rows. Zero mass has zero inverse, including dependent rows.
     /// Division rounds to nearest; products/dots floor. Overflow/too-small inverse panics in Fixed.
+    // Inline the row-count dispatch; outline each fixed-size kernel so two-row joints
+    // do not pay Sierra gas for the third row and its two projections.
+    #[inline(always)]
     fn finalize(ref constraint: JointConstraint) {
         let imsum = constraint.im1 + constraint.im2;
         let [mut a, mut b, mut c] = constraint.rows;
-        if constraint.num_rows != 0 {
-            let ia = finish(ref a, imsum);
-            if constraint.num_rows >= 2 {
-                project(ref b, a, imsum, ia);
-            }
-            if constraint.num_rows == 3 {
-                project(ref c, a, imsum, ia);
-            }
-            if constraint.num_rows >= 2 {
-                let ib = finish(ref b, imsum);
-                if constraint.num_rows == 3 {
-                    project(ref c, b, imsum, ib);
-                }
-            }
-            if constraint.num_rows == 3 {
-                let _ = finish(ref c, imsum);
-            }
+        match constraint.num_rows {
+            0 => {},
+            1 => { let _ = finish(ref a, imsum); },
+            2 => finalize2(ref a, ref b, imsum),
+            _ => finalize3(ref a, ref b, ref c, imsum),
         }
         constraint.rows = [a, b, c];
     }
 }
 fn dot(a: Vec2, b: Vec2) -> Fixed {
     dot2(a.x, b.x, a.y, b.y)
+}
+
+#[inline(never)]
+fn finalize2(ref a: JointGenericConstraint, ref b: JointGenericConstraint, imsum: Vec2) {
+    let ia = finish(ref a, imsum);
+    project(ref b, a, imsum, ia);
+    let _ = finish(ref b, imsum);
+}
+#[inline(never)]
+fn finalize3(
+    ref a: JointGenericConstraint,
+    ref b: JointGenericConstraint,
+    ref c: JointGenericConstraint,
+    imsum: Vec2,
+) {
+    let ia = finish(ref a, imsum);
+    project(ref b, a, imsum, ia);
+    project(ref c, a, imsum, ia);
+    let ib = finish(ref b, imsum);
+    project(ref c, b, imsum, ib);
+    let _ = finish(ref c, imsum);
 }

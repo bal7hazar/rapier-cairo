@@ -3,6 +3,7 @@
 //! Body poses are at CoM: callers must shift body-local joint translations by local_com first.
 //! D4: CFM below 8 Q32.32 ulp becomes zero, preserving computed ERP. Products/dots floor;
 //! reciprocals round to nearest. All intermediates must fit Fixed; nonnegative masses required.
+//! OJ keeps scalar row kernels inline to avoid copying full rows at each arithmetic call.
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};
@@ -136,6 +137,7 @@ pub impl JointConstraintImpl of JointConstraintTrait {
         scatter(ref bodies, self.solver_vel1, v1, self.solver_vel2, v2);
     }
     /// Exact rhs copies only; masses, impulses and CFM are preserved, as upstream.
+    #[inline(always)]
     fn remove_bias(ref self: JointConstraint) {
         let [mut a, mut b, mut c] = self.rows;
         a.rhs = a.rhs_wo_bias;
@@ -145,44 +147,48 @@ pub impl JointConstraintImpl of JointConstraintTrait {
     }
     /// Persist active row impulses at their original DOF indices; no arithmetic or rounding.
     /// Disabled/no-row joints preserve previous impulses; free axes are untouched.
+    #[inline(always)]
     fn writeback_impulses(self: JointConstraint, ref joint: ImpulseJoint) {
         let [a, b, c] = self.rows;
+        let [mut x, mut y, mut w] = joint.impulses;
         if self.num_rows != 0 {
-            write(a, ref joint);
+            write(a.axis, a.impulse, ref x, ref y, ref w);
         }
         if self.num_rows >= 2 {
-            write(b, ref joint);
+            write(b.axis, b.impulse, ref x, ref y, ref w);
         }
         if self.num_rows == 3 {
-            write(c, ref joint);
+            write(c.axis, c.impulse, ref x, ref y, ref w);
         }
+        joint.impulses = [x, y, w];
     }
 }
-fn write(a: JointGenericConstraint, ref joint: ImpulseJoint) {
-    let [mut x, mut y, mut w] = joint.impulses;
-    match a.axis {
-        0 => x = a.impulse,
-        1 => y = a.impulse,
-        _ => w = a.impulse,
+#[inline(always)]
+fn write(axis: u8, impulse: Fixed, ref x: Fixed, ref y: Fixed, ref w: Fixed) {
+    match axis {
+        0 => x = impulse,
+        1 => y = impulse,
+        _ => w = impulse,
     }
-    joint.impulses = [x, y, w];
 }
+#[inline(always)]
 fn seed(ref c: JointConstraint, joint: ImpulseJoint, params: IntegrationParameters) {
     if params.warmstart_joints {
         let [mut a, mut b, mut d] = c.rows;
-        a.impulse = seed_row(a, joint) * params.warmstart_coefficient;
+        a.impulse = seed_row(a.axis, joint.impulses) * params.warmstart_coefficient;
         if c.num_rows >= 2 {
-            b.impulse = seed_row(b, joint) * params.warmstart_coefficient;
+            b.impulse = seed_row(b.axis, joint.impulses) * params.warmstart_coefficient;
         }
         if c.num_rows == 3 {
-            d.impulse = seed_row(d, joint) * params.warmstart_coefficient;
+            d.impulse = seed_row(d.axis, joint.impulses) * params.warmstart_coefficient;
         }
         c.rows = [a, b, d];
     }
 }
-fn seed_row(a: JointGenericConstraint, joint: ImpulseJoint) -> Fixed {
-    let [x, y, w] = joint.impulses;
-    match a.axis {
+#[inline(always)]
+fn seed_row(axis: u8, impulses: [Fixed; 3]) -> Fixed {
+    let [x, y, w] = impulses;
+    match axis {
         0 => x,
         1 => y,
         _ => w,
@@ -625,3 +631,6 @@ mod tests {
         helper_probe(2);
     }
 }
+
+#[cfg(test)]
+pub(crate) mod probes;
