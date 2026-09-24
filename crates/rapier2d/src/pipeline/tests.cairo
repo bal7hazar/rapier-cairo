@@ -74,7 +74,7 @@ fn same_state(ref a: World, ref b: World) -> bool {
 
 /// Stages 1–2 of a step, returning the broad-phase pairs.
 fn prepare(ref world: World) -> Array<(u32, u32)> {
-    handle_user_changes(ref world.bodies, ref world.colliders);
+    handle_user_changes(ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span());
     let prediction = world.integration_parameters.prediction_distance();
     find_pairs(world.colliders.broad_phase_proxies(ref world.bodies, prediction).span())
 }
@@ -169,8 +169,12 @@ fn test_all_manifolds_solver_agrees() {
             );
             assert!(same_state(ref shipped, ref candidate), "{} step {}", *id, step);
             assert!(shipped.impulse_joints.to_array() == candidate.impulse_joints.to_array());
-            super::advance_to_final_positions(ref shipped.bodies, ref shipped.colliders);
-            super::advance_to_final_positions(ref candidate.bodies, ref candidate.colliders);
+            super::advance_to_final_positions(
+                ref shipped.bodies, ref shipped.colliders, shipped.integration_parameters,
+            );
+            super::advance_to_final_positions(
+                ref candidate.bodies, ref candidate.colliders, candidate.integration_parameters,
+            );
             step += 1;
         }
     }
@@ -185,8 +189,12 @@ fn test_propagate_user_changes_agree() {
         let mut candidate = world_of(*id);
         let mut round = 0;
         while round != 2 {
-            handle_user_changes(ref shipped.bodies, ref shipped.colliders);
-            handle_user_changes_propagate(ref candidate.bodies, ref candidate.colliders);
+            handle_user_changes(
+                ref shipped.bodies, ref shipped.colliders, shipped.narrow_phase.pairs.span(),
+            );
+            handle_user_changes_propagate(
+                ref candidate.bodies, ref candidate.colliders, candidate.narrow_phase.pairs.span(),
+            );
             assert!(same_state(ref shipped, ref candidate), "{} round {}", *id, round);
             // Move the last body and attach a collider to it, in both worlds.
             let (handle, mut body) = *shipped.bodies.iter().at(shipped.bodies.len() - 1);
@@ -296,8 +304,12 @@ fn test_collision_inputs_match_the_stage_functions() {
     while seed != 6 {
         let mut world = random_world(seed);
         let mut reference = random_world(seed);
-        let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
-        handle_user_changes(ref reference.bodies, ref reference.colliders);
+        let (snapshot, infos) = user_changes_snapshot(
+            ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+        );
+        handle_user_changes(
+            ref reference.bodies, ref reference.colliders, reference.narrow_phase.pairs.span(),
+        );
         assert!(same_state(ref world, ref reference), "seed {} user changes", seed);
         assert!(snapshot == world.colliders.iter().span(), "seed {} snapshot", seed);
         let p = world.integration_parameters.prediction_distance();
@@ -368,7 +380,9 @@ fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
     if variant == 0 {
         return world.step();
     }
-    let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+    let (snapshot, infos) = user_changes_snapshot(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let p = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = if variant == 1 {
         collision_inputs_outlined_fallback(snapshot, infos, ref world.bodies, p)
@@ -389,9 +403,13 @@ fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
         ref world.impulse_joints,
     );
     if variant == 3 {
-        advance_with_snapshot_outlined(ref world.bodies, ref world.colliders, snapshot);
+        advance_with_snapshot_outlined(
+            ref world.bodies, ref world.colliders, snapshot, world.integration_parameters,
+        );
     } else {
-        advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
+        advance_with_snapshot(
+            ref world.bodies, ref world.colliders, snapshot, world.integration_parameters,
+        );
     }
     events
 }
@@ -444,7 +462,7 @@ fn test_solve_order_fixed_last() {
 fn check_solve_order(hole: bool) {
     let mut world = order_world(hole);
     let params = world.integration_parameters;
-    handle_user_changes(ref world.bodies, ref world.colliders);
+    handle_user_changes(ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span());
     let _ = detect_collisions(
         params, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );
@@ -501,7 +519,9 @@ fn oi_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
     if variant == 0 {
         return world.step();
     }
-    let (snapshot, infos, entries) = user_changes_bodies(ref world.bodies, ref world.colliders);
+    let (snapshot, infos, entries, _) = user_changes_bodies(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let p = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, p);
     let pairs = find_pairs(proxies.span());
@@ -623,4 +643,38 @@ fn fuzz_solve_and_advance_agrees(seed: u16) {
         assert!(same_state_and_joints(ref staged, ref fused), "step {}", step);
         step += 1;
     }
+}
+
+/// Sleeping (SL): the staged stage functions and the fused `step` agree while a stack falls
+/// asleep (dormant pairs carried over, timers, the island decision) and after a wake-up by hand.
+#[test]
+fn test_staged_and_fused_steps_agree_with_sleeping() {
+    let mut shipped = super::fixtures::p3_scene('stack', 3);
+    let mut candidate = super::fixtures::p3_scene('stack', 3);
+    let mut step = 0;
+    let mut slept = false;
+    while step != 40 {
+        let expected = shipped.step();
+        let got = step_staged(ref candidate);
+        assert!(got == expected, "events at step {}", step);
+        assert!(same_state(ref shipped, ref candidate), "state at step {}", step);
+        let (_, body) = *shipped.bodies.iter().at(0);
+        if body.activation.sleeping {
+            slept = true;
+        }
+        step += 1;
+    }
+    assert!(slept, "the stack fell asleep");
+    let (top, mut body) = *shipped.bodies.iter().at(2);
+    body.apply_impulse(v(ONE, ZERO), true);
+    assert!(shipped.set_body(top, body) && candidate.set_body(top, body));
+    let mut step = 0;
+    while step != 3 {
+        let expected = shipped.step();
+        let got = step_staged(ref candidate);
+        assert!(got == expected && same_state(ref shipped, ref candidate), "wake step {}", step);
+        step += 1;
+    }
+    let (_, bottom) = *shipped.bodies.iter().at(0);
+    assert!(!bottom.activation.sleeping, "island woken");
 }

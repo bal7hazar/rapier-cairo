@@ -5,6 +5,7 @@ use rapier2d::prelude::{
     ColliderBuilderTrait, Fixed, Handle, IntegrationParameters, RevoluteJointBuilderTrait,
     RigidBodyTrait, Vec2, World, WorldTrait,
 };
+use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_golden::types::{BodyKindRaw, PoseRaw, SceneCase, SceneSampleRaw, ShapeRaw, Vec2Raw};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
@@ -34,16 +35,23 @@ pub fn body_handle(index: u32) -> Handle {
     Handle { index, generation: 0 }
 }
 
+/// Whether the scene `id` was traced with sleeping on (`tools/golden/README.md`, scenes
+/// section); every other trace uses `RigidBodyBuilder::can_sleep(false)`.
+pub fn scene_can_sleep(id: felt252) -> bool {
+    id == 'box_stack3_sleep' || id == 'ball_drop_sleep'
+}
+
 /// The world of `scene`: gravity and `dt` from the case, the other integration parameters at
 /// their upstream defaults (`num_solver_iterations = 4`); bodies in insertion order with their
-/// damping and gravity scale, each with its collider (shape, pose, density, friction,
-/// restitution), then the revolute joints.
+/// damping and gravity scale (and `cannot_sleep` unless the trace has sleeping on), each with
+/// its collider (shape, pose, density, friction, restitution), then the revolute joints.
 pub fn build_world(scene: SceneCase) -> World {
     let params = IntegrationParameters {
         dt: f(scene.dt), num_solver_iterations: NUM_SOLVER_ITERATIONS, ..Default::default(),
     };
     let mut world = WorldTrait::new(vr(scene.gravity), params);
     let mut i = 0;
+    let can_sleep = scene_can_sleep(scene.id);
     for desc in scene.bodies.span() {
         if i == scene.num_bodies {
             break;
@@ -52,6 +60,9 @@ pub fn build_world(scene: SceneCase) -> World {
             BodyKindRaw::Fixed => RigidBodyTrait::fixed(pose(*desc.pose)),
             BodyKindRaw::Dynamic => RigidBodyTrait::dynamic(pose(*desc.pose)),
         };
+        if !can_sleep {
+            body.activation = RigidBodyActivationTrait::cannot_sleep();
+        }
         body.damping.linear_damping = f(*desc.linear_damping);
         body.damping.angular_damping = f(*desc.angular_damping);
         body.forces.gravity_scale = f(*desc.gravity_scale);

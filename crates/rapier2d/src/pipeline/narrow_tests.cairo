@@ -42,7 +42,9 @@ const INLINED: u8 = 4;
 
 /// One fused step (as `step`) with the narrow phase `variant`; returns the events.
 fn step_with(ref world: World, variant: u8) -> Array<CollisionEvent> {
-    let (snapshot, infos, entries) = user_changes_bodies(ref world.bodies, ref world.colliders);
+    let (snapshot, infos, entries, _) = user_changes_bodies(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span()).span();

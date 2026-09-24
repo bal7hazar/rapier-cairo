@@ -39,10 +39,21 @@
 //! §2.4). Change flags are only raised by user mutations: stages 3–4 move bodies and colliders
 //! without raising them, as upstream's internal motion.
 //!
-//! Deviations from upstream: one step = one CCD substep (CCD is deferred); no islands, sleeping,
-//! hooks, contact-force or sensor events, kinematic velocity interpolation (a position-based
-//! kinematic body moves to its `next_position` with the velocity the user gave it); a body whose
-//! enabled state changes does not propagate it to its colliders (disable the colliders).
+//! Sleeping (work package SL, `islands`, `sleeping`, `user_changes`): stage 1 wakes up the
+//! parents and contact partners of the colliders a user change touched; the proxies of sleeping
+//! bodies are static and the previous step's dormant pairs (both sides fixed, absent or asleep)
+//! bypass the narrow phase; between stages 2 and 3 [`update_islands`] rebuilds the islands
+//! (union-find over touching pairs and enabled joints) and applies upstream's wake-up and sleep
+//! rules; the solver takes the active pairs only, sleeping bodies enter the store as immovable
+//! copies when a joint or a pair still references them and are neither advanced nor written;
+//! the sleep timer of every moved body is updated in the position update
+//! (`islands::update_sleep_timer`).
+//!
+//! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
+//! every step (upstream persists them, see `islands`); no hooks, contact-force or sensor events,
+//! kinematic velocity interpolation (a position-based kinematic body moves to its `next_position`
+//! with the velocity the user gave it); a body whose enabled state changes does not propagate it
+//! to its colliders (disable the colliders).
 //!
 //! # Cost
 //!
@@ -115,11 +126,7 @@ use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::ColliderChangesTrait;
-use rapier_core::collider::changes::{
-    ENABLED_OR_DISABLED, LOCAL_MASS_PROPERTIES as CO_LOCAL_MASS_PROPERTIES, PARENT, SHAPE,
-};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
-use rapier_core::rigid_body::changes::{COLLIDERS, LOCAL_MASS_PROPERTIES, POSITION};
 use rapier_core::rigid_body::{
     RigidBodyChangesTrait, RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType,
 };
@@ -128,7 +135,7 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, JointEnabled};
 use rapier_dynamics2d::narrow_phase::{
-    NarrowPhase, NarrowPhaseTrait, PairCollider, compute_contacts_from_scratch,
+    ContactPair, NarrowPhase, PairCollider, compute_contacts_from_scratch,
 };
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
@@ -136,7 +143,6 @@ use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
 use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
-use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::ShapeTrait;
 use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
@@ -149,22 +155,31 @@ mod benches;
 pub(crate) mod fixtures;
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
+
+pub mod islands;
 #[cfg(test)]
 pub(crate) mod narrow_alternatives;
 #[cfg(test)]
 mod narrow_benches;
 #[cfg(test)]
 mod narrow_tests;
-
 mod ordering;
+pub mod sleeping;
 #[cfg(test)]
 pub(crate) mod solve_alternatives;
 #[cfg(test)]
 mod solve_benches;
 #[cfg(test)]
 mod tests;
-pub(crate) use ordering::fixed_last_flag;
+mod user_changes;
+pub use islands::{SleepCensus, SleepCensusTrait, update_islands};
+pub(crate) use ordering::{dormant_of, fixed_last_flag, link_status};
 pub use ordering::{scatter_touching, scatter_touching_split, solve_order, touching_manifolds};
+pub use sleeping::{any_sleeping, merge_pairs, split_dormant};
+mod staged;
+pub use staged::{advance_to_final_positions, detect_collisions, solve};
+pub(crate) use user_changes::{body_changes, collider_changes};
+pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colliders};
 
 
 /// One step of `world` (see the module documentation for the stages); returns the collision
@@ -173,14 +188,39 @@ pub use ordering::{scatter_touching, scatter_touching_split, solve_order, touchi
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    let (snapshot, infos, entries) = user_changes_bodies(ref world.bodies, ref world.colliders);
+    let (snapshot, infos, entries, census) = user_changes_bodies(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let prediction = world.integration_parameters.prediction_distance();
-    let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
+    let (proxies, scratch, sleeping) = collision_inputs_sleeping(
+        snapshot, infos, ref world.bodies, prediction,
+    );
+    let mut dormant = array![];
+    if sleeping {
+        let (active, asleep) = split_dormant(world.narrow_phase.pairs.span(), entries);
+        world.narrow_phase.pairs = active;
+        dormant = asleep;
+    }
     let pairs = find_pairs(proxies.span());
     let events = compute_contacts_from_scratch::<
         DefaultDispatcher,
     >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
-    solve_and_advance(
+    let joint_entries = world.impulse_joints.to_array();
+    let (entries, sleeping, woken) = update_islands(
+        ref world.bodies,
+        world.narrow_phase.pairs.span(),
+        dormant.span(),
+        joint_entries.span(),
+        entries,
+        census,
+    );
+    if woken && !dormant.is_empty() {
+        // The dormant pairs of the woken bodies join the solver input of this step.
+        let (revived, asleep) = split_dormant(dormant.span(), entries);
+        world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
+        dormant = asleep;
+    }
+    solve_and_advance_sleeping(
         world.gravity,
         world.integration_parameters,
         ref world.bodies,
@@ -189,7 +229,12 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
         ref world.impulse_joints,
         entries,
         snapshot,
+        joint_entries.span(),
+        sleeping,
     );
+    if !dormant.is_empty() {
+        world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
+    }
     events
 }
 
@@ -201,35 +246,65 @@ pub struct BodyInfo {
     pub world_com: Vec2,
     /// Effective dominance group (upstream `effective_group`).
     pub dominance: i16,
+    /// The body sleeps (SL): its colliders' proxies are static.
+    pub sleeping: bool,
 }
 
 /// The [`BodyInfo`] of a missing parent or of no parent: a fixed body at the origin.
 #[inline(always)]
-fn no_body_info() -> (RigidBodyType, Vec2, i16) {
+fn no_body_info() -> (RigidBodyType, Vec2, i16, bool) {
     let dominance: RigidBodyDominance = Default::default();
-    (RigidBodyType::Fixed, Default::default(), dominance.effective_group(RigidBodyType::Fixed))
+    (
+        RigidBodyType::Fixed,
+        Default::default(),
+        dominance.effective_group(RigidBodyType::Fixed),
+        false,
+    )
 }
 
-/// The `(body_type, world_com, dominance)` of the body `handle`: `infos[handle.index]` when that
-/// entry has the handle (always the case in a set without free slot), a set read otherwise.
-/// The read is inlined: in the loop body it is only paid when reached (`fused_alternatives::
-/// collision_inputs_outlined_fallback` puts it behind a call).
+/// The `(body_type, world_com, dominance, sleeping)` of the body `handle`: `infos[handle.index]`
+/// when that entry has the handle (always the case in a set without free slot), a set read
+/// otherwise. The read is inlined: in the loop body it is only paid when reached
+/// (`fused_alternatives::collision_inputs_outlined_fallback` puts it behind a call).
 #[inline(always)]
 fn body_info(
     infos: Span<BodyInfo>, handle: Handle, ref bodies: RigidBodySet,
-) -> (RigidBodyType, Vec2, i16) {
+) -> (RigidBodyType, Vec2, i16, bool) {
     if let Some(info) = infos.get(handle.index) {
         let info = *info.unbox();
         if info.handle == handle {
-            return (info.body_type, info.world_com, info.dominance);
+            return (info.body_type, info.world_com, info.dominance, info.sleeping);
         }
     }
     match bodies.get(handle) {
         Some(body) => (
-            body.body_type, body.mprops.world_com, body.dominance.effective_group(body.body_type),
+            body.body_type,
+            body.mprops.world_com,
+            body.dominance.effective_group(body.body_type),
+            body.activation.sleeping,
         ),
         None => no_body_info(),
     }
+}
+
+/// One [`BodyInfo`] per entry of `entries` (ascending slot), and their [`SleepCensus`].
+pub fn body_infos(entries: Span<(Handle, RigidBody)>) -> (Array<BodyInfo>, SleepCensus) {
+    let mut infos = array![];
+    let mut census: SleepCensus = Default::default();
+    for (handle, body) in entries {
+        census.count(body);
+        infos
+            .append(
+                BodyInfo {
+                    handle: *handle,
+                    body_type: *body.body_type,
+                    world_com: *body.mprops.world_com,
+                    dominance: body.dominance.effective_group(*body.body_type),
+                    sleeping: *body.activation.sleeping,
+                },
+            );
+    }
+    (infos, census)
 }
 
 /// The collider `handle`: `snapshot[handle.index]` when that entry has the handle, a set read
@@ -250,38 +325,44 @@ fn snapshot_collider(
 /// [`handle_user_changes`] that also returns what the rest of the step reads from the sets:
 /// every `(handle, collider)` after the changes in ascending slot (as `ColliderSetTrait::iter`)
 /// and one [`BodyInfo`] per body in ascending slot. The collider walk is reused when no change
-/// flag was raised, taken again otherwise. [`user_changes_bodies`] without the bodies.
+/// flag was raised, taken again otherwise. [`user_changes_bodies`] without the bodies. `pairs`
+/// are the previous step's contact pairs (wake-up pass, `sleeping::wake_touched_partners`).
 pub fn user_changes_snapshot(
-    ref bodies: RigidBodySet, ref colliders: ColliderSet,
+    ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>) {
-    let (snapshot, infos, _) = user_changes_bodies(ref bodies, ref colliders);
+    let (snapshot, infos, _, _) = user_changes_bodies(ref bodies, ref colliders, pairs);
     (snapshot, infos)
 }
 
 /// [`user_changes_snapshot`] that also returns every `(handle, body)` after the changes in
-/// ascending slot (as `RigidBodySetTrait::iter`); both walks are reused when no change flag was
-/// raised, taken again otherwise.
+/// ascending slot (as `RigidBodySetTrait::iter`) and the bodies' [`SleepCensus`] (the island
+/// stage's fast check); both walks are reused when no change flag was raised, taken again
+/// otherwise (and after a wake-up of the pass over `pairs`).
 pub fn user_changes_bodies(
-    ref bodies: RigidBodySet, ref colliders: ColliderSet,
-) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>) {
+    ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
+) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
+    let mut touched = array![];
     for (handle, collider) in snapshot {
         if !collider.changes.is_empty() {
-            collider_changes(*handle, *collider, ref bodies, ref colliders);
+            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched);
             dirty = true;
         }
     }
     let mut entries = bodies.iter().span();
     let mut bodies_dirty = false;
     let mut infos = array![];
+    let mut census: SleepCensus = Default::default();
     for (handle, body) in entries {
-        let (body_type, world_com, dominance) = if body.changes.is_empty() {
-            (*body.body_type, *body.mprops.world_com, *body.dominance)
+        let (body_type, world_com, dominance, sleeping) = if body.changes.is_empty() {
+            census.count(body);
+            (*body.body_type, *body.mprops.world_com, *body.dominance, *body.activation.sleeping)
         } else {
             bodies_dirty = true;
-            let body = body_changes(*handle, *body, ref bodies, ref colliders);
-            (body.body_type, body.mprops.world_com, body.dominance)
+            let body = body_changes(*handle, *body, ref bodies, ref colliders, ref touched);
+            census.count(@body);
+            (body.body_type, body.mprops.world_com, body.dominance, body.activation.sleeping)
         };
         infos
             .append(
@@ -290,44 +371,70 @@ pub fn user_changes_bodies(
                     body_type,
                     world_com,
                     dominance: dominance.effective_group(body_type),
+                    sleeping,
                 },
             );
+    }
+    if !touched.is_empty()
+        && !pairs.is_empty()
+        && sleeping::wake_touched_partners(touched.span(), pairs, ref bodies, ref colliders) {
+        bodies_dirty = true;
+        entries = bodies.iter().span();
+        let (fresh, recount) = body_infos(entries);
+        infos = fresh;
+        census = recount;
+    } else if bodies_dirty {
+        entries = bodies.iter().span();
     }
     if dirty || bodies_dirty {
         snapshot = colliders.iter().span();
     }
-    if bodies_dirty {
-        entries = bodies.iter().span();
-    }
-    (snapshot, infos.span(), entries)
+    (snapshot, infos.span(), entries, census)
 }
 
-/// The broad-phase proxies (as `ColliderSetTrait::broad_phase_proxies`) and the narrow-phase
-/// scratch (as `narrow_phase::pair_colliders`) of `snapshot`, in one walk without set read
-/// (except for a parent absent from `infos`' dense layout).
+/// The broad-phase proxies (as `ColliderSetTrait::broad_phase_proxies`, plus SL: a sleeping
+/// body's proxies are static) and the narrow-phase scratch (as `narrow_phase::pair_colliders`)
+/// of `snapshot`, in one walk without set read (except for a parent absent from `infos`' dense
+/// layout). [`collision_inputs_sleeping`] without its flag.
 pub fn collision_inputs(
     snapshot: Span<(Handle, Collider)>,
     infos: Span<BodyInfo>,
     ref bodies: RigidBodySet,
     prediction: Fixed,
 ) -> (Array<BroadPhaseProxy>, Span<PairCollider>) {
+    let (proxies, scratch, _) = collision_inputs_sleeping(snapshot, infos, ref bodies, prediction);
+    (proxies, scratch)
+}
+
+/// [`collision_inputs`] that also tells whether a collider belongs to a sleeping body (then the
+/// previous pairs must be split, `sleeping::split_dormant`).
+pub fn collision_inputs_sleeping(
+    snapshot: Span<(Handle, Collider)>,
+    infos: Span<BodyInfo>,
+    ref bodies: RigidBodySet,
+    prediction: Fixed,
+) -> (Array<BroadPhaseProxy>, Span<PairCollider>, bool) {
     let margin = prediction * HALF;
     let mut proxies = array![];
     let mut scratch = array![];
+    let mut any_sleeping = false;
     for (handle, collider) in snapshot {
         let collider = *collider;
         let body = collider.parent();
-        let (body_type, world_com, dominance) = match body {
+        let (body_type, world_com, dominance, sleeping) = match body {
             Some(parent) => body_info(infos, parent, ref bodies),
             None => no_body_info(),
         };
+        if sleeping {
+            any_sleeping = true;
+        }
         let pose = collider.pos.pose;
         proxies
             .append(
                 BroadPhaseProxy {
                     collider: *handle,
                     aabb: collider.shape.compute_aabb(pose).loosened(margin),
-                    is_static: body_type == RigidBodyType::Fixed,
+                    is_static: body_type == RigidBodyType::Fixed || sleeping,
                 },
             );
         scratch
@@ -352,32 +459,56 @@ pub fn collision_inputs(
                 },
             );
     }
-    (proxies, scratch.span())
+    (proxies, scratch.span(), any_sleeping)
 }
 
 
 /// [`advance_to_final_positions`] reading the colliders from `snapshot` (the colliders as
 /// [`user_changes_snapshot`] left them; stages 2–3 do not write colliders).
 pub fn advance_with_snapshot(
-    ref bodies: RigidBodySet, ref colliders: ColliderSet, snapshot: Span<(Handle, Collider)>,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    snapshot: Span<(Handle, Collider)>,
+    params: IntegrationParameters,
 ) {
     for (handle, body) in bodies.iter().span() {
-        if *body.enabled && *body.body_type != RigidBodyType::Fixed {
-            advance_body_with_snapshot(*handle, *body, ref bodies, ref colliders, snapshot);
+        if moving(body) {
+            advance_body_with_snapshot(*handle, *body, ref bodies, ref colliders, snapshot, params);
         }
     }
 }
 
+/// The step moves `body`: enabled, not fixed, awake.
 #[inline(always)]
-fn advance_body_with_snapshot(
+pub(crate) fn moving(body: @RigidBody) -> bool {
+    *body.enabled && *body.body_type != RigidBodyType::Fixed && !*body.activation.sleeping
+}
+
+/// `body` with its `enabled` flag cleared: how a sleeping body enters the solver store when a
+/// pair or a joint still references it (immovable, zero velocity), see the module documentation.
+#[inline(always)]
+pub(crate) fn immovable(body: RigidBody) -> RigidBody {
+    let mut body = body;
+    body.enabled = false;
+    body
+}
+
+/// The position update of one moving body (`position ← next_position`, world mass properties,
+/// attached colliders moved) after its sleep timer (`islands::update_sleep_timer`, on the
+/// displacement of the step).
+#[inline(always)]
+pub(crate) fn advance_body_with_snapshot(
     handle: Handle,
     body: RigidBody,
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
     snapshot: Span<(Handle, Collider)>,
+    params: IntegrationParameters,
 ) {
     let mut body = body;
+    let previous = body.pos.position;
     body.pos.position = body.pos.next_position;
+    islands::update_sleep_timer(ref body, previous, params);
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
     let _ = bodies.set(handle, body);
     for co_handle in body.colliders {
@@ -390,133 +521,20 @@ fn advance_body_with_snapshot(
     }
 }
 
-/// Stage 1 (upstream `handle_user_changes_to_colliders` then
-/// `handle_user_changes_to_rigid_bodies`, and the clearing of the modified sets): see the
-/// module documentation. Scans every collider and every body in ascending slot; only the flagged
-/// ones are rewritten.
-pub fn handle_user_changes(ref bodies: RigidBodySet, ref colliders: ColliderSet) {
-    for (handle, collider) in colliders.iter() {
-        if !collider.changes.is_empty() {
-            collider_changes(handle, collider, ref bodies, ref colliders);
+/// The joints of `entries` that are not dormant (`ordering::dormant_of`: both bodies fixed,
+/// absent or asleep, one asleep): the solver input when a body sleeps.
+pub(crate) fn active_joints(
+    joints: Span<(Handle, ImpulseJoint)>, entries: Span<(Handle, RigidBody)>,
+) -> Array<(Handle, ImpulseJoint)> {
+    let mut out = array![];
+    for entry in joints {
+        let (_, joint) = entry;
+        let (s1, s2) = link_status(entries, Some(*joint.body1), Some(*joint.body2));
+        if !dormant_of(s1, s2) {
+            out.append(*entry);
         }
     }
-    for (handle, body) in bodies.iter() {
-        if !body.changes.is_empty() {
-            let _ = body_changes(handle, body, ref bodies, ref colliders);
-        }
-    }
-}
-
-/// The user changes of one flagged collider, flags cleared.
-#[inline(never)]
-fn collider_changes(
-    handle: Handle, collider: Collider, ref bodies: RigidBodySet, ref colliders: ColliderSet,
-) {
-    let mut collider = collider;
-    let changes = collider.changes;
-    if let Some(parent) = collider.parent {
-        if let Some(mut body) = bodies.get(parent.handle) {
-            if changes.contains(PARENT) {
-                collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
-            }
-            if changes.intersects(SHAPE | CO_LOCAL_MASS_PROPERTIES | ENABLED_OR_DISABLED | PARENT) {
-                body.changes.insert(LOCAL_MASS_PROPERTIES);
-                let _ = bodies.set(parent.handle, body);
-            }
-        }
-    }
-    collider.changes = ColliderChangesTrait::empty();
-    let _ = colliders.set(handle, collider);
-}
-
-/// The user changes of one flagged body, flags cleared.
-#[inline(never)]
-fn body_changes(
-    handle: Handle, body: RigidBody, ref bodies: RigidBodySet, ref colliders: ColliderSet,
-) -> RigidBody {
-    let mut body = body;
-    let changes = body.changes;
-    if changes.contains(POSITION) || changes.contains(COLLIDERS) {
-        move_colliders(body, ref colliders);
-        body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-    }
-    if changes.intersects(LOCAL_MASS_PROPERTIES | COLLIDERS) {
-        recompute_mass_properties_from_colliders(ref body, ref colliders);
-    }
-    body.changes = RigidBodyChangesTrait::empty();
-    let _ = bodies.set(handle, body);
-    body
-}
-
-/// Upstream `RigidBodyMassProps::recompute_mass_properties_from_colliders`: the local mass
-/// properties become the sum, in attachment order, of the enabled colliders' mass properties
-/// expressed in the body frame; the world ones are refreshed.
-pub fn recompute_mass_properties_from_colliders(ref body: RigidBody, ref colliders: ColliderSet) {
-    let mut local: MassProperties = Default::default();
-    for co_handle in body.colliders {
-        if let Some(collider) = colliders.get(*co_handle) {
-            if collider.is_enabled() {
-                if let Some(parent) = collider.parent {
-                    local = local + collider.mass_properties().transform_by(parent.pos_wrt_parent);
-                }
-            }
-        }
-    }
-    body.mprops.local_mprops = local;
-    body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-}
-
-/// Sets the world pose of the colliders of `body` to `body.position * pos_wrt_parent`, without
-/// raising change flags (upstream `RigidBodyColliders::update_positions`).
-fn move_colliders(body: RigidBody, ref colliders: ColliderSet) {
-    for co_handle in body.colliders {
-        if let Some(mut collider) = colliders.get(*co_handle) {
-            if let Some(parent) = collider.parent {
-                collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
-                let _ = colliders.set(*co_handle, collider);
-            }
-        }
-    }
-}
-
-/// Stage 2 (upstream `detect_collisions`): stateless broad phase over proxies loosened by half
-/// the prediction distance, then the narrow phase with [`DefaultDispatcher`]. Returns the
-/// collision events.
-pub fn detect_collisions(
-    params: IntegrationParameters,
-    ref bodies: RigidBodySet,
-    ref colliders: ColliderSet,
-    ref narrow_phase: NarrowPhase,
-) -> Array<CollisionEvent> {
-    let prediction = params.prediction_distance();
-    let proxies = colliders.broad_phase_proxies(ref bodies, prediction);
-    let pairs = find_pairs(proxies.span());
-    narrow_phase
-        .compute_contacts::<DefaultDispatcher>(prediction, ref bodies, ref colliders, pairs.span())
-}
-
-/// Stage 3 (upstream `build_islands_and_solve_velocity_constraints`, one island): gathers the
-/// touching manifolds and the joints, runs `solve_island`, writes velocities / `next_position`
-/// back to the bodies and the impulses back to the pairs and the joints.
-pub fn solve(
-    gravity: Vec2,
-    params: IntegrationParameters,
-    ref bodies: RigidBodySet,
-    ref narrow_phase: NarrowPhase,
-    ref impulse_joints: ImpulseJointSet,
-) {
-    let all = bodies.iter();
-    let (mut manifolds, flags) = solve_order(narrow_phase.pairs.span(), all.span());
-    let joint_entries = impulse_joints.to_array();
-    let mut joints = joint_values(joint_entries.span());
-    let (mut store, _) = SolverBodyStoreTrait::from_bodies(ref bodies, gravity, params);
-    solve_island(params, ref store, ref manifolds, ref joints);
-    store.to_bodies(ref bodies);
-    if !manifolds.is_empty() {
-        narrow_phase
-            .pairs = scatter_touching(narrow_phase.pairs.span(), manifolds.span(), flags.span());
-    }
-    write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
+    out
 }
 
 /// Stages 3 and 4 fused (work package OI), with the same results as [`solve`] then
@@ -525,6 +543,8 @@ pub fn solve(
 /// (bit-identical: nothing else acts on it), and each moving body is written once, after its
 /// velocities, `next_position`, position, world mass properties and collider poses.
 /// `entries` and `snapshot` are the bodies and colliders as [`user_changes_bodies`] left them.
+/// [`solve_and_advance_sleeping`] on the whole pair list (split around the solver when a body
+/// sleeps).
 pub fn solve_and_advance(
     gravity: Vec2,
     params: IntegrationParameters,
@@ -534,6 +554,48 @@ pub fn solve_and_advance(
     ref impulse_joints: ImpulseJointSet,
     entries: Span<(Handle, RigidBody)>,
     snapshot: Span<(Handle, Collider)>,
+) {
+    let sleeping = any_sleeping(entries);
+    let mut dormant = array![];
+    if sleeping {
+        let (active, asleep) = split_dormant(narrow_phase.pairs.span(), entries);
+        narrow_phase.pairs = active;
+        dormant = asleep;
+    }
+    let joint_entries = impulse_joints.to_array();
+    solve_and_advance_sleeping(
+        gravity,
+        params,
+        ref bodies,
+        ref colliders,
+        ref narrow_phase,
+        ref impulse_joints,
+        entries,
+        snapshot,
+        joint_entries.span(),
+        sleeping,
+    );
+    if !dormant.is_empty() {
+        narrow_phase.pairs = merge_pairs(narrow_phase.pairs.span(), dormant.span());
+    }
+}
+
+/// [`solve_and_advance`] on the active pairs of `narrow_phase` (the dormant pairs of sleeping
+/// bodies split out by the caller) and the given joint entries. `sleeping` tells whether any
+/// body of `entries` sleeps (after [`update_islands`]): then dormant joints are left out, the
+/// sleeping bodies a constraint references enter the store as immovable copies, and sleeping
+/// bodies are neither advanced nor written; with `false` the stage is the pre-SL one.
+pub fn solve_and_advance_sleeping(
+    gravity: Vec2,
+    params: IntegrationParameters,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    ref narrow_phase: NarrowPhase,
+    ref impulse_joints: ImpulseJointSet,
+    entries: Span<(Handle, RigidBody)>,
+    snapshot: Span<(Handle, Collider)>,
+    joint_entries: Span<(Handle, ImpulseJoint)>,
+    sleeping: bool,
 ) {
     let mut constrained: Felt252Dict<bool> = Default::default();
     let mut first = array![];
@@ -562,8 +624,12 @@ pub fn solve_and_advance(
     let n_first = first.len();
     first.append_span(last.span());
     let mut manifolds = first;
-    let joint_entries = impulse_joints.to_array();
-    let mut joints = joint_values(joint_entries.span());
+    let joint_entries = if sleeping {
+        active_joints(joint_entries, entries).span()
+    } else {
+        joint_entries
+    };
+    let mut joints = joint_values(joint_entries);
     for joint in joints.span() {
         if *joint.data.enabled == JointEnabled::Enabled {
             constrained.insert((*joint.body1).into(), true);
@@ -577,8 +643,12 @@ pub fn solve_and_advance(
         for entry in entries {
             let (handle, body) = entry;
             if constrained.get((*handle).into()) {
-                members.append(*entry);
-            } else if *body.enabled && *body.body_type != RigidBodyType::Fixed {
+                if sleeping && *body.activation.sleeping {
+                    members.append((*handle, immovable(*body)));
+                } else {
+                    members.append(*entry);
+                }
+            } else if moving(body) {
                 has_free = true;
             }
         }
@@ -601,12 +671,12 @@ pub fn solve_and_advance(
                         narrow_phase.pairs.span(), manifolds.span(), flags.span(), n_first,
                     );
         }
-        write_joints(joint_entries.span(), joints.span(), ref impulse_joints);
+        write_joints(joint_entries, joints.span(), ref impulse_joints);
     }
     let mut dense: u32 = 0;
     for (handle, body) in entries {
         let member = any && constrained.get((*handle).into());
-        if *body.enabled && *body.body_type != RigidBodyType::Fixed {
+        if moving(body) {
             let body = if member {
                 let mut body = *body;
                 store.write_body(dense, ref body);
@@ -614,7 +684,7 @@ pub fn solve_and_advance(
             } else {
                 free.solve(*handle, *body)
             };
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot);
+            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
         }
         if member {
             dense += 1;
@@ -639,28 +709,6 @@ pub(crate) fn write_joints(
     for (handle, _) in entries {
         let _ = impulse_joints.set(*handle, *solved.pop_front().unwrap());
     }
-}
-
-/// Stage 4 (upstream `advance_to_final_positions`): for every enabled non-fixed body,
-/// `position ← next_position`, world mass properties refreshed, attached colliders moved. No
-/// change flag is raised.
-pub fn advance_to_final_positions(ref bodies: RigidBodySet, ref colliders: ColliderSet) {
-    for (handle, body) in bodies.iter() {
-        if body.enabled && body.body_type != RigidBodyType::Fixed {
-            advance_body(handle, body, ref bodies, ref colliders);
-        }
-    }
-}
-
-#[inline(never)]
-fn advance_body(
-    handle: Handle, body: RigidBody, ref bodies: RigidBodySet, ref colliders: ColliderSet,
-) {
-    let mut body = body;
-    body.pos.position = body.pos.next_position;
-    body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-    let _ = bodies.set(handle, body);
-    move_colliders(body, ref colliders);
 }
 
 #[cfg(test)]

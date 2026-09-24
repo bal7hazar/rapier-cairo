@@ -11,6 +11,7 @@ use rapier2d::world::{World, WorldTrait};
 use rapier_core::Handle;
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
+use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::events::{CollisionEvent, CollisionEventTrait};
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
@@ -68,6 +69,8 @@ fn scene_world(scene: SceneCase) -> (World, Array<Handle>) {
             BodyKindRaw::Fixed => RigidBodyTrait::fixed(pose(*desc.pose)),
             BodyKindRaw::Dynamic => RigidBodyTrait::dynamic(pose(*desc.pose)),
         };
+        // The traces replayed here were recorded with `can_sleep(false)`.
+        body.activation = RigidBodyActivationTrait::cannot_sleep();
         body.damping.linear_damping = f(*desc.linear_damping);
         body.damping.angular_damping = f(*desc.angular_damping);
         body.forces.gravity_scale = f(*desc.gravity_scale);
@@ -305,6 +308,220 @@ fn replay(scene: SceneCase, last: u32) {
         }
     }
     assert_eq!(done, last);
+}
+
+// Sleeping (SL): behaviour through the public API.
+
+/// A unit box resting on the half-space `y ≥ 0` at `x`, gravity `(0, -9.81)`.
+fn resting_box(ref world: World, x: Fixed) -> (Handle, Handle) {
+    world
+        .insert(
+            RigidBodyTrait::dynamic(at(x, HALF)), ColliderBuilderTrait::cuboid(HALF, HALF).build(),
+        )
+}
+
+/// Who sleeps after 60 steps at rest on the ground: a dynamic body with the default thresholds;
+/// not one that `cannot_sleep` (negative thresholds), not a fixed body, not a moving kinematic
+/// body (velocity-based, `linvel.x = 0.01`); a motionless kinematic body does (upstream's
+/// `update_energy`: exactly zero velocities). Rows: (kind, sleeps).
+#[test]
+fn test_who_sleeps_after_a_second_at_rest() {
+    let rows: Array<(felt252, bool)> = array![
+        ('default', true), ('cannot_sleep', false), ('fixed', false), ('kinematic_moving', false),
+        ('kinematic_still', true),
+    ];
+    for (kind, sleeps) in rows {
+        let mut world = WorldTrait::new(gravity(), Default::default());
+        let _ = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+        let mut sleeper = if kind == 'fixed' {
+            RigidBodyTrait::fixed(at(ZERO, HALF))
+        } else if kind == 'kinematic_moving' {
+            let mut b = RigidBodyTrait::new(
+                rapier_core::rigid_body::RigidBodyType::KinematicVelocityBased, at(ZERO, HALF),
+            );
+            b.vels.linvel = v(f(42949673), ZERO);
+            b
+        } else if kind == 'kinematic_still' {
+            RigidBodyTrait::kinematic_position_based(at(ZERO, HALF))
+        } else {
+            RigidBodyTrait::dynamic(at(ZERO, HALF))
+        };
+        if kind == 'cannot_sleep' {
+            sleeper.activation = RigidBodyActivationTrait::cannot_sleep();
+        }
+        let (handle, _) = world.insert(sleeper, ColliderBuilderTrait::cuboid(HALF, HALF).build());
+        let _ = run(ref world, 60);
+        let rb = body(ref world, handle);
+        assert_eq!(rb.is_sleeping(), sleeps, "{}", kind);
+        if sleeps {
+            assert_eq!(rb.linvel(), v(ZERO, ZERO), "{}: velocities zeroed", kind);
+            assert!(rb.activation.is_eligible_for_sleep(), "{}: timer pinned", kind);
+        }
+    }
+}
+
+/// A tenth of a second: `time_until_sleep` of the stacks below (6 steps instead of 30, VM step
+/// budget of the tests).
+const SHORT_SLEEP: Fixed = Fixed { raw: 429496730 };
+
+/// A sleeping stack keeps its poses, velocities and contact pairs step after step, emits no
+/// event, and the whole island wakes up (strongly) when one of its bodies is woken up by hand
+/// through `set_body`: a force, an impulse, a velocity, a pose, `wake_up`. Rows: the wake-up.
+fn sleeping_stack_wakes_as_an_island(hows: Span<felt252>) {
+    for how in hows {
+        let mut world = WorldTrait::new(gravity(), Default::default());
+        let ground = world
+            .insert_collider(
+                ColliderBuilderTrait::halfspace(v(ZERO, ONE))
+                    .active_events(COLLISION_EVENTS)
+                    .build(),
+                None,
+            );
+        let mut lower = RigidBodyTrait::dynamic(at(ZERO, HALF));
+        lower.activation.time_until_sleep = SHORT_SLEEP;
+        let mut upper = RigidBodyTrait::dynamic(at(ZERO, ONE + HALF));
+        upper.activation.time_until_sleep = SHORT_SLEEP;
+        let (bottom, bottom_collider) = world
+            .insert(lower, ColliderBuilderTrait::cuboid(HALF, HALF).build());
+        let (top, _) = world.insert(upper, ColliderBuilderTrait::cuboid(HALF, HALF).build());
+        let events = run(ref world, 20);
+        assert_eq!(events.len(), 1, "one Started");
+        let (b0, t0) = (body(ref world, bottom), body(ref world, top));
+        assert!(b0.is_sleeping() && t0.is_sleeping(), "{}: the stack sleeps", *how);
+        let events = run(ref world, 3);
+        assert_eq!(events.len(), 0);
+        let (b1, t1) = (body(ref world, bottom), body(ref world, top));
+        assert!(b1.position() == b0.position() && t1.position() == t0.position());
+        assert!(b1.linvel() == v(ZERO, ZERO) && t1.vels.angvel == ZERO);
+        assert!(world.contact_pair(ground, bottom_collider).unwrap().has_any_active_contact());
+        // Wake the top box by hand: the bottom one follows at the next step.
+        let mut rb = body(ref world, top);
+        if *how == 'force' {
+            rb.add_force(v(ZERO, ONE), true);
+        } else if *how == 'impulse' {
+            rb.apply_impulse(v(HALF, ZERO), true);
+        } else if *how == 'linvel' {
+            rb.set_linvel(v(ONE, ZERO));
+        } else if *how == 'position' {
+            rb.set_position(at(HALF, ONE + HALF));
+        } else {
+            rb.wake_up(false);
+        }
+        assert!(world.set_body(top, rb));
+        let _ = world.step();
+        let (b2, t2) = (body(ref world, bottom), body(ref world, top));
+        assert!(!b2.is_sleeping() && !t2.is_sleeping(), "{}: island awake", *how);
+        assert!(!b2.activation.is_eligible_for_sleep(), "{}: strong wake-up", *how);
+        assert!(!t2.activation.is_eligible_for_sleep(), "{}: strong wake-up of the target", *how);
+        if *how != 'wake_up' {
+            assert!(t2.position() != t1.position() || t2.linvel() != v(ZERO, ZERO), "{}", *how);
+        }
+    }
+}
+
+#[test]
+fn test_sleeping_stack_wakes_on_forces_and_impulses() {
+    sleeping_stack_wakes_as_an_island(array!['force', 'impulse'].span());
+}
+
+#[test]
+fn test_sleeping_stack_wakes_on_setters() {
+    sleeping_stack_wakes_as_an_island(array!['linvel', 'position', 'wake_up'].span());
+}
+
+/// Two balls resting 3 apart, linked by a revolute joint: they fall asleep at the same step (one
+/// island); waking one wakes the other. Removing the ground collider under a sleeping body wakes
+/// it (and its island), and the step ends the pair with a `Stopped` event.
+#[test]
+fn test_joint_linked_islands_and_removal_wake_ups() {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let ground = world
+        .insert_collider(
+            ColliderBuilderTrait::halfspace(v(ZERO, ONE)).active_events(COLLISION_EVENTS).build(),
+            None,
+        );
+    let three = FixedTrait::from_int(3);
+    let mut left = RigidBodyTrait::dynamic(at(ZERO, HALF));
+    left.activation.time_until_sleep = SHORT_SLEEP;
+    let mut right = RigidBodyTrait::dynamic(at(three, HALF));
+    right.activation.time_until_sleep = SHORT_SLEEP;
+    let (a, _) = world.insert(left, ColliderBuilderTrait::ball(HALF).build());
+    let (b, b_collider) = world.insert(right, ColliderBuilderTrait::ball(HALF).build());
+    let joint = RevoluteJointBuilderTrait::new()
+        .local_anchor1(v(ONE + HALF, ZERO))
+        .local_anchor2(v(-(ONE + HALF), ZERO))
+        .build();
+    let _ = world.insert_impulse_joint(a, b, joint);
+    let mut step: u32 = 0;
+    let mut slept_at: u32 = 0;
+    while step != 25 {
+        let _ = world.step();
+        step += 1;
+        let (ra, rb) = (body(ref world, a), body(ref world, b));
+        assert_eq!(ra.is_sleeping(), rb.is_sleeping(), "step {}: one island", step);
+        if ra.is_sleeping() && slept_at == 0 {
+            slept_at = step;
+        }
+    }
+    assert!(slept_at != 0 && slept_at <= 20, "asleep at {}", slept_at);
+    let mut rb = body(ref world, b);
+    rb.wake_up(true);
+    assert!(world.set_body(b, rb));
+    let _ = world.step();
+    assert!(!body(ref world, a).is_sleeping(), "joint partner woken");
+    let _ = run(ref world, 15);
+    assert!(body(ref world, a).is_sleeping() && body(ref world, b).is_sleeping());
+    // The ground goes: both bodies wake up and fall; the pairs end.
+    assert!(world.remove_collider(ground).is_some());
+    let events = world.step();
+    assert!(!body(ref world, a).is_sleeping() && !body(ref world, b).is_sleeping());
+    assert_eq!(events.len(), 2);
+    assert!(world.contact_pair(ground, b_collider).is_none());
+    let _ = run(ref world, 3);
+    assert!(body(ref world, b).position().translation.y < HALF, "falling");
+}
+
+/// A body woken up by a contact that starts: a ball dropped on a sleeping ball wakes it (strong)
+/// at the step the pair starts touching, and the sleeping ball's carried-over ground pair is
+/// solved in that same step (the ball is pushed into the ground and back, not through it).
+#[test]
+fn test_contact_start_wakes_a_sleeping_body() {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let _ = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+    let mut resting = RigidBodyTrait::dynamic(at(ZERO, HALF));
+    resting.activation.time_until_sleep = SHORT_SLEEP;
+    let (low, _) = world.insert(resting, ColliderBuilderTrait::ball(HALF).build());
+    let _ = run(ref world, 15);
+    assert!(body(ref world, low).is_sleeping());
+    let (high, _) = world
+        .insert(
+            RigidBodyTrait::dynamic(at(ZERO, ONE + HALF + HALF)),
+            ColliderBuilderTrait::ball(HALF).build(),
+        );
+    let mut step: u32 = 0;
+    let mut woken_at: u32 = 0;
+    while step != 30 && woken_at == 0 {
+        let _ = world.step();
+        step += 1;
+        if !body(ref world, low).is_sleeping() {
+            woken_at = step;
+        }
+    }
+    assert!(woken_at != 0, "woken");
+    let rb = body(ref world, low);
+    // Strong wake-up in the step (timer reset), then that step's own update (+dt at most).
+    assert!(rb.activation.time_since_can_sleep <= world.integration_parameters.dt);
+    assert!(rb.position().translation.y > ZERO, "kept above the ground");
+    let _ = run(ref world, 10);
+    assert!(
+        body(ref world, high)
+            .position()
+            .translation
+            .y > body(ref world, low)
+            .position()
+            .translation
+            .y,
+    );
 }
 
 // ---------------------------------------------------------------------------------------------

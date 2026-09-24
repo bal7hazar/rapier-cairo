@@ -12,10 +12,16 @@
 //! [`WorldTrait::body`] / [`WorldTrait::collider`], modify it, write it back with
 //! [`WorldTrait::set_body`] / [`WorldTrait::set_collider`].
 //!
-//! Deviations from upstream: no island manager, broad-phase state, CCD solver, multibody or soft
-//! body sets, query pipeline (the scene queries scan the collider set, `crate::queries`), hooks
-//! or event handler (events are returned by `step`); `remove_*`
-//! wake nothing up (sleeping is deferred).
+//! Sleeping (work package SL): bodies fall asleep and wake up island by island inside `step`
+//! (`crate::pipeline::islands`); as upstream's `PhysicsWorld`, inserting or removing a joint
+//! wakes both of its bodies up, removing a body or a collider wakes up every body it was in
+//! contact with, and a body woken up by hand (`RigidBodyTrait::wake_up`, the setters, forces
+//! and impulses) written back with [`WorldTrait::set_body`] wakes its island at the next step.
+//!
+//! Deviations from upstream: no persistent island manager (islands are rebuilt every step),
+//! broad-phase state, CCD solver, multibody or soft body sets, query pipeline (the scene queries
+//! scan the collider set, `crate::queries`), hooks or event handler (events are returned by
+//! `step`).
 
 use fixed::Fixed;
 use glam::Vec2;
@@ -26,7 +32,7 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::{GenericJoint, ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, NarrowPhaseTrait};
-use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
+use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
 use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::point::PointProjection;
 use rapier_geometry2d::ray::{Ray, RayIntersection};
@@ -87,38 +93,76 @@ pub impl WorldImpl of WorldTrait {
         (body, collider)
     }
 
-    /// Stores an impulse joint between two bodies, with zero accumulated impulses. Frames are
-    /// in the local frames of the bodies.
+    /// Stores an impulse joint between two bodies, with zero accumulated impulses, and wakes
+    /// both bodies up (upstream `ImpulseJointSet::insert(.., wake_up = true)`). Frames are in
+    /// the local frames of the bodies.
     fn insert_impulse_joint(
         ref self: World, body1: Handle, body2: Handle, joint: GenericJoint,
     ) -> Handle {
+        self.wake_up(body1);
+        self.wake_up(body2);
         self.impulse_joints.insert(body1, body2, joint)
     }
 
     /// Removes a body, its colliders and its joints (upstream `PhysicsWorld::remove_body`).
-    /// `None` when the handle does not resolve. The contact pairs of the removed colliders end
+    /// `None` when the handle does not resolve. The bodies in contact with the removed colliders
+    /// and those its joints linked are woken up; the contact pairs of the removed colliders end
     /// at the next step, with a `Stopped` event flagged `REMOVED` if their `Started` was emitted.
     fn remove_body(ref self: World, handle: Handle) -> Option<RigidBody> {
+        let body = self.bodies.get(handle)?;
+        for co_handle in body.colliders {
+            self.wake_contact_partners(*co_handle);
+        }
         let body = self.bodies.remove(handle, ref self.colliders, true)?;
         for (joint_handle, joint) in self.impulse_joints.to_array() {
             if joint.body1 == handle || joint.body2 == handle {
                 let _ = self.impulse_joints.remove(joint_handle);
+                self.wake_up(if joint.body1 == handle {
+                    joint.body2
+                } else {
+                    joint.body1
+                });
             }
         }
         Some(body)
     }
 
     /// Removes a collider (upstream `PhysicsWorld::remove_collider`); `None` when the handle
-    /// does not resolve. Its parent's mass is recomputed at the next step, which also ends its
-    /// contact pairs (see [`WorldTrait::remove_body`]).
+    /// does not resolve. Every body in contact with it is woken up (its parent included); its
+    /// parent's mass is recomputed at the next step, which also ends its contact pairs (see
+    /// [`WorldTrait::remove_body`]).
     fn remove_collider(ref self: World, handle: Handle) -> Option<Collider> {
+        self.wake_contact_partners(handle);
         self.colliders.remove(handle, ref self.bodies)
     }
 
-    /// Removes an impulse joint and returns its data; `None` when the handle does not resolve.
+    /// Removes an impulse joint and returns its data, waking both of its bodies up (upstream
+    /// `remove(.., wake_up = true)`); `None` when the handle does not resolve.
     fn remove_impulse_joint(ref self: World, handle: Handle) -> Option<GenericJoint> {
         let joint = self.impulse_joints.remove(handle)?;
+        self.wake_up(joint.body1);
+        self.wake_up(joint.body2);
         Some(joint.data)
+    }
+
+    /// Wakes up the non-fixed body behind `handle`, strongly (upstream `IslandManager::wake_up
+    /// (.., strong = true)`); nothing for a fixed or missing body. The step wakes its island.
+    fn wake_up(ref self: World, handle: Handle) {
+        if let Some(mut body) = self.bodies.get(handle) {
+            if !body.is_fixed() {
+                body.wake_up(true);
+                let _ = self.bodies.set(handle, body);
+            }
+        }
+    }
+
+    /// Wakes up the parents of both colliders of every contact pair of `collider` (upstream
+    /// `NarrowPhase::remove_collider`), before the collider goes.
+    fn wake_contact_partners(ref self: World, collider: Handle) {
+        let mut touched = array![collider];
+        let _ = crate::pipeline::sleeping::wake_touched_partners(
+            touched.span(), self.narrow_phase.pairs.span(), ref self.bodies, ref self.colliders,
+        );
     }
 
     /// A copy of the body behind `handle`.

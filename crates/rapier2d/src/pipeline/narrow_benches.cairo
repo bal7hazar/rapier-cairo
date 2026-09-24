@@ -56,7 +56,9 @@ const INLINED: u8 = 4;
 fn warm(id: felt252, n: u32) -> (World, Span<PairCollider>, Array<(u32, u32)>, Fixed) {
     let mut world = scene(id, n);
     let _ = world.step();
-    let (snapshot, infos, _) = user_changes_bodies(ref world.bodies, ref world.colliders);
+    let (snapshot, infos, _, _) = user_changes_bodies(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
     let pairs = find_pairs(proxies.span());
