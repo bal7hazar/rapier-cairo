@@ -32,6 +32,7 @@ fn test_tables_have_the_expected_sizes() {
     assert_eq!(aabb::cases().len(), 32);
     // 12 pairs x 6 regimes + 7 extra degenerate cases + 8 flipped-order cases.
     assert_eq!(contact_manifolds::cases().len(), 87);
+    assert_eq!(rapier_golden::generated::polygon_contacts::cases().len(), 48);
 }
 
 #[test]

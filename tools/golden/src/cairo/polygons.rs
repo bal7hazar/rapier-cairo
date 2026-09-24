@@ -104,3 +104,154 @@ pub fn ray(v: &Path) -> String {
         ]
     })
 }
+
+use super::{konst, shape};
+fn contact_shape(v: &Value) -> Node {
+    if v["type"] == "convex_polygon" {
+        Node::Variant("PolygonContactShapeRaw::Polygon", Box::new(polygon(v)))
+    } else {
+        Node::Variant("PolygonContactShapeRaw::Other", Box::new(shape(v)))
+    }
+}
+fn manifolds(vectors: &Path, group: usize) -> String {
+    let json = load(vectors, "contact_manifolds.json");
+    let mut module = Module::new(
+        "contact_manifolds.json",
+        "Contact manifolds of every shape pair of the MVP matrix over six regimes.",
+    );
+    module
+        .body
+        .push_str(&konst("PREDICTION", "i64", &raw(&json["prediction"])));
+    module.body.push('\n');
+
+    let fid = |v: &Value| match v {
+        // No trustworthy id for this point (see README): PackedFeatureId::UNKNOWN.
+        Value::Null => Node::Lit("0".into()),
+        v => Node::Lit(format!("0x{:08x}", v["packed"].as_u64().unwrap())),
+    };
+    let empty_point = || {
+        Node::Struct(
+            "ContactPointRaw",
+            vec![
+                ("local_p1", zero_vec2()),
+                ("local_p2", zero_vec2()),
+                ("dist", Node::Lit("0".into())),
+                ("fid1", Node::Lit("0".into())),
+                ("fid2", Node::Lit("0".into())),
+            ],
+        )
+    };
+
+    let cases: Vec<(String, Node)> = json["polygons"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .skip(group * 12)
+        .take(12)
+        .map(|c| {
+            let found = c["expected"]["manifolds"].as_array().unwrap();
+            assert!(found.len() <= 1, "convex pairs yield at most one manifold");
+            let (n1, n2, mut points) = match found.first() {
+                Some(m) => (
+                    vec2(&m["local_n1"]),
+                    vec2(&m["local_n2"]),
+                    m["points"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|p| {
+                            Node::Struct(
+                                "ContactPointRaw",
+                                vec![
+                                    ("local_p1", vec2(&p["local_p1"])),
+                                    ("local_p2", vec2(&p["local_p2"])),
+                                    ("dist", raw(&p["dist"])),
+                                    ("fid1", fid(&p["fid1"])),
+                                    ("fid2", fid(&p["fid2"])),
+                                ],
+                            )
+                        })
+                        .collect::<Vec<_>>(),
+                ),
+                None => (zero_vec2(), zero_vec2(), vec![]),
+            };
+            let num_points = points.len();
+            assert!(num_points <= 2);
+            while points.len() < 2 {
+                points.push(empty_point());
+            }
+            let node = Node::Struct(
+                "PolygonManifoldCase",
+                vec![
+                    ("id", id(c)),
+                    ("shape1", contact_shape(&c["shape1"])),
+                    ("shape2", contact_shape(&c["shape2"])),
+                    ("pos12", pose(&c["pos12"])),
+                    ("ambiguous", boolean(&c["ambiguous"])),
+                    ("num_points", Node::Lit(num_points.to_string())),
+                    ("local_n1", n1),
+                    ("local_n2", n2),
+                    ("points", Node::Array(points)),
+                ],
+            );
+            (const_name(c), node)
+        })
+        .collect();
+    module.table("PolygonManifoldCase", "ALL", "cases", &cases);
+    let types = [
+        "PolygonManifoldCase",
+        "PolygonContactShapeRaw",
+        "ConvexPolygonRaw",
+        "ShapeRaw",
+        "Vec2Raw",
+        "PoseRaw",
+        "RotRaw",
+        "SegmentRaw",
+        "CapsuleRaw",
+        "ContactPointRaw",
+    ];
+    module.finish(
+        &types
+            .into_iter()
+            .filter(|ty| group != 0 || *ty != "ShapeRaw")
+            .collect::<Vec<_>>(),
+    )
+}
+
+pub fn manifold_files(vectors: &Path) -> Vec<(&'static str, String)> {
+    let names = ["polygon", "cuboid", "segment", "capsule"];
+    let paths = [
+        "polygon_contacts/polygon",
+        "polygon_contacts/cuboid",
+        "polygon_contacts/segment",
+        "polygon_contacts/capsule",
+    ];
+    let json = load(vectors, "contact_manifolds.json");
+    let mut files = Vec::new();
+    let mut module = Module::new(
+        "contact_manifolds.json",
+        "Polygon contact fixtures, split by pair for the compile budget.",
+    );
+    module
+        .body
+        .push_str(&konst("PREDICTION", "i64", &raw(&json["prediction"])));
+    for (i, name) in names.iter().enumerate() {
+        files.push((paths[i], manifolds(vectors, i)));
+        module.body.push_str(&format!("pub mod {name};\n"));
+    }
+    let cases: Vec<_> = json["polygons"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            (
+                const_name(c),
+                Node::Lit(format!("{}::{}", names[i / 12], const_name(c))),
+            )
+        })
+        .collect();
+    module.table("PolygonManifoldCase", "ALL", "cases", &cases);
+    files.push(("polygon_contacts", module.finish(&["PolygonManifoldCase"])));
+    files
+}

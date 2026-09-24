@@ -685,3 +685,24 @@ pub struct PolygonShapeMassCase {
     pub density: i64,
     pub expected: MassPropertiesRaw,
 }
+
+/// Polygon contacts extend the golden shape set without changing the frozen MVP fixtures.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum PolygonContactShapeRaw {
+    Polygon: ConvexPolygonRaw,
+    Other: ShapeRaw,
+}
+
+/// PFM manifold fixture involving at least one polygon; semantics as `ManifoldCase`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct PolygonManifoldCase {
+    pub id: felt252,
+    pub shape1: PolygonContactShapeRaw,
+    pub shape2: PolygonContactShapeRaw,
+    pub pos12: PoseRaw,
+    pub ambiguous: bool,
+    pub num_points: u32,
+    pub local_n1: Vec2Raw,
+    pub local_n2: Vec2Raw,
+    pub points: [ContactPointRaw; 2],
+}

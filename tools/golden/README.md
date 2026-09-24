@@ -927,3 +927,68 @@ translation applied once to the rotated extrema. A loop is cheaper in
 isolated Sierra gas, but changes allocation-pointer tracking through the closed Shape dispatch
 and adds steps to every existing scene. The unrolled scan restores the original free-fall and
 pendulum step counts. The loop, per-vertex-translation unroll and four-support-query alternatives remain benchmarked.
+
+### CP2 polygon contact manifolds
+
+`contact_manifolds.json` adds a `polygons` table with 48 PFM–PFM cases: polygon–polygon,
+polygon–cuboid, polygon–segment and polygon–capsule, both orders, each over the six existing
+regimes. The original 87 `cases` are unchanged. `generated::polygon_contacts` exposes the new
+fixtures through `PolygonManifoldCase` and `PolygonContactShapeRaw`, preserving the MVP
+`ShapeRaw` interface. Fixtures are split into four files to stay below 800 lines.
+
+The Cairo generators replace GJK/EPA with both cores' face-axis SAT and the existing PFM
+clipper. A strictly positive core gap additionally searches closest edge pairs, so speculative
+and rounded-corner contacts use Euclidean distance and a unit closest-point normal. Capsule
+radius is applied after clipping. Polygon feature ids use CP1's `vertex(2*i)` / `face(2*i+1)`;
+cuboid and segment ids keep their existing encodings. Empty clipping uses upstream's one-point
+fallback with unknown feature ids. Exact SAT ties choose the first face, then the first shape.
+This is intentionally deterministic and can differ from GJK/EPA's tie selection. Deep EPA
+approximations can also differ from exact SAT; no wider numeric tolerance is implied.
+
+Nonambiguous fixtures compare normals, anchors and distances within 64 raw Q32.32 units and
+feature ids exactly, matching points as a set because clipping order can reverse. Ambiguous
+exact-contact and symmetric cases compare counts and distances, and all live manifolds check
+unit, opposite local normals. Both dispatch tables are additionally compared bit for bit on
+cold and persistent manifolds, in both argument orders. Reversed polygon pairs keep the
+persistence check inside the generator: hoisting it before the rounded double pose inversion
+was observed to change a refreshed distance by one raw unit.
+
+CP2 scene regression measurement (net of setup; same original-dispatcher baseline measured in
+this worktree, toolchain 2.19.4 / 0.61.0). All Sierra gas deltas are below +0.18%; free-fall and
+joint-only step counts are unchanged. Contact scenes retain the small step increases below.
+Unboxing behind typed helpers did not remove them; routing new pairs through a separate
+fallback match added another step per persistent cuboid pair, so the direct match is retained.
+The fallback is kept under `dispatch::alternatives` with equivalence tests and probes.
+
+| P3 scene | Net Sierra gas | Net Cairo steps | Step delta |
+|---|---:|---:|---:|
+| balls_halfspace1 | 3,868,499 | 31,281 | +58 |
+| balls_halfspace32 | 104,756,118 | 827,858 | +1856 |
+| balls_halfspace8 | 26,230,412 | 207,142 | +464 |
+| cuboid_stack1 | 4,160,579 | 36,959 | +58 |
+| cuboid_stack10 | 38,198,435 | 333,014 | +544 |
+| cuboid_stack3 | 11,656,087 | 102,126 | +166 |
+| cuboid_stack5 | 19,190,715 | 167,649 | +274 |
+| free_fall1 | 664,424 | 5,851 | +0 |
+| free_fall32 | 14,743,278 | 126,432 | +0 |
+| free_fall8 | 3,788,342 | 32,619 | +0 |
+| mixed_pile8 | 46,035,107 | 375,539 | +746 |
+| pendulum_chain1 | 3,807,436 | 33,926 | +0 |
+| pendulum_chain3 | 10,261,584 | 91,215 | +0 |
+
+Per-generator and SAT candidate costs (net of opaque baseline; octagon probes include the same
+constructor cost on both sides):
+
+| Probe | Sierra gas | Cairo steps |
+|---|---:|---:|
+| `gas_polygon_cuboid` | 970,360 | 8,303 |
+| `gas_polygon_polygon` | 990,700 | 8,535 |
+| `gas_polygon_polygon_prediction` | 3,479,450 | 21,994 |
+| `gas_polygon_polygon_separated` | 376,420 | 2,999 |
+| `gas_sat_support` | 154,850 | 1,383 |
+| `gas_sat_support_octagon` | 1,474,750 | 13,875 |
+| `gas_sat_transformed` | 296,070 | 2,683 |
+| `gas_sat_transformed_octagon` | 1,591,210 | 14,799 |
+| `gas_polygon_capsule` | 768,160 | 6,418 |
+| `gas_polygon_capsule_corner` | 2,095,700 | 13,917 |
+| `gas_polygon_segment` | 768,060 | 6,417 |

@@ -633,3 +633,56 @@ fn gas_step_segment_segment() {
     let mut m: ContactManifold = Default::default();
     let _ = contact_manifold_step(pd(), segment(), segment(), PREDICTION, ref m);
 }
+
+
+#[test]
+fn gas_step_fallback_ball_ball() {
+    let mut m: ContactManifold = Default::default();
+    let _ = super::alternatives::contact_manifold_step_fallback(
+        pd(), ball(), ball(), PREDICTION, ref m,
+    );
+}
+#[test]
+fn gas_step_fallback_cuboid_cuboid_warm() {
+    let mut m = warm_cuboid_cuboid();
+    let _ = super::alternatives::contact_manifold_step_fallback(
+        pd(), cuboid(), cuboid(), PREDICTION, ref m,
+    );
+}
+
+#[test]
+fn test_polygon_dispatch_candidate_equivalence() {
+    let polygon = Shape::ConvexPolygon(
+        BoxTrait::new(crate::contact_generators::polygon_polygon::cuboid_core(cuboid_s())),
+    );
+    for other in array![polygon, cuboid(), segment(), capsule()].span() {
+        for (s1, s2) in array![(polygon, *other), (*other, polygon)].span() {
+            let mut a: ContactManifold = Default::default();
+            let mut b: ContactManifold = Default::default();
+            let mut c: ContactManifold = Default::default();
+            for p in array![pose_direct(), pose_direct(), pose_reversed()].span() {
+                assert!(contact_manifold_step(*p, *s1, *s2, PREDICTION, ref a));
+                assert!(
+                    super::alternatives::contact_manifold_step_fallback(
+                        *p, *s1, *s2, PREDICTION, ref b,
+                    ),
+                );
+                assert!(
+                    super::alternatives::boxed::contact_manifold_step_boxed(
+                        *p, *s1, *s2, PREDICTION, ref c,
+                    ),
+                );
+                assert_eq!(a, b);
+                assert_eq!(a, c);
+            }
+        }
+    }
+}
+
+#[test]
+fn gas_step_boxed_ball_ball() {
+    let mut m: ContactManifold = Default::default();
+    let _ = super::alternatives::boxed::contact_manifold_step_boxed(
+        pd(), ball(), ball(), PREDICTION, ref m,
+    );
+}
