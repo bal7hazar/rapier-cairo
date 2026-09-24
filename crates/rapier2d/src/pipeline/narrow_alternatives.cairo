@@ -3,7 +3,8 @@
 //!
 //! Also the losing ON candidates: [`compute_contacts_inlined`] (the first step, composition
 //! inlined but carry-over and pair copies unchanged) and [`PersistentDispatcher`] (the fast path
-//! of `StepDispatcher` in front of the metered `DefaultDispatcher`); the ranking is in
+//! of `rapier_geometry2d::dispatch::contact_manifold_step` in front of the metered
+//! `InlineDispatcher`); the ranking is in
 //! `crate::pipeline`.
 //!
 //! [`compute_contacts_outlined`] calls the outlined [`process_pair_outlined`] →
@@ -36,7 +37,7 @@ use rapier_geometry2d::manifold::ManifoldTrait;
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
-use crate::dispatcher::DefaultDispatcher;
+use crate::pipeline::alternatives::InlineDispatcher;
 
 /// The pair loop of `compute_contacts_from_scratch` as shipped before ON: one call of
 /// the outlined [`process_pair_outlined`] per pair.
@@ -228,9 +229,9 @@ pub fn compute_contacts_inlined<impl D: ContactDispatcher>(
     events
 }
 
-/// `DefaultDispatcher` (metered arms) behind the persistence fast path of
-/// `crate::pipeline::step_dispatcher::StepDispatcher`: loses to `StepDispatcher`, whose plain
-/// arms need no loop frame once inlined in the pair loop, and to plain `DefaultDispatcher` on
+/// `InlineDispatcher` (metered arms) behind the persistence fast path of
+/// `rapier_geometry2d::dispatch::contact_manifold_step`: loses to `DefaultDispatcher`, whose plain
+/// arms need no loop frame once inlined in the pair loop, and to plain `InlineDispatcher` on
 /// pairs without fast path (the extra shape `match`).
 pub impl PersistentDispatcher of ContactDispatcher {
     #[inline(always)]
@@ -244,7 +245,7 @@ pub impl PersistentDispatcher of ContactDispatcher {
         if persistent_pair(shape1, shape2) && manifold.try_update_contacts(pos12) {
             return true;
         }
-        DefaultDispatcher::contact_manifold(pos12, shape1, shape2, prediction, ref manifold)
+        InlineDispatcher::contact_manifold(pos12, shape1, shape2, prediction, ref manifold)
     }
 }
 

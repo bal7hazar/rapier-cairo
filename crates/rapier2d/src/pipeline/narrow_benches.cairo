@@ -21,7 +21,7 @@ use fixed::Fixed;
 use rapier_core::collider::CoefficientCombineRuleTrait;
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_dynamics2d::narrow_phase::{
-    CarryOver, ContactDispatcher, ContactPair, NarrowPhaseTrait, PairCollider, SortedMerge,
+    CarryOver, ContactPair, NarrowPhaseTrait, PairCollider, SortedMerge,
     compute_contacts_from_scratch, pair_filtered, pair_transition, process_pair, solver_contact,
     update_manifold,
 };
@@ -31,24 +31,24 @@ use rapier_geometry2d::manifold::ManifoldTrait;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_testing::opaque;
 use crate::dispatcher::DefaultDispatcher;
+use crate::pipeline::alternatives::InlineDispatcher;
 use crate::world::{World, WorldTrait};
 use super::fixtures::p3_scene as scene;
 use super::narrow_alternatives::{
     PersistentDispatcher, compute_contacts_inlined, compute_contacts_outlined,
     process_pair_outlined, update_manifold_outlined,
 };
-use super::step_dispatcher::StepDispatcher;
 use super::{collision_inputs, user_changes_bodies};
 
-/// Shipped: `compute_contacts_from_scratch::<StepDispatcher>`.
+/// Shipped: `compute_contacts_from_scratch::<DefaultDispatcher>`.
 const SHIPPED: u8 = 0;
-/// `narrow_alternatives::compute_contacts_outlined::<DefaultDispatcher>` (before ON).
+/// `narrow_alternatives::compute_contacts_outlined::<InlineDispatcher>` (before ON).
 const OUTLINED: u8 = 1;
-/// `compute_contacts_from_scratch::<DefaultDispatcher>` (metered arms, no fast path).
+/// `compute_contacts_from_scratch::<InlineDispatcher>` (metered arms, no fast path).
 const METERED: u8 = 2;
 /// `compute_contacts_from_scratch::<PersistentDispatcher>`.
 const PERSISTENT: u8 = 3;
-/// `narrow_alternatives::compute_contacts_inlined::<DefaultDispatcher>`.
+/// `narrow_alternatives::compute_contacts_inlined::<InlineDispatcher>`.
 const INLINED: u8 = 4;
 
 /// The scene after its warm-up step, with the scratch and the broad-phase pairs of the next
@@ -72,11 +72,11 @@ fn stage(id: felt252, n: u32, narrow: bool, variant: u8) {
     }
     let _ = if variant == SHIPPED {
         compute_contacts_from_scratch::<
-            StepDispatcher,
+            DefaultDispatcher,
         >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders)
     } else if variant == METERED {
         compute_contacts_from_scratch::<
-            DefaultDispatcher,
+            InlineDispatcher,
         >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders)
     } else if variant == PERSISTENT {
         compute_contacts_from_scratch::<
@@ -84,11 +84,11 @@ fn stage(id: felt252, n: u32, narrow: bool, variant: u8) {
         >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders)
     } else if variant == INLINED {
         compute_contacts_inlined::<
-            DefaultDispatcher,
+            InlineDispatcher,
         >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders)
     } else {
         compute_contacts_outlined::<
-            DefaultDispatcher, SortedMerge,
+            InlineDispatcher, SortedMerge,
         >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders)
     };
 }
@@ -147,7 +147,7 @@ fn piece_dispatch(
     manifold: ContactManifold,
 ) {
     let mut manifold = manifold;
-    let _ = DefaultDispatcher::contact_manifold(
+    let _ = InlineDispatcher::contact_manifold(
         pos12, co1.shape, co2.shape, prediction, ref manifold,
     );
     let _ = opaque(manifold);
@@ -193,7 +193,7 @@ fn pair_probe(kind: felt252, piece: felt252) {
         piece_dispatch(pos12, co1, co2, prediction, previous.manifold);
     } else if piece == 'update' {
         let _ = opaque(
-            update_manifold::<DefaultDispatcher>(prediction, co1, co2, previous.manifold),
+            update_manifold::<InlineDispatcher>(prediction, co1, co2, previous.manifold),
         );
     } else if piece == 'solver_contact' {
         let [p0, _] = previous.manifold.points;
@@ -201,14 +201,14 @@ fn pair_probe(kind: felt252, piece: felt252) {
     } else if piece == 'combine' {
         piece_combine(co1, co2);
     } else if piece == 'process' {
-        let _ = opaque(process_pair::<DefaultDispatcher>(prediction, co1, co2, Some(previous)));
+        let _ = opaque(process_pair::<InlineDispatcher>(prediction, co1, co2, Some(previous)));
     } else if piece == 'update_old' {
         let _ = opaque(
-            update_manifold_outlined::<DefaultDispatcher>(prediction, co1, co2, previous.manifold),
+            update_manifold_outlined::<InlineDispatcher>(prediction, co1, co2, previous.manifold),
         );
     } else if piece == 'process_old' {
         let _ = opaque(
-            process_pair_outlined::<DefaultDispatcher>(prediction, co1, co2, Some(previous)),
+            process_pair_outlined::<InlineDispatcher>(prediction, co1, co2, Some(previous)),
         );
     } else if piece == 'match' {
         let mut manifold = previous.manifold;

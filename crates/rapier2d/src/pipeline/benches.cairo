@@ -15,7 +15,6 @@ use rapier_geometry2d::broad_phase::find_pairs;
 use rapier_golden::scenes;
 use rapier_testing::opaque;
 use crate::dispatcher::DefaultDispatcher;
-use crate::pipeline::step_dispatcher::StepDispatcher;
 use crate::world::{World, WorldTrait};
 use super::alternatives::{
     InlineDispatcher, OutlinedDispatcher, ProxyCacheTrait, compute_contacts_bucketed,
@@ -135,7 +134,7 @@ fn run(id: felt252, warmup: u32, stages: u8, variant: u8) {
         world
             .narrow_phase
             .compute_contacts::<
-                DefaultDispatcher,
+                InlineDispatcher,
             >(prediction, ref world.bodies, ref world.colliders, pairs.span())
     };
     if stages == 3 {
@@ -204,7 +203,7 @@ fn run_fused(id: felt252, warmup: u32, stages: u8, variant: u8) {
         return;
     }
     let _ = compute_contacts_from_scratch::<
-        StepDispatcher,
+        DefaultDispatcher,
     >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
     if stages == 3 {
         return;

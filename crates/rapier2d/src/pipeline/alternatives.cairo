@@ -30,15 +30,16 @@ use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::dispatch::contact_manifold;
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
-use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
 use super::{
     advance_to_final_positions, body_changes, collider_changes, joint_values,
     recompute_mass_properties_from_colliders, solve, write_joints,
 };
 
-/// Option (a) of the brief: `DefaultDispatcher` as a plain `#[inline(always)]` call to
-/// `rapier_geometry2d::dispatch::contact_manifold` (every pair pays the costliest generator).
+/// The metered `rapier_geometry2d::dispatch::contact_manifold` as a plain `#[inline(always)]`
+/// call: GG's option (a), and `DefaultDispatcher` until work package CL moved it to
+/// `dispatch::contact_manifold_step` (inlined in the pair loop, each metered arm costs a loop
+/// frame the plain arms of `contact_manifold_step` do not).
 pub impl InlineDispatcher of ContactDispatcher {
     #[inline(always)]
     fn contact_manifold(
@@ -68,7 +69,7 @@ pub impl OutlinedDispatcher of ContactDispatcher {
 
 /// Option (b): DD's `compute_contacts` loop rebuilt from its public pieces, with the pair kind
 /// resolved in the loop so that each kind runs a `process_pair` instantiation that reaches one
-/// generator only. Same pairs, events and order as `compute_contacts::<DefaultDispatcher>`.
+/// generator only. Same pairs, events and order as `compute_contacts::<InlineDispatcher>`.
 pub fn compute_contacts_by_kind(
     ref narrow_phase: NarrowPhase,
     prediction: Fixed,
@@ -238,7 +239,7 @@ pub struct PairDone {
 /// Option (b) proper: one pass classifies the pairs by kind (carry-over lookup in ascending key,
 /// as DD), one loop per kind runs `process_pair` with the dispatcher of that kind only, one pass
 /// merges the results back in pair order. Same pairs, events and order as
-/// `compute_contacts::<DefaultDispatcher>`.
+/// `compute_contacts::<InlineDispatcher>`.
 pub fn compute_contacts_bucketed(
     ref narrow_phase: NarrowPhase,
     prediction: Fixed,
@@ -491,7 +492,7 @@ pub fn step_with_cache(ref world: World, ref cache: ProxyCache) -> Array<Collisi
     let events = world
         .narrow_phase
         .compute_contacts::<
-            DefaultDispatcher,
+            InlineDispatcher,
         >(prediction, ref world.bodies, ref world.colliders, pairs.span());
     solve(
         world.gravity,

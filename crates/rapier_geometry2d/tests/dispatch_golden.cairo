@@ -11,10 +11,13 @@
 //!   points are matched as a set; the ids of a few tie cases are not compared, and four exact-tie
 //!   cases only compare count and distances (see `tie_ids`, `tie_axes`).
 //! * `ambiguous` cases: point count and the multiset of `dist` only.
+//!
+//! `dispatch::contact_manifold_step` (the step's variant) is compared bit for bit with
+//! `dispatch::contact_manifold` on every case, in both orders, cold and warm.
 use fixed::Fixed;
 use glam::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
-use rapier_geometry2d::dispatch::contact_manifold;
+use rapier_geometry2d::dispatch::{contact_manifold, contact_manifold_step};
 use rapier_geometry2d::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
 use rapier_golden::compare::within;
 use rapier_golden::contact_manifolds::{self, PREDICTION};
@@ -241,6 +244,55 @@ fn test_unsupported_pairs_return_false_and_clear() {
                 pose(contact_manifolds::BALL_BALL_SHALLOW.pos12), *s1, *s2, prediction(), ref m,
             ),
         );
+        assert_eq!(m.num_points, 0);
+    }
+}
+
+/// Both dispatchers on one case, from the same manifolds: same result, same manifold.
+fn same_step(
+    case: ManifoldCase, swapped: bool, ref a: ContactManifold, ref b: ContactManifold,
+) -> bool {
+    let (pos12, s1, s2) = if swapped {
+        (pose(case.pos12).inverse(), shape(case.shape2), shape(case.shape1))
+    } else {
+        (pose(case.pos12), shape(case.shape1), shape(case.shape2))
+    };
+    let got = contact_manifold_step(pos12, s1, s2, prediction(), ref a);
+    let expected = contact_manifold(pos12, s1, s2, prediction(), ref b);
+    got == expected && a == b
+}
+
+/// Every case in both orders, twice on the same manifold (cold, then warm: persistence fast
+/// path): `contact_manifold_step` is bit-identical to `contact_manifold`; and the unsupported
+/// pairs return `false` and clear a live manifold, as `contact_manifold`.
+#[test]
+fn test_step_variant_matches_on_every_golden_case() {
+    let mut count = 0_u32;
+    for case in contact_manifolds::cases() {
+        for swapped in array![false, true].span() {
+            let mut a: ContactManifold = Default::default();
+            let mut b: ContactManifold = Default::default();
+            assert!(same_step(*case, *swapped, ref a, ref b), "{}: cold", *case.id);
+            assert!(same_step(*case, *swapped, ref a, ref b), "{}: warm", *case.id);
+            count += 1;
+        }
+    }
+    assert_eq!(count, 2 * 87);
+    let seg = Segment {
+        a: Vec2 { x: Fixed { raw: -1 }, y: Fixed { raw: 0 } },
+        b: Vec2 { x: Fixed { raw: 1 }, y: Fixed { raw: 0 } },
+    };
+    let cap = Capsule { segment: seg, radius: Fixed { raw: 1 } };
+    let hs = HalfSpace { normal: Vec2 { x: Fixed { raw: 0 }, y: Fixed { raw: 4294967296 } } };
+    let (live, _) = run(contact_manifolds::BALL_BALL_SHALLOW, false);
+    let table = array![
+        (Shape::Segment(seg), Shape::Segment(seg)), (Shape::Segment(seg), Shape::Capsule(cap)),
+        (Shape::Capsule(cap), Shape::Segment(seg)), (Shape::HalfSpace(hs), Shape::HalfSpace(hs)),
+    ];
+    for (s1, s2) in table.span() {
+        let mut m = live;
+        let pos12 = pose(contact_manifolds::BALL_BALL_SHALLOW.pos12);
+        assert!(!contact_manifold_step(pos12, *s1, *s2, prediction(), ref m));
         assert_eq!(m.num_points, 0);
     }
 }
