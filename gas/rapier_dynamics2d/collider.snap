@@ -23,8 +23,8 @@ rapier_dynamics2d::collider::components::tests::test_defaults_and_conversions 13
 rapier_dynamics2d::collider::components::tests::test_density_and_explicit_variants 481110
 rapier_dynamics2d::collider::components::tests::test_mass_variant_scales_the_inertia 199530
 rapier_dynamics2d::collider::object::tests::gas_baseline 13620
-rapier_dynamics2d::collider::object::tests::gas_compute_aabb_ball 45370
-rapier_dynamics2d::collider::object::tests::gas_compute_aabb_cuboid_rotated 47553
+rapier_dynamics2d::collider::object::tests::gas_compute_aabb_ball 27300
+rapier_dynamics2d::collider::object::tests::gas_compute_aabb_cuboid_rotated 34943
 rapier_dynamics2d::collider::object::tests::gas_density_from_mass 65010
 rapier_dynamics2d::collider::object::tests::gas_density_stored 24340
 rapier_dynamics2d::collider::object::tests::gas_friction 23540
@@ -41,7 +41,7 @@ rapier_dynamics2d::collider::object::tests::gas_set_enabled 34623
 rapier_dynamics2d::collider::object::tests::gas_set_position 27506
 rapier_dynamics2d::collider::object::tests::gas_set_position_wrt_parent 28056
 rapier_dynamics2d::collider::object::tests::gas_set_sensor 34633
-rapier_dynamics2d::collider::object::tests::test_aabb_follows_the_pose 28786
+rapier_dynamics2d::collider::object::tests::test_aabb_follows_the_pose 24046
 rapier_dynamics2d::collider::object::tests::test_change_tracking_of_setters 20599
 rapier_dynamics2d::collider::object::tests::test_mass_variants 377982
 rapier_dynamics2d::collider::object::tests::test_parent_accessors_and_setters 21689
