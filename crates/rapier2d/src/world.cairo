@@ -13,9 +13,11 @@
 //! [`WorldTrait::set_body`] / [`WorldTrait::set_collider`].
 //!
 //! Deviations from upstream: no island manager, broad-phase state, CCD solver, multibody or soft
-//! body sets, query pipeline, hooks or event handler (events are returned by `step`); `remove_*`
+//! body sets, query pipeline (the scene queries scan the collider set, `crate::queries`), hooks
+//! or event handler (events are returned by `step`); `remove_*`
 //! wake nothing up (sleeping is deferred).
 
+use fixed::Fixed;
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
@@ -25,6 +27,10 @@ use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::{GenericJoint, ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, NarrowPhaseTrait};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
+use rapier_geometry2d::aabb::Aabb;
+use rapier_geometry2d::point::PointProjection;
+use rapier_geometry2d::ray::{Ray, RayIntersection};
+use crate::queries::QueryFilter;
 
 /// A 2D physics world (upstream `PhysicsWorld`). Holds dicts: pass it by `ref`.
 #[derive(Destruct)]
@@ -164,6 +170,52 @@ pub impl WorldImpl of WorldTrait {
     /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
     fn step(ref self: World) -> Array<CollisionEvent> {
         crate::pipeline::step(ref self)
+    }
+
+    /// The collider hit first by `ray` and its time of impact, strictly below `max_toi`
+    /// (upstream `QueryPipeline::cast_ray`); ties go to the lowest handle. See
+    /// `crate::queries` for the semantics of every query.
+    #[inline(always)]
+    fn cast_ray(
+        ref self: World, ray: Ray, max_toi: Fixed, solid: bool, filter: QueryFilter,
+    ) -> Option<(Handle, Fixed)> {
+        crate::queries::cast_ray(ref self, ray, max_toi, solid, filter)
+    }
+
+    /// [`WorldTrait::cast_ray`] with the world-space normal and feature of the hit.
+    #[inline(always)]
+    fn cast_ray_and_get_normal(
+        ref self: World, ray: Ray, max_toi: Fixed, solid: bool, filter: QueryFilter,
+    ) -> Option<(Handle, RayIntersection)> {
+        crate::queries::cast_ray_and_get_normal(ref self, ray, max_toi, solid, filter)
+    }
+
+    /// Every collider hit by `ray` within `max_toi`, ascending handle order.
+    #[inline(always)]
+    fn intersect_ray(
+        ref self: World, ray: Ray, max_toi: Fixed, solid: bool, filter: QueryFilter,
+    ) -> Array<(Handle, RayIntersection)> {
+        crate::queries::intersect_ray(ref self, ray, max_toi, solid, filter)
+    }
+
+    /// The collider closest to `point`, strictly within `max_dist`, with the world projection.
+    #[inline(always)]
+    fn project_point(
+        ref self: World, point: Vec2, max_dist: Fixed, solid: bool, filter: QueryFilter,
+    ) -> Option<(Handle, PointProjection)> {
+        crate::queries::project_point(ref self, point, max_dist, solid, filter)
+    }
+
+    /// Every collider containing `point`, ascending handle order.
+    #[inline(always)]
+    fn intersect_point(ref self: World, point: Vec2, filter: QueryFilter) -> Array<Handle> {
+        crate::queries::intersect_point(ref self, point, filter)
+    }
+
+    /// Every collider whose world AABB intersects `aabb`, ascending handle order.
+    #[inline(always)]
+    fn intersect_aabb(ref self: World, aabb: Aabb, filter: QueryFilter) -> Array<Handle> {
+        crate::queries::intersect_aabb(ref self, aabb, filter)
     }
 }
 

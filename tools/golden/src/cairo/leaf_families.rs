@@ -1,6 +1,6 @@
 //! Cairo emitters of the leaf-level families (`pose2`, `aabb_overlap`, `sat2d`, `clip2d`,
-//! `point_projection`, `segment_segment`). Child of `cairo`: it reuses the node printer, the
-//! `Module` builder and the JSON readers of its parent.
+//! `point_projection`, `segment_segment`, `ray_casts`). Child of `cairo`: it reuses the node
+//! printer, the `Module` builder and the JSON readers of its parent.
 
 use super::{
     boolean, const_name, id, int, load, padded, pose, raw, rot, vec2, zero_vec2, Module, Node,
@@ -10,7 +10,7 @@ use serde_json::Value;
 use std::path::Path;
 
 /// Types introduced by these families (the existing ones are in `ALL_TYPES`).
-const LEAF_TYPES: [&str; 18] = [
+const LEAF_TYPES: [&str; 21] = [
     "AabbOverlapCase",
     "ClipCase",
     "ClipPointRaw",
@@ -21,6 +21,9 @@ const LEAF_TYPES: [&str; 18] = [
     "Pose2Case",
     "ProjectionCase",
     "ProjectionRaw",
+    "RayAnswerRaw",
+    "RayCase",
+    "RayHitRaw",
     "RotChainCase",
     "RotChainSampleRaw",
     "SatAxisRaw",
@@ -425,5 +428,68 @@ pub fn segment_segment(vectors: &Path) -> String {
         )
     });
     module.table("SegmentPairCase", "ALL", "cases", &cases);
+    finish(module)
+}
+
+// --- ray_casts -------------------------------------------------------------------------------
+
+fn ray_hit(v: &Value) -> Node {
+    if v.is_null() {
+        return Node::Struct(
+            "RayHitRaw",
+            vec![
+                ("hit", lit("false")),
+                ("time_of_impact", zero()),
+                ("normal", zero_vec2()),
+                ("feature", lit("PointFeatureRaw::Unknown")),
+            ],
+        );
+    }
+    Node::Struct(
+        "RayHitRaw",
+        vec![
+            ("hit", lit("true")),
+            ("time_of_impact", raw(&v["time_of_impact"])),
+            ("normal", vec2(&v["normal"])),
+            ("feature", feature(&v["feature"])),
+        ],
+    )
+}
+
+fn ray_answer(v: &Value) -> Node {
+    let toi = &v["toi"];
+    Node::Struct(
+        "RayAnswerRaw",
+        vec![
+            ("has_toi", lit(if toi.is_null() { "false" } else { "true" })),
+            ("toi", if toi.is_null() { zero() } else { raw(toi) }),
+            ("hit", ray_hit(&v["hit"])),
+        ],
+    )
+}
+
+pub fn ray_casts(vectors: &Path) -> String {
+    let json = load(vectors, "ray_casts.json");
+    let mut module = Module::new(
+        "ray_casts.json",
+        "World-space ray casts (`cast_ray`, `cast_ray_and_get_normal`) on the five shapes, solid and hollow.",
+    );
+    let cases = cases_of(&json, "cases", |c| {
+        let e = &c["expected"];
+        Node::Struct(
+            "RayCase",
+            vec![
+                ("id", id(c)),
+                ("shape", super::shape(&c["shape"])),
+                ("pose", pose(&c["pose"])),
+                ("origin", vec2(&c["origin"])),
+                ("dir", vec2(&c["dir"])),
+                ("max_toi", raw(&c["max_toi"])),
+                ("solid", ray_answer(&e["solid"])),
+                ("hollow", ray_answer(&e["hollow"])),
+            ],
+        )
+    });
+    module.table("RayCase", "ALL", "cases", &cases);
     finish(module)
 }

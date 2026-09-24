@@ -16,6 +16,7 @@ mod params;
 mod point_projection;
 mod pose2;
 mod q;
+mod ray_casts;
 mod sat2d;
 mod scenes;
 mod segment_segment;
@@ -66,7 +67,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 11] = [
+        let families: [Family; 12] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -78,6 +79,7 @@ fn main() {
             ("clip2d", clip2d::generate),
             ("point_projection", point_projection::generate),
             ("segment_segment", segment_segment::generate),
+            ("ray_casts", ray_casts::generate),
         ];
         for (name, generate) in families {
             let value = with_header(generate());
