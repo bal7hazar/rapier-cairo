@@ -5,7 +5,8 @@ use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
-use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
+use rapier_dynamics2d::collider::{Collider, ColliderBuilder, ColliderBuilderTrait};
+use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
 use rapier_dynamics2d::rigid_body_set::RigidBodyTrait;
 use rapier_geometry2d::shape::{
@@ -161,4 +162,94 @@ pub fn statics(n: u32) -> World {
             ColliderBuilderTrait::ball(HALF).build(),
         );
     world
+}
+
+/// `n` dynamic balls of radius 1/2 falling from `y = 100`, 4 apart along x (no contact at all),
+/// gravity `(0, -9.81)`: the `free_fall` scene of `tests/gas_scenes.cairo`.
+pub fn free_fall(n: u32) -> World {
+    let mut world = WorldTrait::new(v(ZERO, f(-42133629174)), Default::default());
+    let mut i: u32 = 0;
+    while i != n {
+        let x = FixedTrait::from_int((4 * i).try_into().unwrap());
+        let _ = world
+            .insert(
+                RigidBodyTrait::dynamic(at(x, FixedTrait::from_int(100))),
+                ColliderBuilderTrait::ball(HALF).build(),
+            );
+        i += 1;
+    }
+    world
+}
+
+/// One draw of a 31-bit linear congruential generator (glibc constants).
+pub fn draw(ref state: u64) -> u32 {
+    state = (state * 1103515245 + 12345) % 0x80000000;
+    (state / 0x10000).try_into().unwrap()
+}
+
+/// A random world for `seed`: a ground half-space, 3–7 bodies (dynamic, fixed or
+/// position-based kinematic) 0.9 apart so that neighbours touch, each with one ball, cuboid or
+/// capsule (some offset, sensor or disabled) and sometimes a second collider; then, depending on
+/// the seed, a body and a collider removed and a body inserted into a freed slot, so that the
+/// sets have free slots and bumped generations.
+pub fn random_world(seed: u32) -> World {
+    let mut state: u64 = seed.into();
+    let mut world = WorldTrait::new(v(ZERO, f(-42133629174)), Default::default());
+    let _ = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+    let n = 3 + draw(ref state) % 5;
+    let mut bodies = array![];
+    let mut k: u32 = 0;
+    while k != n {
+        let pos = at(f(3865470566 * k.into()), HALF + f(1932735283 * (draw(ref state) % 3).into()));
+        let kind = draw(ref state) % 6;
+        let body = if kind == 4 {
+            RigidBodyTrait::fixed(pos)
+        } else if kind == 5 {
+            RigidBodyTrait::kinematic_position_based(pos)
+        } else {
+            RigidBodyTrait::dynamic(pos)
+        };
+        let (handle, _) = world.insert(body, random_collider(ref state));
+        if draw(ref state) % 4 == 0 {
+            let _ = world.insert_collider(random_collider(ref state), Some(handle));
+        }
+        bodies.append(handle);
+        k += 1;
+    }
+    let roll = draw(ref state);
+    if roll % 2 == 0 {
+        let _ = world.remove_body(*bodies.at(1));
+    }
+    if roll % 3 == 0 {
+        let (first, _) = *world.colliders.iter().at(1);
+        let _ = world.remove_collider(first);
+        let _ = world
+            .insert(
+                RigidBodyTrait::dynamic(at(f(-3865470566), ONE)),
+                ColliderBuilderTrait::ball(HALF).build(),
+            );
+    }
+    world
+}
+
+fn random_collider(ref state: u64) -> Collider {
+    let shape = draw(ref state) % 3;
+    let mut builder = if shape == 0 {
+        ColliderBuilderTrait::ball(HALF)
+    } else if shape == 1 {
+        ColliderBuilderTrait::cuboid(HALF, f(1932735283))
+    } else {
+        ColliderBuilderTrait::capsule_x(f(1073741824), f(1073741824))
+    };
+    let roll = draw(ref state);
+    if roll % 5 == 0 {
+        builder = builder.translation(v(f(858993459), ZERO));
+    }
+    if roll % 7 == 0 {
+        builder = builder.sensor(true);
+    }
+    if roll % 11 == 0 {
+        builder = builder.enabled(false);
+    }
+    builder.build()
 }

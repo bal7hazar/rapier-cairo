@@ -7,7 +7,7 @@ use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
-use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhaseTrait};
+use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhaseTrait, pair_colliders};
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};
 use rapier_geometry2d::broad_phase::find_pairs;
@@ -20,8 +20,15 @@ use super::alternatives::{
     compute_contacts_by_kind, compute_contacts_metered, handle_user_changes_propagate,
     solve_all_manifolds, step_with_cache,
 };
-use super::fixtures::{at, ball_on_ground, mixed, row, scene_world, statics, v};
-use super::{handle_user_changes, scatter_touching, solve, touching_manifolds};
+use super::fixtures::{at, ball_on_ground, mixed, random_world, row, scene_world, statics, v};
+use super::fused_alternatives::{
+    advance_with_snapshot_outlined, collision_inputs_field_reads,
+    collision_inputs_outlined_fallback, step_staged,
+};
+use super::{
+    advance_with_snapshot, collision_inputs, contacts_from_scratch, handle_user_changes,
+    scatter_touching, solve, touching_manifolds, user_changes_snapshot,
+};
 
 fn world_of(id: felt252) -> World {
     if id == 'stack3' {
@@ -261,4 +268,113 @@ fn test_mass_follows_collider_changes() {
     assert_eq!(rb.mprops.mass(), ONE);
     assert_eq!(rb.mprops.world_com, v(ZERO, ZERO));
     assert_eq!(world.narrow_phase.len(), 0);
+}
+
+/// The fused stages build exactly the proxies of `broad_phase_proxies` and the scratch of
+/// `pair_colliders`, dense or sparse sets alike.
+#[test]
+fn test_collision_inputs_match_the_stage_functions() {
+    let mut seed: u32 = 0;
+    let mut overlaps = 0;
+    while seed != 6 {
+        let mut world = random_world(seed);
+        let mut reference = random_world(seed);
+        let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+        handle_user_changes(ref reference.bodies, ref reference.colliders);
+        assert!(same_state(ref world, ref reference), "seed {} user changes", seed);
+        assert!(snapshot == world.colliders.iter().span(), "seed {} snapshot", seed);
+        let p = world.integration_parameters.prediction_distance();
+        let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, p);
+        let expected = reference.colliders.broad_phase_proxies(ref reference.bodies, p);
+        assert!(proxies == expected, "seed {} proxies", seed);
+        overlaps += find_pairs(proxies.span()).len();
+        let expected = pair_colliders(ref reference.bodies, ref reference.colliders);
+        assert!(scratch == expected.span(), "seed {} scratch", seed);
+        seed += 1;
+    }
+    assert!(overlaps != 0);
+}
+
+/// `World::step` (fused) and every fused-stage candidate against the staged step, raw compare
+/// of bodies, colliders, pairs and events, on scenes with contacts, joints and events.
+#[test]
+fn test_fused_step_agrees_on_scenes() {
+    for id in array!['stack3', 'pendulum', 'mixed', 'statics', 'resting'].span() {
+        let mut variant = 0;
+        while variant != 4 {
+            let mut staged = world_of(*id);
+            let mut fused = world_of(*id);
+            let mut step = 0;
+            while step != 3 {
+                let expected = step_staged(ref staged);
+                let got = fused_step(ref fused, variant);
+                assert!(got == expected, "{} variant {} step {} events", *id, variant, step);
+                assert!(
+                    same_state(ref staged, ref fused), "{} variant {} step {}", *id, variant, step,
+                );
+                step += 1;
+            }
+            variant += 1;
+        }
+    }
+}
+
+/// The fused step against the staged one on random worlds (free slots, stale generations,
+/// sensors, disabled colliders, fixed and kinematic parents), with user changes between steps.
+#[test]
+#[fuzzer(runs: 8, seed: 20260923)]
+fn fuzz_fused_step_agrees(seed: u16) {
+    let mut staged = random_world(seed.into());
+    let mut fused = random_world(seed.into());
+    let mut step = 0;
+    while step != 3 {
+        if step == 1 {
+            // Move the last body and disable the first collider, in both worlds.
+            let (handle, mut body) = *staged.bodies.iter().at(staged.bodies.len() - 1);
+            body.set_position(at(ONE, ONE + ONE));
+            assert!(staged.set_body(handle, body) && fused.set_body(handle, body));
+            let (handle, mut collider) = *staged.colliders.iter().at(0);
+            collider.set_enabled(false);
+            assert!(staged.set_collider(handle, collider) && fused.set_collider(handle, collider));
+        }
+        let expected = step_staged(ref staged);
+        let got = fused.step();
+        assert!(got == expected, "step {} events", step);
+        assert!(same_state(ref staged, ref fused), "step {}", step);
+        step += 1;
+    }
+}
+
+/// One step through the fused stages, `variant` selecting a `fused_alternatives` candidate
+/// (0 = shipped `World::step`).
+fn fused_step(ref world: World, variant: u8) -> Array<CollisionEvent> {
+    if variant == 0 {
+        return world.step();
+    }
+    let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+    let p = world.integration_parameters.prediction_distance();
+    let (proxies, scratch) = if variant == 1 {
+        collision_inputs_outlined_fallback(snapshot, infos, ref world.bodies, p)
+    } else if variant == 2 {
+        collision_inputs_field_reads(snapshot, infos, ref world.bodies, p)
+    } else {
+        collision_inputs(snapshot, infos, ref world.bodies, p)
+    };
+    let pairs = find_pairs(proxies.span());
+    let events = contacts_from_scratch(
+        ref world.narrow_phase, p, scratch, pairs.span(), ref world.colliders,
+    );
+    solve(
+        world.gravity,
+        world.integration_parameters,
+        ref world.bodies,
+        ref world.narrow_phase,
+        ref world.impulse_joints,
+    );
+    if variant == 3 {
+        advance_with_snapshot_outlined(ref world.bodies, ref world.colliders, snapshot);
+    } else {
+        advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
+    }
+    events
 }

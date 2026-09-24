@@ -17,6 +17,16 @@
 //!    body, world mass properties refreshed, attached colliders moved;
 //! 5. the collision events of stage 2 are returned.
 //!
+//! [`step`] runs these stages fused (work package OP), so that each set is walked once before
+//! the solver: [`user_changes_snapshot`] is stage 1 plus the collider walk (reused, retaken only
+//! when a change flag was raised) and one [`BodyInfo`] per body; [`collision_inputs`] builds the
+//! proxies and the narrow-phase scratch (`narrow_phase::pair_colliders`) from them in one walk
+//! with no set read (the parent is found at `infos[handle.index]` when the set has no free slot
+//! before it, read otherwise); [`contacts_from_scratch`] is `compute_contacts` on that scratch;
+//! [`advance_with_snapshot`] takes the colliders from the snapshot (stages 2–3 write none). The
+//! public stage functions stay, with the same results (`fused_alternatives::step_staged`, raw
+//! equivalence on scenes and random worlds in `tests`).
+//!
 //! Every loop runs in ascending slot / pair order; no dict is iterated (determinism, AGENTS.md
 //! §2.4). Change flags are only raised by user mutations: stages 3–4 move bodies and colliders
 //! without raising them, as upstream's internal motion.
@@ -28,12 +38,34 @@
 //!
 //! # Cost
 //!
-//! One settled `BOX_STACK3` step (3 touching cuboid pairs), Sierra gas | Cairo steps, from
-//! `benches` (cumulative probes, differences): user changes 261 540 | 2 591, broad phase
-//! 337 680 | 2 807, narrow phase 2 422 715 | 11 403, solver 14 444 688 | 130 119, position
-//! update 418 076 | 3 929; whole step 17 895 799 | 150 948 (`tests/world_step.cairo`).
+//! Stages of one step, Sierra gas | Cairo steps, from `benches` (cumulative probes,
+//! differences), staged on `main` before OP → fused:
 //!
-//! Candidates (`alternatives`, equivalence in `tests`):
+//! * `free_fall(32)`: user changes 1 797 620 → 1 883 490, broad phase 5 138 200 → 4 070 100,
+//!   narrow phase 1 652 840 → 26 600, solver 13 625 704 (unchanged), position update
+//!   4 010 344 → 3 665 624;
+//! * `BOX_STACK3` settled: user changes 261 540 → 269 110, broad phase 337 680 → 222 210,
+//!   narrow phase 2 440 235 → 2 219 595, solver 13 416 918 (unchanged), position update
+//!   418 076 → 386 276.
+//!
+//! Whole step (solver after OS): `free_fall(32)` 26 224 708 | 235 363 → 23 270 228 | 210 191,
+//! `free_fall(8)` 6 299 812 | 56 299 → 5 540 612 | 49 799, `BOX_STACK3` 16 874 449 | 141 347 →
+//! 16 512 819 | 138 088. What is left per falling body at 32 bodies: solver 426k (`from_bodies`,
+//! `solve_island`, `to_bodies`), `find_pairs` 97k (O(n²) pair tests), position update 115k
+//! (body write 22k, world mass 17k, collider pose and write), user changes 59k (the two walks).
+//!
+//! Candidates (`alternatives` and `fused_alternatives`, equivalence in `tests`):
+//! * fused step (shipped) vs the staged stage functions (`step_staged`): above;
+//! * parent read of a sparse set inlined in the proxy loop (shipped) vs behind a call
+//!   (`collision_inputs_outlined_fallback`), vs field-by-field reads through the snapshot
+//!   instead of one collider copy (`collision_inputs_field_reads`): broad phase 4 070 100 vs
+//!   4 154 280 / 4 095 700 on `free_fall(32)`, 222 210 vs 232 470 / 225 410 on `BOX_STACK3`;
+//! * per-body position update inlined in the body loop (shipped) vs `#[inline(never)]`
+//!   (`advance_with_snapshot_outlined`): 3 665 624 vs 3 918 324 on `free_fall(32)`, 386 276 vs
+//!   409 776 on `BOX_STACK3`;
+//! * proxy AABB: `ShapeTrait::compute_aabb` inlined (shipped, OP) vs out of line: see
+//!   `rapier_geometry2d::shape`; the staged broad phase of `free_fall(32)` drops from 5 138 200 to
+//!   4 609 880 with it;
 //! * user changes: one fused pass per set (shipped) vs DD's
 //!   `propagate_modified_body_positions_to_colliders` plus a flag-clearing pass: 261 540 vs
 //!   500 162 on a settled stack, 1 461 064 vs 1 777 058 on the first step;
@@ -49,6 +81,7 @@
 //!   (`compute_contacts_metered`): 4 ball pairs 3 477 356 / 1 778 206 / 1 651 356 vs 1 486 460
 //!   shipped, 4 cuboid pairs 3 477 356 / 3 548 006 / 3 252 676 vs 3 197 940 shipped.
 
+use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::ColliderChangesTrait;
@@ -57,19 +90,26 @@ use rapier_core::collider::changes::{
 };
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::changes::{COLLIDERS, LOCAL_MASS_PROPERTIES, POSITION};
-use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyType};
+use rapier_core::rigid_body::{
+    RigidBodyChangesTrait, RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType,
+};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
-use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, NarrowPhaseTrait};
+use rapier_dynamics2d::narrow_phase::{
+    CarryOver, ContactPair, NarrowPhase, NarrowPhaseTrait, PairCollider, SortedMerge,
+    dropped_events, process_pair,
+};
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
 use rapier_dynamics2d::solver::island::solve_island;
-use rapier_geometry2d::broad_phase::find_pairs;
+use rapier_geometry2d::aabb::AabbTrait;
+use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
+use rapier_geometry2d::shape::ShapeTrait;
 use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
 
@@ -80,7 +120,10 @@ mod benches;
 #[cfg(test)]
 pub(crate) mod fixtures;
 #[cfg(test)]
+pub(crate) mod fused_alternatives;
+#[cfg(test)]
 mod tests;
+
 
 /// One step of `world` (see the module documentation for the stages); returns the collision
 /// events.
@@ -88,9 +131,12 @@ mod tests;
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    handle_user_changes(ref world.bodies, ref world.colliders);
-    let events = detect_collisions(
-        world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
+    let (snapshot, infos) = user_changes_snapshot(ref world.bodies, ref world.colliders);
+    let prediction = world.integration_parameters.prediction_distance();
+    let (proxies, scratch) = collision_inputs(snapshot, infos, ref world.bodies, prediction);
+    let pairs = find_pairs(proxies.span());
+    let events = contacts_from_scratch(
+        ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
     );
     solve(
         world.gravity,
@@ -99,8 +145,221 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
         ref world.narrow_phase,
         ref world.impulse_joints,
     );
-    advance_to_final_positions(ref world.bodies, ref world.colliders);
+    advance_with_snapshot(ref world.bodies, ref world.colliders, snapshot);
     events
+}
+
+/// What the collision stages read from a parent body, after the user changes.
+#[derive(Copy, Drop, PartialEq, Debug)]
+pub struct BodyInfo {
+    pub handle: Handle,
+    pub body_type: RigidBodyType,
+    pub world_com: Vec2,
+    /// Effective dominance group (upstream `effective_group`).
+    pub dominance: i16,
+}
+
+/// The [`BodyInfo`] of a missing parent or of no parent: a fixed body at the origin.
+#[inline(always)]
+fn no_body_info() -> (RigidBodyType, Vec2, i16) {
+    let dominance: RigidBodyDominance = Default::default();
+    (RigidBodyType::Fixed, Default::default(), dominance.effective_group(RigidBodyType::Fixed))
+}
+
+/// The `(body_type, world_com, dominance)` of the body `handle`: `infos[handle.index]` when that
+/// entry has the handle (always the case in a set without free slot), a set read otherwise.
+/// The read is inlined: in the loop body it is only paid when reached (`fused_alternatives::
+/// collision_inputs_outlined_fallback` puts it behind a call).
+#[inline(always)]
+fn body_info(
+    infos: Span<BodyInfo>, handle: Handle, ref bodies: RigidBodySet,
+) -> (RigidBodyType, Vec2, i16) {
+    if let Some(info) = infos.get(handle.index) {
+        let info = *info.unbox();
+        if info.handle == handle {
+            return (info.body_type, info.world_com, info.dominance);
+        }
+    }
+    match bodies.get(handle) {
+        Some(body) => (
+            body.body_type, body.mprops.world_com, body.dominance.effective_group(body.body_type),
+        ),
+        None => no_body_info(),
+    }
+}
+
+/// The collider `handle`: `snapshot[handle.index]` when that entry has the handle, a set read
+/// otherwise.
+#[inline(always)]
+fn snapshot_collider(
+    snapshot: Span<(Handle, Collider)>, handle: Handle, ref colliders: ColliderSet,
+) -> Option<Collider> {
+    if let Some(entry) = snapshot.get(handle.index) {
+        let (h, collider) = *entry.unbox();
+        if h == handle {
+            return Some(collider);
+        }
+    }
+    colliders.get(handle)
+}
+
+/// [`handle_user_changes`] that also returns what the rest of the step reads from the sets:
+/// every `(handle, collider)` after the changes in ascending slot (as `ColliderSetTrait::iter`)
+/// and one [`BodyInfo`] per body in ascending slot. The collider walk is reused when no change
+/// flag was raised, taken again otherwise.
+pub fn user_changes_snapshot(
+    ref bodies: RigidBodySet, ref colliders: ColliderSet,
+) -> (Span<(Handle, Collider)>, Span<BodyInfo>) {
+    let mut snapshot = colliders.iter().span();
+    let mut dirty = false;
+    for (handle, collider) in snapshot {
+        if !collider.changes.is_empty() {
+            collider_changes(*handle, *collider, ref bodies, ref colliders);
+            dirty = true;
+        }
+    }
+    let mut infos = array![];
+    for (handle, body) in bodies.iter().span() {
+        let (body_type, world_com, dominance) = if body.changes.is_empty() {
+            (*body.body_type, *body.mprops.world_com, *body.dominance)
+        } else {
+            dirty = true;
+            let body = body_changes(*handle, *body, ref bodies, ref colliders);
+            (body.body_type, body.mprops.world_com, body.dominance)
+        };
+        infos
+            .append(
+                BodyInfo {
+                    handle: *handle,
+                    body_type,
+                    world_com,
+                    dominance: dominance.effective_group(body_type),
+                },
+            );
+    }
+    if dirty {
+        snapshot = colliders.iter().span();
+    }
+    (snapshot, infos.span())
+}
+
+/// The broad-phase proxies (as `ColliderSetTrait::broad_phase_proxies`) and the narrow-phase
+/// scratch (as `narrow_phase::pair_colliders`) of `snapshot`, in one walk without set read
+/// (except for a parent absent from `infos`' dense layout).
+pub fn collision_inputs(
+    snapshot: Span<(Handle, Collider)>,
+    infos: Span<BodyInfo>,
+    ref bodies: RigidBodySet,
+    prediction: Fixed,
+) -> (Array<BroadPhaseProxy>, Span<PairCollider>) {
+    let margin = prediction * HALF;
+    let mut proxies = array![];
+    let mut scratch = array![];
+    for (handle, collider) in snapshot {
+        let collider = *collider;
+        let body = collider.parent();
+        let (body_type, world_com, dominance) = match body {
+            Some(parent) => body_info(infos, parent, ref bodies),
+            None => no_body_info(),
+        };
+        let pose = collider.pos.pose;
+        proxies
+            .append(
+                BroadPhaseProxy {
+                    collider: *handle,
+                    aabb: collider.shape.compute_aabb(pose).loosened(margin),
+                    is_static: body_type == RigidBodyType::Fixed,
+                },
+            );
+        scratch
+            .append(
+                PairCollider {
+                    handle: *handle,
+                    solid: collider.is_enabled() && !collider.is_sensor(),
+                    shape: collider.shape,
+                    pose,
+                    friction: collider.material.friction,
+                    restitution: collider.material.restitution,
+                    friction_combine_rule: collider.material.friction_combine_rule,
+                    restitution_combine_rule: collider.material.restitution_combine_rule,
+                    active_collision_types: collider.flags.active_collision_types,
+                    collision_groups: collider.flags.collision_groups,
+                    solver_groups: collider.flags.solver_groups,
+                    active_events: collider.flags.active_events,
+                    body,
+                    body_type,
+                    world_com,
+                    dominance,
+                },
+            );
+    }
+    (proxies, scratch.span())
+}
+
+
+/// `NarrowPhaseTrait::compute_contacts::<DefaultDispatcher>` on a prebuilt scratch (see
+/// [`collision_inputs`]): same pair loop, carry-over and events.
+pub fn contacts_from_scratch(
+    ref narrow_phase: NarrowPhase,
+    prediction: Fixed,
+    scratch: Span<PairCollider>,
+    pairs: Span<(u32, u32)>,
+    ref colliders: ColliderSet,
+) -> Array<CollisionEvent> {
+    let mut carry: SortedMerge = CarryOver::begin(narrow_phase.pairs.span());
+    let mut current = array![];
+    let mut transitions = array![];
+    for (i, j) in pairs {
+        let co1 = *scratch.at(*i);
+        let co2 = *scratch.at(*j);
+        if !(co1.solid && co2.solid) {
+            continue;
+        }
+        let previous = carry.take(co1.handle, co2.handle);
+        let (pair, event) = process_pair::<DefaultDispatcher>(prediction, co1, co2, previous);
+        current.append(pair);
+        if let Some(event) = event {
+            transitions.append(event);
+        }
+    }
+    let mut events = dropped_events(carry.finish(), ref colliders);
+    events.append_span(transitions.span());
+    narrow_phase.pairs = current;
+    events
+}
+
+/// [`advance_to_final_positions`] reading the colliders from `snapshot` (the colliders as
+/// [`user_changes_snapshot`] left them; stages 2–3 do not write colliders).
+pub fn advance_with_snapshot(
+    ref bodies: RigidBodySet, ref colliders: ColliderSet, snapshot: Span<(Handle, Collider)>,
+) {
+    for (handle, body) in bodies.iter().span() {
+        if *body.enabled && *body.body_type != RigidBodyType::Fixed {
+            advance_body_with_snapshot(*handle, *body, ref bodies, ref colliders, snapshot);
+        }
+    }
+}
+
+#[inline(always)]
+fn advance_body_with_snapshot(
+    handle: Handle,
+    body: RigidBody,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    snapshot: Span<(Handle, Collider)>,
+) {
+    let mut body = body;
+    body.pos.position = body.pos.next_position;
+    body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
+    let _ = bodies.set(handle, body);
+    for co_handle in body.colliders {
+        if let Some(mut collider) = snapshot_collider(snapshot, *co_handle, ref colliders) {
+            if let Some(parent) = collider.parent {
+                collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
+                let _ = colliders.set(*co_handle, collider);
+            }
+        }
+    }
 }
 
 /// Stage 1 (upstream `handle_user_changes_to_colliders` then
@@ -115,7 +374,7 @@ pub fn handle_user_changes(ref bodies: RigidBodySet, ref colliders: ColliderSet)
     }
     for (handle, body) in bodies.iter() {
         if !body.changes.is_empty() {
-            body_changes(handle, body, ref bodies, ref colliders);
+            let _ = body_changes(handle, body, ref bodies, ref colliders);
         }
     }
 }
@@ -146,7 +405,7 @@ fn collider_changes(
 #[inline(never)]
 fn body_changes(
     handle: Handle, body: RigidBody, ref bodies: RigidBodySet, ref colliders: ColliderSet,
-) {
+) -> RigidBody {
     let mut body = body;
     let changes = body.changes;
     if changes.contains(POSITION) || changes.contains(COLLIDERS) {
@@ -158,6 +417,7 @@ fn body_changes(
     }
     body.changes = RigidBodyChangesTrait::empty();
     let _ = bodies.set(handle, body);
+    body
 }
 
 /// Upstream `RigidBodyMassProps::recompute_mass_properties_from_colliders`: the local mass
