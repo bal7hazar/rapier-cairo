@@ -12,7 +12,8 @@
 //! 5. cuboid – capsule and capsule – cuboid: `cuboid_capsule`;
 //! 6. cuboid – segment and segment – cuboid: `cuboid_segment`;
 //! 7. half-space – cuboid / segment / capsule and the reverse:
-//!    `halfspace_pfm::contact_manifold_halfspace_pfm`.
+//!    `halfspace_pfm::contact_manifold_halfspace_pfm`;
+//! 8. polygon – polygon / cuboid / segment / capsule (both orders): SAT + PFM clipping.
 //!
 //! Rows 5 and 6 are a Rapier-2D specialisation: upstream sends those pairs to its generic
 //! polygonal-feature-map generator (`contact_manifold_pfm_pfm`, GJK/EPA based, not ported) and
@@ -91,6 +92,12 @@ use crate::contact_generators::cuboid_segment::{
     contact_manifold_cuboid_segment, contact_manifold_cuboid_segment_shapes,
 };
 use crate::contact_generators::halfspace_pfm::contact_manifold_halfspace_pfm;
+use crate::contact_generators::polygon_polygon::{
+    contact_manifold_polygon_cuboid, contact_manifold_polygon_polygon,
+};
+use crate::contact_generators::polygon_segment::{
+    contact_manifold_polygon_capsule, contact_manifold_polygon_segment,
+};
 use crate::manifold::ManifoldTrait;
 use crate::shape::Shape;
 
@@ -249,6 +256,90 @@ pub fn contact_manifold(
             }
             true
         },
+        (
+            Shape::ConvexPolygon(a), Shape::ConvexPolygon(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_polygon(
+                    pos12, a.unbox(), b.unbox(), prediction, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Cuboid(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_cuboid(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::Cuboid(b), Shape::ConvexPolygon(a),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_cuboid(
+                    pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Segment(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_segment(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::Segment(b), Shape::ConvexPolygon(a),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_segment(
+                    pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Capsule(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_capsule(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::Capsule(b), Shape::ConvexPolygon(a),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_capsule(
+                    pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
         _ => {
             manifold.clear();
             false
@@ -269,6 +360,8 @@ pub fn contact_manifold(
 /// capsule–cuboid or segment–cuboid pair whose fast path succeeds skips the generator's
 /// `pos12.inverse()`, whose only effect is a panic on an unrepresentable pose.
 ///
+/// Polygon pairs also use persistence. Reversed polygon pairs keep the check inside their
+/// generator: moving it before the rounded double inversion changes distances by one ulp.
 /// Arguments, returned value and panics: as [`contact_manifold`].
 /// #### Cost
 /// Only for callers that inline it into a loop body (the narrow phase's pair loop), where each
@@ -363,6 +456,70 @@ pub fn contact_manifold_step(
         ) => {
             contact_manifold_halfspace_pfm(
                 pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::ConvexPolygon(b),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_polygon_polygon(
+                    pos12, a.unbox(), b.unbox(), prediction, ref manifold,
+                );
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Cuboid(b),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_polygon_cuboid(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+            }
+            true
+        },
+        (
+            Shape::Cuboid(b), Shape::ConvexPolygon(a),
+        ) => {
+            contact_manifold_polygon_cuboid(
+                pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+            );
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Segment(b),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_polygon_segment(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+            }
+            true
+        },
+        (
+            Shape::Segment(b), Shape::ConvexPolygon(a),
+        ) => {
+            contact_manifold_polygon_segment(
+                pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+            );
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Capsule(b),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_polygon_capsule(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+            }
+            true
+        },
+        (
+            Shape::Capsule(b), Shape::ConvexPolygon(a),
+        ) => {
+            contact_manifold_polygon_capsule(
+                pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
             );
             true
         },

@@ -11,6 +11,7 @@ pub mod integration_parameters;
 pub mod mass_properties;
 pub mod point_projection;
 pub mod polygon_aabb;
+pub mod polygon_contacts;
 pub mod polygon_mass;
 pub mod polygon_point;
 pub mod polygon_ray;

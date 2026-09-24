@@ -42,7 +42,7 @@ rapier_geometry2d::shape::convex_polygon::tests::test_boxed_shape_serialization_
 rapier_geometry2d::shape::convex_polygon::tests::test_construction_table 487240
 rapier_geometry2d::shape::convex_polygon::tests::test_entry_rounding_to_zero_keeps_entry_face 149230
 rapier_geometry2d::shape::convex_polygon::tests::test_mass_density_zero_and_negative 895290
-rapier_geometry2d::shape::convex_polygon::tests::test_polygon_contacts_dispatch 879090
+rapier_geometry2d::shape::convex_polygon::tests::test_polygon_contacts_dispatch 1894260
 rapier_geometry2d::shape::convex_polygon::tests::test_ray_table 1170310
 rapier_geometry2d::shape::convex_polygon::tests::test_tiny_edges_use_wide_products 296910
 rapier_geometry2d::shape::convex_polygon::tests::test_triangle_bounding_sphere_uses_vertex_mean 223960

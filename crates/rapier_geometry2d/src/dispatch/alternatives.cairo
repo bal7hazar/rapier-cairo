@@ -391,3 +391,204 @@ pub fn contact_manifold_shapes_chain(
         false
     }
 }
+use crate::manifold::ManifoldTrait;
+use super::{
+    contact_manifold_polygon_capsule, contact_manifold_polygon_cuboid,
+    contact_manifold_polygon_polygon, contact_manifold_polygon_segment,
+};
+
+// CP2 rejected fallback table: 1 extra step per persistent cuboid pair.
+#[inline(always)]
+pub fn contact_manifold_step_fallback(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
+) -> bool {
+    match (shape1, shape2) {
+        (
+            Shape::Ball(ball1), Shape::Ball(ball2),
+        ) => {
+            contact_manifold_ball_ball(pos12, ball1, ball2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Cuboid(cuboid1), Shape::Cuboid(cuboid2),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_cuboid_cuboid(pos12, cuboid1, cuboid2, prediction, ref manifold);
+            }
+            true
+        },
+        (
+            Shape::Capsule(capsule1), Shape::Capsule(capsule2),
+        ) => {
+            contact_manifold_capsule_capsule(pos12, capsule1, capsule2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Ball(ball1), _,
+        ) => {
+            contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::Ball(ball2),
+        ) => {
+            contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
+            true
+        },
+        (
+            Shape::Cuboid(cuboid1), Shape::Capsule(capsule2),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_cuboid_capsule(pos12, cuboid1, capsule2, prediction, ref manifold);
+            }
+            true
+        },
+        (
+            Shape::Capsule(_), Shape::Cuboid(_),
+        ) => {
+            if manifold.try_update_contacts(pos12) {
+                return true;
+            }
+            contact_manifold_cuboid_capsule_shapes(pos12, shape1, shape2, prediction, ref manifold)
+        },
+        (
+            Shape::Cuboid(cuboid1), Shape::Segment(segment2),
+        ) => {
+            if !manifold.try_update_contacts(pos12) {
+                contact_manifold_cuboid_segment(pos12, cuboid1, segment2, prediction, ref manifold);
+            }
+            true
+        },
+        (
+            Shape::Segment(_), Shape::Cuboid(_),
+        ) => {
+            if manifold.try_update_contacts(pos12) {
+                return true;
+            }
+            contact_manifold_cuboid_segment_shapes(pos12, shape1, shape2, prediction, ref manifold)
+        },
+        (Shape::HalfSpace(halfspace1), Shape::ConvexPolygon(_)) |
+        (Shape::HalfSpace(halfspace1), Shape::Cuboid(_)) |
+        (Shape::HalfSpace(halfspace1), Shape::Segment(_)) |
+        (
+            Shape::HalfSpace(halfspace1), Shape::Capsule(_),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12, halfspace1, shape2, prediction, ref manifold, false,
+            );
+            true
+        },
+        (Shape::ConvexPolygon(_), Shape::HalfSpace(halfspace2)) |
+        (Shape::Cuboid(_), Shape::HalfSpace(halfspace2)) |
+        (Shape::Segment(_), Shape::HalfSpace(halfspace2)) |
+        (
+            Shape::Capsule(_), Shape::HalfSpace(halfspace2),
+        ) => {
+            contact_manifold_halfspace_pfm(
+                pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
+        _ => polygon_pair(pos12, shape1, shape2, prediction, ref manifold),
+    }
+}
+
+// Preserve the original match layout for existing pairs. New pairs use their own metered table.
+#[inline(never)]
+fn polygon_pair(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
+) -> bool {
+    match (shape1, shape2) {
+        (
+            Shape::ConvexPolygon(a), Shape::ConvexPolygon(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_polygon(
+                    pos12, a.unbox(), b.unbox(), prediction, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Cuboid(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_cuboid(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::Cuboid(b), Shape::ConvexPolygon(a),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_cuboid(
+                    pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Segment(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_segment(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::Segment(b), Shape::ConvexPolygon(a),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_segment(
+                    pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::ConvexPolygon(a), Shape::Capsule(b),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_capsule(
+                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        (
+            Shape::Capsule(b), Shape::ConvexPolygon(a),
+        ) => {
+            let mut pending = true;
+            while pending {
+                contact_manifold_polygon_capsule(
+                    pos12.inverse(), a.unbox(), b, prediction, true, ref manifold,
+                );
+                pending = false;
+            }
+            true
+        },
+        _ => {
+            manifold.clear();
+            false
+        },
+    }
+}
+
+/// Boxed-argument candidate retained after measuring no improvement on P3 scenes.
+pub mod boxed;

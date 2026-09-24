@@ -219,6 +219,65 @@ fn cases() -> Vec<Case> {
     v
 }
 
+fn polygon_cases() -> Vec<Case> {
+    let poly = ShapeSpec::polygon(&[(-1.0, -0.5), (1.0, -0.5), (1.0, 0.5), (-1.0, 0.5)]);
+    let other_poly = ShapeSpec::polygon(&[(-0.5, -0.4), (0.5, -0.4), (0.5, 0.4), (-0.5, 0.4)]);
+    let mut out = Vec::new();
+    for (pair, reverse, other, extent) in [
+        ("poly_poly", "poly_poly_rev", other_poly, 0.5),
+        (
+            "poly_cuboid",
+            "cuboid_poly",
+            ShapeSpec::cuboid(0.5, 0.4),
+            0.5,
+        ),
+        (
+            "poly_segment",
+            "segment_poly",
+            ShapeSpec::segment((0.0, -0.3), (0.0, 0.3)),
+            0.0,
+        ),
+        (
+            "poly_capsule",
+            "capsule_poly",
+            ShapeSpec::capsule_y(0.3, 0.25),
+            0.25,
+        ),
+    ] {
+        for (regime, x, y, rot, ambiguous) in [
+            ("separated", 2.0 + extent, 0.1, ID, false),
+            ("within_pred", 1.01 + extent, 0.05, ID, false),
+            ("touching", 1.0 + extent, 0.0, ID, true),
+            ("shallow", 0.95 + extent, 0.1, deg(15.0), false),
+            ("deep", 0.1, 0.15, deg(30.0), false),
+            ("degenerate", 0.0, 0.0, ID, true),
+        ] {
+            let p = pose(x, y, rot);
+            let inv = p.p().inverse();
+            let inv = QPose::new(
+                QVec::snap(inv.translation.x, inv.translation.y),
+                QRot {
+                    re: p.rotation.re,
+                    im: Q(-p.rotation.im.0),
+                },
+            );
+            for (name, a, b, p) in [(pair, poly, other, p), (reverse, other, poly, inv)] {
+                out.push(Case {
+                    pair: name,
+                    regime,
+                    name: regime,
+                    shape1: a,
+                    shape2: b,
+                    pos12: p,
+                    ambiguous,
+                    note: "CP2 SAT/PFM comparison; exact ties tagged ambiguous",
+                });
+            }
+        }
+    }
+    out
+}
+
 fn fid_json(packed: u32) -> Value {
     let (kind, code) = match PackedFeatureId(packed).unpack() {
         FeatureId::Vertex(c) => ("vertex", c),
@@ -358,5 +417,6 @@ pub fn generate() -> Value {
         "prediction_upstream_default": jf(default_prediction),
         "prediction": jq(prediction),
         "cases": cases,
+        "polygons": polygon_cases().iter().map(|c| run(c, prediction)).collect::<Vec<_>>(),
     })
 }

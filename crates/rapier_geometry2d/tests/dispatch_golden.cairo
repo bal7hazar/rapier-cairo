@@ -18,10 +18,15 @@ use fixed::Fixed;
 use glam::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use rapier_geometry2d::dispatch::{contact_manifold, contact_manifold_step};
-use rapier_geometry2d::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
+use rapier_geometry2d::shape::{
+    Ball, Capsule, ConvexPolygonTrait, Cuboid, HalfSpace, Segment, Shape,
+};
 use rapier_golden::compare::within;
 use rapier_golden::contact_manifolds::{self, PREDICTION};
-use rapier_golden::types::{ContactPointRaw, ManifoldCase, PoseRaw, ShapeRaw, Vec2Raw};
+use rapier_golden::generated::polygon_contacts;
+use rapier_golden::types::{
+    ContactPointRaw, ManifoldCase, PolygonContactShapeRaw, PoseRaw, ShapeRaw, Vec2Raw,
+};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;
 use rapier_testing::opaque;
@@ -398,4 +403,52 @@ fn gas_golden_capsule_halfspace() {
 #[test]
 fn gas_golden_segment_halfspace() {
     let _ = probe(opaque(contact_manifolds::SEGMENT_HALFSPACE_SHALLOW));
+}
+
+
+/// CP2: both dispatch tables agree, in both orders, on cold and persistent manifolds.
+#[test]
+fn test_polygon_dispatch_tables_and_orders() {
+    let mut count = 0;
+    for c in polygon_contacts::cases() {
+        let mut shapes = array![];
+        for raw_shape in array![*c.shape1, *c.shape2].span() {
+            shapes
+                .append(
+                    match *raw_shape {
+                        PolygonContactShapeRaw::Other(s) => shape(s),
+                        PolygonContactShapeRaw::Polygon(p) => {
+                            let mut vertices = array![];
+                            let mut i = 0;
+                            while i != p.count {
+                                vertices.append(vector(*p.vertices.span().at(i.into())));
+                                i += 1;
+                            }
+                            Shape::ConvexPolygon(
+                                BoxTrait::new(
+                                    ConvexPolygonTrait::from_convex_polyline(vertices.span())
+                                        .unwrap(),
+                                ),
+                            )
+                        },
+                    },
+                );
+        }
+        for reversed in array![false, true].span() {
+            let (p, a, b) = if *reversed {
+                (pose(*c.pos12).inverse(), *shapes.at(1), *shapes.at(0))
+            } else {
+                (pose(*c.pos12), *shapes.at(0), *shapes.at(1))
+            };
+            let mut m: ContactManifold = Default::default();
+            let mut n: ContactManifold = Default::default();
+            for _warm in array![false, true].span() {
+                assert!(contact_manifold(p, a, b, prediction(), ref m));
+                assert!(contact_manifold_step(p, a, b, prediction(), ref n));
+                assert_eq!(m, n, "{} dispatcher", *c.id);
+            }
+        }
+        count += 1;
+    }
+    assert_eq!(count, 48);
 }

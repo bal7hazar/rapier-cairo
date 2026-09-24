@@ -254,8 +254,11 @@ fn test_polygon_contacts_dispatch() {
         ),
     );
     assert_eq!(m, other);
-    assert!(!crate::dispatch::contact_manifold(pose(), polygon, polygon, ZERO, ref m));
-    assert_eq!(m.num_points, 0);
+    // CP2: polygon pairs are supported; a polygon against itself at the identity pose overlaps
+    // fully.
+    let mut same: ContactManifold = Default::default();
+    assert!(crate::dispatch::contact_manifold(pose(), polygon, polygon, ZERO, ref same));
+    assert!(same.num_points > 0);
 }
 
 #[test]
