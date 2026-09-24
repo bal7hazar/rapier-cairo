@@ -138,8 +138,8 @@ quantised `dt`, gravity `(0, -9.81)` snapped to Q32.32. The file describes each 
 
 ### Slope divergence diagnosis (SD)
 
-Only the two slope scenes add `contact_diagnostics.steps` (steps 1–10). These records
-come from the pinned **published** Rapier 0.35.3 API after `step`: all manifold points,
+The two slope scenes add `contact_diagnostics.steps` (steps 1–10; `box_stack3` too, see SO).
+These records come from the pinned **published** Rapier 0.35.3 API after `step`: all manifold points,
 normals, raw f64 feature IDs, accumulated and warm-start impulses, solver contacts,
 `ContactData::solver_dp1/2`, and the dynamic body's state. Geometry belongs to the
 pre-solve collision pass; impulses and body state belong to the completed step.
@@ -317,6 +317,58 @@ unit tests and affected gas snapshots. Separately obtain corrected-ID upstream s
 references (or a controlled f32 engine cross-check); do not port the f64 ID bug.
 The two original 120-step replays remain ignored pending these follow-ups, with their
 original tolerances intact. No wider tolerance is claimed or justified by this diagnosis.
+
+### Stack divergence diagnosis (SO)
+
+`box_stack3` also carries `contact_diagnostics.steps`: after steps 1–8 and after step 60, every
+contact pair in upstream's contact-graph edge order (`collider1`, `collider2`, `active`) with
+the same per-manifold fields as the slope records. Upstream's **solve order** is not observable
+through the public API (`ContactPair::solver_color` is `pub(crate)`); it is derived from the
+0.35.3 sources and confirmed by the counterfactual below.
+
+**Upstream's order.** Rapier 0.35.3 has no per-step island ordering: the narrow phase keeps a
+persistent solver colour per pair (`narrow_phase/mod.rs`, `assign_pair_solver_color`), assigned
+when the pair starts touching, greedily in ascending `(min, max)` body index. Pairs of two
+non-fixed bodies take the lowest free colour in `0..120`, pairs with a fixed body the highest
+free colour below 128 (the constant's comment: "fixed geometry the final say each sweep").
+`staged_island_solver` solves the colour buckets in ascending colour; small colours all land in
+worker 0's serial overflow, still in ascending colour. In the stack all three pairs touch from
+step 1 on (gap 0.01 < prediction 0.02), so the colours never change: `(box0, box1)` 0,
+`(box1, box2)` 1, `(ground, box0)` 127. Upstream solves pairs `[1, 2, 0]` of the port's pair
+order; the port (D8) solves `[0, 1, 2]`, ground first. The edge order `(2,3), (1,2), (0,1)` is
+neither.
+
+**First divergence: step 4, solver impulses.** Steps 1–3 match (max 85 ulp): only the ground
+pair carries impulse. At step 4 box1 lands on box0, the first step with two loaded manifolds on
+one body. Quantity by quantity at step 4 (raw; port minus upstream):
+
+| Quantity | Result |
+|---|---|
+| (a) pair set | same 3 pairs, all active from step 1; order differs as above |
+| (b) manifolds | same normals, point order and feature ids; `dist` within 8 ulp (`(0,1)`: 629 543 / −8 both) |
+| (c) solver contacts | same count and NEW/matched ids (`(0,1)`: 0, 1; `(1,2)`: NEW 0, NEW 1) |
+| (d) solve order | **differs**: ground pair impulse 1 622 403 951 vs 1 682 864 324 (−60.5M), warm-start 1 096 872 324 vs 788 065 815 |
+| (e) exact-zero gaps | none needed: the order alone recovers every sample |
+
+**Counterfactuals** (`crates/rapier2d/tests/golden_scenes/stack_diagnostics.cairo`; the step is
+replayed with the public stage functions and only the manifold order changes; pair order
+reproduces `World::step` bit for bit):
+
+| Order / window | Violations | Max ulps tx / ty / im / vx / vy / w |
+|---|---|---|
+| pair (port), 0–60 | 12 | 7 542 318 / 4 357 583 / 4 711 768 / 159 391 583 / 218 119 261 / 153 858 956 |
+| pair, steps 1–10 | 7 | |
+| reversed (edge order), steps 1–10 | 6 | |
+| **colour (upstream), 0–60** | **0** | 404 / 12 / 43 / 631 / 909 / 361 |
+| colour, step 4 | 0 | ground impulse 1 682 865 100 (+776), warm-start 788 065 591 (−224) |
+| colour, 60–120, cold re-seed | 2 | 313 801 / 879 137 / 251 280 / 10 409 380 / 4 101 317 / 4 786 826 |
+| **colour, 60–120, re-seed + upstream impulses** | **0** | 3 095 / 404 / 428 / 21 102 / 1 298 / 10 043 |
+| pair, 60–120, re-seed + upstream impulses | 0 | 11 082 / 3 819 / 3 777 / 47 561 / 58 353 / 63 673 |
+
+The second window's residual failures are a re-seed artefact (the port starts with an empty
+contact cache while upstream warm-starts); with upstream's step-60 impulses written on the
+matching feature ids, both orders pass, the colour order 2–6× closer. The stack at rest is far
+less order-sensitive than the landing.
 
 ## Leaf-level families (G2)
 
@@ -557,7 +609,7 @@ raised, write down why.
 | manifolds, `cuboid_capsule` / `capsule_cuboid` | 2^16 ulp (1.5e-5) | upstream runs GJK/EPA, which stops on its own epsilon; the port plans an analytic generator (report 02 §4.1), so the two agree only up to GJK's convergence threshold |
 | manifolds, discrete outputs | exact unless `ambiguous` | point count, feature ids, which point comes first |
 | scenes `ball_drop`, `ball_bounce`, `pendulum`, `box_slope_*` | `2^12 · step` ulp on positions (≈ 1e-6 per step), twice that on velocities | single-contact or joint-only scenes have no solver-order ambiguity; the error is rounding accumulated over ~10³ operations per step, growing at most linearly while the motion is not chaotic. After the first bounce of `ball_bounce`, compare bounce apex and impact step rather than samples |
-| scene `box_stack3` | invariants, not samples | rest heights within `allowed_linear_error` (0.005) of `0.5 + i`, `|x| < 0.01`, final speeds `< 1e-3`; multi-contact ordering differs from upstream by construction |
+| scene `box_stack3` | invariants, not samples | rest heights within `allowed_linear_error` (0.005) of `0.5 + i`, `|x| < 0.01`, final speeds `< 1e-3`; multi-contact ordering differs from upstream by construction (SO: in upstream's colour order the samples pass the scene tolerance) |
 
 ## Upstream behaviours worth knowing
 
