@@ -16,7 +16,8 @@ pub mod prelude {
     pub use rapier_dynamics2d::collider::ColliderTrait;
     pub use rapier_dynamics2d::collider::builder::{ColliderBuilder, ColliderBuilderTrait};
     pub use rapier_dynamics2d::joint::{
-        FixedJointBuilderTrait, PrismaticJointBuilderTrait, RevoluteJointBuilderTrait,
+        FixedJointBuilderTrait, GenericJointTrait, PrismaticJointBuilderTrait,
+        RevoluteJointBuilderTrait,
     };
     pub use rapier_dynamics2d::{CollisionEvent, CollisionEventTrait, RigidBody, RigidBodyTrait};
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
