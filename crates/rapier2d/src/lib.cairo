@@ -16,16 +16,17 @@ pub mod prelude {
     };
     pub use rapier_core::data::handle::Handle;
     pub use rapier_core::integration_parameters::IntegrationParameters;
-    pub use rapier_dynamics2d::collider::ColliderTrait;
     pub use rapier_dynamics2d::collider::builder::{ColliderBuilder, ColliderBuilderTrait};
+    pub use rapier_dynamics2d::collider::{Collider, ColliderTrait};
     pub use rapier_dynamics2d::joint::{
-        FixedJointBuilderTrait, GenericJointTrait, LIN_AXES, PrismaticJointBuilderTrait,
-        RevoluteJointBuilderTrait, RopeJointBuilder, RopeJointBuilderTrait, SpringJointBuilder,
-        SpringJointBuilderTrait,
+        FixedJointBuilderTrait, GenericJointTrait, ImpulseJoint, ImpulseJointSet,
+        ImpulseJointSetTrait, LIN_AXES, PrismaticJointBuilderTrait, RevoluteJointBuilderTrait,
+        RopeJointBuilder, RopeJointBuilderTrait, SpringJointBuilder, SpringJointBuilderTrait,
     };
     pub use rapier_dynamics2d::{
-        CollisionEvent, CollisionEventTrait, ContactForceEvent, ContactForceEventTrait,
-        OneWayPlatform, RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodyTrait,
+        ColliderSet, ColliderSetTrait, CollisionEvent, CollisionEventTrait, ContactForceEvent,
+        ContactForceEventTrait, ContactPair, ContactPairTrait, OneWayPlatform, RigidBody,
+        RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait, RigidBodyTrait,
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
