@@ -36,8 +36,11 @@ the only honest comparison). Also compare the programme's "calm" rule (all awake
 The replays (strict where possible, invariants otherwise, with reasons); the probes; ≤ 800 lines per file; no fuzz.
 
 ## 6. Definition of done
-Harness twice → zero diff (cargo takes no lock); foreground Cairo gate (tool timeout 3600000 ms; crate-scoped runs via
-`scripts/build-shims/snforge -p …`); `gas.py check` then module-filtered snapshots; `api_parity.py --check`;
+Harness twice → zero diff (cargo takes no lock); crate-scoped local gate only (AGENTS §6; foreground, tool timeout
+3600000 ms, through `scripts/build-shims/`): `scarb fmt --workspace`, `scarb lint -p` / `snforge test -p` on rapier_golden
+and rapier2d; snapshots with `snforge test -p rapier2d --tracked-resource sierra-gas > gas-rapier2d.log` and
+`python3 scripts/gas.py snapshot --filter rapier2d_integrationtest::<module> --from-log gas-rapier2d.log`; never a
+workspace-wide run (CI is the full gate); `api_parity.py --check`;
 conventional commits + trailer; push; `gh pr create --base main --title "<what ships>" --body-file …`; wait for the
 checks to be registered, then `gh pr checks --watch` until green; never merge; `REPORT.md` (Summary · Scene · Golden
 results · Budget matrix · Calm rule vs engine sleeping · Escalations · PR URL). Memory rules apply.
