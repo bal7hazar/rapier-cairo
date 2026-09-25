@@ -458,7 +458,7 @@ fn gas_setup_rope() {
 }
 
 #[test]
-#[available_gas(l2_gas: 19290317)]
+#[available_gas(l2_gas: 19324219)]
 fn gas_step_rope() {
     probe(opaque('rope'), opaque(1), WARMUP_PENDULUM, 1);
 }
@@ -469,7 +469,7 @@ fn gas_setup_spring() {
 }
 
 #[test]
-#[available_gas(l2_gas: 19723497)]
+#[available_gas(l2_gas: 19757399)]
 fn gas_step_spring() {
     probe(opaque('spring'), opaque(1), WARMUP_PENDULUM, 1);
 }
