@@ -31,6 +31,8 @@ it and where the evidence lives.
 | 15 | EPA depth | EPA can return an approximate penetration (a pentagon-origin case reports −1.5) | exact nearest distance (−1) | upstream approximation | CP1 #105 (`polygon_point` regression) |
 | 16 | `Shape::ConvexPolygon` storage | inline shape | `Box<ConvexPolygon>` so `Shape` stays six felts (inline storage measured +7 % on a one-body free-fall step) | Cairo value-type cost | CP1 #105 |
 | 17 | Polygon contact manifolds | PFM–PFM: GJK/EPA + polygonal-feature clipping | SAT over face normals + the same clipping; exact penetration; first face on exact ties | no GJK/EPA in the port | CP2 #107 |
+| 18 | One-way platforms | no built-in: users write a `PhysicsHooks::modify_solver_contacts` hook (example `one_way_platforms2`, test `issue_752`) | built-in collider flag `ColliderBuilder::one_way(local_up, allowed_angle)` implementing the example's three-state rule (unknown / allowed / forbidden, persisted in the manifold `user_data`; both platforms must accept when both are one-way) | D10: no `dyn` hooks in Cairo | EV #114 |
+| 19 | `ContactForceEvent::started` | absent from the published `rapier2d-f64 0.35.3` | present (from the pinned clone `28d0ba9`), with an independent force-start bit | reference clone is 0.35.3 + 4 commits | EV #114 |
 
 ## Consequences
 
