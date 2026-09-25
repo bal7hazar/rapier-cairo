@@ -62,8 +62,8 @@ else
   PROMPT="$INPUT"
 fi
 
-# Build locks (scripts/build-shims/lock.sh): one rapier.cairo build at a time (project lock), and the
-# machine-wide heavy lock shared with glam.cairo / nalgebra.cairo only for workspace-wide test runs and
+# Build locks (scripts/build-shims/lock.sh): one rapier-cairo build at a time (project lock), and the
+# machine-wide heavy lock shared with glam-cairo / nalgebra-cairo only for workspace-wide test runs and
 # `scarb prove`. Crate-scoped builds and tests therefore run next to another project's heavy build.
 export PATH="$ROOT/scripts/build-shims:$PATH"
 

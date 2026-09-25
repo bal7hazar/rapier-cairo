@@ -1,7 +1,7 @@
 # F3 — frozen interface between `rapier_geometry2d` and `rapier_dynamics2d`
 
 Status: **draft v1, 2026-09-20**, to be turned into code in `rapier_geometry2d::contact` and
-`rapier_geometry2d::mass` as the first wave-3 commit (orchestrator), once glam.cairo's `Vec2`
+`rapier_geometry2d::mass` as the first wave-3 commit (orchestrator), once glam-cairo's `Vec2`
 is available. Executors of wave 3 code against these definitions; any change goes through the
 orchestrator (AGENTS.md §4).
 
@@ -9,7 +9,7 @@ Sources: parry `query/contact_manifolds/contact_manifold.rs` (`TrackedContact`,
 `ContactManifold`), `shape/feature_id.rs` (`FeatureId`, `PackedFeatureId`),
 `mass_properties/mass_properties.rs`; rapier `geometry/contact_pair.rs` (`ContactData`,
 `ContactManifoldData`, `SolverContactGeneric`, `ContactId`, `SolverFlags`, `ContactPair`).
-`Fixed` is glam.cairo's Q32.32 scalar, `Vec2` is glam.cairo's, `Rot2`/`Pose2` come from M2.
+`Fixed` is glam-cairo's Q32.32 scalar, `Vec2` is glam-cairo's, `Rot2`/`Pose2` come from M2.
 
 ## 1. Feature ids
 

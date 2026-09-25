@@ -1,4 +1,4 @@
-# numbench - Cairo fixed-point benchmark for rapier.cairo
+# numbench - Cairo fixed-point benchmark for rapier-cairo
 
 Empirical cost comparison (steps / builtins / l2_gas) of Cairo numeric libraries and of hand-written
 signed fixed-point representations. Full write-up: [`docs/research/04-numeric-benchmark.md`](../../docs/research/04-numeric-benchmark.md).

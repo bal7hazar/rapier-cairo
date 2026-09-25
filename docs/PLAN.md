@@ -1,6 +1,6 @@
-# rapier.cairo — execution plan
+# rapier-cairo — execution plan
 
-Status: **v2.39, 2026-09-25** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched; v2.37: KD merged; v2.38: EV launched; v2.39: EV merged, ADR 18–19). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.40, 2026-09-25, paused** (v2: scalar delegated to glam-cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched; v2.37: KD merged; v2.38: EV launched; v2.39: EV merged, ADR 18–19; v2.40: RJ merged, repo renames, parry-split proposal, paused). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -16,7 +16,7 @@ Four reports back this plan. Numbers below are measured unless marked *(est.)*.
 | [03 — Cairo ecosystem](research/03-cairo-ecosystem-architecture.md) | alexandria: only repo with gas regression, but non-blocking and noisy. origami: best efficiency idioms (mul/div packing, const tables, unrolling), no gas tracking, its algebra crate is not reusable. starknet-agentic: optimisation/testing rules and the `AGENTS.md` coordinator/executor model. snforge has **no built-in gas snapshot** → `scripts/gas.py`. |
 | [04 — Numeric benchmark](research/04-numeric-benchmark.md) (415 probes) | Owner heuristic **confirmed**: DivRem ≈ bitwise in steps but bitwise costs 12–55 % more gas; loops cost 13–140× more; BoundedInt is cheaper still. **Q32.32 in a native `i64`** wins: constant-cost add/sub/lt (6 steps), mul 16 steps, no negative zero (cubit has one). **Fused multiply-accumulate** (one rescale per output): dot2 18 steps vs 69 (cubit), mat3·vec3 82 vs 344, Vec2 length 17 vs 109. Core `u128_sqrt` = 10 steps vs Newton 231. Polynomial sin 144 steps vs cubit 1051. **Orion rejected**: its FP32x32 *is* cubit, its tensors cost 3–16× struct code. Q16.16 and Q8.23 overflow; Q64.64 costs 3–12×. |
 
-The `glam.cairo` and `nalgebra.cairo` sessions reached the same scalar conclusion independently
+The `glam-cairo` and `nalgebra-cairo` sessions reached the same scalar conclusion independently
 (Q32.32 in `i64`, bias-trick multiplication, fused accumulation).
 
 ## 2. Decisions
@@ -25,7 +25,7 @@ Each becomes a short ADR in `docs/adr/` when first implemented; deliberate diver
 
 | # | Decision | Why |
 |---|---|---|
-| D1 | Scalar = signed **Q32.32 in `struct { raw: i64 }`**, provided by glam.cairo's `fixed` (D12); mul via BoundedInt bias trick; `sqrt` via core `u128_sqrt`; `inv(0) = 0` as upstream | Report 04; range ±2.1e9, resolution 2.3e-10 |
+| D1 | Scalar = signed **Q32.32 in `struct { raw: i64 }`**, provided by glam-cairo's `fixed` (D12); mul via BoundedInt bias trick; `sqrt` via core `u128_sqrt`; `inv(0) = 0` as upstream | Report 04; range ±2.1e9, resolution 2.3e-10 |
 | D2 | **Fused kernels are the unit of design**, not scalar ops: dot, cross, `Rot2·Vec2`, `Pose2·Point`, constraint rows `J·v` accumulate in wide form and rescale once | 3–6× cheaper than composing scalar ops |
 | D3 | ~~Dedicated scale for extreme-range quantities~~ **Not needed for the spring coefficients**: C2 reproduces every `IntegrationParameters`-derived value within 1 ulp in plain Q32.32 (joint `cfm_coeff` ≈ 6 ulp of resolution but correct). Re-evaluate only for inverse inertia in DA | Measured in C2 (PR #10) |
 | D4 | `Real::MAX` sentinels: kept as `fixed::MAX` where the consumer guards against multiplication (velocity caps, C2), replaced by `Option`/flags elsewhere; rigid joints (`cfm ≈ 1.5e-9` upstream) are special-cased | Would overflow or underflow in fixed point |
@@ -36,13 +36,13 @@ Each becomes a short ADR in `docs/adr/` when first implemented; deliberate diver
 | D9 | Per-step scratch is never persisted. Persistent world state = poses, velocities, warm-start impulses, (later) sleep timers | On Starknet, state I/O rivals compute |
 | D10 | Core crates are **pure Cairo** (no `starknet` dep); Starknet/Dojo storage packing lives in a separate adapter crate | Usable from contracts, Dojo and `scarb execute` / `scarb prove` |
 | D11 | Validation against upstream through **golden vectors** generated by a Rust harness (`rapier2d-f64` / `parry2d-f64`, with recycling, clustering, block solver, CCD and sleeping disabled); tolerance-based, never bit-exact | Rust's solve order comes from graph colouring |
-| D12 | **The scalar is not implemented here.** `glam.cairo` ships a `fixed` package (Q32.32 `i64`, wide accumulators, trig) explicitly shared by the glam, nalgebra and rapier ports; rapier.cairo consumes it (git dependency pinned by rev) together with glam's `Vec2`. `rapier_math` plays the role of upstream's `glamx`: `Rot2`, `Pose2` and `math_ext` on top of glam, contributed back if glam.cairo wants them (its plan lists them as late item P1) | Three ports with three scalars would diverge in rounding and make golden vectors incomparable |
+| D12 | **The scalar is not implemented here.** `glam-cairo` ships a `fixed` package (Q32.32 `i64`, wide accumulators, trig) explicitly shared by the glam, nalgebra and rapier ports; rapier-cairo consumes it (git dependency pinned by rev) together with glam's `Vec2`. `rapier_math` plays the role of upstream's `glamx`: `Rot2`, `Pose2` and `math_ext` on top of glam, contributed back if glam-cairo wants them (its plan lists them as late item P1) | Three ports with three scalars would diverge in rounding and make golden vectors incomparable |
 
 ## 3. Architecture
 
 ```
 rapier_testing     dev-only: opaque(), approx asserts, fixtures
-rapier_math        (glamx) Rot2, Pose2, fused kernels, math_ext — on glam.cairo `fixed` + `Vec2` (D12)
+rapier_math        (glamx) Rot2, Pose2, fused kernels, math_ext — on glam-cairo `fixed` + `Vec2` (D12)
 rapier_core        dimension-agnostic: handles + arena, union-find, interaction groups,
                    IntegrationParameters, SpringCoefficients, event types
 rapier_geometry2d  (Parry) aabb, shape enum, mass properties, point/segment queries, clip, SAT,
@@ -56,7 +56,7 @@ examples/          `#[executable]` scenes for `scarb execute` + `scarb prove`
 ```
 
 Strict DAG: `testing ← math ← core ← geometry2d ← dynamics2d ← rapier2d`. `rapier_geometry2d`
-never depends on dynamics, so it can be extracted as `parry.cairo` later at no cost.
+never depends on dynamics, so it can be extracted as `parry-cairo` later at no cost.
 
 ## 4. Phases and work packages
 
@@ -69,7 +69,7 @@ ships `test_*`, `gas_*` (one per candidate implementation) and docs per `AGENTS.
 |---|---|---|
 | F0 [S] | Workspace, toolchain pin, `scripts/gas.py`, CI (fmt, lint, build, test, gas check) | ✅ |
 | F1 [S] | `AGENTS.md`, `CLAUDE.md`, research reports, this plan | ✅ |
-| F2 [S] | Agree the `fixed`/`Vec2` API with glam.cairo (§6) and freeze `rapier_math` signatures (`Rot2`, `Pose2`, `math_ext`) | next |
+| F2 [S] | Agree the `fixed`/`Vec2` API with glam-cairo (§6) and freeze `rapier_math` signatures (`Rot2`, `Pose2`, `math_ext`) | next |
 
 ### Phase 1 — 2D MVP: "a box stack settles, and the step is proven"
 
@@ -100,11 +100,11 @@ ships `test_*`, `gas_*` (one per candidate implementation) and docs per `AGENTS.
   are 15–25 % cheaper for read-only and bulk passes → solver scratch data should be dense arrays
   built once per step, the arena is for the persistent sets.
 
-**Gate X1 — external:** ✅ `fixed` F1 + F2 merged in glam.cairo and consumed (PR #8). **Still open: `Vec2` (glam item V2, status todo)** — the only remaining blocker for M2 and wave 3. Original wording: `glam.cairo` merges `fixed` F1 + F2 (scalar + wide accumulators) and `Vec2`
+**Gate X1 — external:** ✅ `fixed` F1 + F2 merged in glam-cairo and consumed (PR #8). **Still open: `Vec2` (glam item V2, status todo)** — the only remaining blocker for M2 and wave 3. Original wording: `glam-cairo` merges `fixed` F1 + F2 (scalar + wide accumulators) and `Vec2`
 (its items F1, F2, V2). Its `docs/DESIGN.md` already fixes what we need: `fixed::Fixed { raw: i64 }`,
 **floor** rounding on every rescale, panicking `recip(0)` (so `inv(0) = 0` stays in
-`rapier_math::math_ext`), public wide accumulators. Only these three items block rapier.cairo; nalgebra.cairo blocks nothing.
-If the gate slips, fallback: vendor a snapshot of `fixed` from the glam.cairo branch under
+`rapier_math::math_ext`), public wide accumulators. Only these three items block rapier-cairo; nalgebra-cairo blocks nothing.
+If the gate slips, fallback: vendor a snapshot of `fixed` from the glam-cairo branch under
 `crates/` and swap it for the git dependency later (same code, so no semantic drift).
 
 **Wave 2** (needs X1) — C2 ✅ (PR #10), M3 ✅ (PR #11), M2 ✅ (PR #21, codex gpt-6-astra: fused kernels win everywhere, renormalise once per substep), F3 ✅ as code (PR #19)
@@ -254,18 +254,18 @@ Launched: GS (slope traces, claude opus) and **OS** (solver sweeps, brief `os-so
 gpt-6-astra xhigh: per-pass `match stage`, per-manifold `Array` scratch and per-pass constraint-array
 rebuild are the measured suspects; bit-identical results, target −20 % on stack 3).
 
-**Resumed 2026-09-23 evening.** Sibling news: glam.cairo released `fixed`, `glam`, `glamx` 0.3.0 on
+**Resumed 2026-09-23 evening.** Sibling news: glam-cairo released `fixed`, `glam`, `glamx` 0.3.0 on
 scarbs.xyz (`fixed`: `/`, `recip`, `from_ratio` now round to nearest-even; `wide::Acc`, `wide::RecipNearest`);
-nalgebra.cairo dropped its own scalar and is generic over `simba::Real` for `fixed::Fixed` (rapier needs
+nalgebra-cairo dropped its own scalar and is generic over `simba::Real` for `fixed::Fixed` (rapier needs
 nothing from it before its 0.1.0; multibody stays out of scope). `glamx` 0.3.0 has `Rot2`, `Pose3`,
 `SdpMatrix2/3` but **not `Pose2`** yet → `rapier_math::{rot2, pose2}` stay for now (escalation to
-glam.cairo: port `Pose2`, rapier's M2 kernels available). Sequence: DM (resumed) → **BX** (registry
+glam-cairo: port `Pose2`, rapier's M2 kernels available). Sequence: DM (resumed) → **BX** (registry
 0.3.0, every snapshot regenerated, delta reviewed alone; brief `bx-fixed-0.3.md`, includes the flaky
 mass fuzz) → **GS** (slope traces from a patched f64 parry with correct cuboid feature ids; brief
 `gs-slope-traces.md`) → optimisation lots from `docs/BUDGETS.md`. At most two rapier executors at a
 time (shared machine hit its CPU ceiling on 2026-09-23).
 
-**Paused 2026-09-23 (owner's decision: the shared machine hit its CPU ceiling overnight; glam.cairo has
+**Paused 2026-09-23 (owner's decision: the shared machine hit its CPU ceiling overnight; glam-cairo has
 priority).** No executor running, no open PR. Resume point: lot DM (`feat/dm-midpoint-anchors`, three
 `wip:` commits pushed: midpoint lever arms in `solver/contact.cairo`, substep mock witnesses, slope
 diagnostics) — resume with `scripts/executor-unit.sh resume dm-midpoint-anchors claude:opus "<follow-up>"`
@@ -373,6 +373,16 @@ shapes, query pipeline (ray, point, AABB), one-way platforms as a built-in flag,
 events, optional 2×2 block solver (measure first), `rapier_starknet` storage packing (D9/D10), a
 demo game contract.
 
+**PAUSED 2026-09-25 (owner's decision), resume point below.** RJ ✅ (#116, claude opus; squash commit `a015c65`
+carries a wrong title from `--fill-first` on a stale local `main` — content verified): upstream's
+`limit_linear_coupled` / `motor_linear_coupled`, `RopeJointBuilder`, `SpringJointBuilder`; golden `rope_pendulum`,
+`spring_mass`, `spring_mass_accel` pass 120 steps; one rope/spring joint step ≈ 4.1–4.2M gas; existing joints
+bit-identical. Repositories renamed to `bal7hazar/{rapier,glam,nalgebra}-cairo`; `fixed`, `glam`, `glamx` split into
+`fixed-cairo`, `glam-cairo`, `glamx-cairo` (registry packages unchanged). Open for the owner: the parry split
+(`docs/proposals/parry-split.md`). **Resume point:** wave 8 is done except RS (round shapes); then wave 9 (ST,
+`rapier_starknet`, gated on the target-runtime question) or the parry split; small follow-ups: pipeline per-body
+hoist (sleep overhead +4.6 % on free fall), `joints()` empty-loop guard (JM), prelude re-exports for rope/spring.
+
 EV ✅ (#114, codex gpt-6-astra high): contact-force events as upstream (normal impulses / dt, strict threshold, the
 minimum enabled threshold, ascending pair order, `WorldTrait::step_with_force_events`; `step` unchanged) and one-way
 platforms as a built-in collider flag implementing upstream's example rule (ADR 18); golden `one_way_jump` and
@@ -449,7 +459,7 @@ Stwo > 22 GB). Phase 2 starts with wave 6; later waves are refined after each me
 | 7 | CP2 ✅ #107 | Polygon contact generators: SAT + clipping vs polygon/cuboid/segment/capsule, ball and half-space through CP1, dispatch, golden manifolds (upstream: PFM–PFM with GJK/EPA) | after CP1 |
 | 8 | KD ✅ #111 | Kinematic position-/velocity-based bodies (`set_next_kinematic_*`, velocity interpolation), dominance end to end, golden scenes | brief `kd-kinematic-dominance.md` |
 | 8 | EV ✅ #114 | One-way platforms (built-in collider flag, no hooks), contact-force events (threshold, total/max force) | brief `ev-events-one-way.md` |
-| 8 | RJ | Coupled limits/motors, rope and spring joints | brief `rj-rope-spring-joints.md` |
+| 8 | RJ ✅ #116 | Coupled limits/motors, rope and spring joints | brief `rj-rope-spring-joints.md` |
 | 8 | RS | Round shapes (round cuboid / polygon) | |
 | 9 | ST | `rapier_starknet`: storage packing of the persistent state (D9/D10), demo game contract | depends on open question 2 (target runtime) |
 
@@ -460,7 +470,7 @@ character controller, flat compound shapes, GJK-2D as a test oracle, 2D heightfi
 
 ### Phase 4 — 3D
 
-`Vec3`/`Quat`/`Mat3` from glam.cairo, `SdpMatrix3` world inertia, 4-point manifolds with reduction,
+`Vec3`/`Quat`/`Mat3` from glam-cairo, `SdpMatrix3` world inertia, 4-point manifolds with reduction,
 15-axis SAT + polygonal feature clipping, two-tangent friction, 6-row joints. Started only once
 the 2D gas profile is known.
 
@@ -493,7 +503,7 @@ C3 Sonnet 97 turns $5.1 · G2 Sonnet 130 turns $8.5.
 
 Parallel width: wave 1 = 2, wave 2 = 3, wave 3 = 8, wave 4 ≈ 11, wave 5 = 3.
 
-## 6. Contract expected from glam.cairo (D12)
+## 6. Contract expected from glam-cairo (D12)
 
 Needed for gate X1, all on the shared Q32.32 `i64` scalar:
 
@@ -518,10 +528,10 @@ one used to quantise golden vectors in G0).
 | Snapshot conflicts between parallel branches | Orchestrator-only regeneration |
 | Compiler upgrades flip candidate rankings | Losers kept under `mod alternatives`; toolchain bumps in their own PR |
 | cairo-lang 2.19.4 incremental-cache panic seen on a large bench workspace | set `incremental = false` if it reproduces |
-| Schedule coupling with glam.cairo (gate X1) | Only `fixed` F1+F2 and `Vec2` block; wave 1 is independent; fallback = vendored snapshot of the same code |
+| Schedule coupling with glam-cairo (gate X1) | Only `fixed` F1+F2 and `Vec2` block; wave 1 is independent; fallback = vendored snapshot of the same code |
 
 ## 8. Open questions for the owner
 
-1. Should the Parry port eventually live in its own `parry.cairo` repository (the crate layout already allows it)?
+1. Should the Parry port eventually live in its own `parry-cairo` repository (the crate layout already allows it)?
 2. Target runtime for the first game: Starknet contract, Dojo world, or client-side proving with `scarb prove`? It decides how early `rapier_starknet` is needed.
 3. Is 2D-first acceptable, or is there a 3D game already in sight?

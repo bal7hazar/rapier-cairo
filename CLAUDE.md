@@ -10,8 +10,8 @@ Behavioural rules live in [`AGENTS.md`](AGENTS.md) — read it first. This file 
 | starknet-foundry (snforge) | 0.61.0 | only test runner; `tracked_resource = "sierra-gas"` |
 | python | 3.x, stdlib only | `scripts/gas.py` |
 
-Sibling projects: `glam.cairo` (Vec/Rot/Pose types — Rapier ≥ 0.35 and Parry ≥ 0.31 are built on
-glam) and `nalgebra.cairo` (only needed for multibody, which is out of scope).
+Sibling projects: `glam-cairo` (Vec/Rot/Pose types — Rapier ≥ 0.35 and Parry ≥ 0.31 are built on
+glam) and `nalgebra-cairo` (only needed for multibody, which is out of scope).
 
 ## Structure
 

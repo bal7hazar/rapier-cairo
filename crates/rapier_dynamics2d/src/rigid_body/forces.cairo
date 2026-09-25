@@ -113,7 +113,7 @@ pub impl RigidBodyForcesImpl of RigidBodyForcesTrait {
     /// Accumulates a user force expressed as an **acceleration**: `user_force += acc * mass`.
     ///
     /// # Deviations
-    /// * rapier.cairo addition. Upstream only has the force-valued `add_force`, and applies an
+    /// * rapier-cairo addition. Upstream only has the force-valued `add_force`, and applies an
     ///   acceleration through `gravity_scale`; a mass-independent thruster otherwise has to
     ///   multiply by the effective mass at every call site.
     /// # Panics

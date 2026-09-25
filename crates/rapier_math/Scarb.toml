@@ -1,6 +1,6 @@
 [package]
 name = "rapier_math"
-description = "Physics-side math on top of glam.cairo: Rot2, Pose2, fused kernels and scalar helpers (the glamx layer of rapier.cairo)."
+description = "Physics-side math on top of glam-cairo: Rot2, Pose2, fused kernels and scalar helpers (the glamx layer of rapier-cairo)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

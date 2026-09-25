@@ -6,11 +6,12 @@ version = "0.1.0"
 edition = "2024_07"
 cairo-version = "2.19.4"
 license = "MIT"
-repository = "https://github.com/bal7hazar/rapier.cairo"
+repository = "https://github.com/bal7hazar/rapier-cairo"
 
 [workspace.dependencies]
-# Shared Q32.32 scalar and vector types from glam.cairo (docs/PLAN.md D12), released on scarbs.xyz.
-# Pre-1.0: a MINOR bump may change numeric results (glam.cairo DESIGN §6), so it is its own PR.
+# Shared Q32.32 scalar (`fixed`, repo bal7hazar/fixed-cairo) and vector types (`glam`, repo
+# bal7hazar/glam-cairo), released on scarbs.xyz (docs/PLAN.md D12). Pre-1.0: a MINOR bump may change
+# numeric results (glam-cairo DESIGN §6), so it is its own PR.
 fixed = "0.3.0"
 glam = "0.3.0"
 snforge_std = "0.61.0"

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Canonical working agreement for every agent (and human) contributing to `rapier.cairo`.
+Canonical working agreement for every agent (and human) contributing to `rapier-cairo`.
 `CLAUDE.md` only adds context; when the two disagree, this file wins.
 
 ## 1. Mission

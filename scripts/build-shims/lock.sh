@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Build locks shared by the orchestrators of this machine (31 GB, no swap):
-#   * one PROJECT lock per repository: at most one Cairo build/test of rapier.cairo at a time;
-#   * the machine-wide HEAVY lock (`~/orchestrator/heavy-build.lock`, shared with glam.cairo and
-#     nalgebra.cairo) for workspace-wide test runs, which peak near 10 GB.
+#   * one PROJECT lock per repository: at most one Cairo build/test of rapier-cairo at a time;
+#   * the machine-wide HEAVY lock (`~/orchestrator/heavy-build.lock`, shared with glam-cairo and
+#     nalgebra-cairo) for workspace-wide test runs, which peak near 10 GB.
 # A crate-scoped build or test (`snforge test -p <crate>`, `scarb build/lint`) only takes the project
 # lock, so it runs next to another project's heavy build. Lock order is always project -> heavy (no
 # cycle: the other projects only take the heavy lock). Nested calls (snforge -> scarb) inherit the locks.
@@ -10,7 +10,7 @@
 #   lock.sh <real-binary> <args...>
 set -u
 real="$1"; shift
-project_lock="${RAPIER_PROJECT_LOCK:-$HOME/orchestrator/locks/rapier.cairo.lock}"
+project_lock="${RAPIER_PROJECT_LOCK:-$HOME/orchestrator/locks/rapier-cairo.lock}"
 heavy_lock="${HEAVY_BUILD_LOCK:-$HOME/orchestrator/heavy-build.lock}"
 mkdir -p "$(dirname "$project_lock")"
 [ -n "${RAPIER_BUILD_LOCK_HELD:-}" ] && exec "$real" "$@"

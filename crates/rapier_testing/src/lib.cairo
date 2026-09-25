@@ -1,4 +1,4 @@
-//! Shared helpers for tests and gas probes across the rapier.cairo workspace.
+//! Shared helpers for tests and gas probes across the rapier-cairo workspace.
 
 /// Returns its argument through a call the compiler cannot inline.
 ///

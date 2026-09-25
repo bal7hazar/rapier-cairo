@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gas snapshot tooling for rapier.cairo.
+"""Gas snapshot tooling for rapier-cairo.
 
 Every unit test doubles as a gas probe: snforge reports the Sierra gas consumed by each test and
 this script records those figures under `gas/<crate>/<module>.snap`, one file per top-level
