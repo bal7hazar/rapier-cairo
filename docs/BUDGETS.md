@@ -1,5 +1,15 @@
 # Step Budgets
 
+## Since the matrix below (2026-09-25)
+
+- SE #127 (sensors): every P3 scene ≤ +0.21 %; ceilings unchanged.
+- RB #121 (rigid-body API, cold data boxed): contact and joint scenes +0.05 % to +0.29 % net; `free_fall1/8/32`
+  −20.5 / −8.5 / −6.5 % net through a no-contact fast path (`pipeline/free_path.cairo`) that fires only when the world
+  has no pair and no joint, so the free-fall probes no longer measure the general per-body path (+13 % net on
+  `free_fall32` without the fast path); `gas_setup_*` (world construction) +3.7 %. Both are BT items (`docs/PLAN.md`).
+  Exact steps after RB: `free_fall32` 535,449; `balls_halfspace32` 1,856,887; `cuboid_stack10` 754,143;
+  `mixed_pile8` 810,808. The full matrix is refreshed with G0.
+
 ## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
 
 One settled `World::step`, net of setup. Sierra gas from `gas_step_* − gas_setup_*`
