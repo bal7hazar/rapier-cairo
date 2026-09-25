@@ -18,7 +18,6 @@ use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use crate::rigid_body_set::RigidBody;
 use super::body::{SolverBody, WORLD};
 use super::body_store::{BodyStep, DenseBodiesTrait, SolverBodyStore, gather, writeback};
-use super::contact::ContactConstraintsSetTrait;
 
 /// Invalid timestep/velocity cap. Parameter and fixed-point panics otherwise propagate.
 pub mod errors {
@@ -76,13 +75,12 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let mut cs = ContactConstraintsSetTrait::generate(manifolds.span(), initial.span(), params, dt);
+    let (frozen, mut hot) = split::generate(manifolds.span(), initial.span(), params, dt);
     let builders = prepare_joints(joint_set.span(), initial.span(), steps);
-    if empty::all_inert(cs.constraints.span()) {
+    if frozen.is_empty() {
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let (frozen, mut hot) = split::prepare(cs.constraints.span());
     let frozen = frozen.span();
     let mut sb: SweepBodies = DenseBodiesTrait::new(initial.span());
     let mut rows = array![];

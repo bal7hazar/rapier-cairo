@@ -21,7 +21,7 @@ use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, wide_from, wide_mul};
 use fixed::{Fixed, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::data::handle::Handle;
-use rapier_core::integration_parameters::spring::SpringCoefficientsTrait;
+use rapier_core::integration_parameters::spring::{SoftnessCoefficients, SpringCoefficientsTrait};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::{
     ContactManifold, ContactManifoldTrait, NEW_CONTACT_BIT, SolverContact,
@@ -77,83 +77,8 @@ pub impl ContactConstraintImpl of ContactConstraintTrait {
         params: IntegrationParameters,
         dt: Fixed,
     ) -> ContactConstraint {
-        assert(
-            manifold.num_points <= 2 && manifold.data.num_solver_contacts <= manifold.num_points,
-            errors::COUNT,
-        );
-        let (_, enabled) = DivRem::div_rem(manifold.data.solver_flags.bits, 2);
-        if manifold.data.num_solver_contacts == 0 || enabled == 0 {
-            return Default::default();
-        }
-        assert(
-            dt >= ZERO && manifold.data.friction >= ZERO && manifold.data.restitution >= ZERO,
-            errors::NEGATIVE,
-        );
-        let raw1 = resolve(bodies, manifold.data.rigid_body1);
-        let raw2 = resolve(bodies, manifold.data.rigid_body2);
-        assert(raw1 == WORLD || raw2 == WORLD || raw1 != raw2, errors::SAME_BODY);
-        let original1 = read(bodies, raw1);
-        let original2 = read(bodies, raw2);
-        validate_mass(original1);
-        validate_mass(original2);
-        // Zero inverse mass does not imply WORLD: kinematic endpoints retain their
-        // velocity and substep pose, including when initially stationary. Fixed parents
-        // already dominate through effective_group; absent parents resolve to WORLD.
-        let id1 = if manifold.data.relative_dominance > 0 {
-            WORLD
-        } else {
-            raw1
-        };
-        let id2 = if manifold.data.relative_dominance < 0 {
-            WORLD
-        } else {
-            raw2
-        };
-        let b1 = read(bodies, id1);
-        let b2 = read(bodies, id2);
-        let spring = if id1 == WORLD || id2 == WORLD {
-            params.static_contact_softness
-        } else {
-            params.contact_softness
-        };
-        let soft = spring.coefficients(dt);
-        let mut result = ContactConstraint {
-            solver_vel1: id1,
-            solver_vel2: id2,
-            dir1: -manifold.data.normal,
-            im1: b1.im,
-            im2: b2.im,
-            cfm_factor: soft.cfm_factor,
-            limit: manifold.data.friction,
-            num_elements: manifold.data.num_solver_contacts,
-            inv_dt: inv(dt),
-            erp_inv_dt: soft.erp_inv_dt,
-            soft_cfm_factor: soft.cfm_factor,
-            ..Default::default(),
-        };
-        let [sc0, sc1] = manifold.data.solver_contacts;
-        let e0 = generate_element(
-            sc0, manifold, result.dir1, original1, original2, b1, b2, id1 == WORLD, id2 == WORLD,
-        );
-        let e1 = if result.num_elements == 2 {
-            let e = generate_element(
-                sc1,
-                manifold,
-                result.dir1,
-                original1,
-                original2,
-                b1,
-                b2,
-                id1 == WORLD,
-                id2 == WORLD,
-            );
-            assert(e.contact_id != e0.contact_id, errors::CONTACT_ID);
-            e
-        } else {
-            Default::default()
-        };
-        result.elements = [e0, e1];
-        result
+        let mut cache = SoftCacheTrait::new(params, dt);
+        generate_cached(manifold, bodies, dt, ref cache)
     }
 
     /// Refresh distances/biases and bank previous impulses before warm-start scaling.
@@ -319,6 +244,117 @@ pub impl ContactConstraintImpl of ContactConstraintTrait {
         }
         manifolds = out;
     }
+}
+
+
+/// Per-step constants of generation (BT1): `inv(dt)` once, and the softness coefficients of
+/// the dynamic and of the static contacts computed at their first use, then reused for every
+/// manifold of the step (they only depend on the parameters and `dt`).
+#[derive(Copy, Drop)]
+pub(crate) struct SoftCache {
+    params: IntegrationParameters,
+    dt: Fixed,
+    dynamic: Option<SoftnessCoefficients>,
+    fixed: Option<SoftnessCoefficients>,
+    pub inv_dt: Fixed,
+}
+
+#[generate_trait]
+pub(crate) impl SoftCacheImpl of SoftCacheTrait {
+    #[inline(always)]
+    fn new(params: IntegrationParameters, dt: Fixed) -> SoftCache {
+        SoftCache { params, dt, dynamic: None, fixed: None, inv_dt: inv(dt) }
+    }
+    /// `static_contact_softness` (a world endpoint) or `contact_softness` at `dt`.
+    #[inline(always)]
+    fn get(ref self: SoftCache, world: bool) -> SoftnessCoefficients {
+        if world {
+            if let Some(soft) = self.fixed {
+                return soft;
+            }
+            let soft = self.params.static_contact_softness.coefficients(self.dt);
+            self.fixed = Some(soft);
+            soft
+        } else {
+            if let Some(soft) = self.dynamic {
+                return soft;
+            }
+            let soft = self.params.contact_softness.coefficients(self.dt);
+            self.dynamic = Some(soft);
+            soft
+        }
+    }
+}
+
+/// `ContactConstraintTrait::generate` with the step's cached constants.
+#[inline(always)]
+pub(crate) fn generate_cached(
+    manifold: ContactManifold, bodies: Span<SolverBody>, dt: Fixed, ref cache: SoftCache,
+) -> ContactConstraint {
+    assert(
+        manifold.num_points <= 2 && manifold.data.num_solver_contacts <= manifold.num_points,
+        errors::COUNT,
+    );
+    let (_, enabled) = DivRem::div_rem(manifold.data.solver_flags.bits, 2);
+    if manifold.data.num_solver_contacts == 0 || enabled == 0 {
+        return Default::default();
+    }
+    assert(
+        dt >= ZERO && manifold.data.friction >= ZERO && manifold.data.restitution >= ZERO,
+        errors::NEGATIVE,
+    );
+    let raw1 = resolve(bodies, manifold.data.rigid_body1);
+    let raw2 = resolve(bodies, manifold.data.rigid_body2);
+    assert(raw1 == WORLD || raw2 == WORLD || raw1 != raw2, errors::SAME_BODY);
+    let original1 = read(bodies, raw1);
+    let original2 = read(bodies, raw2);
+    validate_mass(original1);
+    validate_mass(original2);
+    // Zero inverse mass does not imply WORLD: kinematic endpoints retain their
+    // velocity and substep pose, including when initially stationary. Fixed parents
+    // already dominate through effective_group; absent parents resolve to WORLD.
+    let id1 = if manifold.data.relative_dominance > 0 {
+        WORLD
+    } else {
+        raw1
+    };
+    let id2 = if manifold.data.relative_dominance < 0 {
+        WORLD
+    } else {
+        raw2
+    };
+    let b1 = read(bodies, id1);
+    let b2 = read(bodies, id2);
+    let soft = cache.get(id1 == WORLD || id2 == WORLD);
+    let mut result = ContactConstraint {
+        solver_vel1: id1,
+        solver_vel2: id2,
+        dir1: -manifold.data.normal,
+        im1: b1.im,
+        im2: b2.im,
+        cfm_factor: soft.cfm_factor,
+        limit: manifold.data.friction,
+        num_elements: manifold.data.num_solver_contacts,
+        inv_dt: cache.inv_dt,
+        erp_inv_dt: soft.erp_inv_dt,
+        soft_cfm_factor: soft.cfm_factor,
+        ..Default::default(),
+    };
+    let [sc0, sc1] = manifold.data.solver_contacts;
+    let e0 = generate_element(
+        sc0, manifold, result.dir1, original1, original2, b1, b2, id1 == WORLD, id2 == WORLD,
+    );
+    let e1 = if result.num_elements == 2 {
+        let e = generate_element(
+            sc1, manifold, result.dir1, original1, original2, b1, b2, id1 == WORLD, id2 == WORLD,
+        );
+        assert(e.contact_id != e0.contact_id, errors::CONTACT_ID);
+        e
+    } else {
+        Default::default()
+    };
+    result.elements = [e0, e1];
+    result
 }
 
 fn resolve(mut bodies: Span<SolverBody>, handle: Option<Handle>) -> u32 {

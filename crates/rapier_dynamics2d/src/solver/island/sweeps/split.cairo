@@ -10,10 +10,12 @@ use glam::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_math::pose2::{Pose2, Pose2Trait};
-use super::super::super::body::{SolverVel, WORLD};
+use super::super::super::body::{SolverBody, SolverVel, WORLD};
 use super::super::super::contact::cached::WeightedPair;
 use super::super::super::contact::element::{dot, jv, max, min, tangent};
-use super::super::super::contact::{ContactConstraint, ContactConstraintElement, errors};
+use super::super::super::contact::{
+    ContactConstraint, ContactConstraintElement, SoftCacheTrait, errors, generate_cached,
+};
 
 /// Frame-constant coefficients of one row (normal or tangent).
 #[derive(Copy, Drop, Debug, PartialEq)]
@@ -103,36 +105,62 @@ fn hot_point(e: ContactConstraintElement) -> HotPoint {
     }
 }
 
-/// Split the active constraints (in order) and cache `dir * im` for both rows, as
+/// Append the split of `c` when it is active; caches `dir * im` for both rows, as
 /// `cached::prepare` does (products floor).
+#[inline(always)]
+fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
+    if c.num_elements != 0 {
+        let t = tangent(c.dir1);
+        let [a, b] = c.elements;
+        frozen
+            .append(
+                Frozen {
+                    i: c.solver_vel1,
+                    j: c.solver_vel2,
+                    dir: c.dir1,
+                    wn: WeightedPair { first: c.dir1 * c.im1, second: c.dir1 * c.im2 },
+                    wt: WeightedPair { first: t * c.im1, second: t * c.im2 },
+                    limit: c.limit,
+                    count: c.num_elements,
+                    manifold_id: c.manifold_id,
+                    inv_dt: c.inv_dt,
+                    erp_inv_dt: c.erp_inv_dt,
+                    soft_cfm: c.soft_cfm_factor,
+                    a: frozen_point(a),
+                    b: frozen_point(b),
+                },
+            );
+        hot.append(Hot { a: hot_point(a), b: hot_point(b) });
+    }
+}
+
+/// Split generated constraints, in order, dropping the inert ones.
 pub(crate) fn prepare(mut cs: Span<ContactConstraint>) -> (Array<Frozen>, Array<Hot>) {
     let mut frozen = array![];
     let mut hot = array![];
     while let Some(c) = cs.pop_front() {
-        let c = *c;
-        if c.num_elements != 0 {
-            let t = tangent(c.dir1);
-            let [a, b] = c.elements;
-            frozen
-                .append(
-                    Frozen {
-                        i: c.solver_vel1,
-                        j: c.solver_vel2,
-                        dir: c.dir1,
-                        wn: WeightedPair { first: c.dir1 * c.im1, second: c.dir1 * c.im2 },
-                        wt: WeightedPair { first: t * c.im1, second: t * c.im2 },
-                        limit: c.limit,
-                        count: c.num_elements,
-                        manifold_id: c.manifold_id,
-                        inv_dt: c.inv_dt,
-                        erp_inv_dt: c.erp_inv_dt,
-                        soft_cfm: c.soft_cfm_factor,
-                        a: frozen_point(a),
-                        b: frozen_point(b),
-                    },
-                );
-            hot.append(Hot { a: hot_point(a), b: hot_point(b) });
-        }
+        push(ref frozen, ref hot, *c);
+    }
+    (frozen, hot)
+}
+
+/// `ContactConstraintsSetTrait::generate` then [`prepare`], in one pass and with the step's
+/// constants computed once (`contact::SoftCache`): same constraints, checks and panics.
+pub(crate) fn generate(
+    mut manifolds: Span<ContactManifold>,
+    bodies: Span<SolverBody>,
+    params: IntegrationParameters,
+    dt: Fixed,
+) -> (Array<Frozen>, Array<Hot>) {
+    let mut cache = SoftCacheTrait::new(params, dt);
+    let mut frozen = array![];
+    let mut hot = array![];
+    let mut id = 0;
+    while let Some(m) = manifolds.pop_front() {
+        let mut c = generate_cached(*m, bodies, dt, ref cache);
+        c.manifold_id = id;
+        push(ref frozen, ref hot, c);
+        id += 1;
     }
     (frozen, hot)
 }
