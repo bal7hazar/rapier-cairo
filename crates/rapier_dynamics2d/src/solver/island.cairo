@@ -2,6 +2,10 @@
 //! each sweep solves joints before contacts. No sleeping, island discovery, CCD or colouring.
 //! Contact sweeps use cached frame coefficients and two body values; joint sweeps retain
 //! their measured array adapter. Global scattering remains O(1).
+//! With contacts (BT1, `sweeps::split`), constraints are generated once into a frozen span and a
+//! small hot array, and the step runs on a `SweepBodies` store (velocities in the dictionary,
+//! poses in a per-substep array), written back into `bodies` at the end: same arithmetic,
+//! results bit for bit, about half the Cairo steps of the constraint-set sweeps.
 mod empty;
 mod sweeps;
 use fixed::{Fixed, MAX, ZERO};
