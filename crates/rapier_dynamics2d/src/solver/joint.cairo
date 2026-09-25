@@ -11,8 +11,8 @@ pub(crate) mod bounded;
 mod kernels;
 pub(crate) use kernels::{frame, lock_rows, write_rows};
 use kernels::{
-    generate_extended, generate_plain, remove_bias_plain, solve_plain, warmstart_plain,
-    writeback_impulses_plain,
+    generate_coupled_public, generate_extended, generate_plain, remove_bias_plain, solve_plain,
+    warmstart_plain, writeback_impulses_plain,
 };
 pub(crate) mod step;
 pub(crate) use step::StepJoint;
@@ -67,8 +67,10 @@ pub impl JointConstraintImpl of JointConstraintTrait {
     ) -> JointConstraint {
         if joint.data.limit_axes.bits == 0 && joint.data.motor_axes.bits == 0 {
             generate_plain(joint, bodies, params)
-        } else {
+        } else if joint.data.coupled_axes.bits == 0 {
             generate_extended(joint, bodies, params)
+        } else {
+            generate_coupled_public(joint, bodies, params)
         }
     }
     /// Apply seeded impulses once before solving; no division, products floor, overflow panics.
