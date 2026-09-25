@@ -400,12 +400,18 @@ impl UpdateKernel of Kernel<Update> {
         }
         let mut v1 = bodies.vel(*f.i);
         let mut v2 = bodies.vel(*f.j);
-        apply(f.wn, *f.a.n.ig1, *f.a.n.ig2, h.a.impulse, ref v1, ref v2);
-        if two {
+        // BT3: each zero impulse is skipped on its own (for a one-point constraint the second
+        // point's impulses are zero).
+        if h.a.impulse != ZERO {
+            apply(f.wn, *f.a.n.ig1, *f.a.n.ig2, h.a.impulse, ref v1, ref v2);
+        }
+        if h.b.impulse != ZERO {
             apply(f.wn, *f.b.n.ig1, *f.b.n.ig2, h.b.impulse, ref v1, ref v2);
         }
-        apply(f.wt, *f.a.t.ig1, *f.a.t.ig2, h.a.t_impulse, ref v1, ref v2);
-        if two {
+        if h.a.t_impulse != ZERO {
+            apply(f.wt, *f.a.t.ig1, *f.a.t.ig2, h.a.t_impulse, ref v1, ref v2);
+        }
+        if h.b.t_impulse != ZERO {
             apply(f.wt, *f.b.t.ig1, *f.b.t.ig2, h.b.t_impulse, ref v1, ref v2);
         }
         bodies.set_vels(*f.i, v1, *f.j, v2);
