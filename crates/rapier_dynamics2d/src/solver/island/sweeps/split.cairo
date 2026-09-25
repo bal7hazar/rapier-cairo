@@ -165,10 +165,9 @@ pub(crate) fn contacts(
     }
 }
 
+/// One stage on one constraint; gathers and scatters its two bodies only when it changes them.
 trait Kernel<K> {
-    fn apply(
-        self: K, ref h: Hot, f: @Frozen, ref v1: SolverVel, ref v2: SolverVel, poses: Span<Pose2>,
-    );
+    fn apply(self: K, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>);
 }
 
 #[derive(Copy, Drop)]
@@ -192,12 +191,7 @@ fn sweep<K, +Kernel<K>, +Copy<K>, +Drop<K>>(
     let mut out = array![];
     while let Some(f) = frozen.pop_front() {
         let mut h = hot.pop_front().unwrap();
-        let i = *f.i;
-        let j = *f.j;
-        let mut v1 = bodies.vel(i);
-        let mut v2 = bodies.vel(j);
-        k.apply(ref h, f, ref v1, ref v2, poses);
-        bodies.set_vels(i, v1, j, v2);
+        k.apply(ref h, f, ref bodies, poses);
         out.append(h);
     }
     hot = out;
@@ -284,14 +278,7 @@ fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Po
 
 impl UpdateKernel of Kernel<Update> {
     #[inline(always)]
-    fn apply(
-        self: Update,
-        ref h: Hot,
-        f: @Frozen,
-        ref v1: SolverVel,
-        ref v2: SolverVel,
-        poses: Span<Pose2>,
-    ) {
+    fn apply(self: Update, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>) {
         let p1 = pose(poses, *f.i);
         let p2 = pose(poses, *f.j);
         let two = *f.count == 2;
@@ -305,6 +292,8 @@ impl UpdateKernel of Kernel<Update> {
             && (!two || (h.b.impulse == ZERO && h.b.t_impulse == ZERO)) {
             return;
         }
+        let mut v1 = bodies.vel(*f.i);
+        let mut v2 = bodies.vel(*f.j);
         let mut pending = true;
         while pending {
             apply(f.wn, *f.a.n.ig1, *f.a.n.ig2, h.a.impulse, ref v1, ref v2);
@@ -317,18 +306,14 @@ impl UpdateKernel of Kernel<Update> {
             }
             pending = false;
         }
+        bodies.set_vels(*f.i, v1, *f.j, v2);
     }
 }
 impl BiasedKernel of Kernel<Biased> {
     #[inline(always)]
-    fn apply(
-        self: Biased,
-        ref h: Hot,
-        f: @Frozen,
-        ref v1: SolverVel,
-        ref v2: SolverVel,
-        poses: Span<Pose2>,
-    ) {
+    fn apply(self: Biased, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>) {
+        let mut v1 = bodies.vel(*f.i);
+        let mut v2 = bodies.vel(*f.j);
         if idle(h, *f.count, v1, v2) {
             return;
         }
@@ -341,10 +326,14 @@ impl BiasedKernel of Kernel<Biased> {
             }
             pending = false;
         }
+        bodies.set_vels(*f.i, v1, *f.j, v2);
     }
 }
+/// Normal then tangent rows (`cached::zero::solve_both`); the all-zero state is left untouched.
 #[inline(always)]
-fn solve_both(ref h: Hot, f: @Frozen, ref v1: SolverVel, ref v2: SolverVel) {
+fn solve_both(ref h: Hot, f: @Frozen, ref bodies: SweepBodies) {
+    let mut v1 = bodies.vel(*f.i);
+    let mut v2 = bodies.vel(*f.j);
     if idle(h, *f.count, v1, v2) {
         return;
     }
@@ -364,37 +353,24 @@ fn solve_both(ref h: Hot, f: @Frozen, ref v1: SolverVel, ref v2: SolverVel) {
         }
         pending = false;
     }
+    bodies.set_vels(*f.i, v1, *f.j, v2);
 }
 impl RefreshKernel of Kernel<Refresh> {
     #[inline(always)]
-    fn apply(
-        self: Refresh,
-        ref h: Hot,
-        f: @Frozen,
-        ref v1: SolverVel,
-        ref v2: SolverVel,
-        poses: Span<Pose2>,
-    ) {
+    fn apply(self: Refresh, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>) {
         let p1 = pose(poses, *f.i);
         let p2 = pose(poses, *f.j);
         refresh_point(ref h.a, f.a, f, p1, p2);
         if *f.count == 2 {
             refresh_point(ref h.b, f.b, f, p1, p2);
         }
-        solve_both(ref h, f, ref v1, ref v2);
+        solve_both(ref h, f, ref bodies);
     }
 }
 impl RelaxKernel of Kernel<Relax> {
     #[inline(always)]
-    fn apply(
-        self: Relax,
-        ref h: Hot,
-        f: @Frozen,
-        ref v1: SolverVel,
-        ref v2: SolverVel,
-        poses: Span<Pose2>,
-    ) {
-        solve_both(ref h, f, ref v1, ref v2);
+    fn apply(self: Relax, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>) {
+        solve_both(ref h, f, ref bodies);
     }
 }
 /// `bounce`: rhs and cfm are not restored, nothing reads them after the final sweep.
@@ -416,17 +392,14 @@ fn bounce(
 impl RestitutionKernel of Kernel<Restitution> {
     #[inline(always)]
     fn apply(
-        self: Restitution,
-        ref h: Hot,
-        f: @Frozen,
-        ref v1: SolverVel,
-        ref v2: SolverVel,
-        poses: Span<Pose2>,
+        self: Restitution, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>,
     ) {
         let two = *f.count == 2;
         if *f.a.seed >= ZERO && (!two || *f.b.seed >= ZERO) {
             return;
         }
+        let mut v1 = bodies.vel(*f.i);
+        let mut v2 = bodies.vel(*f.j);
         let mut pending = true;
         while pending {
             let dir = *f.dir;
@@ -436,6 +409,7 @@ impl RestitutionKernel of Kernel<Restitution> {
             }
             pending = false;
         }
+        bodies.set_vels(*f.i, v1, *f.j, v2);
     }
 }
 
