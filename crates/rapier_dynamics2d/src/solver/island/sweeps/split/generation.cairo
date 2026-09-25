@@ -3,15 +3,17 @@
 //! (`contact::generate_cached` then `push`, kept as `alternatives::generate_via_constraints`).
 //! Same checks in the same order, same kernels (`midpoint`, `coefficients`, `local_anchor`),
 //! same values: the constraint-set path stays the reference of the split tests.
+use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::num::traits::DivRem;
 use fixed::{Fixed, ZERO};
 use glam::Vec2;
+use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, NEW_CONTACT_BIT};
 use super::super::super::super::body::{SolverBody, WORLD, read, velocity};
 use super::super::super::super::contact::element::{coefficients, jv, tangent};
 use super::super::super::super::contact::{
-    SoftCache, SoftCacheTrait, errors, local_anchor, midpoint, resolve, validate_mass,
+    SoftCache, SoftCacheTrait, errors, local_anchor, midpoint, validate_mass,
 };
 use super::{Frozen, FrozenPoint, Hot, HotPoint, Row, Weights};
 
@@ -27,9 +29,10 @@ pub(crate) fn generate(
     let mut cache = SoftCacheTrait::new(params, dt);
     let mut frozen = array![];
     let mut hot = array![];
+    let mut index = body_index(bodies);
     let mut id = 0;
     while let Some(m) = manifolds.pop_front() {
-        split_manifold(*m, bodies, dt, ref cache, id, ref frozen, ref hot);
+        split_manifold(*m, bodies, dt, ref cache, ref index, id, ref frozen, ref hot);
         id += 1;
     }
     (frozen, hot)
@@ -42,6 +45,7 @@ fn split_manifold(
     bodies: Span<SolverBody>,
     dt: Fixed,
     ref cache: SoftCache,
+    ref index: Felt252Dict<u32>,
     manifold_id: u32,
     ref frozen: Array<Frozen>,
     ref hot: Array<Hot>,
@@ -55,8 +59,8 @@ fn split_manifold(
     assert(
         dt >= ZERO && m.data.friction >= ZERO && m.data.restitution >= ZERO, errors::NEGATIVE,
     );
-    let raw1 = resolve(bodies, m.data.rigid_body1);
-    let raw2 = resolve(bodies, m.data.rigid_body2);
+    let raw1 = resolve(ref index, bodies, m.data.rigid_body1);
+    let raw2 = resolve(ref index, bodies, m.data.rigid_body2);
     assert(raw1 == WORLD || raw2 == WORLD || raw1 != raw2, errors::SAME_BODY);
     let original1 = read(bodies, raw1);
     let original2 = read(bodies, raw2);
@@ -115,6 +119,30 @@ fn split_manifold(
             },
         );
     hot.append(Hot { a: ha, b: hb });
+}
+
+/// Dense id + 1 of each body, by handle slot (BT3: `contact::resolve` scans the bodies for
+/// each endpoint of each manifold). Slots are unique in a body set.
+fn body_index(mut bodies: Span<SolverBody>) -> Felt252Dict<u32> {
+    let mut index: Felt252Dict<u32> = Default::default();
+    let mut id: u32 = 1;
+    while let Some(b) = bodies.pop_front() {
+        index.insert((*b.handle.index).into(), id);
+        id += 1;
+    }
+    index
+}
+
+/// `contact::resolve` through the index: the dense id of `handle` (same slot and generation),
+/// `WORLD` for `None`; panics with `errors::BODY` when the body is absent.
+#[inline(always)]
+fn resolve(ref index: Felt252Dict<u32>, bodies: Span<SolverBody>, handle: Option<Handle>) -> u32 {
+    let Some(h) = handle else {
+        return WORLD;
+    };
+    let id = index.get(h.index.into());
+    assert(id != 0 && *bodies.at(id - 1).handle == h, errors::BODY);
+    id - 1
 }
 
 /// The solver bodies of a constraint (`WORLD` reads as the default body) and the original
