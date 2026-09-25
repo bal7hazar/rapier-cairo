@@ -109,14 +109,18 @@ A feature is done when:
 
 ## 6. Required validation
 
+Executors run **crate-scoped** checks only (owner's throughput rule, 2026-09-25): a local workspace run
+serialises the whole machine behind the shared heavy lock, and the PR's CI is the full gate.
+
 ```
-scarb fmt --check --workspace
-scarb lint --workspace --deny-warnings
-scarb build --workspace
-snforge test --workspace
-python3 scripts/gas.py snapshot --filter <crate>::<module>   # executors, per owned module
-python3 scripts/gas.py check                                  # CI and orchestrator
+scarb fmt --workspace
+scarb lint -p <crate> --deny-warnings && scarb build -p <crate>   # each touched crate + direct dependents
+snforge test -p <crate>
+python3 scripts/gas.py snapshot --filter <crate>::<module>        # runs `snforge test -p <crate>`
+# CI: fmt, lint, build, 4 test groups, gas check on the merged logs, golden, api-parity
 ```
+
+The orchestrator runs workspace-wide commands only for releases and toolchain bumps.
 
 ## 7. Coding conventions
 

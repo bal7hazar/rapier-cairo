@@ -14,7 +14,9 @@ Usage:
 Options:
     --from-log FILE    parse an existing `snforge test` log instead of running the tests
     --filter PATTERN   only run / compare / rewrite tests whose name contains PATTERN; with
-                       `snapshot`, only the files of modules that appear in the run are rewritten
+                       `snapshot`, only the files of modules that appear in the run are rewritten.
+                       A PATTERN starting with a crate name (`rapier_core::…`, `rapier2d_integrationtest::…`)
+                       runs `snforge test -p <crate>` instead of the whole workspace
 
 A test `crate::module::...::name` belongs to `gas/crate/module.snap`; tests declared directly in
 `lib.cairo` (`crate::tests::name`) go to `gas/crate/lib.snap`; children of a `SPLIT_MODULES` parent
@@ -52,8 +54,23 @@ def module_of(test: str) -> tuple[str, str]:
     return crate, module
 
 
+def package_of(pattern: str) -> str | None:
+    """The workspace package a `crate::…` filter belongs to (`<crate>_integrationtest` → `<crate>`)."""
+    head = pattern.split("::", 1)[0]
+    for suffix in ("_integrationtest", "_unittest"):
+        if head.endswith(suffix):
+            head = head[: -len(suffix)]
+    return head if (ROOT / "crates" / head / "Scarb.toml").is_file() else None
+
+
 def run_tests(pattern: str | None) -> str:
-    cmd = SNFORGE + ([pattern] if pattern else [])
+    # A filter naming a crate runs that crate only (`snforge test -p <crate>`): executors never run the
+    # whole workspace locally (it serialises the machine behind the shared heavy lock); CI is the full gate.
+    package = package_of(pattern) if pattern else None
+    if package:
+        cmd = ["snforge", "test", "-p", package, "--tracked-resource", "sierra-gas", pattern]
+    else:
+        cmd = SNFORGE + ([pattern] if pattern else [])
     proc = subprocess.run(cmd, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if proc.returncode != 0:
         sys.stdout.write(proc.stdout)
