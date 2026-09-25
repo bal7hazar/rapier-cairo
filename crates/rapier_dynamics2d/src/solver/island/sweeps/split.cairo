@@ -263,10 +263,20 @@ fn solve_normal(
     ref h: HotPoint, dir: Vec2, row: @Row, w: @Weights, ref v1: SolverVel, ref v2: SolverVel,
 ) {
     let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.rhs);
-    let new_impulse = h.cfm * max(ZERO, h.impulse - *row.r * dv);
+    let clamped = max(ZERO, h.impulse - *row.r * dv);
+    // BT3: a rigid row (`cfm == ONE`: every relaxation row, speculative biased rows) skips the
+    // product, exact since `x * ONE == x`.
+    let new_impulse = if h.cfm == ONE {
+        clamped
+    } else {
+        h.cfm * clamped
+    };
     let delta = new_impulse - h.impulse;
     h.impulse = new_impulse;
-    apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    // BT3: a zero delta changes no velocity (`floor(w * 0) == 0`).
+    if delta != ZERO {
+        apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    }
 }
 #[inline(always)]
 fn solve_tangent(
@@ -282,7 +292,9 @@ fn solve_tangent(
     let new_impulse = min(limit, max(-limit, h.t_impulse - *row.r * dv));
     let delta = new_impulse - h.t_impulse;
     h.t_impulse = new_impulse;
-    apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    if delta != ZERO {
+        apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    }
 }
 #[inline(always)]
 fn row_zero(h: HotPoint) -> bool {
