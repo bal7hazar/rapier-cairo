@@ -18,7 +18,7 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "fixed",
  "glam",
@@ -33,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_core"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "fixed",
  "rapier_golden",
@@ -43,7 +43,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_dynamics2d"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "fixed",
  "glam",
@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_geometry2d"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "fixed",
  "glam",
@@ -70,7 +70,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_golden"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "rapier_testing",
  "snforge_std",
@@ -78,7 +78,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_math"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "fixed",
  "glam",
@@ -89,7 +89,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_testing"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "snforge_std",
 ]
