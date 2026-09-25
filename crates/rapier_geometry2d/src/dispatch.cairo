@@ -29,6 +29,14 @@
 //! itself, on the manifold it is handed (which also keeps the warm-start fast paths correct), so
 //! the dispatcher only chooses the entry point and needs no `ContactManifold::flip`.
 //!
+//! # Intersection tests
+//!
+//! [`intersection_test`] (`intersection`, work package SE) is Parry's
+//! `DefaultQueryDispatcher::intersection_test`, the boolean query behind sensor pairs: its own
+//! table, with exact analytic or SAT kernels per pair (no clipping, no prediction), every pair of
+//! the closed enum but half-space–half-space. Deriving the answer from this module's contact
+//! generators at zero prediction costs 1.4 to 20 times more gas (`intersection::alternatives`).
+//!
 //! # Deferred
 //!
 //! Compound, heightfield and triangle-mesh shapes, `ContactManifoldsWorkspace`, normal
@@ -532,6 +540,8 @@ pub fn contact_manifold_step(
 
 #[cfg(test)]
 pub mod alternatives;
+pub mod intersection;
+pub use intersection::intersection_test;
 
 #[cfg(test)]
 mod tests;
