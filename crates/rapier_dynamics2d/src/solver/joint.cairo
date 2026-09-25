@@ -4,12 +4,17 @@
 //! D4: CFM below 8 Q32.32 ulp becomes zero, preserving computed ERP. Products/dots floor;
 //! reciprocals round to nearest. All intermediates must fit Fixed; nonnegative masses required.
 //! OJ keeps scalar row kernels inline to avoid copying full rows at each arithmetic call.
-mod bounded;
+//! JM: limits/motors are built after a single frame construction (`step`); the island driver
+//! specialises each joint's kind once per step and carries impulses between substeps itself.
+pub(crate) mod bounded;
 mod kernels;
+pub(crate) use kernels::{frame, lock_rows, write_rows};
 use kernels::{
     generate_extended, generate_plain, remove_bias_plain, solve_plain, warmstart_plain,
     writeback_impulses_plain,
 };
+pub(crate) mod step;
+pub(crate) use step::StepJoint;
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};
@@ -43,7 +48,8 @@ pub struct JointConstraint {
     pub im2: Vec2,
     pub rows: [JointGenericConstraint; 3],
     pub num_rows: u8,
-    /// Bounded rows; absent on the original bilateral-only path. num_rows=4 when present.
+    /// Bounded rows; absent on the bilateral-only path. num_rows=4 when present. The island
+    /// path omits an interior limit whose current and step-initial impulses are zero.
     pub bounded: Option<bounded::BoundedState>,
 }
 #[generate_trait]
@@ -66,8 +72,7 @@ pub impl JointConstraintImpl of JointConstraintTrait {
     #[inline(always)]
     fn warmstart(self: JointConstraint, ref bodies: Array<SolverBody>) {
         if self.num_rows == 4 {
-            let mut c = self;
-            bounded::solve(ref c, ref bodies, true, true);
+            bounded::warmstart(self, ref bodies);
         } else {
             warmstart_plain(self, ref bodies);
         }
@@ -109,22 +114,23 @@ fn write(axis: u8, impulse: Fixed, ref x: Fixed, ref y: Fixed, ref w: Fixed) {
         _ => w = impulse,
     }
 }
+/// Warmstart seeds from per-DOF impulses (X, Y, angular), scaled by the coefficient.
 #[inline(always)]
-fn seed(ref c: JointConstraint, joint: ImpulseJoint, params: IntegrationParameters) {
+pub(crate) fn seed(ref c: JointConstraint, impulses: [Fixed; 3], params: IntegrationParameters) {
     if params.warmstart_joints {
         let [mut a, mut b, mut d] = c.rows;
-        a.impulse = seed_row(a.axis, joint.impulses) * params.warmstart_coefficient;
+        a.impulse = seed_row(a.axis, impulses) * params.warmstart_coefficient;
         if c.num_rows >= 2 {
-            b.impulse = seed_row(b.axis, joint.impulses) * params.warmstart_coefficient;
+            b.impulse = seed_row(b.axis, impulses) * params.warmstart_coefficient;
         }
         if c.num_rows == 3 {
-            d.impulse = seed_row(d.axis, joint.impulses) * params.warmstart_coefficient;
+            d.impulse = seed_row(d.axis, impulses) * params.warmstart_coefficient;
         }
         c.rows = [a, b, d];
     }
 }
 #[inline(always)]
-fn seed_row(axis: u8, impulses: [Fixed; 3]) -> Fixed {
+pub(crate) fn seed_row(axis: u8, impulses: [Fixed; 3]) -> Fixed {
     let [x, y, w] = impulses;
     match axis {
         0 => x,
@@ -172,33 +178,18 @@ fn prepare(
     assert(c.solver_vel1 != c.solver_vel2, errors::SAME_BODY);
     let b1 = read(bodies, c.solver_vel1);
     let b2 = read(bodies, c.solver_vel2);
-    assert(
-        b1.im.x >= ZERO
-            && b1.im.y >= ZERO
-            && b1.ii >= ZERO
-            && b2.im.x >= ZERO
-            && b2.im.y >= ZERO
-            && b2.ii >= ZERO
-            && params.warmstart_coefficient >= ZERO,
-        errors::NEGATIVE,
-    );
-    assert(
-        b1.position.rotation.is_unit()
-            && b2.position.rotation.is_unit()
-            && joint.data.local_frame1.rotation.is_unit()
-            && joint.data.local_frame2.rotation.is_unit(),
-        errors::ROTATION,
+    let (h, erp, cfm, _, _) = frame(
+        b1,
+        b2,
+        joint.data.local_frame1,
+        joint.data.local_frame2,
+        joint.data.locked_axes,
+        joint.data.softness,
+        params,
     );
     c.im1 = b1.im;
     c.im2 = b2.im;
-    let f1 = b1.position.mul(joint.data.local_frame1);
-    let f2 = b2.position.mul(joint.data.local_frame2);
-    let h = JointConstraintHelperTrait::new(
-        f1, f2, b1.position.translation, b2.position.translation, joint.data.locked_axes,
-    );
-    let soft = params.joint_softness_coefficients(joint.data.softness);
-    let cfm = rigid_cfm(soft.cfm_coeff);
-    (c, h, b1, b2, soft.erp_inv_dt, cfm)
+    (c, h, b1, b2, erp, cfm)
 }
 fn rigid_cfm(cfm: Fixed) -> Fixed {
     if cfm < RIGID_CFM_THRESHOLD {

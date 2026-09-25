@@ -27,7 +27,7 @@ pub fn generate(
         axis += 1;
     }
     finalize(ref c);
-    seed(ref c, joint, params);
+    seed(ref c, joint.impulses, params);
     c
 }
 fn get(c: JointConstraint, index: u8) -> JointGenericConstraint {

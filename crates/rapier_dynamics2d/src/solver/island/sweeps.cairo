@@ -1,4 +1,6 @@
-//! Ordered joint preparation/writeback and contact/joint sweep modules.
+//! Ordered joint preparation/writeback and contact/joint sweep modules. Joint kinds and step
+//! constants are specialised once per step (JM, `joint::step`).
+use fixed::Fixed;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_geometry2d::contact::ContactManifold;
 use crate::joint::{ImpulseJoint, JointEnabled};
@@ -7,11 +9,16 @@ use super::super::body_store::{BodyStep, DenseBodiesTrait};
 #[cfg(test)]
 use super::super::contact::ContactConstraintTrait;
 use super::super::contact::{ContactConstraint, ContactConstraintsSet};
-use super::super::joint::{JointConstraint, JointConstraintTrait};
+use super::super::joint::step::{StepJoint, StepKind, specialise};
+use super::super::joint::{JointConstraint, JointConstraintTrait, step, write_rows};
 
-#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+/// One joint of the step: kind and constants specialised once (JM), current lock impulses at
+/// the start of the step, dense body indices (`WORLD` for a disabled joint).
+#[derive(Copy, Drop, Debug)]
 pub(crate) struct JointBuilder {
-    joint: ImpulseJoint,
+    joint: StepJoint,
+    kind: StepKind,
+    impulses: [Fixed; 3],
     i: u32,
     j: u32,
 }
@@ -29,9 +36,12 @@ pub(crate) fn prepare_joints(
     mut js: Span<ImpulseJoint>, bs: Span<SolverBody>, steps: Span<BodyStep>,
 ) -> Array<JointBuilder> {
     let mut out = array![];
+    if js.is_empty() {
+        return out;
+    }
     while let Some(joint) = js.pop_front() {
         let mut joint = *joint;
-        if joint.data.enabled == JointEnabled::Enabled {
+        let (i, j) = if joint.data.enabled == JointEnabled::Enabled {
             let i = resolve(bs, joint.body1);
             let j = resolve(bs, joint.body2);
             // DE frames are CoM-local, whereas persistent joint frames are body-local.
@@ -39,13 +49,28 @@ pub(crate) fn prepare_joints(
                 - *steps.at(i).local_com;
             joint.data.local_frame2.translation = joint.data.local_frame2.translation
                 - *steps.at(j).local_com;
-            out.append(JointBuilder { joint, i, j });
+            (i, j)
         } else {
-            out.append(JointBuilder { joint, i: WORLD, j: WORLD });
-        }
+            (WORLD, WORLD)
+        };
+        let kind = if i == WORLD
+            || (joint.data.limit_axes.bits == 0 && joint.data.motor_axes.bits == 0) {
+            StepKind::Plain
+        } else {
+            specialise(joint)
+        };
+        let step = StepJoint {
+            frame1: joint.data.local_frame1,
+            frame2: joint.data.local_frame2,
+            locks: joint.data.locked_axes,
+            softness: joint.data.softness,
+        };
+        out.append(JointBuilder { joint: step, kind, impulses: joint.impulses, i, j });
     }
     out
 }
+/// Regenerate every joint for a substep in caller order. With `reuse`, warmstart seeds are the
+/// impulses `old` would write back (JL wrote them into a joint copy, then read them again).
 pub(crate) fn rebuild_joints<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     ref bodies: B,
     mut builders: Span<JointBuilder>,
@@ -54,13 +79,55 @@ pub(crate) fn rebuild_joints<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     reuse: bool,
 ) -> Array<JointConstraint> {
     let mut out = array![];
+    // Joint-free islands skip the loop entry, whose Sierra charge follows the body's size.
+    if builders.is_empty() {
+        return out;
+    }
     while let Some(builder) = builders.pop_front() {
-        let JointBuilder { mut joint, i, j } = *builder;
-        if reuse {
-            (*old.at(out.len())).writeback_impulses(ref joint);
-        }
-        let pair = [bodies.get(i), bodies.get(j)];
-        let mut row = JointConstraintTrait::generate(joint, pair.span(), p);
+        let JointBuilder { joint, kind, impulses, i, j } = *builder;
+        let mut row = if i == WORLD {
+            Default::default()
+        } else {
+            match kind {
+                StepKind::Plain => {
+                    let mut seeds = impulses;
+                    if reuse {
+                        let c = *old.at(out.len());
+                        write_rows(c.rows, c.num_rows, ref seeds);
+                    }
+                    assert(i != j, super::super::joint::errors::SAME_BODY);
+                    step::plain(joint, seeds, bodies.get(i), bodies.get(j), p)
+                },
+                StepKind::Controlled(controls) => {
+                    let controls = controls.unbox();
+                    let (seeds, motors, limits) = if reuse {
+                        step::carried(*old.at(out.len()), impulses)
+                    } else {
+                        (impulses, controls.motors, controls.limits)
+                    };
+                    assert(i != j, super::super::joint::errors::SAME_BODY);
+                    step::generate(
+                        joint,
+                        controls,
+                        seeds,
+                        motors,
+                        limits,
+                        bodies.get(i),
+                        bodies.get(j),
+                        p,
+                        true,
+                    )
+                },
+                StepKind::Legacy(legacy) => {
+                    let mut joint = legacy.unbox();
+                    if reuse {
+                        (*old.at(out.len())).writeback_impulses(ref joint);
+                    }
+                    let pair = [bodies.get(i), bodies.get(j)];
+                    JointConstraintTrait::generate(joint, pair.span(), p)
+                },
+            }
+        };
         row.solver_vel1 = i;
         row.solver_vel2 = j;
         out.append(row);
@@ -68,6 +135,9 @@ pub(crate) fn rebuild_joints<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     out
 }
 pub(crate) fn write_joints(mut rows: Span<JointConstraint>, ref js: Array<ImpulseJoint>) {
+    if js.is_empty() {
+        return;
+    }
     let mut out = array![];
     while let Some(mut j) = js.pop_front() {
         (*rows.pop_front().unwrap()).writeback_impulses(ref j);
@@ -95,6 +165,8 @@ pub(crate) mod array_joint;
 
 #[cfg(test)]
 mod joint_checks;
+#[cfg(test)]
+mod joint_rows;
 
 #[cfg(test)]
 mod zero_checks;
@@ -110,6 +182,7 @@ mod variants;
 mod joint_profile {
     use rapier_testing::opaque;
     use super::*;
+    use super::joint_rows::{JlBuilder, prepare_jl};
     use super::super::super::body_store::DenseBodies;
     use super::super::super::joint::alternatives::original;
     use super::super::super::joint::probes::chain;
@@ -126,18 +199,20 @@ mod joint_profile {
             }
         } else {
             let builders = prepare_joints(js.span(), bs.span(), steps.span());
+            let jl = prepare_jl(js.span(), bs.span(), steps.span());
+            let builders = (builders.span(), jl.span());
             if stage == 1 {
                 if run {
                     let mut rows = array![];
                     let mut i = 0;
                     while i != 4 {
-                        rows = rebuild(ref bodies, builders.span(), rows.span(), p, i != 0, old);
+                        rows = rebuild(ref bodies, builders, rows.span(), p, i != 0, old);
                         i += 1;
                     }
                     let _ = opaque(rows.span());
                 }
             } else {
-                let mut rows = rebuild(ref bodies, builders.span(), [].span(), p, false, old);
+                let mut rows = rebuild(ref bodies, builders, [].span(), p, false, old);
                 if run {
                     if stage == 2 {
                         for c in rows.span() {
@@ -329,18 +404,19 @@ mod joint_profile {
     #[inline(always)]
     fn rebuild(
         ref bodies: DenseBodies,
-        mut builders: Span<JointBuilder>,
+        builders: (Span<JointBuilder>, Span<JlBuilder>),
         rows: Span<JointConstraint>,
         p: IntegrationParameters,
         reuse: bool,
         old: bool,
     ) -> Array<JointConstraint> {
+        let (builders, mut jl) = builders;
         if !old {
             return rebuild_joints(ref bodies, builders, rows, p, reuse);
         }
         let mut out = array![];
-        while let Some(builder) = builders.pop_front() {
-            let JointBuilder { mut joint, i, j } = *builder;
+        while let Some(builder) = jl.pop_front() {
+            let JlBuilder { mut joint, i, j } = *builder;
             if reuse {
                 original::writeback_impulses(*rows.at(out.len()), ref joint);
             }

@@ -90,3 +90,13 @@ pub(crate) fn solve_row(
     a.impulse += delta;
     apply(a, delta, im1, im2, ref v1, ref v2);
 }
+/// Zero-trip loop. Calling it gives a loop-free outlined caller a gas wallet, so the caller's
+/// branches refund their unused Sierra gas (JM: a plain generation otherwise pays the three-row
+/// arms of `lock_rows`/`finalize`). Costs a few Cairo steps.
+#[inline(never)]
+pub(crate) fn gas_wallet() {
+    let mut pending = false;
+    while pending {
+        pending = false;
+    }
+}
