@@ -2,6 +2,10 @@
 //! each sweep solves joints before contacts. No sleeping, island discovery, CCD or colouring.
 //! Contact sweeps use cached frame coefficients and two body values; joint sweeps retain
 //! their measured array adapter. Global scattering remains O(1).
+//! With contacts (BT1, `sweeps::split`), constraints are generated once into a frozen span and a
+//! small hot array, and the step runs on a `SweepBodies` store (velocities in the dictionary,
+//! poses in a per-substep array), written back into `bodies` at the end: same arithmetic,
+//! results bit for bit, about half the Cairo steps of the constraint-set sweeps.
 mod empty;
 mod sweeps;
 use fixed::{Fixed, MAX, ZERO};
@@ -11,13 +15,16 @@ use rapier_core::integration_parameters::{IntegrationParameters, IntegrationPara
 use rapier_core::rigid_body::RigidBodyDamping;
 use rapier_geometry2d::contact::ContactManifold;
 use sweeps::array_joint::joints;
+#[cfg(test)]
 use sweeps::contact::contacts;
-use sweeps::{prepare_joints, rebuild_joints};
+use sweeps::split::{SweepBodies, SweepBodiesTrait};
+use sweeps::{prepare_joints, rebuild_joints, split};
 use crate::joint::ImpulseJoint;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use crate::rigid_body_set::RigidBody;
 use super::body::{SolverBody, WORLD};
 use super::body_store::{BodyStep, DenseBodiesTrait, SolverBodyStore, gather, writeback};
+#[cfg(test)]
 use super::contact::ContactConstraintsSetTrait;
 
 /// Invalid timestep/velocity cap. Parameter and fixed-point panics otherwise propagate.
@@ -76,49 +83,44 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let mut cs = ContactConstraintsSetTrait::generate(manifolds.span(), initial.span(), params, dt);
+    let (frozen, mut hot) = split::generate(manifolds.span(), initial.span(), params, dt);
     let builders = prepare_joints(joint_set.span(), initial.span(), steps);
-    if empty::all_inert(cs.constraints.span()) {
+    if frozen.is_empty() {
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let directions = super::contact::cached::prepare(cs.constraints.span());
+    let frozen = frozen.span();
+    let mut sb: SweepBodies = DenseBodiesTrait::new(initial.span());
     let mut rows = array![];
     let mut substep = 0;
     while substep != params.num_solver_iterations {
-        add_forces(ref bodies, steps);
-        rows = rebuild_joints(ref bodies, builders.span(), rows.span(), params, substep != 0);
-        contacts(ref cs, ref bodies, manifolds.span(), params, 0, directions.span());
+        sb.add_forces(steps);
+        rows = rebuild_joints(ref sb, builders.span(), rows.span(), params, substep != 0);
+        split::contacts(ref hot, frozen, ref sb, params, 0);
         let mut i = 0;
         while i != params.num_internal_pgs_iterations {
-            joints(ref rows, ref bodies, true, params.warmstart_joints && i == 0);
-            contacts(ref cs, ref bodies, manifolds.span(), params, 1, directions.span());
+            joints(ref rows, ref sb, true, params.warmstart_joints && i == 0);
+            split::contacts(ref hot, frozen, ref sb, params, 1);
             i += 1;
         }
-        integrate(ref bodies, steps, dt, max_lin, max_ang);
+        sb.integrate(steps, dt, max_lin, max_ang);
         let mut i = 0;
         while i != params.num_internal_stabilization_iterations {
-            joints(ref rows, ref bodies, false, false);
-            contacts(
-                ref cs,
-                ref bodies,
-                manifolds.span(),
-                params,
-                if i == 0 {
-                    2
-                } else {
-                    3
-                },
-                directions.span(),
-            );
+            joints(ref rows, ref sb, false, false);
+            split::contacts(ref hot, frozen, ref sb, params, if i == 0 {
+                2
+            } else {
+                3
+            });
             i += 1;
         }
         substep += 1;
     }
-    contacts(ref cs, ref bodies, manifolds.span(), params, 4, directions.span());
-    cs.writeback_impulses(ref manifolds);
+    split::contacts(ref hot, frozen, ref sb, params, 4);
+    split::writeback(frozen, hot.span(), ref manifolds);
     sweeps::write_joints(rows.span(), ref joint_set);
-    damp(ref bodies, steps, params.dt);
+    sb.damp(steps, params.dt);
+    sb.finish(ref bodies);
 }
 
 fn add_forces<B, +DenseBodiesTrait<B>, +Destruct<B>>(ref bodies: B, steps: Span<BodyStep>) {

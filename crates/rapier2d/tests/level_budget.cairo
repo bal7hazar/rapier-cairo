@@ -14,6 +14,9 @@
 //! the per-stage split of the first 60 ticks). Reproduce with
 //! `snforge test -p rapier2d level_budget --include-ignored --max-n-steps 4000000000`
 //! (add `--tracked-resource cairo-steps` for steps); the figures are in `docs/BUDGETS.md`.
+//!
+//! BT1 adds `stage*` probes (ignored: one impact tick by stage and solver part, exact steps)
+//! and `test_impact_digest_*` (the impact window's world state, pinned bit for bit).
 
 use core::testing::get_available_gas;
 use rapier2d::dispatcher::DefaultDispatcher;
@@ -21,12 +24,18 @@ use rapier2d::pipeline::{
     collision_inputs_sleeping, merge_pairs, solve_and_advance_sleeping, split_dormant,
     update_islands, user_changes_bodies,
 };
-use rapier2d::prelude::{Fixed, RigidBodyTrait, World, WorldTrait};
+use rapier2d::prelude::{Fixed, Handle, RigidBodyTrait, World, WorldTrait};
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
-use rapier_dynamics2d::narrow_phase::compute_contacts_from_scratch;
+use rapier_dynamics2d::narrow_phase::{ContactDispatcher, compute_contacts_from_scratch};
+use rapier_dynamics2d::rigid_body_set::RigidBody;
+use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
+use rapier_dynamics2d::solver::island::solve_island;
 use rapier_geometry2d::broad_phase::find_pairs;
+use rapier_geometry2d::contact::ContactManifold;
+use rapier_geometry2d::shape::Shape;
 use rapier_golden::generated::level_scenes;
+use rapier_math::pose2::Pose2;
 use rapier_testing::opaque;
 use crate::golden_scenes::levels::{awake_count, despawn, handle, level, load_level, tick};
 
@@ -80,37 +89,37 @@ fn gas_baseline() {
 }
 
 #[test]
-#[available_gas(l2_gas: 97082438)]
+#[available_gas(l2_gas: 69809929)]
 fn gas_load_level10() {
     probe(10, 0, 0);
 }
 
 #[test]
-#[available_gas(l2_gas: 278333479)]
+#[available_gas(l2_gas: 251057890)]
 fn gas_flight_level10() {
     probe(10, 0, FLIGHT);
 }
 
 #[test]
-#[available_gas(l2_gas: 772587322)]
+#[available_gas(l2_gas: 548433579)]
 fn gas_impact_level10() {
     probe(10, 0, IMPACT);
 }
 
 #[test]
-#[available_gas(l2_gas: 177012177)]
+#[available_gas(l2_gas: 127680587)]
 fn gas_load_level20() {
     probe(20, 0, 0);
 }
 
 #[test]
-#[available_gas(l2_gas: 479231241)]
+#[available_gas(l2_gas: 429894261)]
 fn gas_flight_level20() {
     probe(20, 0, FLIGHT);
 }
 
 #[test]
-#[available_gas(l2_gas: 1015399572)]
+#[available_gas(l2_gas: 769184438)]
 fn gas_impact_level20() {
     probe(20, 0, IMPACT);
 }
@@ -435,7 +444,7 @@ fn spent(before: u128, after: u128) -> i128 {
 /// stage functions of `rapier2d::pipeline`, in the same order and with the same inputs, and a
 /// gas reading between the stages. The world contains no kinematic body, so
 /// `user_changes_bodies` is the step's own user-change stage.
-fn profiled_step(ref world: World, ref stages: Stages) {
+fn profiled_step(ref world: World, ref stages: Stages, upto: u8, solver: u8) {
     let mut g = get_available_gas();
     let (snapshot, infos, entries, census) = user_changes_bodies(
         ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
@@ -443,6 +452,9 @@ fn profiled_step(ref world: World, ref stages: Stages) {
     let mut now = get_available_gas();
     stages.user_changes += spent(g, now);
     g = now;
+    if upto == 1 {
+        return;
+    }
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping) = collision_inputs_sleeping(
         snapshot, infos, ref world.bodies, prediction,
@@ -457,12 +469,24 @@ fn profiled_step(ref world: World, ref stages: Stages) {
     now = get_available_gas();
     stages.broad += spent(g, now);
     g = now;
-    let _ = compute_contacts_from_scratch::<
-        DefaultDispatcher,
-    >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    if upto == 2 {
+        return;
+    }
+    if upto == 3 && solver == 1 {
+        let _ = compute_contacts_from_scratch::<
+            KeepDispatcher,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    } else {
+        let _ = compute_contacts_from_scratch::<
+            DefaultDispatcher,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    }
     now = get_available_gas();
     stages.narrow += spent(g, now);
     g = now;
+    if upto == 3 {
+        return;
+    }
     let joint_entries = world.impulse_joints.to_array();
     let (entries, sleeping, woken) = update_islands(
         ref world.bodies,
@@ -480,6 +504,12 @@ fn profiled_step(ref world: World, ref stages: Stages) {
     now = get_available_gas();
     stages.islands += spent(g, now);
     g = now;
+    if upto == 4 {
+        if solver != 0 {
+            solver_parts(ref world, entries, sleeping, solver);
+        }
+        return;
+    }
     solve_and_advance_sleeping(
         world.gravity,
         world.integration_parameters,
@@ -513,7 +543,7 @@ fn stages(blocks: u32) {
     let mut windows = array![];
     let mut t = 0;
     while t != 60 {
-        profiled_step(ref world, ref stages);
+        profiled_step(ref world, ref stages, 5, 0);
         let _ = despawn(ref world, n, bounds);
         tick(ref reference, n, bounds);
         t += 1;
@@ -555,4 +585,208 @@ fn profile_stages_level10() {
 #[ignore]
 fn profile_stages_level20() {
     stages(20);
+}
+
+// --- Stage probes (BT1): exact Cairo steps of one impact tick, by stage and solver part. ----
+// Reproduce: `snforge test -p rapier2d level_budget::stage --include-ignored
+// --detailed-resources --tracked-resource cairo-steps`; neighbours' differences give each stage
+// (`setup` is the world before the tick) and part (`input` is the solver input alone).
+
+/// The tick the stage probes measure: the third impact tick of every 60 Hz setting (L10 and
+/// L20: 31 pairs, 20 touching manifolds, 33 solver contacts, 15 solver bodies of which 14 awake).
+const STAGE_TICK: u32 = 28;
+
+/// Narrow-phase stub: keeps the previous manifold (the stage without contact generation).
+impl KeepDispatcher of ContactDispatcher {
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        true
+    }
+}
+
+/// The input of `solve_island` in `solve_and_advance_sleeping` (the level has no joint): the
+/// touching manifolds and the bodies they reference, sleeping ones immovable (manifold order
+/// without the fixed-last partition: the same work); then `part` 2 solves the island, 3 with
+/// 1 substep, 4 with two biased sweeps per substep, 5 with two relaxation sweeps.
+fn solver_parts(ref world: World, entries: Span<(Handle, RigidBody)>, sleeping: bool, part: u8) {
+    let mut params = world.integration_parameters;
+    let mut manifolds = array![];
+    for pair in world.narrow_phase.pairs.span() {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            manifolds.append(*pair.manifold);
+        }
+    }
+    let mut members = array![];
+    for entry in entries {
+        let (handle, body) = entry;
+        let mut referenced = false;
+        for m in manifolds.span() {
+            let (b1, b2) = (*m.data.rigid_body1, *m.data.rigid_body2);
+            referenced = referenced || b1 == Some(*handle) || b2 == Some(*handle);
+        }
+        if referenced {
+            let mut body = *body;
+            body.enabled = body.enabled && !(sleeping && body.activation.sleeping);
+            members.append((*handle, body));
+        }
+    }
+    let mut store = SolverBodyStoreTrait::from_entries(members.span(), world.gravity, params);
+    let mut joints = array![];
+    if part == 3 {
+        params.num_solver_iterations = 1;
+    } else if part == 4 {
+        params.num_internal_pgs_iterations = 2;
+    } else if part == 5 {
+        params.num_internal_stabilization_iterations = 2;
+    }
+    if part >= 2 {
+        solve_island(params, ref store, ref manifolds, ref joints);
+    }
+    let _ = opaque((manifolds.len(), store.len()));
+}
+
+/// Level `blocks` run to the tick before `STAGE_TICK`, then that tick's stages up to `upto`
+/// (1 user changes, 2 broad phase, 3 narrow phase, 4 islands, 5 solver and position update);
+/// `part` is the narrow-phase stub (`upto == 3`) or the solver part (`upto == 4`).
+fn stage(blocks: u32, upto: u8, part: u8) {
+    let mut world = run(opaque(blocks), 0, opaque(STAGE_TICK - 1));
+    if upto != 0 {
+        let mut stages: Stages = Default::default();
+        profiled_step(ref world, ref stages, opaque(upto), opaque(part));
+    }
+    let _ = opaque(world.gravity);
+}
+
+/// Poseidon digest of the serialized world state after the impact window of level `blocks`:
+/// BT1's levers are bit-identical (the digests are those of the solver before BT1).
+fn impact_digest(blocks: u32) -> felt252 {
+    let world = run(blocks, 0, IMPACT);
+    let mut out = array![];
+    world.into_state().serialize(ref out);
+    core::poseidon::poseidon_hash_span(out.span())
+}
+
+#[test]
+fn test_impact_digest_level10() {
+    let digest = 2461782582709462485446536548234317870668566793754787276166295666873025636411;
+    assert_eq!(impact_digest(10), digest);
+}
+
+#[test]
+fn test_impact_digest_level20() {
+    let digest = 2536114172100514642348097745032330135272153081367581830010923825855114040884;
+    assert_eq!(impact_digest(20), digest);
+}
+
+#[test]
+#[ignore]
+fn stage10_setup() {
+    stage(10, 0, 0);
+}
+
+#[test]
+#[ignore]
+fn stage10_user_changes() {
+    stage(10, 1, 0);
+}
+
+#[test]
+#[ignore]
+fn stage10_broad() {
+    stage(10, 2, 0);
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow() {
+    stage(10, 3, 0);
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow_keep() {
+    stage(10, 3, 1);
+}
+
+#[test]
+#[ignore]
+fn stage10_islands() {
+    stage(10, 4, 0);
+}
+
+#[test]
+#[ignore]
+fn stage10_solver() {
+    stage(10, 5, 0);
+}
+
+#[test]
+#[ignore]
+fn stage20_setup() {
+    stage(20, 0, 0);
+}
+
+#[test]
+#[ignore]
+fn stage20_user_changes() {
+    stage(20, 1, 0);
+}
+
+#[test]
+#[ignore]
+fn stage20_broad() {
+    stage(20, 2, 0);
+}
+
+#[test]
+#[ignore]
+fn stage20_narrow() {
+    stage(20, 3, 0);
+}
+
+#[test]
+#[ignore]
+fn stage20_islands() {
+    stage(20, 4, 0);
+}
+
+#[test]
+#[ignore]
+fn stage20_solver() {
+    stage(20, 5, 0);
+}
+
+#[test]
+#[ignore]
+fn stage10_solver_input() {
+    stage(10, 4, 1);
+}
+
+#[test]
+#[ignore]
+fn stage10_solver_island() {
+    stage(10, 4, 2);
+}
+
+#[test]
+#[ignore]
+fn stage10_solver_sub1() {
+    stage(10, 4, 3);
+}
+
+#[test]
+#[ignore]
+fn stage10_solver_biased2() {
+    stage(10, 4, 4);
+}
+
+#[test]
+#[ignore]
+fn stage10_solver_relax2() {
+    stage(10, 4, 5);
 }
