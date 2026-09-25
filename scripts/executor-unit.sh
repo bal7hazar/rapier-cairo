@@ -22,4 +22,5 @@ exec systemd-run --user --collect --quiet --unit "$UNIT" --working-directory "$R
   --setenv=EXECUTOR_LOG_DIR="${EXECUTOR_LOG_DIR:-$ROOT/.executor-logs}" \
   --setenv=EXECUTOR_BASE="${EXECUTOR_BASE:-origin/main}" \
   --setenv=EXECUTOR_MAX_TURNS="${EXECUTOR_MAX_TURNS:-300}" \
+  --setenv=EXECUTOR_FRESH="${EXECUTOR_FRESH:-}" \
   "$ROOT/scripts/executor.sh" "$@"
