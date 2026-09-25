@@ -11,14 +11,12 @@ use glam::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_math::pose2::Pose2;
-use super::super::super::body::{SolverBody, SolverVel, WORLD};
-use super::super::super::contact::element::{max, min, tangent};
-use super::super::super::contact::{
-    ContactConstraint, ContactConstraintElement, SoftCacheTrait, errors, generate_cached,
-};
+use super::super::super::body::{SolverVel, WORLD};
+use super::super::super::contact::element::{max, min};
+use super::super::super::contact::errors;
 
 /// Frame-constant coefficients of one row (normal or tangent).
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
 pub(crate) struct Row {
     pub g1: Fixed,
     pub g2: Fixed,
@@ -28,7 +26,7 @@ pub(crate) struct Row {
 }
 
 /// Frame-constant part of one contact point.
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
 pub(crate) struct FrozenPoint {
     pub n: Row,
     pub t: Row,
@@ -69,7 +67,7 @@ pub(crate) struct Frozen {
 }
 
 /// What the sweeps change for one contact point.
-#[derive(Copy, Drop, Debug, PartialEq)]
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
 pub(crate) struct HotPoint {
     pub impulse: Fixed,
     pub rhs: Fixed,
@@ -85,86 +83,6 @@ pub(crate) struct HotPoint {
 pub(crate) struct Hot {
     pub a: HotPoint,
     pub b: HotPoint,
-}
-
-#[inline(always)]
-fn frozen_point(e: ContactConstraintElement) -> FrozenPoint {
-    let n = e.normal_part;
-    let t = e.tangent_part;
-    FrozenPoint {
-        n: Row { g1: n.gcross1, g2: n.gcross2, ig1: n.ii_gcross1, ig2: n.ii_gcross2, r: n.r },
-        t: Row { g1: t.gcross1, g2: t.gcross2, ig1: t.ii_gcross1, ig2: t.ii_gcross2, r: t.r },
-        local_p1: e.local_p1,
-        local_p2: e.local_p2,
-        dist: e.dist,
-        t_rhs_wo_bias: t.rhs_wo_bias,
-        seed: e.restitution_seed,
-        contact_id: e.contact_id,
-    }
-}
-#[inline(always)]
-fn hot_point(e: ContactConstraintElement) -> HotPoint {
-    HotPoint {
-        impulse: e.normal_part.impulse,
-        rhs: e.normal_part.rhs,
-        cfm: e.normal_part.cfm_factor,
-        t_impulse: e.tangent_part.impulse,
-        t_rhs: e.tangent_part.rhs,
-        acc: e.normal_part.impulse_accumulator,
-        t_acc: e.tangent_part.impulse_accumulator,
-    }
-}
-
-/// Append the split of `c` when it is active; caches `dir * im` for both rows, as
-/// `cached::prepare` does (products floor).
-#[inline(always)]
-fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
-    if c.num_elements != 0 {
-        let t = tangent(c.dir1);
-        let [a, b] = c.elements;
-        frozen
-            .append(
-                Frozen {
-                    i: c.solver_vel1,
-                    j: c.solver_vel2,
-                    dir: c.dir1,
-                    t,
-                    wn: Weights { first: c.dir1 * c.im1, neg_second: -(c.dir1 * c.im2) },
-                    wt: Weights { first: t * c.im1, neg_second: -(t * c.im2) },
-                    limit: c.limit,
-                    count: c.num_elements,
-                    manifold_id: c.manifold_id,
-                    inv_dt: c.inv_dt,
-                    erp_inv_dt: c.erp_inv_dt,
-                    soft_cfm: c.soft_cfm_factor,
-                    a: frozen_point(a),
-                    b: frozen_point(b),
-                },
-            );
-        hot.append(Hot { a: hot_point(a), b: hot_point(b) });
-    }
-}
-
-/// `ContactConstraintsSetTrait::generate` then the split of every active constraint, in one
-/// pass and with the step's constants computed once (`contact::SoftCache`): same constraints,
-/// checks and panics.
-pub(crate) fn generate(
-    mut manifolds: Span<ContactManifold>,
-    bodies: Span<SolverBody>,
-    params: IntegrationParameters,
-    dt: Fixed,
-) -> (Array<Frozen>, Array<Hot>) {
-    let mut cache = SoftCacheTrait::new(params, dt);
-    let mut frozen = array![];
-    let mut hot = array![];
-    let mut id = 0;
-    while let Some(m) = manifolds.pop_front() {
-        let mut c = generate_cached(*m, bodies, dt, ref cache);
-        c.manifold_id = id;
-        push(ref frozen, ref hot, c);
-        id += 1;
-    }
-    (frozen, hot)
 }
 
 /// Visit the active constraints in order: 0 update/warmstart, 1 bias, 2 rhs/relax, 3 relax,
@@ -565,6 +483,8 @@ fn pose(poses: Span<Pose2>, i: u32) -> Pose2 {
 }
 #[cfg(test)]
 mod alternatives;
+mod generation;
+pub(crate) use generation::generate;
 
 mod bodies;
 #[cfg(test)]
