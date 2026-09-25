@@ -644,3 +644,33 @@ fn gas_setup_pendulum() {
 fn gas_step_pendulum() {
     probe(opaque('pendulum'), opaque(3), 1);
 }
+
+/// The built-in one-way cone removes underside and side contacts before solving.
+#[test]
+fn test_one_way_world_above_below_side_and_pair_order() {
+    for second in array![false, true] {
+        for (x, y, accepted) in array![
+            (ZERO, f(2791728742), true), (ZERO, f(-2791728742), false),
+            (f(9234179686), ZERO, false),
+        ] {
+            let mut world = WorldTrait::new(v(ZERO, ZERO), Default::default());
+            let platform = ColliderBuilderTrait::cuboid(ONE + ONE, HALF)
+                .one_way(v(ZERO, ONE), f(429496730))
+                .build();
+            let ball = ColliderBuilderTrait::ball(f(1073741824)).build();
+            let body = RigidBodyTrait::dynamic(at(x, y));
+            let (a, b) = if second {
+                let (_, ball_handle) = world.insert(body, ball);
+                let platform_handle = world.insert_collider(platform, None);
+                (ball_handle, platform_handle)
+            } else {
+                let platform_handle = world.insert_collider(platform, None);
+                let (_, ball_handle) = world.insert(body, ball);
+                (platform_handle, ball_handle)
+            };
+            world.step();
+            let pair = world.contact_pair(a, b).unwrap();
+            assert_eq!(pair.manifold.data.num_solver_contacts != 0, accepted);
+        }
+    }
+}

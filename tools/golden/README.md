@@ -1091,3 +1091,115 @@ New scenes, first step net of paired setup (target mutation included identically
 | kinematic_platform | 7,249,927 | 62,761 |
 | kinematic_pusher | 12,217,090 | 105,421 |
 | dominance_stack | 11,912,964 | 102,455 |
+
+### EV: force events and one-way platforms
+
+`scenes.json` adds `one_way_jump` and `force_event_drop`; every prior scene is unchanged.
+The jump launches a radius-0.25 ball at 8 m/s from y=-2 through the slab, then lands
+on it. The reference uses upstream's `update_as_oneway_platform` hook with local
++Y and an angle of 0.1 radians (snapped to Q32.32). The port exposes this through
+`ColliderBuilderTrait::one_way(local_up, allowed_angle)` instead of user callbacks.
+Both collider orders and rotated platform frames are covered separately.
+
+The three-state helper is preserved: unknown accepts the cone or forbids a
+nonzero normal; allowed remains allowed until solver candidates disappear;
+forbidden remains forbidden until the cone accepts and every candidate has
+strictly positive separation. The existing manifold `user_data` stores two
+independent base-three digits, one per collider, so two platform cones must both
+accept a pair. The field is reserved by this feature while either platform is
+configured. Up vectors must be unit; angles must be in [0, PI].
+
+The force scene drops a rotation-locked unit box onto a solid ground with threshold 20 N.
+The pinned upstream emits one event, at step 34, totaling 333.540000001899 N.
+Force events use only normal impulses. The total scalar is the sum of normal
+impulses divided by dt, the vector is the sum along manifold normals, and the
+maximum is the strongest individual point. Only sides enabling
+`CONTACT_FORCE_EVENTS` contribute to the minimum threshold, with a strict `>`
+comparison. `WorldTrait::step_with_force_events` returns collision and force
+arrays; `step` runs the same computation and discards the force array. Events
+follow ascending pair order. A zero dt maps to a zero inverse for event conversion.
+
+The read-only upstream clone also defines `started` for force-threshold crossings.
+Pinned 0.35.3's event payload lacks that member, so the fixture derives it from
+consecutive event steps (this scene has exactly one pair). The port stores it in
+bit 1 of `PairEventStatus`, independently of collision-start bit 0; tests cover
+consecutive events, strict equality, threshold changes and re-crossing.
+
+Both scenes use a continuous 120-step trajectory replay, and the force scene also
+checks every event step and magnitude. Rotation is locked in both the Rust and
+Cairo drop setups to isolate force reporting from resting-box angular drift.
+Event magnitude comparison uses 8192 times the step in ulps; trajectory
+comparisons retain the existing 4096 times the step, doubled for velocities.
+
+Force events are collected before dormant pairs are restored: a sleeping contact's
+stored impulse does not become a fresh event. Disabled pairs retain their threshold
+status, matching upstream's selected-pair pass; unrelated enabled colliders cannot
+change that bookkeeping. Both step APIs share a generic stage
+implementation; its final operation specializes the returned arrays while preserving
+force-threshold bookkeeping. Ordinary `step` avoids carrying the unused force array
+through its return. `Box<Option<OneWayPlatform>>` keeps the collider's extra storage
+to one word; boxing only the enabled payload needs two words even when disabled.
+Rejected dispatch, metering and storage candidates remain under test-only alternatives.
+
+Final EV P3 costs, net of paired setup probes. Gas baselines are the pre-EV
+snapshots; exact-step baselines are the committed KD measurements above. These
+scenes enable neither feature. Twelve of thirteen meet the +1% target; the tiny
+free-fall scene misses it by 0.050 percentage points in gas and 0.170 in steps.
+The cost is disabled-feature detection and the extra collider word; no force
+conversion or one-way cone arithmetic runs when disabled. Existing Sierra gas
+ceilings still pass.
+
+| Scene | Sierra gas before → EV | Exact steps before → EV | Gas change | Step change |
+|---|---:|---:|---:|---:|
+| free_fall1 | 669,294 → 676,324 | 5,899 → 5,968 | +1.050% | +1.170% |
+| free_fall8 | 3,796,712 → 3,826,982 | 32,702 → 33,002 | +0.797% | +0.917% |
+| free_fall32 | 14,763,648 → 14,873,598 | 126,635 → 127,727 | +0.745% | +0.862% |
+| balls_halfspace1 | 3,845,279 → 3,867,559 | 31,099 → 31,274 | +0.579% | +0.563% |
+| balls_halfspace8 | 26,210,062 → 26,342,732 | 206,988 → 207,940 | +0.506% | +0.460% |
+| balls_halfspace32 | 104,745,608 → 105,256,758 | 827,800 → 831,416 | +0.488% | +0.437% |
+| cuboid_stack1 | 4,137,359 → 4,159,539 | 36,777 → 36,951 | +0.536% | +0.473% |
+| cuboid_stack3 | 11,633,507 → 11,711,927 | 101,950 → 102,500 | +0.674% | +0.539% |
+| cuboid_stack5 | 19,168,775 → 19,303,435 | 167,479 → 168,405 | +0.702% | +0.553% |
+| cuboid_stack10 | 38,178,095 → 38,453,355 | 332,859 → 334,725 | +0.721% | +0.561% |
+| mixed_pile8 | 46,013,497 → 46,232,617 | 375,371 → 376,862 | +0.476% | +0.397% |
+| pendulum_chain1 | 3,687,886 → 3,694,916 | 32,376 → 32,445 | +0.191% | +0.213% |
+| pendulum_chain3 | 9,876,674 → 9,890,344 | 86,367 → 86,502 | +0.138% | +0.156% |
+
+The cone candidates cost 185,010 gas (local frame, shipped) versus 192,730
+(world-frame rotations), net of the 14,120 baseline. A fixed-seed fuzzer compares
+them for axis-aligned and quarter-turn platform frames; local coordinates also
+follow upstream's helper directly. The four-copy disabled-storage probes cost
+6,190 gas for the shipped boxed optional value versus 7,140 for an optional box,
+net of their 13,620 baseline. The event constructor costs 31,953 gas net of its
+14,320 baseline; the synthetic-pair collection probe costs 179,008 net of 14,120
+and includes fixture construction.
+
+Isolated metered-helper probes (same synthetic world, net of 14,120) favor the
+reduced-argument helper: off/on 109,760/227,608 gas versus 114,080/231,928 when
+carrying the whole world. The complete-step context reverses that ordering,
+which is why the end-to-end probes decide the shipped implementation.
+
+Enabled-feature probes use `step_with_force_events`, net of identical setup and
+warm-up: the passing contact at jump step 8, and the force-drop impact at step 34.
+
+| Enabled scene step | Sierra gas | Exact Cairo steps |
+|---|---:|---:|
+| one_way_jump, passing | 1,087,699 | 9,464 |
+| force_event_drop, impact | 6,065,391 | 52,827 |
+
+Complete-step dispatch candidates use the same one-ball world after two warm-up
+steps, subtracting `gas_step_dispatch_setup` (2,076,899 gas). The ordinary and
+force-returning APIs share stages but specialize their return shape.
+
+| Return / optional-event arrangement | Net Sierra gas |
+|---|---:|
+| Collision array only (shipped) | 680,614 |
+| Two arrays, direct branch (shipped) | 681,314 |
+| Whole-world metered helper | 683,694 |
+| Reduced-argument metered helper | 686,694 |
+| Direct branch, explicit gas wallet | 683,974 |
+| Capture unit, assemble return after merge (tie, rejected for extra machinery) | 680,614 |
+
+The direct branch retained as a standalone whole-step alternative ties the
+shipped two-array mode. The outer `World::step` wrapper also ties its direct-call
+probe. All candidates and their probes remain in the tree.

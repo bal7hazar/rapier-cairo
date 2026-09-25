@@ -44,8 +44,8 @@
 //! Deviations from upstream: one manifold per pair (every supported shape is convex); no
 //! contact skin, no velocity-based speculative contacts (upstream also keeps a point beyond
 //! `prediction` when the bodies approach it within `dt`), no solver-contact modification hooks,
-//! no contact recycling, no sensor intersection pairs, no contact-force events; an unsupported
-//! pair (`contact_manifold` returning `false`) gets its manifold cleared.
+//! no contact recycling or sensor intersection pairs; force events are collected by the world; an
+//! unsupported pair (`contact_manifold` returning `false`) gets its manifold cleared.
 
 use core::num::traits::Zero;
 use fixed::Fixed;
@@ -65,6 +65,7 @@ use rapier_geometry2d::contact::{
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
+use crate::collider::components::BoxedOneWayPlatformPartialEq;
 use crate::collider::{Collider, ColliderTrait};
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
 use crate::events::{
@@ -78,6 +79,8 @@ mod alternatives;
 mod benches;
 #[cfg(test)]
 pub(crate) mod mock;
+
+pub mod one_way;
 #[cfg(test)]
 mod tests;
 
@@ -155,6 +158,8 @@ pub struct PairCollider {
     pub collision_groups: InteractionGroups,
     pub solver_groups: InteractionGroups,
     pub active_events: ActiveEvents,
+    /// Optional platform cone, copied without expanding its boxed data.
+    pub one_way: Box<Option<crate::collider::components::OneWayPlatform>>,
     /// Parent body; `None` for a standalone collider, which behaves as attached to a fixed body.
     pub body: Option<Handle>,
     pub body_type: RigidBodyType,
@@ -186,6 +191,7 @@ pub fn pair_collider(handle: Handle, collider: Collider, ref bodies: RigidBodySe
         collision_groups: collider.flags.collision_groups,
         solver_groups: collider.flags.solver_groups,
         active_events: collider.flags.active_events,
+        one_way: collider.one_way,
         body: collider.parent(),
         body_type,
         world_com,
@@ -382,7 +388,7 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
         if pair_filtered(co1, co2) {
             let mut event_status = status;
             if had_contact && events_on(co1, co2) {
-                event_status = PairEventStatusTrait::empty();
+                event_status.bits = event_status.bits & 252;
                 transitions.append(stopped(h1, h2, CollisionEventFlagsTrait::empty()));
             }
             current
@@ -402,10 +408,10 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
         let mut event_status = status;
         if has_contact != had_contact && events_on(co1, co2) {
             if has_contact {
-                event_status = START_EVENT_EMITTED;
+                event_status.bits = event_status.bits | START_EVENT_EMITTED.bits;
                 transitions.append(started(h1, h2));
             } else {
-                event_status = PairEventStatusTrait::empty();
+                event_status.bits = event_status.bits & 252;
                 transitions.append(stopped(h1, h2, CollisionEventFlagsTrait::empty()));
             }
         }
@@ -514,10 +520,10 @@ pub fn pair_transition(
     let mut event = None;
     if has_contact != had_contact && events_on(co1, co2) {
         if has_contact {
-            pair.event_status = START_EVENT_EMITTED;
+            pair.event_status.bits = pair.event_status.bits | START_EVENT_EMITTED.bits;
             event = Some(started(co1.handle, co2.handle));
         } else {
-            pair.event_status = PairEventStatusTrait::empty();
+            pair.event_status.bits = pair.event_status.bits & 252;
             event = Some(stopped(co1.handle, co2.handle, CollisionEventFlagsTrait::empty()));
         }
     }
@@ -621,6 +627,9 @@ pub fn solver_data(
     }
     manifold.data.solver_contacts = [first, second];
     manifold.data.num_solver_contacts = count;
+    if co1.one_way.unbox().is_some() || co2.one_way.unbox().is_some() {
+        one_way::filter(ref manifold, co1, co2);
+    }
     manifold
 }
 

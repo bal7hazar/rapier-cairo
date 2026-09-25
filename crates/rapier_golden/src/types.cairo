@@ -738,3 +738,16 @@ pub struct SceneWarmstartRaw {
     pub warmstart_impulse: i64,
     pub warmstart_tangent_impulse: i64,
 }
+
+/// Post-solver normal-force event from upstream; Q32.32 raw fields.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ForceEventRaw {
+    pub step: u32,
+    pub collider1: u32,
+    pub collider2: u32,
+    pub total_force: Vec2Raw,
+    pub total_force_magnitude: i64,
+    pub max_force_direction: Vec2Raw,
+    pub max_force_magnitude: i64,
+    pub started: bool,
+}

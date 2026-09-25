@@ -129,6 +129,7 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
     let num_steps = json["num_steps"].as_u64().unwrap();
 
     let mut joint_cases = Vec::new();
+    let mut ev_cases = Vec::new();
     let mut kd_cases = Vec::new();
     let cases: Vec<(String, Node)> = json["scenes"]
         .as_array()
@@ -242,7 +243,10 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
                     ("samples", Node::Array(samples)),
                 ],
             );
-            if !c["kd_control"].is_null() {
+            if !c["ev_control"].is_null() {
+                ev_cases.push((const_name(c), node, c));
+                None
+            } else if !c["kd_control"].is_null() {
                 let control = &c["kd_control"];
                 kd_cases.push((
                     const_name(c),
@@ -407,6 +411,46 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
             files.push(("scenes/dominance_stack/warmstart", warm.finish(&ALL_TYPES)));
             leaf.body.push_str("\npub mod warmstart;\n");
         }
+        files.push((path, leaf.finish(&ALL_TYPES)));
+    }
+    for (name, node, scene) in ev_cases {
+        let path = if name == "ONE_WAY_JUMP" {
+            "scenes/one_way_jump"
+        } else {
+            "scenes/force_event_drop"
+        };
+        parent.push_str(&format!("\npub mod {};\n", path.split('/').nth(1).unwrap()));
+        let mut leaf = Module::new("scenes.json", "EV upstream scene and force events.");
+        leaf.body.push_str(&konst(&name, "SceneCase", &node));
+        let mut previous = None;
+        let events: Vec<Node> = scene["force_events"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| {
+                let step = e["step"].as_u64().unwrap();
+                let started = previous != Some(step - 1);
+                previous = Some(step);
+                Node::Struct(
+                    "crate::types::ForceEventRaw",
+                    vec![
+                        ("step", int(&e["step"])),
+                        ("collider1", int(&e["collider1"])),
+                        ("collider2", int(&e["collider2"])),
+                        ("total_force", vec2(&e["total_force"])),
+                        ("total_force_magnitude", raw(&e["total_force_magnitude"])),
+                        ("max_force_direction", vec2(&e["max_force_direction"])),
+                        ("max_force_magnitude", raw(&e["max_force_magnitude"])),
+                        ("started", Node::Lit(started.to_string())),
+                    ],
+                )
+            })
+            .collect();
+        leaf.body.push_str(&konst(
+            "EVENTS",
+            &format!("[crate::types::ForceEventRaw; {}]", events.len()),
+            &Node::Array(events),
+        ));
         files.push((path, leaf.finish(&ALL_TYPES)));
     }
     files.push(("scenes", parent));

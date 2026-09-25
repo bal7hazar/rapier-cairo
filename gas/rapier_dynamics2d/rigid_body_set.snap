@@ -6,7 +6,7 @@ rapier_dynamics2d::rigid_body_set::tests::gas_get_set 107222
 rapier_dynamics2d::rigid_body_set::tests::gas_impulses 140284
 rapier_dynamics2d::rigid_body_set::tests::gas_insert 72862
 rapier_dynamics2d::rigid_body_set::tests::gas_iter_8 397042
-rapier_dynamics2d::rigid_body_set::tests::gas_propagate_modified_body_positions_8 2767790
+rapier_dynamics2d::rigid_body_set::tests::gas_propagate_modified_body_positions_8 2781190
 rapier_dynamics2d::rigid_body_set::tests::gas_remove 119212
 rapier_dynamics2d::rigid_body_set::tests::gas_sleeping_body 41752
 rapier_dynamics2d::rigid_body_set::tests::gas_wake_up 43535

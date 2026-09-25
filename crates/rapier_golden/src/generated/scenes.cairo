@@ -8344,6 +8344,10 @@ pub fn joint_cases() -> Span<crate::types::JointSceneCase> {
 
 pub mod dominance_stack;
 
+pub mod force_event_drop;
+
 pub mod kinematic_platform;
 
 pub mod kinematic_pusher;
+
+pub mod one_way_jump;

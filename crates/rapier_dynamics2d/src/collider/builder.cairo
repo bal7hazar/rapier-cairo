@@ -9,6 +9,7 @@
 //! deprecated `position_wrt_parent` and `delta`, the shapes that are not in the closed `Shape`
 //! enum and `contact_skin` are not ported.
 
+use fixed::trig::TrigTrait;
 use fixed::{Fixed, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::collider::{
@@ -23,8 +24,14 @@ use rapier_geometry2d::shape::{
 };
 use rapier_math::pose2::{IDENTITY, Pose2};
 use rapier_math::rot2::Rot2;
+use crate::collider::components::{BoxedOneWayPlatformPartialEq, BoxedOneWayPlatformSerde};
 use super::components::{ColliderMassProps, ColliderPosition};
 use super::object::Collider;
+
+/// Invalid one-way configuration.
+pub mod errors {
+    pub const ONE_WAY_ANGLE: felt252 = 'OneWay: invalid angle';
+}
 
 /// The settings of a collider to be built.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -48,6 +55,8 @@ pub struct ColliderBuilder {
     pub solver_groups: InteractionGroups,
     pub enabled: bool,
     pub contact_force_event_threshold: Fixed,
+    /// Built-in one-way platform; no hooks required.
+    pub one_way: Box<Option<super::components::OneWayPlatform>>,
 }
 
 /// Upstream default: a ball of radius `0.5`.
@@ -78,6 +87,7 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
             solver_groups: InteractionGroupsTrait::all(),
             enabled: true,
             contact_force_event_threshold: ZERO,
+            one_way: BoxTrait::new(None),
         }
     }
 
@@ -218,6 +228,18 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
         ColliderBuilder { enabled, ..self }
     }
 
+    /// Enables the one-way cone around unit `local_up`, in this collider's frame.
+    /// `allowed_angle` is in radians, in [0, PI]; cosine uses fixed trig rounding.
+    /// Passing contacts remain forbidden until separated on the allowed side.
+    /// Panics on an angle outside [0, PI]. The caller supplies a unit up vector.
+    fn one_way(self: ColliderBuilder, local_up: Vec2, allowed_angle: Fixed) -> ColliderBuilder {
+        assert(allowed_angle >= ZERO && allowed_angle <= fixed::PI, errors::ONE_WAY_ANGLE);
+        let config = super::components::OneWayPlatform {
+            local_up, cos_allowed_angle: allowed_angle.cos(),
+        };
+        ColliderBuilder { one_way: BoxTrait::new(Some(config)), ..self }
+    }
+
     /// The collider: no parent, `changes = ColliderChanges::all()`, world pose = `position`.
     fn build(self: ColliderBuilder) -> Collider {
         Collider {
@@ -250,6 +272,7 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
                 },
             },
             contact_force_event_threshold: self.contact_force_event_threshold,
+            one_way: self.one_way,
             user_data: self.user_data,
         }
     }
@@ -455,5 +478,30 @@ mod tests {
     #[test]
     fn gas_ball_and_build() {
         let _ = ColliderBuilderTrait::ball(opaque(ONE)).density(opaque(TWO)).build();
+    }
+    #[test]
+    fn gas_one_way() {
+        let co = ColliderBuilderTrait::ball(HALF)
+            .one_way(Vec2 { x: ZERO, y: opaque(ONE) }, opaque(HALF))
+            .build();
+        assert!(co.one_way.unbox().is_some());
+    }
+    #[test]
+    fn test_one_way_defaults_and_serialization() {
+        let plain = ColliderBuilderTrait::ball(HALF).build();
+        assert!(plain.one_way.unbox().is_none());
+        let co = ColliderBuilderTrait::ball(HALF).one_way(Vec2 { x: ZERO, y: ONE }, ZERO).build();
+        let mut data = array![];
+        co.serialize(ref data);
+        let mut serialized = data.span();
+        let back: super::Collider = Serde::deserialize(ref serialized).unwrap();
+        assert_eq!(co, back);
+        assert!(serialized.is_empty());
+    }
+
+    #[test]
+    #[should_panic(expected: ('OneWay: invalid angle',))]
+    fn test_one_way_invalid_angle() {
+        let _ = ColliderBuilderTrait::ball(HALF).one_way(Vec2 { x: ZERO, y: ONE }, -ONE);
     }
 }
