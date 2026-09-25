@@ -19,7 +19,10 @@ pub mod prelude {
         FixedJointBuilderTrait, GenericJointTrait, PrismaticJointBuilderTrait,
         RevoluteJointBuilderTrait,
     };
-    pub use rapier_dynamics2d::{CollisionEvent, CollisionEventTrait, RigidBody, RigidBodyTrait};
+    pub use rapier_dynamics2d::{
+        CollisionEvent, CollisionEventTrait, RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait,
+        RigidBodyTrait,
+    };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
     pub use crate::dispatcher::DefaultDispatcher;

@@ -16,7 +16,10 @@ pub use events::{CollisionEvent, CollisionEventTrait};
 pub use narrow_phase::{
     ContactDispatcher, ContactPair, ContactPairTrait, NarrowPhase, NarrowPhaseTrait,
 };
-pub use rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
+pub use rigid_body_set::{
+    RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait,
+    RigidBodyTrait,
+};
 pub use solver::body_store::{
     SolverBodyIndexMap, SolverBodyIndexMapTrait, SolverBodyStore, SolverBodyStoreTrait,
 };
