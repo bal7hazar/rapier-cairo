@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 336 | 0 | 488 | 387 | 1211 | 40.8% |
-| geometry | 156 | 0 | 153 | 16 | 325 | 50.5% |
+| dynamics | 343 | 0 | 474 | 394 | 1211 | 42.0% |
+| geometry | 189 | 0 | 116 | 20 | 325 | 62.0% |
 | parry::bounding_volume | 9 | 0 | 83 | 30 | 122 | 9.8% |
 | parry::mass_properties | 13 | 0 | 10 | 7 | 30 | 56.5% |
 | parry::query | 7 | 0 | 305 | 112 | 424 | 2.2% |
 | parry::shape | 44 | 0 | 241 | 136 | 421 | 15.4% |
-| pipeline | 40 | 0 | 65 | 53 | 158 | 38.1% |
-| **total** | **605** | **0** | **1392** | **741** | **2738** | **30.3%** |
+| pipeline | 55 | 0 | 35 | 68 | 158 | 61.1% |
+| **total** | **660** | **0** | **1311** | **767** | **2738** | **33.5%** |
 
-Cairo-only public items not matched to upstream: **976**.
+Cairo-only public items not matched to upstream: **984**.
 
 ## Aabb
 
@@ -263,8 +263,8 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | pipeline | missing | Not found on Cairo candidate(s): ChannelEventCollector, ChannelEventCollectorTrait. | `rapier/src/pipeline/event_handler.rs` |
-| type `ChannelEventCollector` | pipeline | missing | Not found on Cairo candidate(s): ChannelEventCollector, ChannelEventCollectorTrait. | `rapier/src/pipeline/event_handler.rs` |
+| method `new` | pipeline | excluded | dyn hooks | `rapier/src/pipeline/event_handler.rs` |
+| type `ChannelEventCollector` | pipeline | excluded | dyn hooks | `rapier/src/pipeline/event_handler.rs` |
 
 ## CharacterAutostep
 
@@ -313,19 +313,19 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `From<ColliderBuilder>` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
+| impl `From<ColliderBuilder>` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `active_collision_types` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `active_events` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `active_hooks` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `collision_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `compute_aabb` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `compute_broad_phase_aabb` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
-| method `compute_collision_aabb` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
-| method `compute_swept_aabb` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
+| method `compute_broad_phase_aabb` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
+| method `compute_collision_aabb` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
+| method `compute_swept_aabb` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_skin` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
-| method `copy_from` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
-| method `deformable_mesh_ref` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
+| method `copy_from` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
+| method `deformable_mesh_ref` | geometry | excluded | soft bodies | `rapier/src/geometry/collider.rs` |
 | method `density` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `friction` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `friction_combine_rule` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -364,8 +364,8 @@ Cairo-only public items not matched to upstream: **976**.
 | method `set_translation` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `set_translation_wrt_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `shape` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `shape_mut` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
-| method `shared_shape` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
+| method `shape_mut` | geometry | ported | Mapped to Collider.shape | `rapier/src/geometry/collider.rs` |
+| method `shared_shape` | geometry | ported | Mapped to Collider.shape | `rapier/src/geometry/collider.rs` |
 | method `solver_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `translation` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `volume` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -384,7 +384,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `capsule_from_endpoints` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `capsule_x` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `capsule_y` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `capsule_z` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `capsule_z` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
 | method `collision_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `compound` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `cone` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
@@ -393,14 +393,14 @@ Cairo-only public items not matched to upstream: **976**.
 | method `converted_trimesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `convex_decomposition` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `convex_decomposition_with_params` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `convex_hull` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `convex_hull` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `convex_mesh` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `convex_polyline` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `cuboid` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `cylinder` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
-| method `default_density` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `default_friction` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `delta` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `default_density` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
+| method `default_friction` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
+| method `delta` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `density` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `enabled` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `friction` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -415,7 +415,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `polyline` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `polyline_with_flags` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `position` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `position_wrt_parent` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `position_wrt_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `restitution` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `restitution_combine_rule` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `rotation` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -436,7 +436,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `trimesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `trimesh_with_flags` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `user_data` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `voxelized_mesh` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `voxelized_mesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `voxels` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `voxels_from_points` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | type `ColliderBuilder` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -445,7 +445,7 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): ColliderChanges, ColliderChangesTrait. | `rapier/src/geometry/collider_components.rs` |
+| impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
 | method `needs_broad_phase_update` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
 | method `needs_narrow_phase_update` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
 | type `ColliderChanges` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
@@ -475,10 +475,10 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `from_raw_parts` | geometry | missing | Not found on Cairo candidate(s): Handle, HandleTrait. | `rapier/src/geometry/collider_handle.rs` |
+| method `from_raw_parts` | geometry | ported | Mapped to Handle.new | `rapier/src/geometry/collider_handle.rs` |
 | method `into_raw_parts` | geometry | ported | Mapped to Handle.into_raw_parts | `rapier/src/geometry/collider_handle.rs` |
 | method `invalid` | geometry | ported | Mapped to Handle.invalid | `rapier/src/geometry/collider_handle.rs` |
-| type `ColliderHandle` | geometry | missing | Not found on Cairo candidate(s): Handle, HandleTrait. | `rapier/src/geometry/collider_handle.rs` |
+| type `ColliderHandle` | geometry | ported | Mapped to Handle.Handle | `rapier/src/geometry/collider_handle.rs` |
 
 ## ColliderMassProps
 
@@ -501,11 +501,11 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): ColliderPair, ColliderPairTrait. | `rapier/src/geometry/broad_phase_pair_event.rs` |
-| method `new` | geometry | missing | Not found on Cairo candidate(s): ColliderPair, ColliderPairTrait. | `rapier/src/geometry/broad_phase_pair_event.rs` |
-| method `swap` | geometry | missing | Not found on Cairo candidate(s): ColliderPair, ColliderPairTrait. | `rapier/src/geometry/broad_phase_pair_event.rs` |
-| method `zero` | geometry | missing | Not found on Cairo candidate(s): ColliderPair, ColliderPairTrait. | `rapier/src/geometry/broad_phase_pair_event.rs` |
-| type `ColliderPair` | geometry | missing | Not found on Cairo candidate(s): ColliderPair, ColliderPairTrait. | `rapier/src/geometry/broad_phase_pair_event.rs` |
+| impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/broad_phase_pair_event.rs` |
+| method `new` | geometry | ported | Same public name. | `rapier/src/geometry/broad_phase_pair_event.rs` |
+| method `swap` | geometry | ported | Same public name. | `rapier/src/geometry/broad_phase_pair_event.rs` |
+| method `zero` | geometry | ported | Same public name. | `rapier/src/geometry/broad_phase_pair_event.rs` |
+| type `ColliderPair` | geometry | ported | Same public name. | `rapier/src/geometry/broad_phase_pair_event.rs` |
 
 ## ColliderParent
 
@@ -518,8 +518,8 @@ Cairo-only public items not matched to upstream: **976**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
-| impl `From<T>` | geometry | missing | Not found on Cairo candidate(s): ColliderPosition, ColliderPositionTrait. | `rapier/src/geometry/collider_components.rs` |
-| method `identity` | geometry | missing | Not found on Cairo candidate(s): ColliderPosition, ColliderPositionTrait. | `rapier/src/geometry/collider_components.rs` |
+| impl `From<T>` | geometry | ported | Mapped to ColliderPosition.From<Pose2> | `rapier/src/geometry/collider_components.rs` |
+| method `identity` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
 | type `ColliderPosition` | geometry | ported | Same public name. | `rapier/src/geometry/collider_components.rs` |
 
 ## ColliderSet
@@ -531,33 +531,33 @@ Cairo-only public items not matched to upstream: **976**.
 | impl `IndexMut<ColliderHandle>` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
 | method `contains` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `get` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `get_mut` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `get_pair_mut` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `get_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `get_unknown_gen_mut` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `get_mut` | geometry | ported | Mapped to ColliderSet.get | `rapier/src/geometry/collider_set.rs` |
+| method `get_pair_mut` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
+| method `get_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
+| method `get_unknown_gen_mut` | geometry | ported | Mapped to ColliderSet.get_unknown_gen | `rapier/src/geometry/collider_set.rs` |
 | method `insert` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `insert_deformable` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `insert_deformable` | geometry | excluded | soft bodies | `rapier/src/geometry/collider_set.rs` |
 | method `insert_with_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `invalid_handle` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `invalid_handle` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `is_empty` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `iter` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `iter_enabled` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `iter_enabled_mut` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `iter_mut` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `iter_enabled` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
+| method `iter_enabled_mut` | geometry | ported | Mapped to ColliderSet.iter_enabled | `rapier/src/geometry/collider_set.rs` |
+| method `iter_mut` | geometry | ported | Mapped to ColliderSet.iter | `rapier/src/geometry/collider_set.rs` |
 | method `len` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `new` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `remove` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `set_parent` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `set_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `take_modified` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
 | method `take_removed` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `with_capacity` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `with_capacity` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | type `ColliderSet` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 
 ## ColliderShape
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ColliderShape` | geometry | missing | Not found on Cairo candidate(s): ColliderShape, ColliderShapeTrait. | `rapier/src/geometry/collider_components.rs` |
+| type `ColliderShape` | geometry | ported | Mapped to Shape.Shape | `rapier/src/geometry/collider_components.rs` |
 
 ## ColliderType
 
@@ -588,10 +588,10 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | pipeline | missing | Not found on Cairo candidate(s): CollisionPipeline, CollisionPipelineTrait. | `rapier/src/pipeline/collision_pipeline.rs` |
-| method `new` | pipeline | missing | Not found on Cairo candidate(s): CollisionPipeline, CollisionPipelineTrait. | `rapier/src/pipeline/collision_pipeline.rs` |
-| method `step` | pipeline | missing | Not found on Cairo candidate(s): CollisionPipeline, CollisionPipelineTrait. | `rapier/src/pipeline/collision_pipeline.rs` |
-| type `CollisionPipeline` | pipeline | missing | Not found on Cairo candidate(s): CollisionPipeline, CollisionPipelineTrait. | `rapier/src/pipeline/collision_pipeline.rs` |
+| impl `Default` | pipeline | ported | Same public name. | `rapier/src/pipeline/collision_pipeline.rs` |
+| method `new` | pipeline | ported | Same public name. | `rapier/src/pipeline/collision_pipeline.rs` |
+| method `step` | pipeline | ported | Same public name. | `rapier/src/pipeline/collision_pipeline.rs` |
+| type `CollisionPipeline` | pipeline | ported | Same public name. | `rapier/src/pipeline/collision_pipeline.rs` |
 
 ## CompositeShape
 
@@ -1463,12 +1463,12 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `active_bodies` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands. | `rapier/src/dynamics/island_manager/manager.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands. | `rapier/src/dynamics/island_manager/manager.rs` |
-| method `num_active_bodies` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands. | `rapier/src/dynamics/island_manager/manager.rs` |
-| method `persistent_island_of` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands. | `rapier/src/dynamics/island_manager/manager.rs` |
-| method `wake_up` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands. | `rapier/src/dynamics/island_manager/sleep.rs` |
-| type `IslandManager` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands. | `rapier/src/dynamics/island_manager/manager.rs` |
+| method `active_bodies` | dynamics | ported | Mapped to World.active_bodies | `rapier/src/dynamics/island_manager/manager.rs` |
+| method `new` | dynamics | ported | Mapped to World.new | `rapier/src/dynamics/island_manager/manager.rs` |
+| method `num_active_bodies` | dynamics | ported | Mapped to World.num_active_bodies | `rapier/src/dynamics/island_manager/manager.rs` |
+| method `persistent_island_of` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands, World, WorldTrait. | `rapier/src/dynamics/island_manager/manager.rs` |
+| method `wake_up` | dynamics | ported | Mapped to World.wake_up | `rapier/src/dynamics/island_manager/sleep.rs` |
+| type `IslandManager` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands, World, WorldTrait. | `rapier/src/dynamics/island_manager/manager.rs` |
 
 ## JointAxesMask
 
@@ -2028,32 +2028,32 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `clear_thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `configure_thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `new` | pipeline | ported | Mapped to World.new | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `num_threads` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `quarantine` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
-| method `set_thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `step` | pipeline | ported | Mapped to World.step, pipeline.step | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| type `PhysicsPipeline` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, WorldTrait. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| impl `Default` | pipeline | ported | Same public name. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `clear_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `configure_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `new` | pipeline | ported | Same public name. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `num_threads` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `quarantine` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, PhysicsPipeline, WorldTrait, PhysicsPipelineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| method `set_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `step` | pipeline | ported | Same public name. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| method `thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
+| type `PhysicsPipeline` | pipeline | ported | Same public name. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
 
 ## PhysicsWorld
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `active_bodies` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| impl `Default` | pipeline | ported | Mapped to World.Default | `rapier/src/pipeline/physics_world.rs` |
+| method `active_bodies` | pipeline | ported | Mapped to World.active_bodies | `rapier/src/pipeline/physics_world.rs` |
 | method `add_soft_body_cluster` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
-| method `all_colliders` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `all_colliders_mut` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `all_colliders` | pipeline | ported | Mapped to World.all_colliders | `rapier/src/pipeline/physics_world.rs` |
+| method `all_colliders_mut` | pipeline | ported | Mapped to World.all_colliders | `rapier/src/pipeline/physics_world.rs` |
 | method `cast_ray` | pipeline | ported | Mapped to World.cast_ray | `rapier/src/pipeline/physics_world.rs` |
 | method `cast_ray_and_get_normal` | pipeline | ported | Mapped to World.cast_ray_and_get_normal | `rapier/src/pipeline/physics_world.rs` |
 | method `cast_shape` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
 | method `cast_shape_nonlinear` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `clear_thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `configure_thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `clear_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
+| method `configure_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `contact_pair` | pipeline | ported | Mapped to World.contact_pair | `rapier/src/pipeline/physics_world.rs` |
 | method `contact_pairs` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
 | method `contact_pairs_with` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
@@ -2064,7 +2064,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `insert` | pipeline | ported | Mapped to World.insert | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_body` | pipeline | ported | Mapped to World.insert_body | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_collider` | pipeline | ported | Mapped to World.insert_collider | `rapier/src/pipeline/physics_world.rs` |
-| method `insert_deformable` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `insert_deformable` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_impulse_joint` | pipeline | ported | Mapped to World.insert_impulse_joint | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_multibody_joint` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_soft_body` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
@@ -2078,7 +2078,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `multibody_joints` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `multibody_joints_with` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `new` | pipeline | ported | Mapped to World.new | `rapier/src/pipeline/physics_world.rs` |
-| method `num_threads` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `num_threads` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `project_point` | pipeline | ported | Mapped to World.project_point | `rapier/src/pipeline/physics_world.rs` |
 | method `project_point_and_get_feature` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
 | method `quarantine` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
@@ -2090,17 +2090,17 @@ Cairo-only public items not matched to upstream: **976**.
 | method `remove_multibody_joint` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `remove_soft_body` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
 | method `remove_soft_body_cluster` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
-| method `rigid_bodies` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `rigid_bodies_mut` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `set_thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `soft_bodies` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `rigid_bodies` | pipeline | ported | Mapped to World.rigid_bodies | `rapier/src/pipeline/physics_world.rs` |
+| method `rigid_bodies_mut` | pipeline | ported | Mapped to World.rigid_bodies | `rapier/src/pipeline/physics_world.rs` |
+| method `set_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
+| method `soft_bodies` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
 | method `step` | pipeline | ported | Mapped to World.step | `rapier/src/pipeline/physics_world.rs` |
-| method `step_with_events` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `step_with_events` | pipeline | ported | Mapped to World.step_with_force_events | `rapier/src/pipeline/physics_world.rs` |
 | method `tear_soft_body` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
-| method `thread_pool` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `wake_up` | pipeline | ported | Mapped to World.wake_up | `rapier/src/pipeline/physics_world.rs` |
-| method `wake_up_all` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| type `PhysicsWorld` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `wake_up_all` | pipeline | ported | Mapped to World.wake_up_all | `rapier/src/pipeline/physics_world.rs` |
+| type `PhysicsWorld` | pipeline | ported | Mapped to World.World | `rapier/src/pipeline/physics_world.rs` |
 
 ## PidController
 
@@ -2332,7 +2332,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `bodies` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 | method `colliders` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 | method `is_empty` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
-| method `soft_bodies` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| method `soft_bodies` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 | type `Quarantine` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 
 ## QueryDispatcher
@@ -2684,9 +2684,9 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `attach_collider` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyColliders, RigidBodyCollidersTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `detach_collider` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyColliders, RigidBodyCollidersTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `RigidBodyColliders` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyColliders, RigidBodyCollidersTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `attach_collider` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `detach_collider` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `RigidBodyColliders` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyColliders, RigidBodySet, RigidBodyCollidersTrait, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyDamping
 
@@ -2746,7 +2746,7 @@ Cairo-only public items not matched to upstream: **976**.
 | method `effective_mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `max_extent` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `recompute_mass_properties_from_colliders` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyMassProps, RigidBodyMassPropsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `recompute_mass_properties_from_colliders` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `update_world_mass_properties` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | type `RigidBodyMassProps` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
@@ -3607,13 +3607,13 @@ Cairo-only public items not matched to upstream: **976**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `coefficients` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
-| method `invert_block` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
-| method `is_strained` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
-| method `strain_block` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): SoftElasticConstraint, SoftElasticConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `coefficients` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `invert_block` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `is_strained` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `strain_block` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `update` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
+| method `warmstart` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs` |
 
 ## SoftFemParameters
 
@@ -4641,13 +4641,13 @@ Cairo-only public items not matched to upstream: **976**.
 | [Query completion](#wp-query-completion) | 342 | standard | QP queries |
 | [Joint API completion](#wp-joint-api-completion) | 239 | standard | JL/RJ |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 210 | standard | shape interface |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 177 | mechanical | AP triage |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 171 | mechanical | AP triage |
 | [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 101 | standard | geometry |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 91 | hard | QP queries |
-| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 67 | standard | P1/SL/EV |
-| [Collider API completion](#wp-collider-api-completion) | 57 | mechanical | DB/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 47 | standard | SE sensors |
+| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
+| [Collider API completion](#wp-collider-api-completion) | 14 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 14 | mechanical | KD/SL |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 
@@ -4911,7 +4911,7 @@ Tier: standard. Depends/context: shape interface. Estimate: 210 public items.
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 177 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 171 public items.
 
 - **AxesMask** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **AxesMask** type `AxesMask` (`rapier/src/dynamics/rigid_body_components.rs`)
@@ -4993,7 +4993,7 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 177 public items.
 - **SkylineCholesky** method `factorize` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SkylineCholesky** method `new` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SkylineCholesky** method `solve` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- ... 97 more
+- ... 91 more
 
 ### WP: Mass, AABB, and shape helpers
 
@@ -5167,140 +5167,6 @@ Tier: hard. Depends/context: QP queries. Estimate: 91 public items.
 - **parry::query** function `cast_shapes_shape_composite_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
 - ... 11 more
 
-### WP: Pipeline and world facade
-
-Tier: standard. Depends/context: P1/SL/EV. Estimate: 67 public items.
-
-- **BroadPhaseBvh** method `new` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **BroadPhaseBvh** method `set_aabb` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **BroadPhaseBvh** method `update` (`rapier/src/geometry/broad_phase_bvh/update.rs`)
-- **BroadPhaseBvh** method `with_optimization_strategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **BroadPhaseBvh** type `BroadPhaseBvh` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **ChannelEventCollector** method `new` (`rapier/src/pipeline/event_handler.rs`)
-- **ChannelEventCollector** type `ChannelEventCollector` (`rapier/src/pipeline/event_handler.rs`)
-- **CollisionPipeline** impl `Default` (`rapier/src/pipeline/collision_pipeline.rs`)
-- **CollisionPipeline** method `new` (`rapier/src/pipeline/collision_pipeline.rs`)
-- **CollisionPipeline** method `step` (`rapier/src/pipeline/collision_pipeline.rs`)
-- **CollisionPipeline** type `CollisionPipeline` (`rapier/src/pipeline/collision_pipeline.rs`)
-- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
-- **Island** method `bodies` (`rapier/src/dynamics/island_manager/island.rs`)
-- **Island** method `len` (`rapier/src/dynamics/island_manager/island.rs`)
-- **Island** method `singleton` (`rapier/src/dynamics/island_manager/island.rs`)
-- **IslandManager** method `active_bodies` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **IslandManager** method `new` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **IslandManager** method `num_active_bodies` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **IslandManager** method `persistent_island_of` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **IslandManager** method `wake_up` (`rapier/src/dynamics/island_manager/sleep.rs`)
-- **IslandManager** type `IslandManager` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **NarrowPhase** impl `Default` (`rapier/src/geometry/narrow_phase/mod.rs`)
-- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
-- **PersistentIslands** method `assert_consistent` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `begin_sleep_scan` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `body_island` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `bootstrap` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `clear_pending_split_of` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PersistentIslands** method `ensure_body` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `finish_sleep_scan` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `mark_island_sleeping` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `observe_body_for_sleep` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `remove_body` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `remove_body_raw` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `run_pending_split` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PersistentIslands** method `schedule_split` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PersistentIslands** method `split_allowed` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `split_island_now` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PhysicsPipeline** impl `Default` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsPipeline** method `clear_thread_pool` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsPipeline** method `configure_thread_pool` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsPipeline** method `num_threads` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsPipeline** method `quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **PhysicsPipeline** method `set_thread_pool` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsPipeline** method `thread_pool` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsPipeline** type `PhysicsPipeline` (`rapier/src/pipeline/physics_pipeline/mod.rs`)
-- **PhysicsWorld** impl `Default` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `active_bodies` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `clear_thread_pool` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `configure_thread_pool` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `insert_deformable` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `num_threads` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `quarantine` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `rigid_bodies` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `rigid_bodies_mut` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `set_thread_pool` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `soft_bodies` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `step_with_events` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `thread_pool` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `wake_up_all` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** type `PhysicsWorld` (`rapier/src/pipeline/physics_world.rs`)
-- **Quarantine** method `bodies` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** method `is_empty` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** method `soft_bodies` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** type `Quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **StagedIslandSolver** method `init_and_solve` (`rapier/src/dynamics/solver/staged_island_solver/init.rs`)
-- **StagedIslandSolver** method `new` (`rapier/src/dynamics/solver/staged_island_solver/mod.rs`)
-
-### WP: Collider API completion
-
-Tier: mechanical. Depends/context: DB/EV. Estimate: 57 public items.
-
-- **Collider** impl `From<ColliderBuilder>` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `compute_broad_phase_aabb` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `compute_collision_aabb` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `compute_swept_aabb` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `copy_from` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `deformable_mesh_ref` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `shape_mut` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `shared_shape` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `capsule_z` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_hull` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_mesh` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `default_density` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `default_friction` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `delta` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `position_wrt_parent` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `voxelized_mesh` (`rapier/src/geometry/collider.rs`)
-- **ColliderChanges** impl `Default` (`rapier/src/geometry/collider_components.rs`)
-- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
-- **ColliderHandle** method `from_raw_parts` (`rapier/src/geometry/collider_handle.rs`)
-- **ColliderHandle** type `ColliderHandle` (`rapier/src/geometry/collider_handle.rs`)
-- **ColliderPair** impl `Default` (`rapier/src/geometry/broad_phase_pair_event.rs`)
-- **ColliderPair** method `new` (`rapier/src/geometry/broad_phase_pair_event.rs`)
-- **ColliderPair** method `swap` (`rapier/src/geometry/broad_phase_pair_event.rs`)
-- **ColliderPair** method `zero` (`rapier/src/geometry/broad_phase_pair_event.rs`)
-- **ColliderPair** type `ColliderPair` (`rapier/src/geometry/broad_phase_pair_event.rs`)
-- **ColliderPosition** impl `From<T>` (`rapier/src/geometry/collider_components.rs`)
-- **ColliderPosition** method `identity` (`rapier/src/geometry/collider_components.rs`)
-- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `get_mut` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `get_pair_mut` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `get_unknown_gen` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `get_unknown_gen_mut` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `insert_deformable` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `invalid_handle` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `iter_enabled` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `iter_enabled_mut` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `iter_mut` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `set_parent` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `with_capacity` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderShape** type `ColliderShape` (`rapier/src/geometry/collider_components.rs`)
-- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
-- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
-- **PhysicsWorld** method `all_colliders` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `all_colliders_mut` (`rapier/src/pipeline/physics_world.rs`)
-- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **RigidBodyColliders** method `attach_collider` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyColliders** method `detach_collider` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyColliders** type `RigidBodyColliders` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyMassProps** method `recompute_mass_properties_from_colliders` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **SoftElasticConstraint** method `coefficients` (`rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_elastic_constraint.rs`)
-- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
-
 ### WP: Sensors and intersection events
 
 Tier: standard. Depends/context: SE sensors. Estimate: 47 public items.
@@ -5353,6 +5219,46 @@ Tier: standard. Depends/context: SE sensors. Estimate: 47 public items.
 - **parry::query** function `intersection_test_triangle_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
 - **parry::query** function `local_ray_intersection_with_support_map_with_params` (`parry/src/query/ray/ray_support_map.rs`)
 
+### WP: Pipeline and world facade
+
+Tier: standard. Depends/context: P1/SL/EV. Estimate: 35 public items.
+
+- **BroadPhaseBvh** method `new` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
+- **BroadPhaseBvh** method `set_aabb` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
+- **BroadPhaseBvh** method `update` (`rapier/src/geometry/broad_phase_bvh/update.rs`)
+- **BroadPhaseBvh** method `with_optimization_strategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
+- **BroadPhaseBvh** type `BroadPhaseBvh` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
+- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
+- **Island** method `bodies` (`rapier/src/dynamics/island_manager/island.rs`)
+- **Island** method `len` (`rapier/src/dynamics/island_manager/island.rs`)
+- **Island** method `singleton` (`rapier/src/dynamics/island_manager/island.rs`)
+- **IslandManager** method `persistent_island_of` (`rapier/src/dynamics/island_manager/manager.rs`)
+- **IslandManager** type `IslandManager` (`rapier/src/dynamics/island_manager/manager.rs`)
+- **NarrowPhase** impl `Default` (`rapier/src/geometry/narrow_phase/mod.rs`)
+- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
+- **PersistentIslands** method `assert_consistent` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `begin_sleep_scan` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `body_island` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `bootstrap` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `clear_pending_split_of` (`rapier/src/dynamics/island_manager/global_split.rs`)
+- **PersistentIslands** method `ensure_body` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `finish_sleep_scan` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `mark_island_sleeping` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `observe_body_for_sleep` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `remove_body` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `remove_body_raw` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `run_pending_split` (`rapier/src/dynamics/island_manager/global_split.rs`)
+- **PersistentIslands** method `schedule_split` (`rapier/src/dynamics/island_manager/global_split.rs`)
+- **PersistentIslands** method `split_allowed` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `split_island_now` (`rapier/src/dynamics/island_manager/global_split.rs`)
+- **PhysicsPipeline** method `quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **PhysicsWorld** method `quarantine` (`rapier/src/pipeline/physics_world.rs`)
+- **Quarantine** method `bodies` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **Quarantine** method `is_empty` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **Quarantine** type `Quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **StagedIslandSolver** method `init_and_solve` (`rapier/src/dynamics/solver/staged_island_solver/init.rs`)
+- **StagedIslandSolver** method `new` (`rapier/src/dynamics/solver/staged_island_solver/mod.rs`)
+
 ### WP: Vehicle and PID controllers
 
 Tier: standard. Depends/context: control crate policy. Estimate: 35 public items.
@@ -5392,6 +5298,25 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelContactPoint** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
+
+### WP: Collider API completion
+
+Tier: mechanical. Depends/context: DB/EV. Estimate: 14 public items.
+
+- **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `convex_mesh` (`rapier/src/geometry/collider.rs`)
+- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
+- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
+- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
+- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **RigidBodyColliders** type `RigidBodyColliders` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
 
 ### WP: Rigid-body API completion
 
@@ -5600,6 +5525,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **BroadPhase** method `find_pairs` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
 - **BroadPhaseProxy** type `BroadPhaseProxy` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
 - **Builder** const `ONE_WAY_ANGLE` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
+- **Builder** method `into` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
 - **BuilderApi** method `into` (`crates/rapier_dynamics2d/src/rigid_body_set/builder_api.cairo`)
 - **Capsule** method `cast_local_ray_and_get_normal_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
@@ -5630,8 +5556,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** const `PARENT_EFFECTIVE_DOMINANCE` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `POSITION` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `SHAPE` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `SLEEP` (`crates/rapier_core/src/rigid_body/changes.cairo`)
-- ... 776 more
+- ... 784 more
 
 ## Embedded Rust inventory
 
