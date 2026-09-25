@@ -139,3 +139,27 @@ fn finalize3(
     project(ref c, b, imsum, ib);
     let _ = finish(ref c, imsum);
 }
+/// `finalize2`, returning both rows' inverse masses (reused to project limit rows).
+#[inline(never)]
+pub(crate) fn finalize2_inverses(
+    ref a: JointGenericConstraint, ref b: JointGenericConstraint, imsum: Vec2,
+) -> (Fixed, Fixed) {
+    let ia = finish(ref a, imsum);
+    project(ref b, a, imsum, ia);
+    (ia, finish(ref b, imsum))
+}
+/// `finalize3`, returning the three rows' inverse masses.
+#[inline(never)]
+pub(crate) fn finalize3_inverses(
+    ref a: JointGenericConstraint,
+    ref b: JointGenericConstraint,
+    ref c: JointGenericConstraint,
+    imsum: Vec2,
+) -> (Fixed, Fixed, Fixed) {
+    let ia = finish(ref a, imsum);
+    project(ref b, a, imsum, ia);
+    project(ref c, a, imsum, ia);
+    let ib = finish(ref b, imsum);
+    project(ref c, b, imsum, ib);
+    (ia, ib, finish(ref c, imsum))
+}

@@ -127,6 +127,39 @@ fn pendulum_chain(joints: u32) -> World {
     world
 }
 
+/// One pendulum link of `pendulum_chain` with the golden `pendulum_limited` range [-1/2, 1/2].
+fn pendulum_limited() -> World {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let pivot = world.insert_body(RigidBodyTrait::fixed(at(ZERO, ZERO)));
+    let (body, _) = world
+        .insert(
+            RigidBodyTrait::dynamic(at(FixedTrait::from_int(2), ZERO)),
+            ColliderBuilderTrait::ball(HALF).build(),
+        );
+    let joint = RevoluteJointBuilderTrait::new()
+        .local_anchor1(v(ONE, ZERO))
+        .local_anchor2(v(-ONE, ZERO))
+        .limits([-HALF, HALF])
+        .build();
+    let _ = world.insert_impulse_joint(pivot, body, joint);
+    world
+}
+
+/// A ball pinned to a fixed pivot by the golden `wheel_motor` velocity motor (4 rad/s, factor
+/// 10, max force 2).
+fn wheel_motor() -> World {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let pivot = world.insert_body(RigidBodyTrait::fixed(at(ZERO, ZERO)));
+    let (body, _) = world
+        .insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)), ColliderBuilderTrait::ball(HALF).build());
+    let joint = RevoluteJointBuilderTrait::new()
+        .motor_velocity(FixedTrait::from_int(4), FixedTrait::from_int(10))
+        .motor_max_force(FixedTrait::from_int(2))
+        .build();
+    let _ = world.insert_impulse_joint(pivot, body, joint);
+    world
+}
+
 fn scene(id: felt252, size: u32) -> World {
     if id == 'free' {
         free_fall(size)
@@ -136,13 +169,17 @@ fn scene(id: felt252, size: u32) -> World {
         cuboid_stack(size)
     } else if id == 'mixed' {
         mixed_pile()
+    } else if id == 'plim' {
+        pendulum_limited()
+    } else if id == 'wheel' {
+        wheel_motor()
     } else {
         pendulum_chain(size)
     }
 }
 
 fn expected_pairs(id: felt252, size: u32) -> u32 {
-    if id == 'free' || id == 'pend' {
+    if id == 'free' || id == 'pend' || id == 'plim' || id == 'wheel' {
         0
     } else if id == 'mixed' {
         15
@@ -152,7 +189,7 @@ fn expected_pairs(id: felt252, size: u32) -> u32 {
 }
 
 fn expected_joints(id: felt252, size: u32) -> u32 {
-    if id == 'pend' {
+    if id == 'pend' || id == 'plim' || id == 'wheel' {
         size
     } else {
         0
@@ -193,11 +230,14 @@ fn probe(id: felt252, size: u32, warmup: u32, measured: u32) {
     let (pairs, points) = count_active_pairs(@world);
     assert_eq!(pairs, expected_pairs(id, size));
     assert!(points >= pairs);
-    assert_eq!(world.bodies.len(), if id == 'pend' {
-        size + 1
-    } else {
-        size
-    });
+    assert_eq!(
+        world.bodies.len(),
+        if id == 'pend' || id == 'plim' || id == 'wheel' {
+            size + 1
+        } else {
+            size
+        },
+    );
     let _ = opaque(world.colliders.len());
 }
 
@@ -349,6 +389,28 @@ fn gas_step_pendulum_chain3() {
     probe(opaque('pend'), opaque(3), WARMUP_PENDULUM, 1);
 }
 
+#[test]
+fn gas_setup_pendulum_limited() {
+    probe(opaque('plim'), opaque(1), WARMUP_PENDULUM, 0);
+}
+
+#[test]
+#[available_gas(l2_gas: 18826723)]
+fn gas_step_pendulum_limited() {
+    probe(opaque('plim'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn gas_setup_wheel_motor() {
+    probe(opaque('wheel'), opaque(1), WARMUP_PENDULUM, 0);
+}
+
+#[test]
+#[available_gas(l2_gas: 21444085)]
+fn gas_step_wheel_motor() {
+    probe(opaque('wheel'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
 // Uncapped twins of the `gas_step_*` probes, for `--tracked-resource cairo-steps`.
 
 #[test]
@@ -414,4 +476,14 @@ fn steps_step_pendulum_chain1() {
 #[test]
 fn steps_step_pendulum_chain3() {
     probe(opaque('pend'), opaque(3), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn steps_step_pendulum_limited() {
+    probe(opaque('plim'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn steps_step_wheel_motor() {
+    probe(opaque('wheel'), opaque(1), WARMUP_PENDULUM, 1);
 }

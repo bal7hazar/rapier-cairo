@@ -1,12 +1,14 @@
 //! Optional bounded rows. Motors form an independent group before locks/limits, as upstream.
 //! Only bilateral locks project onto limits. Products floor; reciprocals round to nearest.
+#[cfg(test)]
+use fixed::PI;
 use fixed::trig::TrigTrait;
 use fixed::wide::{dot2, dot4};
-use fixed::{Fixed, FixedTrait, MAX, MIN, ONE, PI, TAU, ZERO};
+use fixed::{Fixed, FixedTrait, MAX, MIN, ONE, TAU, ZERO};
 use rapier_math::math_ext::inv;
+use rapier_math::rot2::Rot2;
 use crate::joint::{GenericJoint, JointLimits, JointMotor, MotorModel};
 use super::*;
-use super::row::{finish, metric, project};
 use super::super::body::SolverVel;
 
 /// One unilateral limit or force-bounded motor, in the bilateral row sign convention.
@@ -51,76 +53,11 @@ pub impl BoundedStatePartialEq of PartialEq<BoundedState> {
         !Self::eq(lhs, rhs)
     }
 }
-fn boxed(rows: BoundedRows) -> Option<BoundedState> {
+pub(crate) fn boxed(rows: BoundedRows) -> Option<BoundedState> {
     Some(BoundedState { data: BoxTrait::new(rows) })
 }
-
-pub(crate) fn generate(
-    ref c: JointConstraint,
-    j: ImpulseJoint,
-    h: JointConstraintHelper,
-    b1: SolverBody,
-    b2: SolverBody,
-    p: IntegrationParameters,
-    erp: Fixed,
-    cfm: Fixed,
-) {
-    let mut motors = array![];
-    let mut limits = array![];
-    for axis in [2_u8, 0, 1].span() {
-        let axis = *axis;
-        if !j.data.locked_axes.contains_axis(axis) && !j.data.coupled_axes.contains_axis(axis) {
-            if j.data.motor_axes.contains_axis(axis) {
-                let mut r = motor(h, j.data, axis, b1, b2, p);
-                // Only a truly unbounded prior motor can be projected out (upstream).
-                for prior in motors.span() {
-                    let prior: BoundedRow = *prior;
-                    if prior.min == -MAX && prior.max == MAX {
-                        project(
-                            ref r.row,
-                            prior.row,
-                            c.im1 + c.im2,
-                            inv(metric(prior.row, prior.row, c.im1 + c.im2)),
-                        );
-                    }
-                }
-                let _ = finish(ref r.row, c.im1 + c.im2);
-                if p.warmstart_joints {
-                    r.row.impulse = get_motor(j.data, axis).impulse * p.warmstart_coefficient;
-                }
-                motors.append(r);
-            }
-            if j.data.limit_axes.contains_axis(axis) {
-                let mut r = limit(h, j.data, axis, b1, b2, p, erp, cfm);
-                let [a, b, d] = c.rows;
-                if c.num_rows != 0 {
-                    project(ref r.row, a, c.im1 + c.im2, inv(metric(a, a, c.im1 + c.im2)));
-                }
-                if c.num_rows >= 2 {
-                    project(ref r.row, b, c.im1 + c.im2, inv(metric(b, b, c.im1 + c.im2)));
-                }
-                if c.num_rows == 3 {
-                    project(ref r.row, d, c.im1 + c.im2, inv(metric(d, d, c.im1 + c.im2)));
-                }
-                let _ = finish(ref r.row, c.im1 + c.im2);
-                if p.warmstart_joints {
-                    r.row.impulse = get_limit(j.data, axis).impulse * p.warmstart_coefficient;
-                }
-                limits.append(r);
-            }
-        }
-    }
-    if motors.len() != 0 || limits.len() != 0 {
-        c
-            .bounded =
-                boxed(
-                    BoundedRows { motors: motors.span(), limits: limits.span(), locks: c.num_rows },
-                );
-        // The island adapter skips zero-row constraints. Four denotes this extended path.
-        c.num_rows = 4;
-    }
-}
-fn base(
+#[inline(always)]
+pub(crate) fn base(
     h: JointConstraintHelper, axis: u8, b1: SolverBody, b2: SolverBody,
 ) -> JointGenericConstraint {
     if axis == 2 {
@@ -129,11 +66,7 @@ fn base(
         h.lock_linear(axis, b1, b2, ZERO, ZERO)
     }
 }
-fn rotation(j: GenericJoint, b1: SolverBody, b2: SolverBody) -> rapier_math::rot2::Rot2 {
-    (b1.position.rotation * j.local_frame1.rotation).inverse()
-        * (b2.position.rotation * j.local_frame2.rotation)
-}
-fn get_limit(j: GenericJoint, axis: u8) -> JointLimits {
+pub(crate) fn get_limit(j: GenericJoint, axis: u8) -> JointLimits {
     let [x, y, w] = j.limits;
     match axis {
         0 => x,
@@ -141,7 +74,7 @@ fn get_limit(j: GenericJoint, axis: u8) -> JointLimits {
         _ => w,
     }
 }
-fn get_motor(j: GenericJoint, axis: u8) -> JointMotor {
+pub(crate) fn get_motor(j: GenericJoint, axis: u8) -> JointMotor {
     let [x, y, w] = j.motors;
     match axis {
         0 => x,
@@ -152,36 +85,18 @@ fn get_motor(j: GenericJoint, axis: u8) -> JointMotor {
 fn clamp(x: Fixed, min: Fixed, max: Fixed) -> Fixed {
     x.max(min).min(max)
 }
-
-fn limit(
-    h: JointConstraintHelper,
-    j: GenericJoint,
-    axis: u8,
-    b1: SolverBody,
-    b2: SolverBody,
+/// Limit row from its signed distance and range: bias only outside the range, impulse bounds
+/// opened on the violated side (`dist <= lo` / `dist >= hi`), as upstream.
+#[inline(always)]
+pub(crate) fn limit_row(
+    mut row: JointGenericConstraint,
+    dist: Fixed,
+    lo: Fixed,
+    hi: Fixed,
     p: IntegrationParameters,
     erp: Fixed,
     cfm: Fixed,
 ) -> BoundedRow {
-    let l = get_limit(j, axis);
-    let mut row = base(h, axis, b1, b2);
-    let (dist, lo, hi) = if axis == 2 {
-        // Widen before subtracting: the default [MIN, MAX] must disable, not overflow.
-        let range: i128 = l.max.raw.into() - l.min.raw.into();
-        if range >= 2 * PI.raw.into() {
-            (ZERO, -ONE, ONE)
-        } else {
-            let center: i128 = (l.min.raw.into() + l.max.raw.into()) / 2;
-            let half: i128 = range / 2;
-            let center = Fixed { raw: center.try_into().expect('Joint: angle range') };
-            let half = Fixed { raw: half.try_into().expect('Joint: angle range') };
-            let (s, co) = center.sin_cos();
-            let r = rotation(j, b1, b2);
-            ((co * r.im - s * r.re).atan2(co * r.re + s * r.im), -half, half)
-        }
-    } else {
-        (dot2(row.lin_jac.x, h.lin_err.x, row.lin_jac.y, h.lin_err.y), l.min, l.max)
-    };
     // Branching avoids overflowing dist-MIN / MAX-dist on inactive finite sentinel bounds.
     let high_error = if dist > hi {
         dist - hi
@@ -193,13 +108,8 @@ fn limit(
     } else {
         ZERO
     };
-    row
-        .rhs =
-            clamp(
-                (high_error - low_error) * erp,
-                -p.max_corrective_velocity(),
-                p.max_corrective_velocity(),
-            );
+    let max_corrective = p.max_corrective_velocity();
+    row.rhs = clamp((high_error - low_error) * erp, -max_corrective, max_corrective);
     row.cfm_coeff = cfm;
     row.erp_inv_dt = erp;
     BoundedRow {
@@ -214,15 +124,19 @@ fn limit(
         },
     }
 }
-fn motor(
+/// Motor row. `limit` is the same free linear axis' range (clamps the target velocity);
+/// `r1`/`r2` are the world frame rotations (angular position error). Nonnegative inputs.
+pub(crate) fn motor_row(
     h: JointConstraintHelper,
-    j: GenericJoint,
+    m: JointMotor,
+    limit: Option<(Fixed, Fixed)>,
     axis: u8,
     b1: SolverBody,
     b2: SolverBody,
     p: IntegrationParameters,
+    r1: Rot2,
+    r2: Rot2,
 ) -> BoundedRow {
-    let m = get_motor(j, axis);
     let dt = p.substep_dt();
     assert(m.stiffness >= ZERO && m.damping >= ZERO && m.max_force >= ZERO, errors::NEGATIVE);
     let mut row = base(h, axis, b1, b2);
@@ -234,9 +148,11 @@ fn motor(
         MotorModel::ForceBased => row.cfm_gain = cfm,
     }
     let mut rhs = ZERO;
-    if erp != ZERO {
+    // Metered: velocity motors (erp = 0) do not pay the position error (angular: atan2).
+    let mut pending = erp != ZERO;
+    while pending {
         let error = if axis == 2 {
-            let r = rotation(j, b1, b2);
+            let r = r1.inverse() * r2;
             let error = r.im.atan2(r.re) - m.target_pos;
             let complement = error - if error >= ZERO {
                 TAU
@@ -252,23 +168,23 @@ fn motor(
             dot2(row.lin_jac.x, h.lin_err.x, row.lin_jac.y, h.lin_err.y) - m.target_pos
         };
         rhs = error * erp;
+        pending = false;
     }
     let mut target = m.target_vel;
-    if axis != 2 && j.limit_axes.contains_axis(axis) {
-        let l = get_limit(j, axis);
+    if let Some((min, max)) = limit {
         let dist = dot2(row.lin_jac.x, h.lin_err.x, row.lin_jac.y, h.lin_err.y);
         target =
             clamp(
                 target,
-                if l.min == MIN {
+                if min == MIN {
                     MIN
                 } else {
-                    (l.min - dist) * p.substep_inv_dt()
+                    (min - dist) * p.substep_inv_dt()
                 },
-                if l.max == MAX {
+                if max == MAX {
                     MAX
                 } else {
-                    (l.max - dist) * p.substep_inv_dt()
+                    (max - dist) * p.substep_inv_dt()
                 },
             );
     }
@@ -284,6 +200,7 @@ fn motor(
     BoundedRow { row, min: -max, max }
 }
 
+#[inline(always)]
 fn solve_bounded(
     ref r: BoundedRow, im1: Vec2, im2: Vec2, ref v1: SolverVel, ref v2: SolverVel, biased: bool,
 ) {
@@ -302,63 +219,85 @@ fn solve_bounded(
     apply(a, delta, im1, im2, ref v1, ref v2);
     r.row = a;
 }
+/// Solve bounded rows in order, returning the updated rows (inverse masses only are passed).
 fn sweep(
     mut rows: Span<BoundedRow>,
-    c: JointConstraint,
+    im1: Vec2,
+    im2: Vec2,
     ref v1: SolverVel,
     ref v2: SolverVel,
     biased: bool,
-    warm: bool,
 ) -> Span<BoundedRow> {
     let mut out = array![];
     while let Some(r) = rows.pop_front() {
         let mut r = *r;
-        if warm {
-            apply(r.row, r.row.impulse, c.im1, c.im2, ref v1, ref v2);
-        } else {
-            solve_bounded(ref r, c.im1, c.im2, ref v1, ref v2, biased);
-        }
+        solve_bounded(ref r, im1, im2, ref v1, ref v2, biased);
         out.append(r);
     }
     out.span()
 }
+/// Apply seeded bounded impulses in order; rows are unchanged.
+fn apply_rows(
+    mut rows: Span<BoundedRow>, im1: Vec2, im2: Vec2, ref v1: SolverVel, ref v2: SolverVel,
+) {
+    while let Some(r) = rows.pop_front() {
+        apply(*r.row, *r.row.impulse, im1, im2, ref v1, ref v2);
+    }
+}
+/// Motors, then locks, then limits, as upstream. `warm` applies the seeded impulses instead
+/// (see `warmstart`, which also skips re-boxing the unchanged rows).
 pub(crate) fn solve(
     ref c: JointConstraint, ref bodies: Array<SolverBody>, biased: bool, warm: bool,
 ) {
+    if warm {
+        warmstart(c, ref bodies);
+        return;
+    }
     let mut extra = c.bounded.unwrap().data.unbox();
     let mut v1 = velocity(read(bodies.span(), c.solver_vel1));
     let mut v2 = velocity(read(bodies.span(), c.solver_vel2));
-    extra.motors = sweep(extra.motors, c, ref v1, ref v2, biased, warm);
+    if extra.motors.len() != 0 {
+        extra.motors = sweep(extra.motors, c.im1, c.im2, ref v1, ref v2, biased);
+    }
     let [mut a, mut b, mut d] = c.rows;
-    if !biased && !warm {
+    if !biased {
         a.rhs = a.rhs_wo_bias;
         b.rhs = b.rhs_wo_bias;
         d.rhs = d.rhs_wo_bias;
     }
-    if warm {
-        if extra.locks != 0 {
-            apply(a, a.impulse, c.im1, c.im2, ref v1, ref v2);
-        }
-        if extra.locks >= 2 {
-            apply(b, b.impulse, c.im1, c.im2, ref v1, ref v2);
-        }
-        if extra.locks == 3 {
-            apply(d, d.impulse, c.im1, c.im2, ref v1, ref v2);
-        }
-    } else {
-        if extra.locks != 0 {
-            solve_row(ref a, c.im1, c.im2, ref v1, ref v2);
-        }
-        if extra.locks >= 2 {
-            solve_row(ref b, c.im1, c.im2, ref v1, ref v2);
-        }
-        if extra.locks == 3 {
-            solve_row(ref d, c.im1, c.im2, ref v1, ref v2);
-        }
+    if extra.locks != 0 {
+        solve_row(ref a, c.im1, c.im2, ref v1, ref v2);
+    }
+    if extra.locks >= 2 {
+        solve_row(ref b, c.im1, c.im2, ref v1, ref v2);
+    }
+    if extra.locks == 3 {
+        solve_row(ref d, c.im1, c.im2, ref v1, ref v2);
     }
     c.rows = [a, b, d];
-    extra.limits = sweep(extra.limits, c, ref v1, ref v2, biased, warm);
+    if extra.limits.len() != 0 {
+        extra.limits = sweep(extra.limits, c.im1, c.im2, ref v1, ref v2, biased);
+    }
     c.bounded = boxed(extra);
+    scatter(ref bodies, c.solver_vel1, v1, c.solver_vel2, v2);
+}
+/// Apply every seeded impulse once (motors, locks, limits); no division, products floor.
+pub(crate) fn warmstart(c: JointConstraint, ref bodies: Array<SolverBody>) {
+    let extra = c.bounded.unwrap().data.unbox();
+    let mut v1 = velocity(read(bodies.span(), c.solver_vel1));
+    let mut v2 = velocity(read(bodies.span(), c.solver_vel2));
+    apply_rows(extra.motors, c.im1, c.im2, ref v1, ref v2);
+    let [a, b, d] = c.rows;
+    if extra.locks != 0 {
+        apply(a, a.impulse, c.im1, c.im2, ref v1, ref v2);
+    }
+    if extra.locks >= 2 {
+        apply(b, b.impulse, c.im1, c.im2, ref v1, ref v2);
+    }
+    if extra.locks == 3 {
+        apply(d, d.impulse, c.im1, c.im2, ref v1, ref v2);
+    }
+    apply_rows(extra.limits, c.im1, c.im2, ref v1, ref v2);
     scatter(ref bodies, c.solver_vel1, v1, c.solver_vel2, v2);
 }
 pub(crate) fn remove_bias(ref c: JointConstraint) {
@@ -407,7 +346,7 @@ pub(crate) fn writeback(c: JointConstraint, ref j: ImpulseJoint) {
 }
 
 #[cfg(test)]
-mod alternatives;
+pub(crate) mod alternatives;
 
 #[cfg(test)]
 mod tests;
