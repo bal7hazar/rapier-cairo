@@ -13,7 +13,7 @@ use rapier_core::collider::{CollisionEventFlags, CollisionEventFlagsTrait};
 
 /// A post-solver normal-force event (upstream `ContactForceEvent`).
 /// Tangential/friction impulses are intentionally excluded, as upstream.
-#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
 pub struct ContactForceEvent {
     pub collider1: Handle,
     pub collider2: Handle,
@@ -162,7 +162,8 @@ pub impl PairEventStatusImpl of PairEventStatusTrait {
     /// `true` when a `Started` event was emitted and no `Stopped` followed.
     #[inline(always)]
     fn start_event_emitted(self: PairEventStatus) -> bool {
-        self.bits & 1 != 0
+        let (_, bit) = DivRem::div_rem(self.bits, 2);
+        bit != 0
     }
 }
 

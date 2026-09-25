@@ -422,15 +422,15 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
         parent.push_str(&format!("\npub mod {};\n", path.split('/').nth(1).unwrap()));
         let mut leaf = Module::new("scenes.json", "EV upstream scene and force events.");
         leaf.body.push_str(&konst(&name, "SceneCase", &node));
-        let mut previous = 0;
+        let mut previous = None;
         let events: Vec<Node> = scene["force_events"]
             .as_array()
             .unwrap()
             .iter()
             .map(|e| {
                 let step = e["step"].as_u64().unwrap();
-                let started = previous + 1 != step;
-                previous = step;
+                let started = previous != Some(step - 1);
+                previous = Some(step);
                 Node::Struct(
                     "crate::types::ForceEventRaw",
                     vec![

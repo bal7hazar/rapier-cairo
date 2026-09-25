@@ -408,13 +408,12 @@ pub fn collision_inputs_sleeping(
     let mut force_events = false;
     for (handle, collider) in snapshot {
         let collider = *collider;
-        if collider.flags.active_events.bits != 0 {
-            if collider
+        if collider.flags.active_events.bits != 0
+            && collider
                 .flags
                 .active_events
                 .contains(rapier_core::collider::events::CONTACT_FORCE_EVENTS) {
-                force_events = true;
-            }
+            force_events = true;
         }
         let body = collider.parent();
         let (body_type, world_com, dominance, sleeping) = match body {
