@@ -786,3 +786,15 @@ pub struct IntersectionCase {
     pub intersecting: bool,
     pub gjk_touching: bool,
 }
+
+/// One body of a G0 level scene, in insertion order (ground, blocks, cores, pebble).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct LevelBodyRaw {
+    /// `'ground'`, `'block'`, `'core'` or `'pebble'`.
+    pub role: felt252,
+    pub shape: PolygonContactShapeRaw,
+    pub pose: PoseRaw,
+    pub density: i64,
+    pub friction: i64,
+    pub restitution: i64,
+}

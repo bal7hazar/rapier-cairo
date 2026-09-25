@@ -24,7 +24,7 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | pipeline | 40 | 0 | 65 | 53 | 158 | 38.1% |
 | **total** | **605** | **0** | **1392** | **741** | **2738** | **30.3%** |
 
-Cairo-only public items not matched to upstream: **975**.
+Cairo-only public items not matched to upstream: **976**.
 
 ## Aabb
 
@@ -5631,7 +5631,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** const `POSITION` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `SHAPE` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `SLEEP` (`crates/rapier_core/src/rigid_body/changes.cairo`)
-- ... 775 more
+- ... 776 more
 
 ## Embedded Rust inventory
 

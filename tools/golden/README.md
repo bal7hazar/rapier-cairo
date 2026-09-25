@@ -101,6 +101,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `ray_casts.json` | 64 | `<shape>/<regime>` | **QP** world-space ray casts on the five shapes, solid and hollow, see [ray_casts](#ray_casts) |
 | `intersection_tests.json` | 81 | `<shape1>_<shape2>/<regime>` | **SE** `DefaultQueryDispatcher::intersection_test`, see [intersection_tests](#intersection_tests-and-sensor_trigger-se) |
 | `sensor_trigger.json` | 1 scene | — | **SE** a ball falling through a standalone sensor slab: events, ball samples, intersection pair state |
+| `level_scenes.json` | 2 levels × 4 settings | `<level>_<config>` | **G0** level-shaped scenes: sleeping structure, cores, pebble; awake counts, sleep / calm ticks, sampled states, see [level_scenes](#level_scenes-g0) |
 
 ### contact_manifolds
 
@@ -758,6 +759,61 @@ indices and flags; per step the ball's `y`, `vy` and `NarrowPhase::intersection_
 Tolerances: answers and event steps exact; the ball's samples as the scenes (`2^12 · step` ulp).
 The pair's *existence* follows each broad phase (the port's is stateless, D7) and may differ by a
 step at the ends; its `intersecting` state must not.
+
+### level_scenes (G0)
+
+Two levels of the game programme (`docs/PLAN.md`, "Programme target"), each run under four
+settings for the same 5 simulated seconds: `hz60_sub4` (the reference: 60 Hz, 4 solver
+iterations, 300 ticks), `hz60_sub2`, `hz60_sub1` and `hz30_sub4` (`dt` exactly twice the 60 Hz
+one, 150 ticks). Every setting has its own upstream trace, so each is compared with its own
+reference.
+
+- **Level 10** (15 bodies, insertion order): an up half-space ground (friction 0.6); 10 blocks
+  resting in exact contact — three slate pillars `(0.2, 0.6)`, two timber planks `(0.9, 0.15)`,
+  two timber posts `(0.2, 0.5)`, a frost lintel `(1.6, 0.15)`, a timber roof triangle and a slate
+  trapezoid (convex polygons); three cores (ball 0.3, cuboid 0.25, ball 0.25) resting on them;
+  the pebble (ball 0.25, density 4, friction 0.5, restitution 0.2) at `(−1, 1.5)` launched at
+  `(18, 4)` m/s (7.2 m from the structure). Materials are R2's `(est.)` values: timber 1 / 0.6 /
+  0.1, slate 2.5 / 0.8 / 0.05, frost 0.9 / 0.05 / 0.2, cores 1 / 0.5 / 0.1 (density / friction /
+  restitution). The cores are the targets themselves (no sensor collider): R2 destroys a core by
+  damage or by leaving the bounds.
+- **Level 20**: level 10 plus a copy of its 10 blocks 4 m further (24 dynamic bodies).
+- **Load** (both engines, as the game loads a level): the ground, blocks and cores are inserted,
+  one setup step runs **without gravity** (it creates their contacts, whose start wakes every
+  body; with no load and exact contact nothing moves — asserted upstream), every block and core
+  gets `sleep()`, then the pebble is inserted with its launch velocity. Tick 0 is that state.
+  (With gravity, the setup step already diverges by up to 2 million ulps: a cold 13-body stack
+  solved in a different pair order, D8.)
+- **Despawn** (R2): after each tick, a dynamic body whose centre leaves `x ∈ [−3, 14]` (level 10)
+  or `[−3, 18]` (level 20) is removed with its collider.
+- **Recorded**: per tick the awake dynamic bodies; `first_pebble_contact`, `all_asleep` (first
+  tick with no awake body), `calm_end` (the programme's calm rule: every awake body under
+  0.05 m/s and 0.05 rad/s for 20 consecutive ticks), `removals`; the state of every present body
+  every 10th tick (`hz60_sub4`), 30th (`hz60_sub*`) or 15th (`hz30_sub4`), plus every 5th before
+  the impact and every tick from the one before the first contact to four after it.
+
+Fixtures: `generated::level_scenes` (bodies as `LevelBodyRaw`, launch velocities, bounds, calm
+rule) and one child module per run (settings, `AWAKE`, `REMOVALS`, `SAMPLES` as tuples
+`(tick, body, sleeping, x, y, re, im, vx, vy, angvel)`, removed bodies omitted).
+
+Judgement (`crates/rapier2d/tests/golden_scenes/levels.cairo`): the **window** tests (CI) replay up
+to two ticks after the wake and require every sample before the impact within the scene
+tolerances (measured: ≤ 59 ulp on poses, ≤ 45 on velocities over the flight, every setting), the
+same wake tick and the same awake counts up to it. From the impact tick on, the traces leave the
+tolerances in every setting (pebble exit velocity 8.47 m/s in the port against 13.59 upstream at
+tick 26): upstream solves the wake tick with only the bodies awake before it (the pebble, the hit
+post, the lintel: SI's frozen awake set) and leaves the rest of the woken island still, the port
+solves the whole island at once (SI's documented divergence). The Rust diagnostic
+`level_checks::prewake_before_impact` wakes the whole structure right before tick 26 upstream:
+the pebble's `vx` then differs from the port's by 12.7 million raw (0.003 m/s) instead of 22
+billion. The pile's later evolution is chaotic, so the **whole** replays (`#[ignore]`: a run needs
+up to 26 billion Sierra gas and about 73 bytes of VM memory per Cairo step, beyond snforge's
+default step limit) check invariants only (no body centre under the ground, within bounds) and
+print the awake statistics next to upstream's.
+
+Reproduce: `cargo test --release level_checks -- --nocapture` in `tools/golden`;
+`snforge test -p rapier2d golden_scenes::levels` (windows) and
+`snforge test -p rapier2d <name>_whole --include-ignored --max-n-steps 4000000000`.
 
 ## Settings deviating from Rapier's defaults
 
