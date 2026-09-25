@@ -33,7 +33,10 @@ pub mod prelude {
     pub use rapier_math::pose2::{Pose2, Pose2Trait};
     pub use rapier_math::rot2::{Rot2, Rot2Trait};
     pub use crate::dispatcher::DefaultDispatcher;
+    pub use crate::pipeline::facade::{
+        CollisionPipeline, CollisionPipelineTrait, PhysicsPipeline, PhysicsPipelineTrait,
+    };
     pub use crate::queries::{QueryFilter, QueryFilterTrait};
     pub use crate::world::state::{WORLD_STATE_VERSION, WorldState};
-    pub use crate::world::{World, WorldTrait};
+    pub use crate::world::{PhysicsWorld, World, WorldTrait};
 }

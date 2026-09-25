@@ -19,6 +19,7 @@ pub mod polygonal_feature;
 pub mod ray;
 pub mod sat;
 pub mod shape;
+pub use broad_phase::{ColliderPair, ColliderPairTrait};
 pub use closest_points::{
     closest_points_segment_segment, closest_points_segment_segment_with_locations,
 };
