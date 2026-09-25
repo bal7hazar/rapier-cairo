@@ -82,6 +82,13 @@ jobs:
         if: always()
         run: python3 scripts/gas.py diff --from-log snforge.log >> "$GITHUB_STEP_SUMMARY"
 
+  api-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: docs/API_PARITY.md is up to date
+        run: python3 scripts/api_parity.py --check
+
   golden:
     runs-on: ubuntu-latest
     steps:
