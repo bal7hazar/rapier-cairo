@@ -9,6 +9,7 @@ pub mod clip2d;
 pub mod contact_manifolds;
 pub mod integration_parameters;
 pub mod intersection_tests;
+pub mod level_scenes;
 pub mod mass_properties;
 pub mod point_projection;
 pub mod polygon_aabb;
