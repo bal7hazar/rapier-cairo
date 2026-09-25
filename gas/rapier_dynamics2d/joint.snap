@@ -76,6 +76,10 @@ rapier_dynamics2d::joint::config::tests::test_invalid_motor_axis 14620
 rapier_dynamics2d::joint::config::tests::test_invalid_motor_mask 14620
 rapier_dynamics2d::joint::config::tests::test_setters_copy_extremes_without_numeric_validation 38249
 rapier_dynamics2d::joint::config::tests::test_setters_preserve_other_axes_and_impulses 679075
+rapier_dynamics2d::joint::rope_joint::tests::gas_baseline 14120
+rapier_dynamics2d::joint::rope_joint::tests::gas_rope_max_distance 59076
+rapier_dynamics2d::joint::rope_joint::tests::gas_rope_new 27223
+rapier_dynamics2d::joint::rope_joint::tests::test_rope_matches_upstream_generic_construction 264917
 rapier_dynamics2d::joint::set::tests::gas_baseline 14120
 rapier_dynamics2d::joint::set::tests::gas_get 68760
 rapier_dynamics2d::joint::set::tests::gas_insert_len 55690
@@ -84,6 +88,9 @@ rapier_dynamics2d::joint::set::tests::gas_remove 83400
 rapier_dynamics2d::joint::set::tests::gas_set 105350
 rapier_dynamics2d::joint::set::tests::gas_to_array 77640
 rapier_dynamics2d::joint::set::tests::test_reuse_and_order 254300
+rapier_dynamics2d::joint::spring_joint::tests::gas_baseline 14120
+rapier_dynamics2d::joint::spring_joint::tests::gas_spring_new 28023
+rapier_dynamics2d::joint::spring_joint::tests::test_spring_matches_upstream_generic_construction 37216
 rapier_dynamics2d::joint::tests::gas_baseline 14120
 rapier_dynamics2d::joint::tests::gas_contains_axis 18830
 rapier_dynamics2d::joint::tests::gas_defaults 25040
