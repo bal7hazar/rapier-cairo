@@ -324,3 +324,31 @@ mod tests {
         assert!(mprops.inv_mass != ZERO);
     }
 }
+
+/// Built-in one-way platform cone, in the collider's local frame.
+/// `local_up` must be unit and `cos_allowed_angle` must be in [-1, 1].
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct OneWayPlatform {
+    pub local_up: glam::Vec2,
+    pub cos_allowed_angle: fixed::Fixed,
+}
+
+/// Box serialization stores the cone value, independent of allocation identity.
+pub impl BoxedOneWayPlatformSerde of Serde<Box<OneWayPlatform>> {
+    fn serialize(self: @Box<OneWayPlatform>, ref output: Array<felt252>) {
+        let value = (*self).unbox();
+        value.serialize(ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<Box<OneWayPlatform>> {
+        Some(BoxTrait::new(Serde::<OneWayPlatform>::deserialize(ref serialized)?))
+    }
+}
+/// Structural equality of boxed one-way configurations.
+pub impl BoxedOneWayPlatformPartialEq of PartialEq<Box<OneWayPlatform>> {
+    fn eq(lhs: @Box<OneWayPlatform>, rhs: @Box<OneWayPlatform>) -> bool {
+        (*lhs).unbox() == (*rhs).unbox()
+    }
+    fn ne(lhs: @Box<OneWayPlatform>, rhs: @Box<OneWayPlatform>) -> bool {
+        !Self::eq(lhs, rhs)
+    }
+}

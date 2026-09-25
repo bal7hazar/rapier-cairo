@@ -29,7 +29,7 @@ use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
-use rapier_dynamics2d::events::CollisionEvent;
+use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
 use rapier_dynamics2d::joint::{GenericJoint, ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, NarrowPhaseTrait};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
@@ -214,6 +214,16 @@ pub impl WorldImpl of WorldTrait {
     /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
     fn step(ref self: World) -> Array<CollisionEvent> {
         crate::pipeline::step(ref self)
+    }
+
+    /// Advances one step and returns collision and post-solver contact-force events.
+    /// Force events use normal impulses only, divided by dt (nearest-even inverse).
+    /// Threshold comparison is strict; the minimum enabled collider threshold wins.
+    /// Panics as `step`; pair order is ascending and threshold crossing state persists.
+    fn step_with_force_events(
+        ref self: World,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        crate::pipeline::step_with_force_events(ref self)
     }
 
     /// The collider hit first by `ray` and its time of impact, strictly below `max_toi`

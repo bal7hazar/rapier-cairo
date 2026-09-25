@@ -1091,3 +1091,44 @@ New scenes, first step net of paired setup (target mutation included identically
 | kinematic_platform | 7,249,927 | 62,761 |
 | kinematic_pusher | 12,217,090 | 105,421 |
 | dominance_stack | 11,912,964 | 102,455 |
+
+### EV: force events and one-way platforms
+
+`scenes.json` adds `one_way_jump` and `force_event_drop`; every prior scene is unchanged.
+The jump launches a radius-0.25 ball at 8 m/s from y=-2 through the slab, then lands
+on it. The reference uses upstream's `update_as_oneway_platform` hook with local
++Y and an angle of 0.1 radians (snapped to Q32.32). The port exposes this through
+`ColliderBuilderTrait::one_way(local_up, allowed_angle)` instead of user callbacks.
+Both collider orders and rotated platform frames are covered separately.
+
+The three-state helper is preserved: unknown accepts the cone or forbids a
+nonzero normal; allowed remains allowed until solver candidates disappear;
+forbidden remains forbidden until the cone accepts and every candidate has
+strictly positive separation. The existing manifold `user_data` stores two
+independent base-three digits, one per collider, so two platform cones must both
+accept a pair. The field is reserved by this feature while either platform is
+configured. Up vectors must be unit; angles must be in [0, PI].
+
+The force scene drops a unit box onto a solid ground with threshold 20 N.
+The pinned upstream emits one event, at step 34, totaling 333.3116602345064 N.
+Force events use only normal impulses. The total scalar is the sum of normal
+impulses divided by dt, the vector is the sum along manifold normals, and the
+maximum is the strongest individual point. Only sides enabling
+`CONTACT_FORCE_EVENTS` contribute to the minimum threshold, with a strict `>`
+comparison. `WorldTrait::step_with_force_events` returns collision and force
+arrays; `step` runs the same computation and discards the force array. Events
+follow ascending pair order. A zero dt maps to a zero inverse for event conversion.
+
+The read-only upstream clone also defines `started` for force-threshold crossings.
+Pinned 0.35.3's event payload lacks that member, so the fixture derives it from
+consecutive event steps (this scene has exactly one pair). The port stores it in
+bit 1 of `PairEventStatus`, independently of collision-start bit 0; tests cover
+consecutive events, strict equality, threshold changes and re-crossing.
+
+The jump trajectory uses one continuous 120-step replay. The force scene checks
+all event steps and magnitudes continuously for 120 steps. Its trajectory is
+checked in two 60-step windows, re-seeding the second from upstream, as in KD.
+The first continuous trial exceeded the existing angular tolerance at samples
+70/80/90 (345521/369099/370497 ulps); no tolerance was widened. Event magnitude
+comparison uses 8192 times the step in ulps; trajectory comparisons retain the
+existing 4096 times the step, doubled for velocities.

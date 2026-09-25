@@ -16,7 +16,7 @@
 //!    (next step's warm start) and into the joint set;
 //! 4. [`advance_to_final_positions`]: `position ← next_position` for every enabled non-fixed
 //!    body, world mass properties refreshed, attached colliders moved;
-//! 5. the collision events of stage 2 are returned.
+//! 5. optional normal-force events are collected, then returned alongside collision events.
 //!
 //! [`step`] runs these stages fused (work package OP), so that each set is walked once before
 //! the solver: [`user_changes_snapshot`] is stage 1 plus the collider walk (reused, retaken only
@@ -54,88 +54,23 @@
 //! (`islands::update_sleep_timer`).
 //!
 //! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
-//! every step (upstream persists them, see `islands`); no hooks, contact-force or sensor events,
+//! every step (upstream persists them, see `islands`); no user hooks or sensor events,
 //! a body whose enabled state changes does not propagate it
 //! to its colliders (disable the colliders).
 //!
-//! # Cost
-//!
-//! Stages of one step, Sierra gas | Cairo steps, from `benches` (cumulative probes,
-//! differences), staged on `main` before OP → fused:
-//!
-//! * `free_fall(32)`: user changes 1 797 620 → 1 883 490, broad phase 5 138 200 → 4 070 100,
-//!   narrow phase 1 652 840 → 26 600, solver 13 625 704 (unchanged), position update
-//!   4 010 344 → 3 665 624;
-//! * `BOX_STACK3` settled: user changes 261 540 → 269 110, broad phase 337 680 → 222 210,
-//!   narrow phase 2 440 235 → 2 219 595, solver 13 416 918 (unchanged), position update
-//!   418 076 → 386 276.
-//!
-//! Whole step (solver after OS): `free_fall(32)` 26 224 708 | 235 363 → 23 270 228 | 210 191,
-//! `free_fall(8)` 6 299 812 | 56 299 → 5 540 612 | 49 799, `BOX_STACK3` 16 874 449 | 141 347 →
-//! 16 512 819 | 138 088. What is left per falling body at 32 bodies: solver 426k (`from_bodies`,
-//! `solve_island`, `to_bodies`), `find_pairs` 97k (O(n²) pair tests), position update 115k
-//! (body write 22k, world mass 17k, collider pose and write), user changes 59k (the two walks).
-//!
-//! OI (`solve_benches`, stages 3–4 of one step, Sierra gas | Cairo steps): `free_fall(32)`
-//! 17 284 958 | 153 262 → 10 080 648 | 84 638 (540k → 315k per falling body), `BOX_STACK3`
-//! 13 800 934 | 124 124 → 13 696 574 | 123 072, `PENDULUM` 4 644 766 | 37 413 → 4 602 816 |
-//! 36 990, one resting ball 4 193 914 | 34 792 → 4 183 474 | 34 662. Whole `free_fall(32)` step
-//! 23 281 428 | 210 294 → 16 072 618 | 141 708 (P3 `gas_scenes`).
-//!
-//! Candidates (`alternatives`, `fused_alternatives` and `solve_alternatives`, equivalence in
-//! `tests`):
-//! * stages 3–4 fused (shipped) vs staged (`solve` then `advance_with_snapshot`): above; vs the
-//!   free-body arm behind a one-iteration `while` (`solve_and_advance_metered`), vs marking the
-//!   constrained bodies in a second walk over `touching_manifolds`
-//!   (`solve_and_advance_separate_marking`), vs matching the next member handle instead of a
-//!   second dict read (`solve_and_advance_member_handles`), vs building the free-body constants
-//!   on the first free body (`solve_and_advance_lazy`), vs calling `solve_island` with nothing
-//!   to solve (`solve_and_advance_island_always`), gas on `free_fall(32)` / `BOX_STACK3` /
-//!   resting ball: 10 080 648 / 13 696 574 / 4 183 474 shipped vs 10 679 588 / 13 730 814 /
-//!   4 194 954, 10 090 038 / 13 730 174 / 4 200 934, 10 092 608 / 13 700 864 / 4 186 474,
-//!   10 388 488 / 13 719 024 / 4 192 744, 10 286 388 / 13 696 964 / 4 183 864 (Cairo steps
-//!   rank the same);
-//! * fused step (shipped) vs the staged stage functions (`step_staged`): above;
-//! * parent read of a sparse set inlined in the proxy loop (shipped) vs behind a call
-//!   (`collision_inputs_outlined_fallback`), vs field-by-field reads through the snapshot
-//!   instead of one collider copy (`collision_inputs_field_reads`): broad phase 4 070 100 vs
-//!   4 154 280 / 4 095 700 on `free_fall(32)`, 222 210 vs 232 470 / 225 410 on `BOX_STACK3`;
-//! * per-body position update inlined in the body loop (shipped) vs `#[inline(never)]`
-//!   (`advance_with_snapshot_outlined`): 3 665 624 vs 3 918 324 on `free_fall(32)`, 386 276 vs
-//!   409 776 on `BOX_STACK3`;
-//! * proxy AABB: `ShapeTrait::compute_aabb` inlined (shipped, OP) vs out of line: see
-//!   `rapier_geometry2d::shape`; the staged broad phase of `free_fall(32)` drops from 5 138 200 to
-//!   4 609 880 with it;
-//! * user changes: one fused pass per set (shipped) vs DD's
-//!   `propagate_modified_body_positions_to_colliders` plus a flag-clearing pass: 261 540 vs
-//!   500 162 on a settled stack, 1 461 064 vs 1 777 058 on the first step;
-//! * broad phase: rebuilding every proxy (shipped) vs reusing the static proxies of the previous
-//!   step while no user change happened: 337 680 vs 353 770 on `BOX_STACK3` (1 static collider
-//!   of 4), 816 370 vs 584 350 with 8 static platforms; the cache would be persisted state (D9)
-//!   and loses on the reference scene, so it is not shipped;
-//! * solver input: touching manifolds only (shipped) vs every pair: 5 156 516 vs 6 768 856 with
-//!   one non-touching pair (1.6M per inert manifold), 14 444 688 vs 14 424 288 when all touch;
-//! * narrow phase (ON, CL): `narrow_phase::compute_contacts_from_scratch` with
-//!   `DefaultDispatcher`, i.e. `rapier_geometry2d::dispatch::contact_manifold_step` (ranking in
-//!   `crate::dispatcher`, equivalence in `narrow_tests`); before ON, see
-//!   `crate::dispatcher` (dispatcher) and, rejected, a per-kind
-//!   `match` in the pair loop (`compute_contacts_by_kind`), per-kind bucket loops
-//!   (`compute_contacts_bucketed`) and a one-iteration loop around each per-kind `process_pair`
-//!   (`compute_contacts_metered`): 4 ball pairs 3 477 356 / 1 778 206 / 1 651 356 vs 1 486 460
-//!   shipped, 4 cuboid pairs 3 477 356 / 3 548 006 / 3 252 676 vs 3 197 940 shipped.
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
-use rapier_core::collider::ColliderChangesTrait;
+use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::{
     RigidBodyChangesTrait, RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType,
 };
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
-use rapier_dynamics2d::events::CollisionEvent;
+use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, JointEnabled};
 use rapier_dynamics2d::narrow_phase::{
     ContactPair, NarrowPhase, PairCollider, compute_contacts_from_scratch,
@@ -156,9 +91,10 @@ pub(crate) mod alternatives;
 mod benches;
 #[cfg(test)]
 pub(crate) mod fixtures;
+
+pub mod force_events;
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
-
 pub mod islands;
 pub mod kinematic;
 #[cfg(test)]
@@ -192,6 +128,16 @@ pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colli
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
+    let (events, _) = step_with_force_events(ref world);
+    events
+}
+
+/// Same step, also returning post-solver normal-force events in ascending pair order.
+/// Empty force array and no post-solver scan when no collider enables force events.
+/// Panics as `step`.
+pub fn step_with_force_events(
+    ref world: World,
+) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
     let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
@@ -199,7 +145,7 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
         Some(world.integration_parameters.dt),
     );
     let prediction = world.integration_parameters.prediction_distance();
-    let (proxies, scratch, sleeping) = collision_inputs_sleeping(
+    let (proxies, scratch, sleeping, force_events) = collision_inputs_sleeping(
         snapshot, infos, ref world.bodies, prediction,
     );
     let mut dormant = array![];
@@ -242,7 +188,16 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
     if !dormant.is_empty() {
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
     }
-    events
+    let mut forces = array![];
+    let mut pending = force_events;
+    while pending {
+        forces =
+            force_events::collect(
+                world.integration_parameters.dt, ref world.narrow_phase, ref world.colliders,
+            );
+        pending = false;
+    }
+    (events, forces)
 }
 
 /// What the collision stages read from a parent body, after the user changes.
@@ -432,7 +387,9 @@ pub fn collision_inputs(
     ref bodies: RigidBodySet,
     prediction: Fixed,
 ) -> (Array<BroadPhaseProxy>, Span<PairCollider>) {
-    let (proxies, scratch, _) = collision_inputs_sleeping(snapshot, infos, ref bodies, prediction);
+    let (proxies, scratch, _, _) = collision_inputs_sleeping(
+        snapshot, infos, ref bodies, prediction,
+    );
     (proxies, scratch)
 }
 
@@ -443,13 +400,22 @@ pub fn collision_inputs_sleeping(
     infos: Span<BodyInfo>,
     ref bodies: RigidBodySet,
     prediction: Fixed,
-) -> (Array<BroadPhaseProxy>, Span<PairCollider>, bool) {
+) -> (Array<BroadPhaseProxy>, Span<PairCollider>, bool, bool) {
     let margin = prediction * HALF;
     let mut proxies = array![];
     let mut scratch = array![];
     let mut any_sleeping = false;
+    let mut force_events = false;
     for (handle, collider) in snapshot {
         let collider = *collider;
+        if collider.flags.active_events.bits != 0 {
+            if collider
+                .flags
+                .active_events
+                .contains(rapier_core::collider::events::CONTACT_FORCE_EVENTS) {
+                force_events = true;
+            }
+        }
         let body = collider.parent();
         let (body_type, world_com, dominance, sleeping) = match body {
             Some(parent) => body_info(infos, parent, ref bodies),
@@ -482,6 +448,7 @@ pub fn collision_inputs_sleeping(
                     collision_groups: collider.flags.collision_groups,
                     solver_groups: collider.flags.solver_groups,
                     active_events: collider.flags.active_events,
+                    one_way: collider.one_way,
                     body,
                     body_type,
                     world_com,
@@ -489,7 +456,7 @@ pub fn collision_inputs_sleeping(
                 },
             );
     }
-    (proxies, scratch.span(), any_sleeping)
+    (proxies, scratch.span(), any_sleeping, force_events)
 }
 
 

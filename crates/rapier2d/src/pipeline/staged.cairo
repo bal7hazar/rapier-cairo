@@ -38,7 +38,7 @@ pub fn detect_collisions(
     let snapshot = colliders.iter().span();
     let entries = bodies.iter().span();
     let (infos, _) = body_infos(entries);
-    let (proxies, scratch, sleeping) = collision_inputs_sleeping(
+    let (proxies, scratch, sleeping, _) = collision_inputs_sleeping(
         snapshot, infos.span(), ref bodies, prediction,
     );
     let mut dormant = array![];

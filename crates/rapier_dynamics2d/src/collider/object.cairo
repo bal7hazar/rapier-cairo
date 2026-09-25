@@ -22,6 +22,7 @@ use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::{Shape, ShapeTrait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
+use crate::collider::components::{BoxedOneWayPlatformPartialEq, BoxedOneWayPlatformSerde};
 use super::components::{
     ColliderMassProps, ColliderMassPropsTrait, ColliderParent, ColliderPosition,
 };
@@ -43,6 +44,8 @@ pub struct Collider {
     pub flags: ColliderFlags,
     /// Total contact force beyond which a contact force event may be emitted.
     pub contact_force_event_threshold: Fixed,
+    /// Optional one-way cone; absent by default. Configured with the builder.
+    pub one_way: Option<Box<super::components::OneWayPlatform>>,
     pub user_data: u128,
 }
 

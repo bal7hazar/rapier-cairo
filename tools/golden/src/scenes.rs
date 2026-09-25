@@ -11,6 +11,7 @@ const STACK_DIAGNOSTIC_STEPS: usize = 8;
 /// Re-seed step of the second `box_stack3` window: its contact impulses are recorded too (SO).
 const STACK_RESEED_STEP: usize = 60;
 
+mod ev;
 mod kd;
 #[cfg(test)]
 mod kd_checks;
@@ -259,6 +260,7 @@ fn scenes() -> Vec<SceneSpec> {
         });
     }
     scenes.extend(kd::scenes());
+    scenes.extend(ev::scenes());
     scenes
 }
 
@@ -338,6 +340,11 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
         } else {
             RigidBodyBuilder::fixed()
         };
+        let builder = if scene.id == "one_way_jump" && spec.dynamic {
+            builder.linvel(Vector::new(0.0, 8.0))
+        } else {
+            builder
+        };
         let builder = if scene.id == "dominance_stack" && spec.name == "upper" {
             builder.dominance_group(1)
         } else {
@@ -356,6 +363,15 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
                 .density(c.density.f())
                 .friction(c.friction.f())
                 .restitution(c.restitution.f());
+            let builder = if scene.id == "one_way_jump" && !spec.dynamic {
+                builder.active_hooks(ActiveHooks::MODIFY_SOLVER_CONTACTS)
+            } else if scene.id == "force_event_drop" && !spec.dynamic {
+                builder
+                    .active_events(ActiveEvents::CONTACT_FORCE_EVENTS)
+                    .contact_force_event_threshold(20.0)
+            } else {
+                builder
+            };
             colliders.insert_with_parent(builder, handle, &mut bodies);
             colliders_json.push(json!({
                 "shape": c.shape.json(),
@@ -467,6 +483,15 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
         json!({ "step": step, "bodies": states })
     };
 
+    let hooks = ev::Hook {
+        platform: if scene.id == "one_way_jump" {
+            Some(bodies[handles[0]].colliders()[0])
+        } else {
+            None
+        },
+    };
+    let collector = ev::Collector::default();
+    let mut force_events = Vec::new();
     let mut diagnostics = Vec::new();
     let mut kd_warmstart = Vec::new();
     let mut samples = vec![sample(0, &bodies)];
@@ -500,9 +525,12 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
             &mut impulse_joints,
             &mut multibody_joints,
             &mut ccd_solver,
-            &(),
-            &(),
+            &hooks,
+            &collector,
         );
+        for event in collector.0.lock().unwrap().drain(..) {
+            force_events.push(json!({ "step": step, "collider1": event.collider1.into_raw_parts().0, "collider2": event.collider2.into_raw_parts().0, "total_force": jvec(event.total_force), "total_force_magnitude": jf(event.total_force_magnitude), "max_force_direction": jvec(event.max_force_direction), "max_force_magnitude": jf(event.max_force_magnitude) }));
+        }
         if scene.id == "dominance_stack" && step == 60 {
             for pair in narrow_phase.contact_pairs() {
                 for manifold in &pair.manifolds {
@@ -624,6 +652,10 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
     }
     if scene.id == "dominance_stack" {
         result["warmstart_60"] = json!(kd_warmstart);
+    }
+    if scene.id == "one_way_jump" || scene.id == "force_event_drop" {
+        result["ev_control"] = json!({ "one_way": scene.id == "one_way_jump", "initial_velocity": jqvec(if scene.id == "one_way_jump" { QVec::snap(0.0, 8.0) } else { QVec::ZERO }), "force_threshold": jq(Q::snap(20.0)) });
+        result["force_events"] = json!(force_events);
     }
     if let Some(control) = kd::control(scene.id) {
         result["kd_control"] = control;
