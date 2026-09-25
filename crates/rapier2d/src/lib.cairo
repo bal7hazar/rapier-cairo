@@ -20,8 +20,8 @@ pub mod prelude {
         RevoluteJointBuilderTrait,
     };
     pub use rapier_dynamics2d::{
-        CollisionEvent, CollisionEventTrait, RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait,
-        RigidBodyTrait,
+        CollisionEvent, CollisionEventTrait, ContactForceEvent, ContactForceEventTrait,
+        OneWayPlatform, RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodyTrait,
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
