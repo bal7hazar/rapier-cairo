@@ -33,6 +33,11 @@ it and where the evidence lives.
 | 17 | Polygon contact manifolds | PFM–PFM: GJK/EPA + polygonal-feature clipping | SAT over face normals + the same clipping; exact penetration; first face on exact ties | no GJK/EPA in the port | CP2 #107 |
 | 18 | One-way platforms | no built-in: users write a `PhysicsHooks::modify_solver_contacts` hook (example `one_way_platforms2`, test `issue_752`) | built-in collider flag `ColliderBuilder::one_way(local_up, allowed_angle)` implementing the example's three-state rule (unknown / allowed / forbidden, persisted in the manifold `user_data`; both platforms must accept when both are one-way) | D10: no `dyn` hooks in Cairo | EV #114 |
 | 19 | `ContactForceEvent::started` | absent from the published `rapier2d-f64 0.35.3` | present (from the pinned clone `28d0ba9`), with an independent force-start bit | reference clone is 0.35.3 + 4 commits | EV #114 |
+| 20 | Intersection-pair storage | a separate intersection graph | the same `NarrowPhase.pairs` list, marked by status bits, empty manifold (a second array measured +4.5k gas per step on every scene) | Cairo value-type cost (D9) | SE #127 |
+| 21 | Event order within a step | contact events, then intersection events | one sequence ascending by pair key (D8 determinism) | stateless pipeline order | SE #127 |
+| 22 | Sensor pair on a removed collider | `Stopped \| SENSOR \| REMOVED` emitted by `handle_user_changes` without waking the partner | the partner's parent is woken so that the dormant pair ends at the next step (same event); to be made upstream-exact by CW | dormant pairs are skipped by the step | SE #127 |
+| 23 | Solid ↔ sensor switch; dropped pairs | the pair keeps its graph edge; `Stopped` decided from `intersecting` and the current event flags | the pair ends (`Stopped` if started) and restarts as the other kind; `Stopped` decided from the stored start-emitted bit | one list for both kinds | SE #127 |
+| 24 | `intersection_test` kernels | GJK for most pairs; the query dispatcher is pluggable | analytic distance or SAT per pair (touching ⇒ intersecting, as upstream on the 81 golden cases); not pluggable | no GJK/EPA in the port; D10 | SE #127 |
 
 ## Consequences
 
