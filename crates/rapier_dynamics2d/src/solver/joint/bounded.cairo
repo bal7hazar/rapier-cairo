@@ -18,7 +18,8 @@ pub struct BoundedRow {
     pub min: Fixed,
     pub max: Fixed,
 }
-/// Optional rows, allocated only for enabled free, uncoupled limit/motor axes.
+/// Optional rows, allocated only for enabled free, uncoupled limit/motor axes and the coupled
+/// motor/limit (RJ, last of their group).
 /// Order is angular, X, Y within each group; motors precede locks, which precede limits.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct BoundedRows {

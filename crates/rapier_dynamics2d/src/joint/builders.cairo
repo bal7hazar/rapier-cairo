@@ -23,6 +23,12 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
         let result = GenericJointBuilder { data };
         result
     }
+    /// Set the coupled axes (upstream `coupled_axes`); exact copy. Coupled linear axes act as
+    /// one distance DOF (rope/spring); in 2D a coupled angular axis gets no row, as upstream.
+    fn coupled_axes(mut self: GenericJointBuilder, axes: JointAxesMask) -> GenericJointBuilder {
+        self.data.coupled_axes = axes;
+        self
+    }
     /// Set local_frame1; exact copy, no arithmetic or panics.
     fn local_frame1(mut self: GenericJointBuilder, value: Pose2) -> GenericJointBuilder {
         self.data.local_frame1 = value;

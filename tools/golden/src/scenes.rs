@@ -40,7 +40,14 @@ struct MotorSpec {
     force_based: bool,
 }
 
+/// Rope (`max_dist`) or spring (`rest_length`, `stiffness`, `damping`, model) joint (RJ).
+enum CoupledSpec {
+    Rope { max_dist: Q },
+    Spring { rest_length: Q, stiffness: Q, damping: Q, force_based: bool },
+}
+
 struct JointSpec {
+    coupled: Option<CoupledSpec>,
     axis: Option<QVec>,
     limits: Option<[Q; 2]>,
     motor: Option<MotorSpec>,
@@ -179,7 +186,7 @@ fn scenes() -> Vec<SceneSpec> {
                 dynamic("bob", QPose::translation(1.0, 0.0), collider(ShapeSpec::ball(0.25), 0.5, 0.0)),
             ],
             joints: vec![JointSpec {
-                axis: None, limits: None, motor: None,
+                coupled: None, axis: None, limits: None, motor: None,
                 body1: 0,
                 body2: 1,
                 local_anchor1: QVec::ZERO,
@@ -250,6 +257,7 @@ fn scenes() -> Vec<SceneSpec> {
                 dynamic("body", QPose::translation(if pendulum { 1.0 } else { 0.0 }, 2.0), collider(ShapeSpec::ball(0.25), 0.5, 0.0)),
             ],
             joints: vec![JointSpec {
+                coupled: None,
                 body1: 0, body2: 1,
                 local_anchor1: QVec::ZERO,
                 local_anchor2: if pendulum { QVec::snap(-1.0, 0.0) } else { QVec::ZERO },
@@ -261,6 +269,52 @@ fn scenes() -> Vec<SceneSpec> {
     }
     scenes.extend(kd::scenes());
     scenes.extend(ev::scenes());
+    // RJ: coupled-axes joints. The rope starts slack (anchor distance 1.0 < 1.5) and becomes
+    // taut after a free fall; the springs start stretched and oscillate (both motor models).
+    let rope = SceneSpec {
+        can_sleep: false,
+        id: "rope_pendulum",
+        note: "ball hanging from a fixed pivot by a 1.5 rope attached 0.25 above its centre, released 1.0 away horizontally: slack free fall, then taut swing",
+        bodies: vec![
+            BodySpec { name: "pivot", dynamic: false, pose: QPose::translation(0.0, 2.0), colliders: vec![] },
+            dynamic("body", QPose::translation(1.0, 2.0), collider(ShapeSpec::ball(0.25), 0.5, 0.0)),
+        ],
+        joints: vec![JointSpec {
+            coupled: Some(CoupledSpec::Rope { max_dist: Q::snap(1.5) }),
+            axis: None, limits: None, motor: None,
+            body1: 0, body2: 1,
+            local_anchor1: QVec::ZERO,
+            local_anchor2: QVec::snap(0.0, 0.25),
+        }],
+    };
+    scenes.push(rope);
+    for (id, force_based) in [("spring_mass", true), ("spring_mass_accel", false)] {
+        scenes.push(SceneSpec {
+            can_sleep: false,
+            id,
+            note: if force_based {
+                "ball on a damped spring (rest 0.5, stiffness 20, damping 0.5, force-based) from a fixed pivot, released stretched to 1.04 off the vertical"
+            } else {
+                "spring_mass with the acceleration-based spring model"
+            },
+            bodies: vec![
+                BodySpec { name: "pivot", dynamic: false, pose: QPose::translation(0.0, 2.0), colliders: vec![] },
+                dynamic("body", QPose::translation(0.3, 1.0), collider(ShapeSpec::ball(0.25), 0.5, 0.0)),
+            ],
+            joints: vec![JointSpec {
+                coupled: Some(CoupledSpec::Spring {
+                    rest_length: Q::snap(0.5),
+                    stiffness: Q::snap(20.0),
+                    damping: Q::snap(0.5),
+                    force_based,
+                }),
+                axis: None, limits: None, motor: None,
+                body1: 0, body2: 1,
+                local_anchor1: QVec::ZERO,
+                local_anchor2: QVec::ZERO,
+            }],
+        });
+    }
     scenes
 }
 
@@ -402,6 +456,44 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
 
     let mut joints_json = Vec::new();
     for j in &scene.joints {
+        if let Some(coupled) = &j.coupled {
+            let (joint, mut desc) = match coupled {
+                CoupledSpec::Rope { max_dist } => (
+                    RopeJointBuilder::new(max_dist.f())
+                        .local_anchor1(j.local_anchor1.v())
+                        .local_anchor2(j.local_anchor2.v())
+                        .build()
+                        .data,
+                    json!({ "type": "rope", "max_dist": jq(*max_dist) }),
+                ),
+                CoupledSpec::Spring { rest_length, stiffness, damping, force_based } => (
+                    SpringJointBuilder::new(rest_length.f(), stiffness.f(), damping.f())
+                        .local_anchor1(j.local_anchor1.v())
+                        .local_anchor2(j.local_anchor2.v())
+                        .spring_model(if *force_based {
+                            MotorModel::ForceBased
+                        } else {
+                            MotorModel::AccelerationBased
+                        })
+                        .build()
+                        .data,
+                    json!({
+                        "type": "spring",
+                        "rest_length": jq(*rest_length),
+                        "stiffness": jq(*stiffness),
+                        "damping": jq(*damping),
+                        "force_based": force_based,
+                    }),
+                ),
+            };
+            impulse_joints.insert(handles[j.body1], handles[j.body2], joint, true);
+            desc["body1"] = json!(scene.bodies[j.body1].name);
+            desc["body2"] = json!(scene.bodies[j.body2].name);
+            desc["local_anchor1"] = jqvec(j.local_anchor1);
+            desc["local_anchor2"] = jqvec(j.local_anchor2);
+            joints_json.push(desc);
+            continue;
+        }
         let mut joint = if let Some(axis) = j.axis {
             PrismaticJointBuilder::new(axis.v())
                 .local_anchor1(j.local_anchor1.v())

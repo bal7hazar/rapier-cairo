@@ -146,8 +146,22 @@ of at least one full turn is disabled, as upstream. Limits inherit the existing 
 zeros CFM below eight ulps; motors retain their computed CFM. Motor coefficients and force caps use
 the substep duration; motor position error remains in the relaxed pass. Fixed extrema stand in
 for floating unbounded impulses, and `MAX` force saturates at `MAX` impulse when dt exceeds one.
-Uncoupled free axes are supported; coupled limits/motors remain deferred. Other unrepresentable
+Uncoupled free axes are supported; coupled limits/motors are RJ's (below). Other unrepresentable
 fixed-point intermediates panic under the existing numeric policy.
+
+RJ adds three coupled-axes scenes (sleeping disabled), built with upstream's `RopeJointBuilder` /
+`SpringJointBuilder`: `rope_pendulum` hangs a ball from a fixed pivot by a 1.5 rope attached 0.25
+above its centre, released 1.0 away horizontally (slack free fall, then taut swing and spin);
+`spring_mass` releases a ball stretched 1.04 from the pivot on a force-based spring (rest 0.5,
+stiffness 20, damping 0.5); `spring_mass_accel` is the same with the acceleration-based model. As KD's,
+each lives in its own leaf module (`scenes::{rope_pendulum, spring_mass, spring_mass_accel}`, one
+`CoupledJointSceneCase { scene, joint }` in `ALL` / `cases()`; `SceneCoupledJointRaw` holds the
+anchors, `rope`, and `max_dist` or `rest_length` / `stiffness` / `damping` / `force_based`); every
+earlier fixture stays byte-identical. Replays use the
+`pendulum` tolerances. The port normalises the anchor separation with one wide square root and
+reciprocal (a zero separation gives a zero Jacobian, as upstream's `simd_inv(0) = 0`), keeps
+upstream's speculative `min(dist - max, 0) / dt` term in the rope row and ignores the lower bound
+as upstream does.
 
 JL one-joint whole-world step costs, subtracting each matching `gas_setup_*` probe from
 `gas_step_*` (opaque scene inputs, metered one-iteration call, four substeps per quantized dt=1/60 frame).

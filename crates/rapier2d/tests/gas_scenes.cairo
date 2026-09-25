@@ -11,7 +11,9 @@ use glam::Vec2;
 use rapier2d::world::{World, WorldTrait};
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::joint::{ImpulseJointSetTrait, RevoluteJointBuilderTrait};
+use rapier_dynamics2d::joint::{
+    ImpulseJointSetTrait, RevoluteJointBuilderTrait, RopeJointBuilderTrait, SpringJointBuilderTrait,
+};
 use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
@@ -160,6 +162,36 @@ fn wheel_motor() -> World {
     world
 }
 
+/// RJ: a ball on a rope of length 2 from a fixed pivot, released taut and horizontal (it stays
+/// taut while swinging).
+fn rope() -> World {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let pivot = world.insert_body(RigidBodyTrait::fixed(at(ZERO, ZERO)));
+    let (body, _) = world
+        .insert(
+            RigidBodyTrait::dynamic(at(FixedTrait::from_int(2), ZERO)),
+            ColliderBuilderTrait::ball(HALF).build(),
+        );
+    let joint = RopeJointBuilderTrait::new(FixedTrait::from_int(2)).build();
+    let _ = world.insert_impulse_joint(pivot, body, joint);
+    world
+}
+
+/// RJ: a ball hanging 2 below a fixed pivot on a force-based spring (rest 1, stiffness 20,
+/// damping 1/2), released stretched.
+fn spring() -> World {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let pivot = world.insert_body(RigidBodyTrait::fixed(at(ZERO, ZERO)));
+    let (body, _) = world
+        .insert(
+            RigidBodyTrait::dynamic(at(ZERO, FixedTrait::from_int(-2))),
+            ColliderBuilderTrait::ball(HALF).build(),
+        );
+    let joint = SpringJointBuilderTrait::new(ONE, FixedTrait::from_int(20), HALF).build();
+    let _ = world.insert_impulse_joint(pivot, body, joint);
+    world
+}
+
 fn scene(id: felt252, size: u32) -> World {
     if id == 'free' {
         free_fall(size)
@@ -173,13 +205,22 @@ fn scene(id: felt252, size: u32) -> World {
         pendulum_limited()
     } else if id == 'wheel' {
         wheel_motor()
+    } else if id == 'rope' {
+        rope()
+    } else if id == 'spring' {
+        spring()
     } else {
         pendulum_chain(size)
     }
 }
 
 fn expected_pairs(id: felt252, size: u32) -> u32 {
-    if id == 'free' || id == 'pend' || id == 'plim' || id == 'wheel' {
+    if id == 'free'
+        || id == 'pend'
+        || id == 'plim'
+        || id == 'wheel'
+        || id == 'rope'
+        || id == 'spring' {
         0
     } else if id == 'mixed' {
         15
@@ -189,7 +230,7 @@ fn expected_pairs(id: felt252, size: u32) -> u32 {
 }
 
 fn expected_joints(id: felt252, size: u32) -> u32 {
-    if id == 'pend' || id == 'plim' || id == 'wheel' {
+    if id == 'pend' || id == 'plim' || id == 'wheel' || id == 'rope' || id == 'spring' {
         size
     } else {
         0
@@ -232,7 +273,7 @@ fn probe(id: felt252, size: u32, warmup: u32, measured: u32) {
     assert!(points >= pairs);
     assert_eq!(
         world.bodies.len(),
-        if id == 'pend' || id == 'plim' || id == 'wheel' {
+        if id == 'pend' || id == 'plim' || id == 'wheel' || id == 'rope' || id == 'spring' {
             size + 1
         } else {
             size
@@ -411,6 +452,28 @@ fn gas_step_wheel_motor() {
     probe(opaque('wheel'), opaque(1), WARMUP_PENDULUM, 1);
 }
 
+#[test]
+fn gas_setup_rope() {
+    probe(opaque('rope'), opaque(1), WARMUP_PENDULUM, 0);
+}
+
+#[test]
+#[available_gas(l2_gas: 19266249)]
+fn gas_step_rope() {
+    probe(opaque('rope'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn gas_setup_spring() {
+    probe(opaque('spring'), opaque(1), WARMUP_PENDULUM, 0);
+}
+
+#[test]
+#[available_gas(l2_gas: 19699429)]
+fn gas_step_spring() {
+    probe(opaque('spring'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
 // Uncapped twins of the `gas_step_*` probes, for `--tracked-resource cairo-steps`.
 
 #[test]
@@ -486,4 +549,14 @@ fn steps_step_pendulum_limited() {
 #[test]
 fn steps_step_wheel_motor() {
     probe(opaque('wheel'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn steps_step_rope() {
+    probe(opaque('rope'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+#[test]
+fn steps_step_spring() {
+    probe(opaque('spring'), opaque(1), WARMUP_PENDULUM, 1);
 }

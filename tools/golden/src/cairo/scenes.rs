@@ -131,6 +131,7 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
     let mut joint_cases = Vec::new();
     let mut ev_cases = Vec::new();
     let mut kd_cases = Vec::new();
+    let mut coupled_cases = Vec::new();
     let cases: Vec<(String, Node)> = json["scenes"]
         .as_array()
         .unwrap()
@@ -150,13 +151,20 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
                 .map(|b| b["name"].as_str().unwrap())
                 .collect();
 
-            let controlled = c["joints"].as_array().unwrap().iter().any(|j| {
-                !j["limits"].is_null() || !j["motor"].is_null() || j["type"] == "prismatic"
-            });
+            let coupled = c["joints"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|j| j["type"] == "rope" || j["type"] == "spring");
+            let controlled = !coupled
+                && c["joints"].as_array().unwrap().iter().any(|j| {
+                    !j["limits"].is_null() || !j["motor"].is_null() || j["type"] == "prismatic"
+                });
             let mut joints: Vec<Node> = c["joints"]
                 .as_array()
                 .unwrap()
                 .iter()
+                .filter(|_| !coupled)
                 .map(|j| {
                     assert!(j["type"] == "revolute" || j["type"] == "prismatic");
                     Node::Struct(
@@ -264,6 +272,40 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
                             ("dominance_body", int(&control["dominance_body"])),
                             ("dominance_group", int(&control["dominance_group"])),
                         ],
+                    ),
+                ));
+                None
+            } else if coupled {
+                let j = &c["joints"][0];
+                assert_eq!(c["joints"].as_array().unwrap().len(), 1);
+                let rope = j["type"] == "rope";
+                let field = |name: &str, present: bool| if present { raw(&j[name]) } else { zero() };
+                let control = Node::Struct(
+                    "crate::types::SceneCoupledJointRaw",
+                    vec![
+                        ("body1", index_of(&j["body1"])),
+                        ("body2", index_of(&j["body2"])),
+                        ("local_anchor1", vec2(&j["local_anchor1"])),
+                        ("local_anchor2", vec2(&j["local_anchor2"])),
+                        ("rope", Node::Lit(rope.to_string())),
+                        ("max_dist", field("max_dist", rope)),
+                        ("rest_length", field("rest_length", !rope)),
+                        ("stiffness", field("stiffness", !rope)),
+                        ("damping", field("damping", !rope)),
+                        (
+                            "force_based",
+                            Node::Lit(j["force_based"].as_bool().unwrap_or(false).to_string()),
+                        ),
+                    ],
+                );
+                coupled_cases.push((
+                    c["id"].as_str().unwrap().to_string(),
+                    (
+                        const_name(c),
+                        Node::Struct(
+                            "crate::types::CoupledJointSceneCase",
+                            vec![("scene", node), ("joint", control)],
+                        ),
                     ),
                 ));
                 None
@@ -451,6 +493,22 @@ pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
             &format!("[crate::types::ForceEventRaw; {}]", events.len()),
             &Node::Array(events),
         ));
+        files.push((path, leaf.finish(&ALL_TYPES)));
+    }
+    // RJ: one leaf module per coupled-joint scene, as KD.
+    for (id, case) in coupled_cases {
+        let path: &'static str = match id.as_str() {
+            "rope_pendulum" => "scenes/rope_pendulum",
+            "spring_mass" => "scenes/spring_mass",
+            "spring_mass_accel" => "scenes/spring_mass_accel",
+            other => panic!("unknown coupled scene {other}"),
+        };
+        parent.push_str(&format!("\npub mod {};\n", path.split('/').nth(1).unwrap()));
+        let mut leaf = Module::new(
+            "scenes.json",
+            "RJ coupled-joint (rope/spring) golden trace and its joint settings.",
+        );
+        leaf.table("crate::types::CoupledJointSceneCase", "ALL", "cases", &[case]);
         files.push((path, leaf.finish(&ALL_TYPES)));
     }
     files.push(("scenes", parent));

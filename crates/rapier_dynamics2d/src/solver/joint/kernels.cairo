@@ -193,10 +193,17 @@ pub(crate) fn generate_extended(
         locks: j.data.locked_axes,
         softness: j.data.softness,
     };
-    let controls = step::controls(j.data, false);
-    let mut c = step::generate(
-        step, controls, j.impulses, controls.motors, controls.limits, b1, b2, p, false,
-    );
+    let mut c = if j.data.coupled_axes.bits == 0 {
+        let controls = step::controls(j.data, false);
+        step::generate(
+            step, controls, j.impulses, controls.motors, controls.limits, b1, b2, p, false,
+        )
+    } else {
+        let kind = step::coupled_kind(j.data, false);
+        step::generate_coupled(
+            step, kind, j.impulses, kind.controls.motors, kind.controls.limits, b1, b2, p, false,
+        )
+    };
     c.solver_vel1 = solver_vel1;
     c.solver_vel2 = solver_vel2;
     c

@@ -119,12 +119,12 @@ pub(crate) fn rebuild_joints<B, +DenseBodiesTrait<B>, +Destruct<B>>(
                     )
                 },
                 StepKind::Legacy(legacy) => {
-                    let mut joint = legacy.unbox();
-                    if reuse {
-                        (*old.at(out.len())).writeback_impulses(ref joint);
-                    }
-                    let pair = [bodies.get(i), bodies.get(j)];
-                    JointConstraintTrait::generate(joint, pair.span(), p)
+                    let previous = if reuse {
+                        Some(*old.at(out.len()))
+                    } else {
+                        None
+                    };
+                    step::legacy(joint, legacy, impulses, previous, bodies.get(i), bodies.get(j), p)
                 },
             }
         };

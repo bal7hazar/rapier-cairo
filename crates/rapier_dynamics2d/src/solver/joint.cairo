@@ -6,6 +6,7 @@
 //! OJ keeps scalar row kernels inline to avoid copying full rows at each arithmetic call.
 //! JM: limits/motors are built after a single frame construction (`step`); the island driver
 //! specialises each joint's kind once per step and carries impulses between substeps itself.
+//! RJ: coupled linear axes (rope, spring) add one row along the anchor separation (`coupled`).
 pub(crate) mod bounded;
 mod kernels;
 pub(crate) use kernels::{frame, lock_rows, write_rows};
@@ -15,6 +16,7 @@ use kernels::{
 };
 pub(crate) mod step;
 pub(crate) use step::StepJoint;
+pub(crate) mod coupled;
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};
@@ -56,8 +58,9 @@ pub struct JointConstraint {
 pub impl JointConstraintImpl of JointConstraintTrait {
     /// Rebuild locks, limits and motors from current CoM poses and complete body handles.
     /// Disabled joints return zero rows. Missing/same bodies, negative mass/warmstart, nonunit
-    /// frames panic with errors constants; parameter/Fixed panics propagate. Coupled axes
-    /// remain reserved. Motor stiffness, damping and force caps must be nonnegative.
+    /// frames panic with errors constants; parameter/Fixed panics propagate. Coupled linear axes
+    /// add upstream's coupled motor/limit rows (RJ); a coupled angular axis has no row in 2D.
+    /// Motor stiffness, damping and force caps must be nonnegative.
     #[inline(always)]
     fn generate(
         joint: ImpulseJoint, bodies: Span<SolverBody>, params: IntegrationParameters,
