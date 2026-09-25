@@ -11,6 +11,9 @@ pub mod world;
 pub mod prelude {
     pub use fixed::Fixed;
     pub use glam::Vec2;
+    pub use rapier_core::collider::events::{
+        ActiveEvents, COLLISION_EVENTS, CONTACT_FORCE_EVENTS, CollisionEventFlags, REMOVED, SENSOR,
+    };
     pub use rapier_core::data::handle::Handle;
     pub use rapier_core::integration_parameters::IntegrationParameters;
     pub use rapier_dynamics2d::collider::ColliderTrait;
@@ -26,6 +29,8 @@ pub mod prelude {
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
+    pub use rapier_math::pose2::{Pose2, Pose2Trait};
+    pub use rapier_math::rot2::{Rot2, Rot2Trait};
     pub use crate::dispatcher::DefaultDispatcher;
     pub use crate::queries::{QueryFilter, QueryFilterTrait};
     pub use crate::world::{World, WorldTrait};

@@ -31,7 +31,8 @@ PROVE=1 scripts/prove-example.sh ball_drop 1
 ```
 
 `PROVE=1` is for larger machines only. The orchestrator measured the Stwo prover being
-OOM-killed above a 22 GB cgroup cap even for one physics step: 4,781 Cairo steps,
+OOM-killed above a 22 GB cgroup cap even for one physics step (measured on an early wip executable of 4,781 Cairo
+steps; the one-tick run of the table below is 19,587 steps including world construction),
 `prover_input.json` = 105 MB, and `memory.address_to_id` = 2.7M cells. No proof was
 produced on this machine, so the proof size is unavailable here.
 
