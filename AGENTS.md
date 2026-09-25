@@ -136,7 +136,10 @@ python3 scripts/gas.py check                                  # CI and orchestra
   `#[inline(always)]` in its caller; a computing arm that must stay inside an outlined function
   goes behind a one-iteration `while pending { …; pending = false; }` ("metered" call, ~265 steps),
   because a `while` body is only charged when it runs (`loop { …; break; }` is not); an
-  `#[inline(never)]` helper per arm is the cheap fix only when the `match` itself is inlined.
+  `#[inline(never)]` helper per arm is the cheap fix only when the `match` itself is inlined. A third tool (JM, #109):
+  calling a `#[inline(never)]` function that contains a (zero-trip) loop — a "gas wallet", see
+  `rapier_dynamics2d::solver::joint::row::gas_wallet` — makes the caller's unused branch gas refundable;
+  measure it (it saved 115k of 359k on joint row generation, but cost +20k in the solve loops).
 - Traits: `FooTrait` / `FooImpl` (via `#[generate_trait]` when there is a single impl); operators
   through core traits; `Zero`, `One`, `Default` where meaningful.
 - Errors: `pub mod errors { pub const X: felt252 = 'Type: reason'; }` with `assert(cond, errors::X)`;
