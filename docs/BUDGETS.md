@@ -25,6 +25,7 @@ changes 2.0 / 3.1 %, islands + sleeping 1.3 / 5.7 %; flight ticks 1–25: broad 
 user changes 19 / 19 %, solver 9 / 7 %. Engine sleep timer 0.5 s; the programme's calm rule (all awake bodies below a
 velocity threshold for 20 ticks) fires within 1–4 ticks of the engine where either fires, at 0.15M gas per tick.
 
+## Since the 2026-09-24 matrix below
 
 - SE #127 (sensors): every P3 scene ≤ +0.21 %; ceilings unchanged.
 - RB #121 (rigid-body API, cold data boxed): contact and joint scenes +0.05 % to +0.29 % net; `free_fall1/8/32`
@@ -37,6 +38,13 @@ velocity threshold for 20 ticks) fires within 1–4 ticks of the engine where ei
   round trip (`to_state` + `serialize` + `deserialize` + `from_state`) 6,621,940 | 51,974 (`into_state` instead of
   `to_state` saves ≈ 290k | 2.9k); pile20 4,896 felts, 14,451,140 | 114,814. `deserialize` is ≈ 70 % of the steps and
   the narrow-phase pairs ≈ 70 % of the felts (next lever: a hand-written `Serde` for the pairs).
+- **BT1 #139** (split contact sweeps; results bit-identical, impact-window digests pinned): exact Cairo steps, impact
+  window L10 3,869,103 → 2,283,360 (−41.0 %), L20 4,227,669 → 2,641,926 (−37.5 %); load windows −30.9 %; flight
+  unchanged; P3 contact scenes −32 % to −46 % net steps (`cuboid_stack10` 335,761 → 209,830, `mixed_pile8`
+  377,700 → 205,048, `balls_halfspace32` 833,669 → 477,791), Sierra gas −27 % to −44 % gross; ceilings lowered to
+  +10 %. L10 impact tick 811,866 → 475,498 steps: narrow phase 111.7k (generation 78.9k, bookkeeping 32.8k),
+  `solve_island` 290.6k (generation ≈ 47k + ≈ 54k per substep), glue 51.5k, other stages ≈ 21.6k. Per point per
+  substep ≈ 4.2k → 2.6k steps.
 
 ## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
 
