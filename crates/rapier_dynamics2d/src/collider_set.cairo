@@ -15,7 +15,7 @@
 
 use fixed::{Fixed, HALF};
 use rapier_core::Handle;
-use rapier_core::data::arena::{Arena, ArenaTrait};
+use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
 use crate::collider::{Collider, ColliderParent, ColliderTrait};
@@ -149,6 +149,23 @@ pub impl ColliderSetImpl of ColliderSetTrait {
                 );
         }
         proxies
+    }
+
+    /// Flat image of the set (generation counter, capacity, free list, every `(handle, collider)`
+    /// in ascending slot index), for save / restore. [`from_state`](Self::from_state) rebuilds a
+    /// set that issues the same handles as this one for the same future calls, removals included.
+    /// Cost: one dict read per allocated slot and per free slot.
+    fn to_state(ref self: ColliderSet) -> ArenaState<Collider> {
+        self.colliders.to_state()
+    }
+
+    /// Rebuilds a set from its [`to_state`](Self::to_state) image. Cost: one dict write per
+    /// allocated slot.
+    ///
+    /// # Panics
+    /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
+    fn from_state(state: ArenaState<Collider>) -> ColliderSet {
+        ColliderSet { colliders: ArenaStateTrait::from_state(state) }
     }
 }
 
@@ -387,5 +404,38 @@ mod tests {
             i += 1;
         }
         let _ = colliders.broad_phase_proxies(ref bodies, opaque(HALF));
+    }
+
+    /// Save / restore of eight standalone colliders, one of them removed: `gas_to_state` −
+    /// `gas_state_setup`, `gas_from_state` − `gas_to_state`.
+    fn state_setup() -> super::ColliderSet {
+        let mut colliders = ColliderSetTrait::new();
+        let mut bodies = RigidBodySetTrait::new();
+        let collider = opaque(cuboid_at(ZERO, ZERO));
+        let mut i: u32 = 0;
+        while i != 8 {
+            let _ = colliders.insert(collider);
+            i += 1;
+        }
+        let _ = colliders.remove(Handle { index: 3, generation: 0 }, ref bodies);
+        colliders
+    }
+
+    #[test]
+    fn gas_state_setup() {
+        let _ = state_setup();
+    }
+
+    #[test]
+    fn gas_to_state() {
+        let mut colliders = state_setup();
+        let _ = colliders.to_state();
+    }
+
+    #[test]
+    fn gas_from_state() {
+        let mut colliders = state_setup();
+        let mut restored = ColliderSetTrait::from_state(colliders.to_state());
+        assert_eq!(restored.insert(cuboid_at(ONE, ZERO)), Handle { index: 3, generation: 1 });
     }
 }

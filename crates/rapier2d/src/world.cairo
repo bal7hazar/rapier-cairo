@@ -6,7 +6,8 @@
 //! impulses) and the narrow-phase pairs (manifolds carrying the warm-start impulses and the event
 //! status; sensor pairs with their `intersecting` state). Everything else [`WorldTrait::step`]
 //! needs (broad-phase proxies and pairs, solver bodies, constraints) is rebuilt every step and
-//! dropped with it.
+//! dropped with it. [`WorldTrait::to_state`] / [`WorldTrait::from_state`] save and restore it
+//! (`state`, versioned).
 //!
 //! Mutations go through the sets' own setters, which raise the change flags the next step reads
 //! (`RigidBodyTrait::set_position`, `ColliderTrait::set_shape`, …): read a copy with
@@ -38,6 +39,10 @@ use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::point::PointProjection;
 use rapier_geometry2d::ray::{Ray, RayIntersection};
 use crate::queries::QueryFilter;
+
+/// Versioned save / restore ([`WorldTrait::to_state`], [`WorldTrait::from_state`]).
+pub mod state;
+use state::WorldState;
 
 /// A 2D physics world (upstream `PhysicsWorld`). Holds dicts: pass it by `ref`.
 #[derive(Destruct)]
@@ -233,6 +238,31 @@ pub impl WorldImpl of WorldTrait {
     fn intersection_pairs(ref self: World) -> Array<(Handle, Handle, bool)> {
         let pairs = self.narrow_phase.intersection_pairs();
         existing(ref self.colliders, pairs.span())
+    }
+
+    /// Saves every field of the world into a versioned, serialisable [`WorldState`] (layout and
+    /// version policy: [`state`]); the world is unchanged. `from_state(to_state(w))` steps
+    /// exactly as `w` and issues the same handles, removals included.
+    #[inline(always)]
+    fn to_state(ref self: World) -> WorldState {
+        state::to_state(ref self)
+    }
+
+    /// [`WorldTrait::to_state`] consuming the world: moves the pair list instead of copying it
+    /// (cheaper when the world is dropped after the save, e.g. at the end of a chunk).
+    #[inline(always)]
+    fn into_state(self: World) -> WorldState {
+        state::into_state(self)
+    }
+
+    /// Rebuilds the world saved by [`WorldTrait::to_state`] or [`WorldTrait::into_state`].
+    ///
+    /// # Panics
+    /// `world state: version` when `state.version` is not `state::WORLD_STATE_VERSION`;
+    /// `Arena: state ...` when a set image is invalid.
+    #[inline(always)]
+    fn from_state(state: WorldState) -> World {
+        state::from_state(state)
     }
 
     /// Advances the simulation by `integration_parameters.dt` (upstream `PhysicsWorld::step`)
