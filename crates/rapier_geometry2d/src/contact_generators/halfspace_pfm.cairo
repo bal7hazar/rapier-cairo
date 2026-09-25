@@ -4,8 +4,8 @@
 //! feature toward `-normal`, then emit one contact for each feature vertex whose
 //! `dist_to_plane - border_radius <= prediction`. Convex polygons and compounds are deferred.
 
-use fixed::wide::dot2;
-use fixed::{Fixed, ZERO};
+use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, wide_mul};
+use fixed::{Fixed, FixedTrait, ZERO};
 use glam::Vec2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
@@ -143,6 +143,36 @@ fn finish_normals(
     let _ = pos12;
 }
 
+/// Margin of [`cuboid_beyond`], raw: `2^-16`, above its error bound while the half extents sum
+/// to less than [`BEYOND_EXTENTS`].
+const BEYOND_MARGIN: i64 = 0x10000;
+/// Largest `hx + hy` (raw, 2^14 units) for which [`cuboid_beyond`] may conclude.
+const BEYOND_EXTENTS: i64 = 0x400000000000;
+
+/// `true` when no vertex of `cuboid2` can reach `prediction` (BT3: exact early-out of a
+/// non-touching pair; the ground's AABB overlaps every body). The support distance
+/// `n . t - |m.x| hx - |m.y| hy` (`m = R^T n`, here the floored `normal1_2`) is summed exactly
+/// and floored once; it is below every vertex distance of the full path by at most
+/// `(hx + hy) * 2^-32` (the flooring of `normal1_2`) plus four ulps (the floors of the vertex and
+/// of its dot product), which [`BEYOND_MARGIN`] covers for extents below [`BEYOND_EXTENTS`].
+/// Otherwise `false`, and the full path decides. Never changes a result.
+#[inline(always)]
+fn cuboid_beyond(
+    pos12: Pose2, normal1: Vec2, normal1_2: Vec2, cuboid2: Cuboid, prediction: Fixed,
+) -> bool {
+    let h = cuboid2.half_extents;
+    if h.x.raw + h.y.raw >= BEYOND_EXTENTS {
+        return false;
+    }
+    let t = pos12.translation;
+    let support = wide_mul(normal1.x, t.x)
+        .add(wide_mul(normal1.y, t.y))
+        .sub(wide_mul(normal1_2.x.abs(), h.x))
+        .sub(wide_mul(normal1_2.y.abs(), h.y))
+        .narrow();
+    support.raw > prediction.raw + BEYOND_MARGIN
+}
+
 fn halfspace_cuboid_direct(
     pos12: Pose2,
     halfspace1: HalfSpace,
@@ -152,6 +182,13 @@ fn halfspace_cuboid_direct(
     flipped: bool,
 ) {
     let normal1_2 = pos12.inverse_transform_vector(halfspace1.normal);
+    if cuboid_beyond(pos12, halfspace1.normal, normal1_2, cuboid2, prediction) {
+        // What the full path leaves: no point pushed, the normals set, `match_contacts` on
+        // an empty manifold changes nothing.
+        manifold.clear();
+        finish_normals(pos12, halfspace1, normal1_2, ref manifold, flipped);
+        return;
+    }
     let old = manifold;
     manifold.clear();
     generate_from_feature(
