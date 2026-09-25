@@ -229,6 +229,9 @@ mod tests {
         assert!(!status.start_event_emitted());
         assert!(START_EVENT_EMITTED.start_event_emitted());
         assert_eq!(PairEventStatusTrait::empty(), status);
+        for (bits, collision_started) in array![(0, false), (1, true), (2, false), (3, true)] {
+            assert_eq!(PairEventStatus { bits }.start_event_emitted(), collision_started);
+        }
     }
 
     #[test]

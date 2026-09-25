@@ -149,7 +149,7 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         Some(world.integration_parameters.dt),
     );
     let prediction = world.integration_parameters.prediction_distance();
-    let (proxies, scratch, sleeping, force_events) = collision_inputs_sleeping(
+    let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
         snapshot, infos, ref world.bodies, prediction,
     );
     let mut dormant = array![];
@@ -390,15 +390,26 @@ pub fn collision_inputs(
     ref bodies: RigidBodySet,
     prediction: Fixed,
 ) -> (Array<BroadPhaseProxy>, Span<PairCollider>) {
-    let (proxies, scratch, _, _) = collision_inputs_sleeping(
-        snapshot, infos, ref bodies, prediction,
-    );
+    let (proxies, scratch, _) = collision_inputs_sleeping(snapshot, infos, ref bodies, prediction);
     (proxies, scratch)
 }
 
 /// [`collision_inputs`] that also tells whether a collider belongs to a sleeping body (then the
 /// previous pairs must be split, `sleeping::split_dormant`).
 pub fn collision_inputs_sleeping(
+    snapshot: Span<(Handle, Collider)>,
+    infos: Span<BodyInfo>,
+    ref bodies: RigidBodySet,
+    prediction: Fixed,
+) -> (Array<BroadPhaseProxy>, Span<PairCollider>, bool) {
+    let (proxies, scratch, sleeping, _) = collision_inputs_with_events(
+        snapshot, infos, ref bodies, prediction,
+    );
+    (proxies, scratch, sleeping)
+}
+
+/// Step-only census: the last flag enables post-solver force-event collection.
+pub(crate) fn collision_inputs_with_events(
     snapshot: Span<(Handle, Collider)>,
     infos: Span<BodyInfo>,
     ref bodies: RigidBodySet,

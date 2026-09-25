@@ -169,6 +169,41 @@ mod tests {
         }
     }
     #[test]
+    fn test_two_platforms_and_two_contact_release() {
+        let up = Vec2 { x: ZERO, y: ONE };
+        for (other_up, accepted) in array![(up, false), (-up, true)] {
+            let (mut m, a, mut b) = inputs(false, false, up);
+            b
+                .one_way =
+                    BoxTrait::new(
+                        Some(
+                            crate::collider::components::OneWayPlatform {
+                                local_up: other_up, cos_allowed_angle: ONE,
+                            },
+                        ),
+                    );
+            filter(ref m, a, b);
+            assert_eq!(m.data.num_solver_contacts != 0, accepted);
+            assert_eq!(m.data.user_data, if accepted {
+                4
+            } else {
+                7
+            });
+        }
+        for (second_dist, accepted) in array![(ZERO, false), (-HALF, false), (HALF, true)] {
+            let mut m = manifold(up, HALF, 2);
+            let [first, mut second] = m.data.solver_contacts;
+            second.dist = second_dist;
+            m.data.solver_contacts = [first, second];
+            assert_eq!(transition(2, m, up, up, ONE), (if accepted {
+                1
+            } else {
+                2
+            }, accepted));
+        }
+    }
+
+    #[test]
     fn gas_filter() {
         let (mut m, a, b) = inputs(opaque(true), opaque(true), Vec2 { x: -ONE, y: ZERO });
         filter(ref m, a, b);

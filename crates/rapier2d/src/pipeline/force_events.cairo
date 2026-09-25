@@ -124,9 +124,9 @@ pub fn collect(
             } else {
                 pair.event_status.bits = pair.event_status.bits & 253;
             }
-        } else {
-            pair.event_status.bits = pair.event_status.bits & 253;
         }
+        // Upstream visits only enabled force-event pairs. Preserve inactive bookkeeping,
+        // including when some unrelated collider keeps the global collection pass enabled.
         pairs.append(pair);
     }
     narrow.pairs = pairs;
@@ -181,6 +181,23 @@ mod tests {
         let event = collect(HALF, ref narrow, ref colliders);
         assert!(*event.at(0).started);
     }
+    #[test]
+    fn test_disabled_pair_status_is_independent_of_other_enabled_colliders() {
+        let (mut narrow, mut colliders) = fixture(ZERO);
+        assert!(*collect(ONE, ref narrow, ref colliders).at(0).started);
+        let h = rapier_core::Handle { index: 0, generation: 0 };
+        let mut co = colliders.get(h).unwrap();
+        co.flags.active_events = Default::default();
+        colliders.set(h, co);
+        // A third collider enables the pass without enabling this pair.
+        colliders
+            .insert(ColliderBuilderTrait::ball(HALF).active_events(CONTACT_FORCE_EVENTS).build());
+        assert!(collect(ONE, ref narrow, ref colliders).is_empty());
+        co.flags.active_events = CONTACT_FORCE_EVENTS;
+        colliders.set(h, co);
+        assert!(!*collect(ONE, ref narrow, ref colliders).at(0).started);
+    }
+
     #[test]
     fn gas_baseline() {
         let _ = opaque(ONE);
@@ -247,6 +264,11 @@ mod tests {
         let _ = w.step();
     }
     #[test]
+    fn gas_step_dispatch_unit_payload() {
+        let mut w = falling();
+        let _ = super::alternatives::step_unit_payload(ref w);
+    }
+    #[test]
     fn gas_step_dispatch_shipped() {
         let mut w = falling();
         let _ = w.step_with_force_events();
@@ -277,15 +299,18 @@ mod tests {
         let mut b = falling();
         let mut c = falling();
         let mut d = falling();
+        let mut e = falling();
         let _ = a.step_with_force_events();
         let _ = super::alternatives::step_world(ref b);
         let _ = super::alternatives::step_reduced(ref c);
         let _ = super::alternatives::step_unwalleted(ref d);
+        let _ = super::alternatives::step_unit_payload(ref e);
         let h = rapier_core::Handle { index: 0, generation: 0 };
         let expected = a.body(h);
         assert_eq!(b.body(h), expected);
         assert_eq!(c.body(h), expected);
         assert_eq!(d.body(h), expected);
+        assert_eq!(e.body(h), expected);
     }
 }
 

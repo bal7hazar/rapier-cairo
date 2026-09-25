@@ -139,7 +139,7 @@ fn test_thresholds_and_crossing_reset() {
 
 fn probe(case: SceneCase, advance: bool) {
     let mut w = world(opaque(case));
-    // First contact step for force drop, first passing contact for one-way.
+    // First contact step for force drop, passing contact for one-way.
     let n = if case.id == 'one_way_jump' {
         7
     } else {
