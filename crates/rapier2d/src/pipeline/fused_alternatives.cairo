@@ -124,6 +124,7 @@ fn scratch_entry(
     PairCollider {
         handle,
         solid: collider.is_enabled() && !collider.is_sensor(),
+        sensor: collider.is_enabled() && collider.is_sensor(),
         shape: collider.shape,
         pose: collider.pos.pose,
         friction: collider.material.friction,
@@ -180,6 +181,8 @@ pub fn collision_inputs_field_reads(
                     handle: *handle,
                     solid: flags.enabled == ColliderEnabled::Enabled
                         && !(*collider.co_type).is_sensor(),
+                    sensor: flags.enabled == ColliderEnabled::Enabled
+                        && (*collider.co_type).is_sensor(),
                     shape,
                     pose,
                     friction: material.friction,

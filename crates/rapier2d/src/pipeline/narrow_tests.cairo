@@ -13,8 +13,10 @@ use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_core::interaction_groups::InteractionGroupsTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::events::CollisionEvent;
-use rapier_dynamics2d::narrow_phase::{SortedMerge, compute_contacts_from_scratch};
+use rapier_dynamics2d::events::{CollisionEvent, CollisionEventTrait};
+use rapier_dynamics2d::narrow_phase::{
+    ContactPair, ContactPairTrait, SortedMerge, compute_contacts_from_scratch,
+};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
 use rapier_geometry2d::broad_phase::find_pairs;
 use crate::dispatcher::DefaultDispatcher;
@@ -136,6 +138,28 @@ fn edit(ref world: World, step: u32) {
     }
 }
 
+/// The events without the `SENSOR` flag.
+fn solid_events(events: Span<CollisionEvent>) -> Array<CollisionEvent> {
+    let mut out = array![];
+    for event in events {
+        if !(*event).sensor() {
+            out.append(*event);
+        }
+    }
+    out
+}
+
+/// The contact pairs of `pairs` (intersection pairs left out).
+fn contact_pairs(pairs: Span<ContactPair>) -> Array<ContactPair> {
+    let mut out = array![];
+    for pair in pairs {
+        if !pair.is_intersection_pair() {
+            out.append(*pair);
+        }
+    }
+    out
+}
+
 /// Steps `expected` (variant `reference`) and `got` (variant `variant`) `steps` times with the
 /// same edits; events and pairs raw-equal after every step. Returns the number of touching
 /// pairs and of events seen, so that callers can check the scene exercised them.
@@ -150,9 +174,10 @@ fn agree(
         edit(ref got, step);
         let e = step_with(ref expected, reference);
         let g = step_with(ref got, variant);
-        assert!(g == e, "variant {} step {} events", variant, step);
+        // The pre-ON loops predate sensor pairs (SE): compare the contact pairs and events.
+        assert!(solid_events(g.span()) == e, "variant {} step {} events", variant, step);
         assert!(
-            got.narrow_phase.pairs == expected.narrow_phase.pairs,
+            contact_pairs(got.narrow_phase.pairs.span()) == expected.narrow_phase.pairs,
             "variant {} step {} pairs",
             variant,
             step,

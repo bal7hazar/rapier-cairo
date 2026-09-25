@@ -53,8 +53,12 @@
 //! the sleep timer of every moved body is updated in the position update
 //! (`islands::update_sleep_timer`).
 //!
+//! Sensors (work package SE): the narrow phase keeps intersection pairs in the same list as the
+//! contact pairs (`narrow_phase`), with no solver contact: they only take part in the dormant
+//! split, which keeps a sleeping body's sensor pairs (and their events) unchanged.
+//!
 //! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
-//! every step (upstream persists them, see `islands`); no user hooks or sensor events,
+//! every step (upstream persists them, see `islands`); no user hooks,
 //! a body whose enabled state changes does not propagate it
 //! to its colliders (disable the colliders).
 //!
@@ -63,7 +67,7 @@ use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
-use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait};
+use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait, ColliderEnabled, ColliderType};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::{
     RigidBodyChangesTrait, RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType,
@@ -105,6 +109,8 @@ mod narrow_benches;
 #[cfg(test)]
 mod narrow_tests;
 mod ordering;
+#[cfg(test)]
+mod sensor_benches;
 pub mod sleeping;
 #[cfg(test)]
 pub(crate) mod solve_alternatives;
@@ -438,6 +444,14 @@ pub(crate) fn collision_inputs_with_events(
             any_sleeping = true;
         }
         let pose = collider.pos.pose;
+        // One match for both flags (SE): a second `is_enabled() && ..` costs ~0.9k per collider.
+        let (solid, sensor) = match collider.flags.enabled {
+            ColliderEnabled::Enabled => match collider.co_type {
+                ColliderType::Solid => (true, false),
+                ColliderType::Sensor => (false, true),
+            },
+            _ => (false, false),
+        };
         proxies
             .append(
                 BroadPhaseProxy {
@@ -450,7 +464,8 @@ pub(crate) fn collision_inputs_with_events(
             .append(
                 PairCollider {
                     handle: *handle,
-                    solid: collider.is_enabled() && !collider.is_sensor(),
+                    solid,
+                    sensor,
                     shape: collider.shape,
                     pose,
                     friction: collider.material.friction,
