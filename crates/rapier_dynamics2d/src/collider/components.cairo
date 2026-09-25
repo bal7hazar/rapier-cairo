@@ -112,6 +112,13 @@ mod alternatives {
     use rapier_geometry2d::shape::{Shape, ShapeTrait};
     use super::ColliderMassProps;
 
+    /// Rejected storage: two words per collider instead of one boxed optional value.
+    pub fn optional_box(
+        config: Option<super::OneWayPlatform>,
+    ) -> Option<Box<super::OneWayPlatform>> {
+        config.map(|value| BoxTrait::new(value))
+    }
+
     /// One `match` with every arm inline. Measured 63.0k gas on every path, against 34.7k
     /// (`Density`), 64.0k (`Mass`) and 18.7k (`MassProperties`) for the winner.
     pub fn mass_properties_inline(props: ColliderMassProps, shape: Shape) -> MassProperties {
@@ -193,6 +200,19 @@ mod tests {
             Shape::HalfSpace(HalfSpaceTrait::new(v(ZERO, ONE))),
         ]
             .span()
+    }
+
+    #[test]
+    fn gas_one_way_storage_boxed_option() {
+        let value: Box<Option<super::OneWayPlatform>> = BoxTrait::new(opaque(None));
+        let values = array![opaque(value), opaque(value), opaque(value), opaque(value)];
+        assert!((*values.at(3)).unbox().is_none());
+    }
+    #[test]
+    fn gas_one_way_storage_optional_box() {
+        let value = super::alternatives::optional_box(opaque(None));
+        let values = array![opaque(value), opaque(value), opaque(value), opaque(value)];
+        assert!((*values.at(3)).is_none());
     }
 
     #[test]
@@ -334,21 +354,21 @@ pub struct OneWayPlatform {
 }
 
 /// Box serialization stores the cone value, independent of allocation identity.
-pub impl BoxedOneWayPlatformSerde of Serde<Box<OneWayPlatform>> {
-    fn serialize(self: @Box<OneWayPlatform>, ref output: Array<felt252>) {
+pub impl BoxedOneWayPlatformSerde of Serde<Box<Option<OneWayPlatform>>> {
+    fn serialize(self: @Box<Option<OneWayPlatform>>, ref output: Array<felt252>) {
         let value = (*self).unbox();
         value.serialize(ref output);
     }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<Box<OneWayPlatform>> {
-        Some(BoxTrait::new(Serde::<OneWayPlatform>::deserialize(ref serialized)?))
+    fn deserialize(ref serialized: Span<felt252>) -> Option<Box<Option<OneWayPlatform>>> {
+        Some(BoxTrait::new(Serde::<Option<OneWayPlatform>>::deserialize(ref serialized)?))
     }
 }
 /// Structural equality of boxed one-way configurations.
-pub impl BoxedOneWayPlatformPartialEq of PartialEq<Box<OneWayPlatform>> {
-    fn eq(lhs: @Box<OneWayPlatform>, rhs: @Box<OneWayPlatform>) -> bool {
+pub impl BoxedOneWayPlatformPartialEq of PartialEq<Box<Option<OneWayPlatform>>> {
+    fn eq(lhs: @Box<Option<OneWayPlatform>>, rhs: @Box<Option<OneWayPlatform>>) -> bool {
         (*lhs).unbox() == (*rhs).unbox()
     }
-    fn ne(lhs: @Box<OneWayPlatform>, rhs: @Box<OneWayPlatform>) -> bool {
+    fn ne(lhs: @Box<Option<OneWayPlatform>>, rhs: @Box<Option<OneWayPlatform>>) -> bool {
         !Self::eq(lhs, rhs)
     }
 }

@@ -45,7 +45,7 @@ pub struct Collider {
     /// Total contact force beyond which a contact force event may be emitted.
     pub contact_force_event_threshold: Fixed,
     /// Optional one-way cone; absent by default. Configured with the builder.
-    pub one_way: Option<Box<super::components::OneWayPlatform>>,
+    pub one_way: Box<Option<super::components::OneWayPlatform>>,
     pub user_data: u128,
 }
 

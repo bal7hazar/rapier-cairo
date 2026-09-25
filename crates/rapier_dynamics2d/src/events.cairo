@@ -15,11 +15,17 @@ use rapier_core::collider::{CollisionEventFlags, CollisionEventFlagsTrait};
 /// Tangential/friction impulses are intentionally excluded, as upstream.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
 pub struct ContactForceEvent {
+    /// First collider, in ascending pair order.
     pub collider1: Handle,
+    /// Second collider, in ascending pair order.
     pub collider2: Handle,
+    /// Vector sum of normal forces, in world coordinates.
     pub total_force: glam::Vec2,
+    /// Sum of individual normal-force magnitudes, not the length of `total_force`.
     pub total_force_magnitude: fixed::Fixed,
+    /// World unit normal at the strongest contact, or zero when every impulse is zero.
     pub max_force_direction: glam::Vec2,
+    /// Strongest individual normal impulse divided by dt.
     pub max_force_magnitude: fixed::Fixed,
     /// True on the first step above threshold, reset at or below it or on separation.
     pub started: bool,

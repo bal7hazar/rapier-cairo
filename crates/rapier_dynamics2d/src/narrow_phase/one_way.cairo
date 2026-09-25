@@ -11,8 +11,7 @@ use super::PairCollider;
 pub fn filter(ref manifold: ContactManifold, co1: PairCollider, co2: PairCollider) {
     let (mut state2, mut state1) = DivRem::div_rem(manifold.data.user_data, 3);
     let mut keep = true;
-    if let Some(config) = co1.one_way {
-        let config = config.unbox();
+    if let Some(config) = co1.one_way.unbox() {
         let up = config.local_up;
         let (state, accepted) = transition(
             state1, manifold, manifold.local_n1, up, config.cos_allowed_angle,
@@ -22,8 +21,7 @@ pub fn filter(ref manifold: ContactManifold, co1: PairCollider, co2: PairCollide
     } else {
         state1 = 0;
     }
-    if let Some(config) = co2.one_way {
-        let config = config.unbox();
+    if let Some(config) = co2.one_way.unbox() {
         let up = config.local_up;
         let (state, accepted) = transition(
             state2, manifold, manifold.local_n2, up, config.cos_allowed_angle,
@@ -209,8 +207,7 @@ mod alternatives {
     pub fn filter(ref manifold: ContactManifold, co1: PairCollider, co2: PairCollider) {
         let (mut state2, mut state1) = DivRem::div_rem(manifold.data.user_data, 3);
         let mut keep = true;
-        if let Some(config) = co1.one_way {
-            let config = config.unbox();
+        if let Some(config) = co1.one_way.unbox() {
             let up = co1.pose.rotation.rotate(config.local_up);
             let (state, accepted) = transition(
                 state1, manifold, manifold.data.normal, up, config.cos_allowed_angle,
@@ -220,8 +217,7 @@ mod alternatives {
         } else {
             state1 = 0;
         }
-        if let Some(config) = co2.one_way {
-            let config = config.unbox();
+        if let Some(config) = co2.one_way.unbox() {
             let up = -co2.pose.rotation.rotate(config.local_up);
             let (state, accepted) = transition(
                 state2, manifold, manifold.data.normal, up, config.cos_allowed_angle,

@@ -342,6 +342,8 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
         };
         let builder = if scene.id == "one_way_jump" && spec.dynamic {
             builder.linvel(Vector::new(0.0, 8.0))
+        } else if scene.id == "force_event_drop" && spec.dynamic {
+            builder.locked_axes(LockedAxes::ROTATION_LOCKED)
         } else {
             builder
         };
@@ -654,7 +656,7 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
         result["warmstart_60"] = json!(kd_warmstart);
     }
     if scene.id == "one_way_jump" || scene.id == "force_event_drop" {
-        result["ev_control"] = json!({ "one_way": scene.id == "one_way_jump", "initial_velocity": jqvec(if scene.id == "one_way_jump" { QVec::snap(0.0, 8.0) } else { QVec::ZERO }), "force_threshold": jq(Q::snap(20.0)) });
+        result["ev_control"] = json!({ "one_way": scene.id == "one_way_jump", "lock_rotations": scene.id == "force_event_drop", "initial_velocity": jqvec(if scene.id == "one_way_jump" { QVec::snap(0.0, 8.0) } else { QVec::ZERO }), "force_threshold": jq(Q::snap(20.0)) });
         result["force_events"] = json!(force_events);
     }
     if let Some(control) = kd::control(scene.id) {

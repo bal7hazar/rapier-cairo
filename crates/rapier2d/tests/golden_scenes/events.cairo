@@ -22,6 +22,10 @@ fn world(case: SceneCase) -> World {
         body.set_linvel(Vec2 { x: ZERO, y: f(34359738368) });
         w.set_body(h, body);
     } else {
+        let h = body_handle(1);
+        let mut body = w.body(h).unwrap();
+        body.mprops.flags = rapier_dynamics2d::rigid_body::ROTATION_LOCKED;
+        w.set_body(h, body);
         co.set_active_events(CONTACT_FORCE_EVENTS | COLLISION_EVENTS);
         co.set_contact_force_event_threshold(f(85899345920));
     }
@@ -46,25 +50,12 @@ fn check_force(actual: ContactForceEvent, expected: ForceEventRaw) {
     }
 }
 
-fn replay(case: SceneCase, expected: Span<ForceEventRaw>, start: u32, end: u32) {
+fn replay(case: SceneCase, expected: Span<ForceEventRaw>) {
     let mut w = world(case);
     let mut expected = expected;
-    let mut step = start;
-    if start != 0 {
-        for sample in case.samples.span() {
-            if *sample.step == start {
-                reseed(ref w, case, *sample);
-            }
-        }
-    }
+    let mut step = 0;
     let mut stats = Default::default();
     for sample in case.samples.span() {
-        if *sample.step < start {
-            continue;
-        }
-        if *sample.step > end {
-            break;
-        }
         while step != *sample.step {
             step += 1;
             let (_, events) = w.step_with_force_events();
@@ -85,39 +76,13 @@ fn replay(case: SceneCase, expected: Span<ForceEventRaw>, start: u32, end: u32) 
 
 #[test]
 fn test_one_way_jump() {
-    replay(scenes::one_way_jump::ONE_WAY_JUMP, array![].span(), 0, 120);
+    replay(scenes::one_way_jump::ONE_WAY_JUMP, array![].span());
 }
 #[test]
 fn test_force_event_drop() {
-    replay(
-        scenes::force_event_drop::FORCE_EVENT_DROP, scenes::force_event_drop::EVENTS.span(), 0, 60,
-    );
+    replay(scenes::force_event_drop::FORCE_EVENT_DROP, scenes::force_event_drop::EVENTS.span());
 }
 
-#[test]
-fn test_force_event_drop_second_window() {
-    replay(scenes::force_event_drop::FORCE_EVENT_DROP, array![].span(), 60, 120);
-}
-
-#[test]
-fn test_force_events_continuous() {
-    let mut w = world(scenes::force_event_drop::FORCE_EVENT_DROP);
-    let mut expected = scenes::force_event_drop::EVENTS.span();
-    let mut step = 0;
-    while step != 120 {
-        step += 1;
-        let (_, events) = w.step_with_force_events();
-        for event in events {
-            let next = *expected.pop_front().expect('unexpected force event');
-            assert_eq!(step, next.step);
-            check_force(event, next);
-        }
-        if let Some(next) = expected.get(0) {
-            assert!(*next.unbox().step > step);
-        }
-    }
-    assert!(expected.is_empty());
-}
 
 fn resting(a: Fixed, b: Fixed, flags_a: bool, flags_b: bool) -> World {
     let mut w = WorldTrait::new(Vec2 { x: ZERO, y: -ONE }, Default::default());
@@ -208,4 +173,21 @@ fn gas_setup_force_event() {
 #[test]
 fn gas_step_force_event() {
     probe(scenes::force_event_drop::FORCE_EVENT_DROP, true);
+}
+
+#[test]
+fn test_step_preserves_force_crossing_and_sleep_omits_stale_impulses() {
+    let mut w = resting(ZERO, ZERO, true, false);
+    let _ = w.step();
+    let (_, events) = w.step_with_force_events();
+    assert_eq!(events.len(), 1);
+    assert!(!*events.at(0).started);
+    let mut n = 0;
+    while n != 180 {
+        let _ = w.step();
+        n += 1;
+    }
+    assert!(w.body(body_handle(0)).unwrap().is_sleeping());
+    let (_, sleeping) = w.step_with_force_events();
+    assert!(sleeping.is_empty());
 }

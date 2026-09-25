@@ -56,7 +56,7 @@ pub struct ColliderBuilder {
     pub enabled: bool,
     pub contact_force_event_threshold: Fixed,
     /// Built-in one-way platform; no hooks required.
-    pub one_way: Option<Box<super::components::OneWayPlatform>>,
+    pub one_way: Box<Option<super::components::OneWayPlatform>>,
 }
 
 /// Upstream default: a ball of radius `0.5`.
@@ -87,7 +87,7 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
             solver_groups: InteractionGroupsTrait::all(),
             enabled: true,
             contact_force_event_threshold: ZERO,
-            one_way: None,
+            one_way: BoxTrait::new(None),
         }
     }
 
@@ -237,7 +237,7 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
         let config = super::components::OneWayPlatform {
             local_up, cos_allowed_angle: allowed_angle.cos(),
         };
-        ColliderBuilder { one_way: Some(BoxTrait::new(config)), ..self }
+        ColliderBuilder { one_way: BoxTrait::new(Some(config)), ..self }
     }
 
     /// The collider: no parent, `changes = ColliderChanges::all()`, world pose = `position`.
@@ -484,12 +484,12 @@ mod tests {
         let co = ColliderBuilderTrait::ball(HALF)
             .one_way(Vec2 { x: ZERO, y: opaque(ONE) }, opaque(HALF))
             .build();
-        assert!(co.one_way.is_some());
+        assert!(co.one_way.unbox().is_some());
     }
     #[test]
     fn test_one_way_defaults_and_serialization() {
         let plain = ColliderBuilderTrait::ball(HALF).build();
-        assert!(plain.one_way.is_none());
+        assert!(plain.one_way.unbox().is_none());
         let co = ColliderBuilderTrait::ball(HALF).one_way(Vec2 { x: ZERO, y: ONE }, ZERO).build();
         let mut data = array![];
         co.serialize(ref data);

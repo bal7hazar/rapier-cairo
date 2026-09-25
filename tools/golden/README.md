@@ -1109,8 +1109,8 @@ independent base-three digits, one per collider, so two platform cones must both
 accept a pair. The field is reserved by this feature while either platform is
 configured. Up vectors must be unit; angles must be in [0, PI].
 
-The force scene drops a unit box onto a solid ground with threshold 20 N.
-The pinned upstream emits one event, at step 34, totaling 333.3116602345064 N.
+The force scene drops a rotation-locked unit box onto a solid ground with threshold 20 N.
+The pinned upstream emits one event, at step 34, totaling 333.540000001899 N.
 Force events use only normal impulses. The total scalar is the sum of normal
 impulses divided by dt, the vector is the sum along manifold normals, and the
 maximum is the strongest individual point. Only sides enabling
@@ -1125,10 +1125,16 @@ consecutive event steps (this scene has exactly one pair). The port stores it in
 bit 1 of `PairEventStatus`, independently of collision-start bit 0; tests cover
 consecutive events, strict equality, threshold changes and re-crossing.
 
-The jump trajectory uses one continuous 120-step replay. The force scene checks
-all event steps and magnitudes continuously for 120 steps. Its trajectory is
-checked in two 60-step windows, re-seeding the second from upstream, as in KD.
-The first continuous trial exceeded the existing angular tolerance at samples
-70/80/90 (345521/369099/370497 ulps); no tolerance was widened. Event magnitude
-comparison uses 8192 times the step in ulps; trajectory comparisons retain the
-existing 4096 times the step, doubled for velocities.
+Both scenes use a continuous 120-step trajectory replay, and the force scene also
+checks every event step and magnitude. Rotation is locked in both the Rust and
+Cairo drop setups to isolate force reporting from resting-box angular drift.
+Event magnitude comparison uses 8192 times the step in ulps; trajectory
+comparisons retain the existing 4096 times the step, doubled for velocities.
+
+Force events are collected before dormant pairs are restored: a sleeping contact's
+stored impulse does not become a fresh event. Both step APIs share a generic stage
+implementation; its final operation specializes the returned arrays while preserving
+force-threshold bookkeeping. Ordinary `step` avoids carrying the unused force array
+through its return. `Box<Option<OneWayPlatform>>` keeps the collider's extra storage
+to one word; boxing only the enabled payload needs two words even when disabled.
+Rejected dispatch, metering and storage candidates remain under test-only alternatives.

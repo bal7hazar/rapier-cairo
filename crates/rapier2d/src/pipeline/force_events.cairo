@@ -4,8 +4,72 @@ use rapier_core::collider::ActiveEventsTrait;
 use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
-use rapier_dynamics2d::events::{ContactForceEvent, ContactForceEventTrait};
+use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent, ContactForceEventTrait};
 use rapier_dynamics2d::narrow_phase::NarrowPhase;
+
+
+/// Specialize only the return shape: both modes execute the same stages and event bookkeeping.
+pub(crate) trait StepOutput<T> {
+    fn finish(
+        events: Array<CollisionEvent>,
+        enabled: bool,
+        dt: Fixed,
+        ref narrow: NarrowPhase,
+        ref colliders: ColliderSet,
+    ) -> T;
+}
+
+pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
+    #[inline(always)]
+    fn finish(
+        events: Array<CollisionEvent>,
+        enabled: bool,
+        dt: Fixed,
+        ref narrow: NarrowPhase,
+        ref colliders: ColliderSet,
+    ) -> Array<CollisionEvent> {
+        if enabled {
+            let _ = collect(dt, ref narrow, ref colliders);
+        }
+        events
+    }
+}
+
+pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactForceEvent>)> {
+    #[inline(always)]
+    fn finish(
+        events: Array<CollisionEvent>,
+        enabled: bool,
+        dt: Fixed,
+        ref narrow: NarrowPhase,
+        ref colliders: ColliderSet,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        let forces = dispatch(enabled, dt, ref narrow, ref colliders);
+        (events, forces)
+    }
+}
+
+/// Inlined dispatch with only the changed sets crossing the branch merge.
+#[inline(always)]
+pub(crate) fn dispatch(
+    enabled: bool, dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
+) -> Array<ContactForceEvent> {
+    if enabled {
+        collect(dt, ref narrow, ref colliders)
+    } else {
+        array![]
+    }
+}
+
+#[cfg(test)]
+/// Refund boundary for the optional event branch, as the JM solver gas-wallet pattern.
+#[inline(never)]
+pub(crate) fn gas_wallet() {
+    let mut pending = false;
+    while pending {
+        pending = false;
+    }
+}
 
 fn threshold(collider: Collider) -> Fixed {
     if collider.flags.active_events.contains(CONTACT_FORCE_EVENTS) {
@@ -75,7 +139,9 @@ mod tests {
     use glam::Vec2;
     use rapier_dynamics2d::collider::ColliderBuilderTrait;
     use rapier_dynamics2d::narrow_phase::{ContactPairTrait, NarrowPhaseTrait};
+    use rapier_dynamics2d::rigid_body_set::RigidBodyTrait;
     use rapier_testing::opaque;
+    use crate::world::{World, WorldTrait};
     use super::*;
 
     fn fixture(limit: Fixed) -> (NarrowPhase, ColliderSet) {
@@ -124,4 +190,104 @@ mod tests {
         let (mut narrow, mut colliders) = fixture(opaque(ZERO));
         let _ = collect(opaque(ONE), ref narrow, ref colliders);
     }
+    fn world_fixture() -> World {
+        let (narrow, colliders) = fixture(opaque(ZERO));
+        let mut world = WorldTrait::new(Vec2 { x: ZERO, y: ZERO }, Default::default());
+        world.integration_parameters.dt = opaque(ONE);
+        world.narrow_phase = narrow;
+        world.colliders = colliders;
+        world
+    }
+    #[test]
+    fn gas_tail_reduced_off() {
+        let mut w = world_fixture();
+        let events = super::alternatives::collect_if_enabled(
+            opaque(false), w.integration_parameters.dt, ref w.narrow_phase, ref w.colliders,
+        );
+        assert!(events.is_empty());
+    }
+    #[test]
+    fn gas_tail_world_off() {
+        let mut w = world_fixture();
+        let events = super::alternatives::collect_world(ref w, opaque(false));
+        assert!(events.is_empty());
+    }
+    #[test]
+    fn gas_tail_reduced_on() {
+        let mut w = world_fixture();
+        let events = super::alternatives::collect_if_enabled(
+            opaque(true), w.integration_parameters.dt, ref w.narrow_phase, ref w.colliders,
+        );
+        assert_eq!(events.len(), 1);
+    }
+    #[test]
+    fn gas_tail_world_on() {
+        let mut w = world_fixture();
+        let events = super::alternatives::collect_world(ref w, opaque(true));
+        assert_eq!(events.len(), 1);
+    }
+    fn falling() -> World {
+        let mut w = WorldTrait::new(Vec2 { x: ZERO, y: opaque(-ONE) }, Default::default());
+        w
+            .insert(
+                RigidBodyTrait::dynamic(Default::default()),
+                ColliderBuilderTrait::ball(HALF).build(),
+            );
+        w.step();
+        w.step();
+        w
+    }
+    #[test]
+    fn gas_step_dispatch_setup() {
+        let _ = falling();
+    }
+    #[test]
+    fn gas_step_dispatch_collision_only() {
+        let mut w = falling();
+        let _ = w.step();
+    }
+    #[test]
+    fn gas_step_dispatch_shipped() {
+        let mut w = falling();
+        let _ = w.step_with_force_events();
+    }
+    #[test]
+    fn gas_step_dispatch_wallet() {
+        let mut w = falling();
+        let _ = super::alternatives::step_wallet(ref w);
+    }
+    #[test]
+    fn gas_step_dispatch_world() {
+        let mut w = falling();
+        let _ = super::alternatives::step_world(ref w);
+    }
+    #[test]
+    fn gas_step_dispatch_reduced() {
+        let mut w = falling();
+        let _ = super::alternatives::step_reduced(ref w);
+    }
+    #[test]
+    fn gas_step_dispatch_unwalleted() {
+        let mut w = falling();
+        let _ = super::alternatives::step_unwalleted(ref w);
+    }
+    #[test]
+    fn test_step_dispatch_variants() {
+        let mut a = falling();
+        let mut b = falling();
+        let mut c = falling();
+        let mut d = falling();
+        let _ = a.step_with_force_events();
+        let _ = super::alternatives::step_world(ref b);
+        let _ = super::alternatives::step_reduced(ref c);
+        let _ = super::alternatives::step_unwalleted(ref d);
+        let h = rapier_core::Handle { index: 0, generation: 0 };
+        let expected = a.body(h);
+        assert_eq!(b.body(h), expected);
+        assert_eq!(c.body(h), expected);
+        assert_eq!(d.body(h), expected);
+    }
 }
+
+#[cfg(test)]
+mod alternatives;

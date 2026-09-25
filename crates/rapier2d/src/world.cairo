@@ -482,6 +482,22 @@ mod tests {
     #[test]
     fn gas_step() {
         let (mut world, _, _, _) = pair_world();
+        world.gravity = opaque(world.gravity);
         let _ = world.step();
+    }
+    #[test]
+    fn gas_step_wrapped() {
+        let (mut world, _, _, _) = pair_world();
+        world.gravity = opaque(world.gravity);
+        let _ = super::alternatives::step_wrapped(ref world);
+    }
+}
+
+#[cfg(test)]
+mod alternatives {
+    use super::{CollisionEvent, World};
+    /// Previous step entry: the compatibility wrapper adds a full World argument/return copy.
+    pub fn step_wrapped(ref world: World) -> Array<CollisionEvent> {
+        crate::pipeline::step(ref world)
     }
 }

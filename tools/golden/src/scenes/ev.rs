@@ -10,7 +10,7 @@ pub(super) fn scenes() -> Vec<SceneSpec> {
             joints: vec![], can_sleep: false,
         },
         SceneSpec {
-            id: "force_event_drop", note: "unit box dropped on a solid slab with CONTACT_FORCE_EVENTS and threshold 20 N; normal impulses only",
+            id: "force_event_drop", note: "rotation-locked unit box dropped on a solid slab with CONTACT_FORCE_EVENTS and threshold 20 N; normal impulses only",
             bodies: vec![ground(0.0, 0.0), dynamic("box", QPose::translation(0.0, 2.0), collider(ShapeSpec::cuboid(0.5, 0.5), 0.0, 0.0))],
             joints: vec![], can_sleep: false,
         },

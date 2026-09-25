@@ -159,7 +159,7 @@ pub struct PairCollider {
     pub solver_groups: InteractionGroups,
     pub active_events: ActiveEvents,
     /// Optional platform cone, copied without expanding its boxed data.
-    pub one_way: Option<Box<crate::collider::components::OneWayPlatform>>,
+    pub one_way: Box<Option<crate::collider::components::OneWayPlatform>>,
     /// Parent body; `None` for a standalone collider, which behaves as attached to a fixed body.
     pub body: Option<Handle>,
     pub body_type: RigidBodyType,
@@ -627,7 +627,7 @@ pub fn solver_data(
     }
     manifold.data.solver_contacts = [first, second];
     manifold.data.num_solver_contacts = count;
-    if co1.one_way.is_some() || co2.one_way.is_some() {
+    if co1.one_way.unbox().is_some() || co2.one_way.unbox().is_some() {
         one_way::filter(ref manifold, co1, co2);
     }
     manifold

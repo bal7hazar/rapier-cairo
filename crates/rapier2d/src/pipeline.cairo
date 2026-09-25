@@ -93,6 +93,7 @@ mod benches;
 pub(crate) mod fixtures;
 
 pub mod force_events;
+use force_events::{CollisionOnly, StepOutput, WithForces};
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
 pub mod islands;
@@ -128,8 +129,7 @@ pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colli
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    let (events, _) = step_with_force_events(ref world);
-    events
+    step_internal::<Array<CollisionEvent>, CollisionOnly>(ref world)
 }
 
 /// Same step, also returning post-solver normal-force events in ascending pair order.
@@ -138,6 +138,10 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
 pub fn step_with_force_events(
     ref world: World,
 ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+    step_internal::<(Array<CollisionEvent>, Array<ContactForceEvent>), WithForces>(ref world)
+}
+
+fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T {
     let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
@@ -185,19 +189,18 @@ pub fn step_with_force_events(
         joint_entries.span(),
         sleeping,
     );
+    // Dormant manifolds retain old impulses; emit only from this step's active pairs.
+    let output = Output::finish(
+        events,
+        force_events,
+        world.integration_parameters.dt,
+        ref world.narrow_phase,
+        ref world.colliders,
+    );
     if !dormant.is_empty() {
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
     }
-    let mut forces = array![];
-    let mut pending = force_events;
-    while pending {
-        forces =
-            force_events::collect(
-                world.integration_parameters.dt, ref world.narrow_phase, ref world.colliders,
-            );
-        pending = false;
-    }
-    (events, forces)
+    output
 }
 
 /// What the collision stages read from a parent body, after the user changes.
