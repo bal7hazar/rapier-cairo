@@ -19,8 +19,17 @@
 //!
 //! Sensors (SE): intersection pairs live in the same list and are split the same way, so a
 //! sleeping body's sensor pairs keep their `intersecting` state and emit nothing until a parent
-//! wakes up. They wake nobody on a user change (upstream walks the contact graph only), but a
-//! removed collider wakes its sensor partners ([`wake_removed_partners`]) so that its pairs end.
+//! wakes up. They wake nobody on a user change nor on a removal (upstream walks the contact graph
+//! only).
+//!
+//! Removed colliders (CW, upstream-exact): the pairs of a removed collider end at the next step
+//! with their `REMOVED` event, contact or sensor pair, whatever the sleep state of the bodies,
+//! and the removal wakes the contact partners only (upstream `NarrowPhase::remove_collider`).
+//! `World::remove_collider` clears the body links of the collider's pairs
+//! ([`release_removed_pairs`]): a pair without body is never dormant, so the narrow phase sees it
+//! and drops it (no per-step cost). The staged detection, which also serves raw sets
+//! (`facade::CollisionPipelineTrait::step`), checks the colliders instead
+//! ([`split_dormant_existing`]).
 //!
 //! User changes (upstream `pair_management::handle_user_changes`, `user_changes.rs`): a
 //! modified collider wakes its parent and every body it is in contact with, strongly, whatever
@@ -32,7 +41,7 @@
 
 use rapier_core::Handle;
 use rapier_core::rigid_body::RigidBodyType;
-use rapier_dynamics2d::collider::ColliderTrait;
+use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, ContactPairTrait, key_before};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
@@ -69,6 +78,73 @@ pub fn split_dormant(
         }
     }
     (active, dormant)
+}
+
+/// [`split_dormant`] where a pair is dormant only when both of its colliders are still in
+/// `colliders` (every `(handle, collider)` in ascending slot, `ColliderSetTrait::iter`): the
+/// pairs of a removed collider stay active, so the narrow phase ends them with their `REMOVED`
+/// event. The lookup runs for the dormant candidates only.
+pub fn split_dormant_existing(
+    pairs: Span<ContactPair>,
+    entries: Span<(Handle, RigidBody)>,
+    colliders: Span<(Handle, Collider)>,
+) -> (Array<ContactPair>, Array<ContactPair>) {
+    let mut active = array![];
+    let mut dormant = array![];
+    for pair in pairs {
+        let (s1, s2) = link_status(
+            entries, *pair.manifold.data.rigid_body1, *pair.manifold.data.rigid_body2,
+        );
+        if dormant_of(s1, s2)
+            && collider_exists(colliders, *pair.collider1)
+            && collider_exists(colliders, *pair.collider2) {
+            dormant.append(*pair);
+        } else {
+            active.append(*pair);
+        }
+    }
+    (active, dormant)
+}
+
+/// `pairs` with the body links of every pair of `removed` cleared (`manifold.data.rigid_body1`
+/// and `rigid_body2` set to `None`), the other pairs unchanged, same order. Such a pair is never
+/// dormant ([`split_dormant`]): the next step's narrow phase drops it, with its `REMOVED` event
+/// once the collider is gone. O(pairs), at the removal only.
+pub fn release_removed_pairs(pairs: Span<ContactPair>, removed: Handle) -> Array<ContactPair> {
+    let mut out = array![];
+    for pair in pairs {
+        let mut pair = *pair;
+        if pair.collider1 == removed || pair.collider2 == removed {
+            pair.manifold.data.rigid_body1 = None;
+            pair.manifold.data.rigid_body2 = None;
+        }
+        out.append(pair);
+    }
+    out
+}
+
+/// Whether `handle` is in `colliders` (ascending slot, dense): the entry of a live collider is
+/// at most at its slot index, so the search starts there and walks down over the free slots.
+pub fn collider_exists(colliders: Span<(Handle, Collider)>, handle: Handle) -> bool {
+    let n = colliders.len();
+    if n == 0 {
+        return false;
+    }
+    let mut position = if handle.index < n {
+        handle.index
+    } else {
+        n - 1
+    };
+    loop {
+        let (candidate, _) = colliders.at(position);
+        if candidate.index <= @handle.index {
+            break *candidate == handle;
+        }
+        if position == 0 {
+            break false;
+        }
+        position -= 1;
+    }
 }
 
 /// The two ascending-key lists merged into one (their keys are disjoint).
@@ -113,25 +189,12 @@ pub fn wake_touched_partners(
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
 ) -> bool {
-    wake_partners(touched, pairs, false, ref bodies, ref colliders)
-}
-
-/// [`wake_touched_partners`] for a collider about to be removed: intersection pairs included,
-/// so that a sleeping sensor pair of the collider is not dormant at the next step, which ends it
-/// with its `Stopped | SENSOR | REMOVED` event (upstream emits it from `remove`, without waking).
-pub fn wake_removed_partners(
-    touched: Span<Handle>,
-    pairs: Span<ContactPair>,
-    ref bodies: RigidBodySet,
-    ref colliders: ColliderSet,
-) -> bool {
-    wake_partners(touched, pairs, true, ref bodies, ref colliders)
+    wake_partners(touched, pairs, ref bodies, ref colliders)
 }
 
 fn wake_partners(
     touched: Span<Handle>,
     pairs: Span<ContactPair>,
-    sensors: bool,
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
 ) -> bool {
@@ -144,7 +207,7 @@ fn wake_partners(
                 break;
             }
         }
-        if involved && (sensors || !pair.is_intersection_pair()) {
+        if involved && !pair.is_intersection_pair() {
             if wake_parent(*pair.collider1, ref bodies, ref colliders) {
                 written = true;
             }

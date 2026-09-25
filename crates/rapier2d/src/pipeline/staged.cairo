@@ -5,6 +5,7 @@
 //! these give the same results (`fused_alternatives::step_staged`, equivalence in `tests`) and
 //! are what the diagnostics and the candidates call.
 
+use fixed::Fixed;
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
@@ -20,8 +21,8 @@ use rapier_geometry2d::broad_phase::find_pairs;
 use crate::dispatcher::DefaultDispatcher;
 use super::{
     active_joints, any_sleeping, body_infos, collision_inputs_sleeping, immovable, islands,
-    joint_values, merge_pairs, moving, scatter_touching, solve_order, split_dormant, user_changes,
-    write_joints,
+    joint_values, merge_pairs, moving, scatter_touching, solve_order, split_dormant,
+    split_dormant_existing, user_changes, write_joints,
 };
 
 /// Stage 2 (upstream `detect_collisions`): stateless broad phase over proxies loosened by half
@@ -34,7 +35,19 @@ pub fn detect_collisions(
     ref colliders: ColliderSet,
     ref narrow_phase: NarrowPhase,
 ) -> Array<CollisionEvent> {
-    let prediction = params.prediction_distance();
+    detect_collisions_with_prediction(
+        params.prediction_distance(), ref bodies, ref colliders, ref narrow_phase,
+    )
+}
+
+/// [`detect_collisions`] for an explicit prediction distance (the collision stages of
+/// `facade::CollisionPipelineTrait::step`).
+pub fn detect_collisions_with_prediction(
+    prediction: Fixed,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    ref narrow_phase: NarrowPhase,
+) -> Array<CollisionEvent> {
     let snapshot = colliders.iter().span();
     let entries = bodies.iter().span();
     let (infos, _) = body_infos(entries);
@@ -43,7 +56,7 @@ pub fn detect_collisions(
     );
     let mut dormant = array![];
     if sleeping {
-        let (active, asleep) = split_dormant(narrow_phase.pairs.span(), entries);
+        let (active, asleep) = split_dormant_existing(narrow_phase.pairs.span(), entries, snapshot);
         narrow_phase.pairs = active;
         dormant = asleep;
     }

@@ -91,9 +91,11 @@ use crate::world::World;
 pub(crate) mod alternatives;
 #[cfg(test)]
 mod benches;
+
+/// `CollisionPipeline` and `PhysicsPipeline`: upstream's pipeline objects.
+pub mod facade;
 #[cfg(test)]
 pub(crate) mod fixtures;
-
 pub mod force_events;
 use force_events::{CollisionOnly, StepOutput, WithForces};
 mod free_path;
@@ -125,9 +127,13 @@ mod user_changes;
 pub use islands::{SleepCensus, SleepCensusTrait, update_islands};
 pub(crate) use ordering::{dormant_of, fixed_last_flag, link_status};
 pub use ordering::{scatter_touching, scatter_touching_split, solve_order, touching_manifolds};
-pub use sleeping::{any_sleeping, merge_pairs, split_dormant};
+pub use sleeping::{
+    any_sleeping, merge_pairs, release_removed_pairs, split_dormant, split_dormant_existing,
+};
 mod staged;
-pub use staged::{advance_to_final_positions, detect_collisions, solve};
+pub use staged::{
+    advance_to_final_positions, detect_collisions, detect_collisions_with_prediction, solve,
+};
 pub(crate) use user_changes::{body_changes, collider_changes};
 pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colliders};
 
