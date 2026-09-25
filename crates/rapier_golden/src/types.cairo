@@ -773,3 +773,16 @@ pub struct ForceEventRaw {
     pub max_force_magnitude: i64,
     pub started: bool,
 }
+
+/// SE: `DefaultQueryDispatcher::intersection_test`; `supported == false` is `Err(Unsupported)`,
+/// `gjk_touching` an exact contact that upstream answers with GJK.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct IntersectionCase {
+    pub id: felt252,
+    pub shape1: PolygonContactShapeRaw,
+    pub shape2: PolygonContactShapeRaw,
+    pub pos12: PoseRaw,
+    pub supported: bool,
+    pub intersecting: bool,
+    pub gjk_touching: bool,
+}

@@ -5,7 +5,7 @@
 use fixed::{Fixed, HALF, ONE, TWO, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
-use rapier_core::collider::events::COLLISION_EVENTS;
+use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::collider::{CoefficientCombineRule, CollisionEventFlagsTrait};
 use rapier_core::interaction_groups::{
     ALL, GROUP_1, GROUP_2, InteractionGroupsTrait, InteractionTestMode,
@@ -231,16 +231,23 @@ fn test_filtered_pairs() {
     );
     let mut narrow_phase: NarrowPhase = NarrowPhaseTrait::new();
     let events = step(ref narrow_phase, ref bodies, ref colliders);
-    assert_eq!(events, array![started(s.ground, s.box_a), started(s.ground, s.box_b)]);
+    // The sensor's pair is an intersection pair: its event follows the contact events.
+    let sensor_started = CollisionEvent::Started((s.ground, sensor, SENSOR));
+    assert_eq!(
+        events, array![started(s.ground, s.box_a), started(s.ground, s.box_b), sensor_started],
+    );
     // The sensor takes part in no contact pair; filtered pairs are kept, without contacts.
     assert!(narrow_phase.contact_pair(s.ground, sensor).is_none());
+    assert_eq!(narrow_phase.intersection_pair(sensor, s.ground), Some(true));
+    assert_eq!(narrow_phase.intersection_pairs(), array![(s.ground, sensor, true)]);
     let cases = array![lonely, kinematic];
     for collider in cases {
         let pair = pair_of(@narrow_phase, s.ground, collider);
         assert_eq!(pair.manifold.num_points, 0);
         assert!(!pair.has_any_active_contact());
     }
-    assert_eq!(narrow_phase.len(), 4);
+    // Four contact pairs and the intersection pair.
+    assert_eq!(narrow_phase.len(), 5);
 }
 
 #[test]
@@ -298,4 +305,72 @@ fn gas_two_boxes_two_steps() {
     let mut narrow_phase: NarrowPhase = opaque(NarrowPhaseTrait::new());
     let _ = step(ref narrow_phase, ref bodies, ref colliders);
     let _ = step(ref narrow_phase, ref bodies, ref colliders);
+}
+
+/// Moves the body of `collider` to `pose` and its colliders with it.
+fn move_body(ref bodies: RigidBodySet, ref colliders: ColliderSet, collider: Handle, pose: Pose2) {
+    let handle = colliders.get(collider).unwrap().parent.unwrap().handle;
+    let mut body = bodies.get(handle).unwrap();
+    body.set_position(pose);
+    let _ = bodies.set(handle, body);
+    bodies.propagate_modified_body_positions_to_colliders(ref colliders);
+}
+
+#[test]
+fn test_sensor_pair_lifecycle() {
+    let mut bodies = RigidBodySetTrait::new();
+    let mut colliders = ColliderSetTrait::new();
+    let s = two_boxes(ref bodies, ref colliders);
+    let sensor_body = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, HALF - OVERLAP)));
+    let sensor = colliders
+        .insert_with_parent(
+            ColliderBuilderTrait::cuboid(HALF, HALF).sensor(true).build(), sensor_body, ref bodies,
+        );
+    let mut narrow_phase: NarrowPhase = NarrowPhaseTrait::new();
+    let _ = step(ref narrow_phase, ref bodies, ref colliders);
+    let entered = CollisionEvent::Started((s.ground, sensor, SENSOR));
+    let left = CollisionEvent::Stopped((s.ground, sensor, SENSOR));
+    let eighth = Fixed { raw: 0x20000000 };
+    // (sensor body height, events, intersecting): lifted 1/8 above the half-space (whose AABB
+    // keeps the pair alive), still, back down, exactly touching.
+    let steps: Array<(Fixed, Array<CollisionEvent>, bool)> = array![
+        (HALF + eighth, array![left], false), (HALF + eighth, array![], false),
+        (HALF - OVERLAP, array![entered], true), (HALF, array![], true),
+    ];
+    for (y, expected, intersecting) in steps {
+        move_body(ref bodies, ref colliders, sensor, at(ZERO, y));
+        let events = step(ref narrow_phase, ref bodies, ref colliders);
+        assert_eq!(events, expected);
+        assert_eq!(narrow_phase.intersection_pair(s.ground, sensor), Some(intersecting));
+        assert_eq!(
+            narrow_phase.intersection_pairs_with(sensor), array![(s.ground, sensor, intersecting)],
+        );
+        assert_eq!(narrow_phase.len(), 3);
+        assert!(narrow_phase.contact_pair(s.ground, sensor).is_none());
+    }
+    // Turning the sensor solid ends the intersection pair and starts a contact pair, and back.
+    let touching = started(s.ground, sensor);
+    let untouched = stopped(s.ground, sensor, CollisionEventFlagsTrait::empty());
+    for (is_sensor, expected) in array![
+        (false, array![left, touching]), (true, array![untouched, entered]),
+    ] {
+        let mut collider = colliders.get(sensor).unwrap();
+        collider.set_sensor(is_sensor);
+        let _ = colliders.set(sensor, collider);
+        let events = step(ref narrow_phase, ref bodies, ref colliders);
+        assert_eq!(events, expected);
+        assert_eq!(narrow_phase.contact_pair(s.ground, sensor).is_some(), !is_sensor);
+        let intersecting = if is_sensor {
+            Some(true)
+        } else {
+            None
+        };
+        assert_eq!(narrow_phase.intersection_pair(s.ground, sensor), intersecting);
+    }
+    // Removing the sensor ends its pair with `SENSOR | REMOVED`.
+    let _ = colliders.remove(sensor, ref bodies);
+    let events = step(ref narrow_phase, ref bodies, ref colliders);
+    assert_eq!(events, array![CollisionEvent::Stopped((s.ground, sensor, SENSOR | REMOVED))]);
+    assert_eq!(narrow_phase.intersection_pair(s.ground, sensor), None);
+    assert_eq!(narrow_phase.intersection_pairs(), array![]);
 }

@@ -17,6 +17,11 @@
 //! wake), so a ball woken while resting on the ground sinks for one frame; the port supports it
 //! immediately.
 //!
+//! Sensors (SE): intersection pairs live in the same list and are split the same way, so a
+//! sleeping body's sensor pairs keep their `intersecting` state and emit nothing until a parent
+//! wakes up. They wake nobody on a user change (upstream walks the contact graph only), but a
+//! removed collider wakes its sensor partners ([`wake_removed_partners`]) so that its pairs end.
+//!
 //! User changes (upstream `pair_management::handle_user_changes`, `user_changes.rs`): a
 //! modified collider wakes its parent and every body it is in contact with, strongly, whatever
 //! the parents' types ("waking up the modified collider's parent isn't enough because it could
@@ -29,7 +34,7 @@ use rapier_core::Handle;
 use rapier_core::rigid_body::RigidBodyType;
 use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
-use rapier_dynamics2d::narrow_phase::{ContactPair, key_before};
+use rapier_dynamics2d::narrow_phase::{ContactPair, ContactPairTrait, key_before};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
 use super::ordering::{dormant_of, link_status};
 
@@ -98,12 +103,35 @@ pub fn merge_pairs(active: Span<ContactPair>, dormant: Span<ContactPair>) -> Arr
     out
 }
 
-/// Wakes up (strongly) both non-fixed parents of every pair of `pairs` that involves a collider
-/// of `touched` (upstream's modified-colliders pass of the narrow phase; the touched colliders'
-/// own parents are woken up by the caller). Returns `true` when a body was written.
+/// Wakes up (strongly) both non-fixed parents of every contact pair of `pairs` that involves a
+/// collider of `touched` (upstream's modified-colliders pass of the narrow phase, which walks the
+/// contact graph only: intersection pairs wake nothing; the touched colliders' own parents are
+/// woken up by the caller). Returns `true` when a body was written.
 pub fn wake_touched_partners(
     touched: Span<Handle>,
     pairs: Span<ContactPair>,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+) -> bool {
+    wake_partners(touched, pairs, false, ref bodies, ref colliders)
+}
+
+/// [`wake_touched_partners`] for a collider about to be removed: intersection pairs included,
+/// so that a sleeping sensor pair of the collider is not dormant at the next step, which ends it
+/// with its `Stopped | SENSOR | REMOVED` event (upstream emits it from `remove`, without waking).
+pub fn wake_removed_partners(
+    touched: Span<Handle>,
+    pairs: Span<ContactPair>,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+) -> bool {
+    wake_partners(touched, pairs, true, ref bodies, ref colliders)
+}
+
+fn wake_partners(
+    touched: Span<Handle>,
+    pairs: Span<ContactPair>,
+    sensors: bool,
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
 ) -> bool {
@@ -116,7 +144,7 @@ pub fn wake_touched_partners(
                 break;
             }
         }
-        if involved {
+        if involved && (sensors || !pair.is_intersection_pair()) {
             if wake_parent(*pair.collider1, ref bodies, ref colliders) {
                 written = true;
             }

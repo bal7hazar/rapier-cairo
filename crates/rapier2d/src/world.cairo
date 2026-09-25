@@ -4,8 +4,9 @@
 //! The persistent state is exactly `docs/PLAN.md` D9: the body and collider sets (poses,
 //! velocities, mass properties, change flags), the impulse joints (with their accumulated
 //! impulses) and the narrow-phase pairs (manifolds carrying the warm-start impulses and the event
-//! status). Everything else [`WorldTrait::step`] needs (broad-phase proxies and pairs, solver
-//! bodies, constraints) is rebuilt every step and dropped with it.
+//! status; sensor pairs with their `intersecting` state). Everything else [`WorldTrait::step`]
+//! needs (broad-phase proxies and pairs, solver bodies, constraints) is rebuilt every step and
+//! dropped with it.
 //!
 //! Mutations go through the sets' own setters, which raise the change flags the next step reads
 //! (`RigidBodyTrait::set_position`, `ColliderTrait::set_shape`, …): read a copy with
@@ -48,7 +49,8 @@ pub struct World {
     pub bodies: RigidBodySet,
     pub colliders: ColliderSet,
     pub impulse_joints: ImpulseJointSet,
-    /// Last step's contact pairs (ascending collider slot), with their warm-start impulses.
+    /// Last step's contact pairs (ascending collider slot), with their warm-start impulses, and
+    /// its sensor intersection pairs.
     pub narrow_phase: NarrowPhase,
 }
 
@@ -129,8 +131,9 @@ pub impl WorldImpl of WorldTrait {
 
     /// Removes a collider (upstream `PhysicsWorld::remove_collider`); `None` when the handle
     /// does not resolve. Every body in contact with it is woken up (its parent included); its
-    /// parent's mass is recomputed at the next step, which also ends its contact pairs (see
-    /// [`WorldTrait::remove_body`]).
+    /// parent's mass is recomputed at the next step, which also ends its contact and sensor
+    /// pairs (see [`WorldTrait::remove_body`]; a sensor pair ends with `Stopped` flagged
+    /// `SENSOR | REMOVED` if its `Started` was emitted).
     fn remove_collider(ref self: World, handle: Handle) -> Option<Collider> {
         self.wake_contact_partners(handle);
         self.colliders.remove(handle, ref self.bodies)
@@ -157,10 +160,11 @@ pub impl WorldImpl of WorldTrait {
     }
 
     /// Wakes up the parents of both colliders of every contact pair of `collider` (upstream
-    /// `NarrowPhase::remove_collider`), before the collider goes.
+    /// `NarrowPhase::remove_collider`), and of its intersection pairs (so that a sleeping one
+    /// ends at the next step with its `REMOVED` event), before the collider goes.
     fn wake_contact_partners(ref self: World, collider: Handle) {
         let mut touched = array![collider];
-        let _ = crate::pipeline::sleeping::wake_touched_partners(
+        let _ = crate::pipeline::sleeping::wake_removed_partners(
             touched.span(), self.narrow_phase.pairs.span(), ref self.bodies, ref self.colliders,
         );
     }
@@ -204,6 +208,31 @@ pub impl WorldImpl of WorldTrait {
     #[inline(always)]
     fn contact_pair(self: @World, collider1: Handle, collider2: Handle) -> Option<ContactPair> {
         self.narrow_phase.contact_pair(collider1, collider2)
+    }
+
+    /// Whether the sensor pair of `collider1` and `collider2` (either order) intersects, as of
+    /// the last step (upstream `PhysicsWorld::intersection_pair`): `None` when the two colliders
+    /// form no intersection pair (their AABBs did not overlap, neither is a sensor, ...).
+    /// Linear scan.
+    #[inline(always)]
+    fn intersection_pair(self: @World, collider1: Handle, collider2: Handle) -> Option<bool> {
+        self.narrow_phase.intersection_pair(collider1, collider2)
+    }
+
+    /// `(collider1, collider2, intersecting)` of every sensor pair involving `collider` found
+    /// by the last step, in ascending pair order, both colliders still existing (upstream
+    /// `PhysicsWorld::intersection_pairs_with`, without the collider references).
+    fn intersection_pairs_with(ref self: World, collider: Handle) -> Array<(Handle, Handle, bool)> {
+        let pairs = self.narrow_phase.intersection_pairs_with(collider);
+        existing(ref self.colliders, pairs.span())
+    }
+
+    /// `(collider1, collider2, intersecting)` of every sensor pair found by the last step, in
+    /// ascending pair order, both colliders still existing (upstream
+    /// `PhysicsWorld::intersection_pairs`, without the collider references).
+    fn intersection_pairs(ref self: World) -> Array<(Handle, Handle, bool)> {
+        let pairs = self.narrow_phase.intersection_pairs();
+        existing(ref self.colliders, pairs.span())
     }
 
     /// Advances the simulation by `integration_parameters.dt` (upstream `PhysicsWorld::step`)
@@ -271,6 +300,19 @@ pub impl WorldImpl of WorldTrait {
     fn intersect_aabb(ref self: World, aabb: Aabb, filter: QueryFilter) -> Array<Handle> {
         crate::queries::intersect_aabb(ref self, aabb, filter)
     }
+}
+
+/// The entries of `pairs` whose two colliders exist.
+fn existing(
+    ref colliders: ColliderSet, pairs: Span<(Handle, Handle, bool)>,
+) -> Array<(Handle, Handle, bool)> {
+    let mut out = array![];
+    for (h1, h2, intersecting) in pairs {
+        if colliders.contains(*h1) && colliders.contains(*h2) {
+            out.append((*h1, *h2, *intersecting));
+        }
+    }
+    out
 }
 
 #[cfg(test)]
@@ -396,6 +438,39 @@ mod tests {
     fn gas_insert_collider_attached() {
         let (mut world, a, _, _) = pair_world();
         let _ = world.insert_collider(ColliderBuilderTrait::ball(opaque(HALF)).build(), Some(a));
+    }
+
+    /// `pair_world` plus a standalone sensor ball around the first ball, after one step.
+    fn sensor_world() -> (World, Handle, Handle) {
+        let (mut world, _, _, _) = pair_world();
+        let sensor = world
+            .insert_collider(
+                ColliderBuilderTrait::ball(ONE).sensor(true).position(at(ZERO, ONE)).build(), None,
+            );
+        let _ = world.step();
+        (world, sensor, Handle { index: 0, generation: 0 })
+    }
+
+    #[test]
+    fn test_intersection_queries_skip_removed_colliders() {
+        let (mut world, sensor, ball) = sensor_world();
+        assert_eq!(world.intersection_pair(sensor, ball), Some(true));
+        assert_eq!(world.intersection_pairs().len(), 2);
+        assert_eq!(world.intersection_pairs_with(ball), array![(ball, sensor, true)]);
+        let _ = world.remove_collider(ball);
+        assert_eq!(world.intersection_pairs_with(sensor).len(), 1);
+    }
+
+    #[test]
+    fn gas_intersection_pair() {
+        let (world, sensor, ball) = sensor_world();
+        let _ = opaque(world.intersection_pair(opaque(sensor), ball));
+    }
+
+    #[test]
+    fn gas_intersection_pairs_with() {
+        let (mut world, sensor, _) = sensor_world();
+        let _ = opaque(world.intersection_pairs_with(opaque(sensor)));
     }
 
     #[test]

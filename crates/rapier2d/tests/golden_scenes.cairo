@@ -27,6 +27,7 @@ mod coupled_joints;
 mod events;
 mod joint_controls;
 mod kinematic;
+mod sensors;
 mod sleep_diagnostics;
 mod slope_diagnostics;
 mod stack_diagnostics;

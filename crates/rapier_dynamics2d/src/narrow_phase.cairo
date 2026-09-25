@@ -6,22 +6,34 @@
 //! `(collider1, collider2)` key, whose manifold is handed to the dispatcher for warm-start
 //! matching and whose event status drives `CollisionEvent`s (D9).
 //!
+//! Sensors (work package SE): a pair of enabled colliders of which one is a sensor is an
+//! *intersection pair* (upstream `IntersectionPair`, a separate graph upstream). It lives in the
+//! same ascending list, as a [`ContactPair`] with an empty manifold (its parent bodies in
+//! `manifold.data.rigid_body1/2`, which the sleeping split reads) whose `event_status` carries
+//! `INTERSECTION_PAIR` and `INTERSECTING` (`crate::events`): no solver contact, so it never
+//! reaches the solver, the islands or the force events, and the step's walks need no second list
+//! (a second `Array` in [`NarrowPhase`] measured +4.5k gas per step on every scene).
+//!
 //! One step of [`NarrowPhaseTrait::compute_contacts`]:
 //!
 //! 1. one scratch [`PairCollider`] per collider, in the order of `ColliderSetTrait::iter`
 //!    (one dict read per collider and per parent body — the only set reads of the step);
 //! 2. for each broad-phase pair `(i, j)` (ascending, D8), the previous pair with the same key is
 //!    looked up (sorted merge on the previous ascending list: no dict), then upstream's
-//!    `process_pair` runs: pairs of disabled or sensor colliders are not contact pairs (sensor
-//!    intersections are deferred); same-parent, `ActiveCollisionTypes` and collision-group
-//!    filters clear the manifold; otherwise the dispatcher updates the manifold and the solver
-//!    data is rebuilt (combined friction / restitution, dominance, solver flags, world normal,
-//!    solver contacts with anchors relative to each body's world centre of mass, points at
-//!    `dist >= prediction` skipped, `NEW_CONTACT_BIT` on points without warm-start impulse);
+//!    `process_pair` runs: pairs of disabled colliders are skipped; for an intersection pair
+//!    (upstream `compute_intersections`' `process_pair`), the same filters as below make it
+//!    non-intersecting, otherwise `rapier_geometry2d::dispatch::intersection_test` (exact, no
+//!    prediction distance; an unsupported pair is not intersecting) decides; same-parent,
+//!    `ActiveCollisionTypes` and collision-group filters clear the manifold; otherwise the
+//!    dispatcher updates the manifold and the solver data is rebuilt (combined friction /
+//!    restitution, dominance, solver flags, world normal, solver contacts with anchors relative to
+//!    each body's world centre of mass, points at `dist >= prediction` skipped, `NEW_CONTACT_BIT`
+//!    on points without warm-start impulse);
 //! 3. events: first `Stopped` for the previous pairs absent from this step (ascending key;
 //!    `REMOVED` when a collider no longer exists), then the `Started` / `Stopped` transitions of
 //!    this step's pairs (ascending key). Transitions follow upstream: emitted when the pair's
-//!    "has a solver contact" state flips and either collider has `COLLISION_EVENTS`.
+//!    "has a solver contact" state (an intersection pair: `intersecting`) flips and either
+//!    collider has `COLLISION_EVENTS`. The events of intersection pairs carry `SENSOR`.
 //!
 //! The dispatcher is a trait bound, as upstream's `&dyn PersistentQueryDispatcher` (static
 //! dispatch here): `rapier2d` plugs in `rapier_geometry2d::dispatch::contact_manifold`.
@@ -44,17 +56,23 @@
 //! Deviations from upstream: one manifold per pair (every supported shape is convex); no
 //! contact skin, no velocity-based speculative contacts (upstream also keeps a point beyond
 //! `prediction` when the bodies approach it within `dt`), no solver-contact modification hooks,
-//! no contact recycling or sensor intersection pairs; force events are collected by the world; an
-//! unsupported pair (`contact_manifold` returning `false`) gets its manifold cleared.
+//! no contact recycling; force events are collected by the world; an unsupported pair
+//! (`contact_manifold` returning `false`) gets its manifold cleared. Sensors: one list for both
+//! kinds (upstream: two graphs), so a sensor's events are interleaved with the contact events in
+//! key order (upstream: after them); the intersection test is not pluggable (upstream: the same
+//! `QueryDispatcher`); a dropped intersection pair emits its `Stopped` from `start_event_emitted`
+//! (upstream: from `intersecting` and the current event flags); a pair whose collider switches
+//! between solid and sensor ends (`Stopped` if started) and restarts as the other kind.
 
 use core::num::traits::Zero;
 use fixed::Fixed;
 use glam::Vec2;
 use rapier_core::Handle;
-use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED};
+use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::collider::{
     ActiveCollisionTypes, ActiveCollisionTypesTrait, ActiveEvents, ActiveEventsTrait,
-    CoefficientCombineRule, CoefficientCombineRuleTrait, CollisionEventFlagsTrait,
+    CoefficientCombineRule, CoefficientCombineRuleTrait, CollisionEventFlags,
+    CollisionEventFlagsTrait,
 };
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};
 use rapier_core::rigid_body::{RigidBodyDominanceTrait, RigidBodyType};
@@ -77,9 +95,11 @@ use crate::rigid_body_set::{RigidBodySet, RigidBodySetTrait};
 mod alternatives;
 #[cfg(test)]
 mod benches;
+
+pub mod intersections;
 #[cfg(test)]
 pub(crate) mod mock;
-
+use intersections::intersection_pair_step;
 pub mod one_way;
 #[cfg(test)]
 mod tests;
@@ -133,9 +153,23 @@ pub impl ContactPairImpl of ContactPairTrait {
     fn has_any_active_contact(self: @ContactPair) -> bool {
         *self.manifold.data.num_solver_contacts != 0
     }
+
+    /// `true` for an intersection (sensor) pair (see the module documentation).
+    #[inline(always)]
+    fn is_intersection_pair(self: @ContactPair) -> bool {
+        (*self.event_status).is_intersection_pair()
+    }
+
+    /// `true` for an intersection pair whose shapes intersect (upstream
+    /// `IntersectionPair::intersecting`); `false` for a contact pair.
+    #[inline(always)]
+    fn intersecting(self: @ContactPair) -> bool {
+        (*self.event_status).intersecting()
+    }
 }
 
-/// The narrow phase: this step's contact pairs, in ascending `(collider1, collider2)` slot index.
+/// The narrow phase: this step's contact and intersection (sensor) pairs, in ascending
+/// `(collider1, collider2)` slot index.
 #[derive(Drop, Default)]
 pub struct NarrowPhase {
     pub pairs: Array<ContactPair>,
@@ -148,6 +182,8 @@ pub struct PairCollider {
     pub handle: Handle,
     /// `false` for disabled and sensor colliders, which take part in no contact pair.
     pub solid: bool,
+    /// `true` for an enabled sensor, which takes part in intersection pairs only.
+    pub sensor: bool,
     pub shape: Shape,
     pub pose: Pose2,
     pub friction: Fixed,
@@ -181,6 +217,7 @@ pub fn pair_collider(handle: Handle, collider: Collider, ref bodies: RigidBodySe
     PairCollider {
         handle,
         solid: collider.is_enabled() && !collider.is_sensor(),
+        sensor: collider.is_enabled() && collider.is_sensor(),
         shape: collider.shape,
         pose: collider.pos.pose,
         friction: collider.material.friction,
@@ -302,14 +339,15 @@ pub impl NarrowPhaseImpl of NarrowPhaseTrait {
         compute_contacts_from_scratch::<D>(ref self, prediction, scratch, pairs, ref colliders)
     }
 
-    /// Number of contact pairs.
+    /// Number of pairs, contact and intersection.
     #[inline(always)]
     fn len(self: @NarrowPhase) -> u32 {
         self.pairs.len()
     }
 
-    /// The pair of key `(collider1, collider2)` (slot-index order), if any. Linear scan: for
-    /// tests and user queries, not for the step.
+    /// The contact pair of key `(collider1, collider2)` (slot-index order), if any; `None` for
+    /// an intersection pair (upstream: another graph). Linear scan: for tests and user queries,
+    /// not for the step.
     fn contact_pair(
         self: @NarrowPhase, collider1: Handle, collider2: Handle,
     ) -> Option<ContactPair> {
@@ -317,11 +355,34 @@ pub impl NarrowPhaseImpl of NarrowPhaseTrait {
         loop {
             match pairs.pop_front() {
                 Some(pair) => if *pair.collider1 == collider1 && *pair.collider2 == collider2 {
+                    if pair.is_intersection_pair() {
+                        break None;
+                    }
                     break Some(*pair);
                 },
                 None => { break None; },
             }
         }
+    }
+
+    /// Upstream `NarrowPhase::intersection_pair`: `Some(intersecting)` for the intersection pair
+    /// of `collider1` and `collider2` (either order), `None` when they form none. Linear scan.
+    fn intersection_pair(self: @NarrowPhase, collider1: Handle, collider2: Handle) -> Option<bool> {
+        intersections::intersection_pair(self.pairs.span(), collider1, collider2)
+    }
+
+    /// Upstream `NarrowPhase::intersection_pairs_with`: `(collider1, collider2, intersecting)`
+    /// of every intersection pair involving `collider`, ascending.
+    fn intersection_pairs_with(
+        self: @NarrowPhase, collider: Handle,
+    ) -> Array<(Handle, Handle, bool)> {
+        intersections::intersection_pairs_with(self.pairs.span(), Some(collider))
+    }
+
+    /// Upstream `NarrowPhase::intersection_pairs`: every intersection pair as
+    /// `(collider1, collider2, intersecting)`, ascending.
+    fn intersection_pairs(self: @NarrowPhase) -> Array<(Handle, Handle, bool)> {
+        intersections::intersection_pairs_with(self.pairs.span(), None)
     }
 }
 
@@ -358,6 +419,18 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
         let co1 = *scratch.at(*i);
         let co2 = *scratch.at(*j);
         if !(co1.solid && co2.solid) {
+            if (co1.solid || co1.sensor) && (co2.solid || co2.sensor) {
+                intersection_pair_step(
+                    co1,
+                    co2,
+                    previous,
+                    ref cursor,
+                    ref colliders,
+                    ref events,
+                    ref transitions,
+                    ref current,
+                );
+            }
             continue;
         }
         let h1 = co1.handle;
@@ -374,7 +447,8 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
             }
             if a1.index == h1.index && a2.index == h2.index {
                 cursor += 1;
-                if a1 == h1 && a2 == h2 {
+                // Same slots, other generations, or a sensor pair turned solid: a new pair.
+                if a1 == h1 && a2 == h2 && !(*head.event_status).is_intersection_pair() {
                     found = boxed;
                 } else {
                     dropped_event(a1, a2, *head.event_status, ref colliders, ref events);
@@ -436,7 +510,7 @@ fn events_on(co1: PairCollider, co2: PairCollider) -> bool {
 }
 
 /// The `Stopped` event of a dropped previous pair, if its `Started` was emitted (see
-/// [`dropped_events`]).
+/// [`dropped_events`]); flagged `SENSOR` for an intersection pair.
 #[inline(always)]
 fn dropped_event(
     collider1: Handle,
@@ -446,12 +520,32 @@ fn dropped_event(
     ref events: Array<CollisionEvent>,
 ) {
     if status.start_event_emitted() {
-        let flags = if colliders.contains(collider1) && colliders.contains(collider2) {
-            CollisionEventFlagsTrait::empty()
-        } else {
-            REMOVED
-        };
-        events.append(stopped(collider1, collider2, flags));
+        events
+            .append(
+                stopped(
+                    collider1,
+                    collider2,
+                    dropped_flags(collider1, collider2, status, ref colliders),
+                ),
+            );
+    }
+}
+
+/// Flags of the `Stopped` event of a dropped pair: `REMOVED` when a collider no longer exists,
+/// `SENSOR` for an intersection pair. One or two dict reads.
+#[inline(always)]
+fn dropped_flags(
+    collider1: Handle, collider2: Handle, status: PairEventStatus, ref colliders: ColliderSet,
+) -> CollisionEventFlags {
+    let flags = if colliders.contains(collider1) && colliders.contains(collider2) {
+        CollisionEventFlagsTrait::empty()
+    } else {
+        REMOVED
+    };
+    if status.is_intersection_pair() {
+        flags | SENSOR
+    } else {
+        flags
     }
 }
 
@@ -464,12 +558,9 @@ pub fn dropped_events(
     let mut events = array![];
     for pair in dropped {
         if pair.event_status.start_event_emitted() {
-            let flags = if colliders.contains(pair.collider1)
-                && colliders.contains(pair.collider2) {
-                CollisionEventFlagsTrait::empty()
-            } else {
-                REMOVED
-            };
+            let flags = dropped_flags(
+                pair.collider1, pair.collider2, pair.event_status, ref colliders,
+            );
             events.append(stopped(pair.collider1, pair.collider2, flags));
         }
     }
