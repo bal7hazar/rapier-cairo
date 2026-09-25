@@ -8351,3 +8351,9 @@ pub mod kinematic_platform;
 pub mod kinematic_pusher;
 
 pub mod one_way_jump;
+
+pub mod rope_pendulum;
+
+pub mod spring_mass;
+
+pub mod spring_mass_accel;

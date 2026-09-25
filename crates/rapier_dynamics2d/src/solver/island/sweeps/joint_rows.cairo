@@ -316,7 +316,9 @@ fn random_joint(code: u32, range: i16, target: i16) -> GenericJoint {
         data.set_motor_velocity(1, fx(target, 65536), HALF);
         data.set_motor_position(2, fx(target, 32768), ONE, HALF);
         if rest % 2 == 0 {
-            data.coupled_axes = JointAxesMask { bits: 1 };
+            // A coupled angular axis has no row in 2D (upstream), as in JL's frozen reference;
+            // coupled linear axes (RJ) are checked in `solver::joint::coupled::tests`.
+            data.coupled_axes = JointAxesMask { bits: 4 };
         }
     }
     if kind == 5 && rest % 2 == 0 {

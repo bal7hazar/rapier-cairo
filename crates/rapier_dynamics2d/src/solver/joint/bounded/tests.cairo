@@ -201,7 +201,10 @@ fn test_locked_coupled_disabled_and_generic_free_axes() {
     j.data.locked_axes.bits = 0;
     j.data.coupled_axes.bits = 7;
     let c = JointConstraintTrait::generate(j, bs.span(), p);
-    assert!(c.bounded.is_none());
+    // RJ: coupled linear axes form one distance DOF (one coupled motor, one coupled limit);
+    // a coupled angular axis gets no row in 2D, as upstream.
+    assert_eq!(rows(c).motors.len(), 1);
+    assert_eq!(rows(c).limits.len(), 1);
     j.data.enabled = JointEnabled::Disabled;
     let c = JointConstraintTrait::generate(j, [].span(), p);
     assert_eq!(c.num_rows, 0);

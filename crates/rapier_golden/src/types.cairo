@@ -597,6 +597,28 @@ pub struct JointSceneCase {
     pub joint: SceneJointControlRaw,
 }
 
+/// RJ: a rope (`max_dist`) or spring (`rest_length`, `stiffness`, `damping`, model) joint, in
+/// Q32.32 raws; the fields of the other kind are zero.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SceneCoupledJointRaw {
+    pub body1: u32,
+    pub body2: u32,
+    pub local_anchor1: Vec2Raw,
+    pub local_anchor2: Vec2Raw,
+    pub rope: bool,
+    pub max_dist: i64,
+    pub rest_length: i64,
+    pub stiffness: i64,
+    pub damping: i64,
+    pub force_based: bool,
+}
+/// RJ: coupled-joint scene, laid out as `JointSceneCase`.
+#[derive(Copy, Drop)]
+pub struct CoupledJointSceneCase {
+    pub scene: SceneCase,
+    pub joint: SceneCoupledJointRaw,
+}
+
 /// SI: vertical state after a `ball_drop_sleep` step, Q32.32 raw. Upstream updates the
 /// timer before solving; Cairo updates it after motion. Wake/sleep resets also affect it.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]

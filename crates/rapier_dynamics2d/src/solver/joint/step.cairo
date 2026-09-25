@@ -4,6 +4,11 @@
 //! are both zero: that row would clamp to a zero impulse (no velocity change, zero written back),
 //! so every velocity and persisted impulse stays bit-identical. Products floor; reciprocals round
 //! to nearest; the angular range centre/half are halved toward zero, as JL.
+//! RJ: coupled joints are `Legacy` joints whose rows are selected per substep inside the
+//! outlined `legacy` (behind a gas wallet). Measured alternatives (P3 one-joint step, Sierra gas):
+//! a dedicated kind selected once per step made the rope 3.78M but every other joint +8.5k/step
+//! (the island loop pre-pays any new arm or `specialise` branch); a lazily selected dedicated kind
+//! 4.01M / +6.4k; JL's public path unchanged 4.23M / +10; this dispatch 4.11M / -0.6k.
 use fixed::trig::TrigTrait;
 use fixed::wide::{dot2, mul_sub};
 use fixed::{Fixed, FixedTrait, MAX, ONE, PI, ZERO};
@@ -14,6 +19,7 @@ use rapier_math::rot2::Rot2;
 use crate::joint::{GenericJoint, JointAxesMask, JointLimits, JointMotor};
 use super::*;
 use super::bounded::{BoundedRow, BoundedRows, base, boxed, limit_row, motor_row};
+use super::coupled::{CoupledControl, coupled};
 use super::helper::{finalize2_inverses, finalize3_inverses};
 use super::row::{finish, gas_wallet, metric, project};
 
@@ -35,8 +41,15 @@ pub(crate) enum StepKind {
     Plain,
     /// Limits/motors on free, uncoupled axes; every mask valid.
     Controlled: Box<StepControls>,
-    /// Limits/motors with an out-of-range mask: JL's per-substep path, same panics.
+    /// Limits/motors with an out-of-range mask: JL's per-substep path, same panics. RJ: also
+    /// every coupled joint (rope, spring), whose rows are selected per substep (`coupled_kind`).
     Legacy: Box<ImpulseJoint>,
+}
+/// Free-axis controls and the coupled rows (if any) of a coupled joint.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub(crate) struct StepCoupled {
+    pub controls: StepControls,
+    pub coupled: Option<CoupledControl>,
 }
 /// Limit range of one axis. `mode`: 0 linear, 1 angular, 2 angular spanning a full turn
 /// (never active). Angular: sine/cosine of the range centre, half-range, and the half-range
@@ -73,7 +86,7 @@ pub(crate) fn specialise(joint: ImpulseJoint) -> StepKind {
         return StepKind::Plain;
     }
     if data.locked_axes.bits > 7
-        || data.coupled_axes.bits > 7
+        || data.coupled_axes.bits != 0
         || data.limit_axes.bits > 7
         || data.motor_axes.bits > 7 {
         return StepKind::Legacy(BoxTrait::new(joint));
@@ -84,6 +97,23 @@ pub(crate) fn specialise(joint: ImpulseJoint) -> StepKind {
     } else {
         StepKind::Controlled(BoxTrait::new(controls))
     }
+}
+/// Rows of a coupled joint with valid masks: free-axis controls (JL's checks and order), then
+/// the coupled selection. `inside` enables the interior test of free-axis angular limits.
+pub(crate) fn coupled_kind(data: GenericJoint, inside: bool) -> StepCoupled {
+    let controls = if !super::coupled::free_controls(data) {
+        // Rope, spring: no free-axis control, only the step-initial impulses.
+        let [lx, ly, lw] = data.limits;
+        let [mx, my, mw] = data.motors;
+        StepControls {
+            axes: [].span(),
+            motors: [mx.impulse, my.impulse, mw.impulse],
+            limits: [lx.impulse, ly.impulse, lw.impulse],
+        }
+    } else {
+        controls(data, inside)
+    };
+    StepCoupled { controls, coupled: coupled(data) }
 }
 /// Controlled axes, with JL's mask checks in JL's order. `inside` enables the interior test.
 /// Unrolled over the three axes: a loop would pass the whole joint per iteration.
@@ -263,6 +293,121 @@ pub(crate) fn generate(
     }
     c
 }
+/// Rows of a `Legacy` joint for one substep; `previous` is the constraint whose impulses seed
+/// it (`reuse`). RJ: a coupled joint with valid masks is generated directly from `coupled_kind`
+/// and `carried` seeds (no joint copy, no body lookup). Outlined behind a gas wallet so that the
+/// island loop does not pre-pay it for every other joint.
+#[inline(never)]
+pub(crate) fn legacy(
+    step: StepJoint,
+    joint: Box<ImpulseJoint>,
+    impulses: [Fixed; 3],
+    previous: Option<JointConstraint>,
+    b1: SolverBody,
+    b2: SolverBody,
+    p: IntegrationParameters,
+) -> JointConstraint {
+    gas_wallet();
+    let mut joint = joint.unbox();
+    let data = joint.data;
+    if data.coupled_axes.bits != 0
+        && data.coupled_axes.bits <= 7
+        && data.locked_axes.bits <= 7
+        && data.limit_axes.bits <= 7
+        && data.motor_axes.bits <= 7 {
+        let kind = coupled_kind(data, true);
+        let (seeds, motors, limits) = match previous {
+            Some(old) => carried(old, impulses),
+            None => (impulses, kind.controls.motors, kind.controls.limits),
+        };
+        assert(b1.handle != b2.handle, errors::SAME_BODY);
+        return generate_coupled(step, kind, seeds, motors, limits, b1, b2, p, true);
+    }
+    if let Some(old) = previous {
+        old.writeback_impulses(ref joint);
+    }
+    JointConstraintTrait::generate(joint, [b1, b2].span(), p)
+}
+
+/// RJ: `generate` for a coupled joint: locks, free-axis motors/limits, then the coupled motor
+/// (last motor) and coupled limit (last limit), as upstream. The coupled limit is never skipped
+/// (its speculative rhs can act while slack).
+pub(crate) fn generate_coupled(
+    step: StepJoint,
+    kind: StepCoupled,
+    seeds: [Fixed; 3],
+    motor_seeds: [Fixed; 3],
+    limit_seeds: [Fixed; 3],
+    b1: SolverBody,
+    b2: SolverBody,
+    p: IntegrationParameters,
+    skip: bool,
+) -> JointConstraint {
+    gas_wallet();
+    let (h, erp, cfm, r1, r2) = frame(
+        b1, b2, step.frame1, step.frame2, step.locks, step.softness, p,
+    );
+    let mut c: JointConstraint = Default::default();
+    c.im1 = b1.im;
+    c.im2 = b2.im;
+    lock_rows(ref c, h, b1, b2, erp, cfm, step.locks);
+    let inverses = finalize_inverses(ref c);
+    seed(ref c, seeds, p);
+    let mut motors: Array<BoundedRow> = array![];
+    let mut limits: Array<BoundedRow> = array![];
+    let StepCoupled { controls, coupled } = kind;
+    let mut axes = controls.axes;
+    // Rope and spring joints have no free-axis control: the loop is not entered.
+    if axes.len() != 0 {
+        while let Some(control) = axes.pop_front() {
+            axis_rows(
+                *control,
+                ref motors,
+                ref limits,
+                c,
+                inverses,
+                controls.limits,
+                motor_seeds,
+                limit_seeds,
+                h,
+                b1,
+                b2,
+                p,
+                erp,
+                cfm,
+                r1,
+                r2,
+                skip,
+            );
+        }
+    }
+    if let Some(coupled) = coupled {
+        super::coupled::rows(
+            coupled,
+            ref motors,
+            ref limits,
+            c,
+            inverses,
+            motor_seeds,
+            limit_seeds,
+            h,
+            b1,
+            b2,
+            p,
+            erp,
+            cfm,
+        );
+    }
+    if motors.len() != 0 || limits.len() != 0 {
+        c
+            .bounded =
+                boxed(
+                    BoundedRows { motors: motors.span(), limits: limits.span(), locks: c.num_rows },
+                );
+        c.num_rows = 4;
+    }
+    c
+}
 /// Motor then limit rows of one controlled axis (JL order and arithmetic).
 #[inline(always)]
 fn axis_rows(
@@ -367,7 +512,7 @@ fn atan2_centered(l: StepLimit, r: Rot2) -> Fixed {
 }
 /// Project a limit row out of the finalized locks, reusing their cached inverse masses.
 #[inline(always)]
-fn project_locks(
+pub(crate) fn project_locks(
     ref row: JointGenericConstraint,
     c: JointConstraint,
     inverses: (Fixed, Fixed, Fixed),

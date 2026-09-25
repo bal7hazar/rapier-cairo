@@ -6,15 +6,17 @@
 //! OJ keeps scalar row kernels inline to avoid copying full rows at each arithmetic call.
 //! JM: limits/motors are built after a single frame construction (`step`); the island driver
 //! specialises each joint's kind once per step and carries impulses between substeps itself.
+//! RJ: coupled linear axes (rope, spring) add one row along the anchor separation (`coupled`).
 pub(crate) mod bounded;
 mod kernels;
 pub(crate) use kernels::{frame, lock_rows, write_rows};
 use kernels::{
-    generate_extended, generate_plain, remove_bias_plain, solve_plain, warmstart_plain,
-    writeback_impulses_plain,
+    generate_coupled_public, generate_extended, generate_plain, remove_bias_plain, solve_plain,
+    warmstart_plain, writeback_impulses_plain,
 };
 pub(crate) mod step;
 pub(crate) use step::StepJoint;
+pub(crate) mod coupled;
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};
@@ -56,16 +58,19 @@ pub struct JointConstraint {
 pub impl JointConstraintImpl of JointConstraintTrait {
     /// Rebuild locks, limits and motors from current CoM poses and complete body handles.
     /// Disabled joints return zero rows. Missing/same bodies, negative mass/warmstart, nonunit
-    /// frames panic with errors constants; parameter/Fixed panics propagate. Coupled axes
-    /// remain reserved. Motor stiffness, damping and force caps must be nonnegative.
+    /// frames panic with errors constants; parameter/Fixed panics propagate. Coupled linear axes
+    /// add upstream's coupled motor/limit rows (RJ); a coupled angular axis has no row in 2D.
+    /// Motor stiffness, damping and force caps must be nonnegative.
     #[inline(always)]
     fn generate(
         joint: ImpulseJoint, bodies: Span<SolverBody>, params: IntegrationParameters,
     ) -> JointConstraint {
         if joint.data.limit_axes.bits == 0 && joint.data.motor_axes.bits == 0 {
             generate_plain(joint, bodies, params)
-        } else {
+        } else if joint.data.coupled_axes.bits == 0 {
             generate_extended(joint, bodies, params)
+        } else {
+            generate_coupled_public(joint, bodies, params)
         }
     }
     /// Apply seeded impulses once before solving; no division, products floor, overflow panics.

@@ -1,11 +1,14 @@
-//! Impulse joints with free-axis limits and motors. Coupling remains reserved.
+//! Impulse joints with free-axis limits and motors, and coupled linear limits/motors (rope,
+//! spring; RJ).
 //! Local frames are body-local; the solver adapter requires centre-of-mass-local frames.
 mod builders;
 mod config;
 pub use config::GenericJointTrait;
 #[cfg(test)]
 mod builder_controls;
+mod rope_joint;
 mod set;
+mod spring_joint;
 pub use builders::{
     FixedJointBuilder, FixedJointBuilderTrait, GenericJointBuilder, GenericJointBuilderTrait,
     PrismaticJointBuilder, PrismaticJointBuilderTrait, RevoluteJointBuilder,
@@ -15,7 +18,9 @@ use core::num::traits::DivRem;
 use fixed::{Fixed, MAX, MIN, ZERO};
 use rapier_core::integration_parameters::spring::{JOINT_DEFAULTS, SpringCoefficients};
 use rapier_math::pose2::Pose2;
+pub use rope_joint::{RopeJointBuilder, RopeJointBuilderTrait};
 pub use set::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
+pub use spring_joint::{SpringJointBuilder, SpringJointBuilderTrait};
 
 /// 2D axis bits: X=1, Y=2, AngX=4. Only values 0..7 are valid.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
@@ -28,6 +33,8 @@ pub const LIN_X: JointAxesMask = JointAxesMask { bits: 1 };
 pub const LIN_Y: JointAxesMask = JointAxesMask { bits: 2 };
 /// Angular axis (upstream calls it AngX in 2D).
 pub const ANG_X: JointAxesMask = JointAxesMask { bits: 4 };
+/// Both linear axes (upstream `JointAxesMask::LIN_AXES`), coupled by rope and spring joints.
+pub const LIN_AXES: JointAxesMask = JointAxesMask { bits: 3 };
 /// Revolute locks translation only.
 pub const LOCKED_REVOLUTE_AXES: JointAxesMask = JointAxesMask { bits: 3 };
 /// Prismatic leaves local X free.

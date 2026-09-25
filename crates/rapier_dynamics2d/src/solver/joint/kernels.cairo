@@ -201,3 +201,29 @@ pub(crate) fn generate_extended(
     c.solver_vel2 = solver_vel2;
     c
 }
+/// RJ: `generate_extended` for a joint with coupled axes (same checks and order).
+pub(crate) fn generate_coupled_public(
+    j: ImpulseJoint, bodies: Span<SolverBody>, p: IntegrationParameters,
+) -> JointConstraint {
+    if j.data.enabled != JointEnabled::Enabled {
+        return Default::default();
+    }
+    let solver_vel1 = resolve(bodies, j.body1);
+    let solver_vel2 = resolve(bodies, j.body2);
+    assert(solver_vel1 != solver_vel2, errors::SAME_BODY);
+    let b1 = read(bodies, solver_vel1);
+    let b2 = read(bodies, solver_vel2);
+    let step = StepJoint {
+        frame1: j.data.local_frame1,
+        frame2: j.data.local_frame2,
+        locks: j.data.locked_axes,
+        softness: j.data.softness,
+    };
+    let kind = step::coupled_kind(j.data, false);
+    let mut c = step::generate_coupled(
+        step, kind, j.impulses, kind.controls.motors, kind.controls.limits, b1, b2, p, false,
+    );
+    c.solver_vel1 = solver_vel1;
+    c.solver_vel2 = solver_vel2;
+    c
+}
