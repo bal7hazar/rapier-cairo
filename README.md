@@ -1,4 +1,4 @@
-# rapier.cairo
+# rapier-cairo
 
 A port of the [Rapier](https://rapier.rs) physics engine to [Cairo](https://www.cairo-lang.org),
 so that games can run on **provable physics**.

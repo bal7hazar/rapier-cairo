@@ -1,6 +1,6 @@
 [package]
 name = "rapier_testing"
-description = "Shared test and gas-probe helpers for the rapier.cairo workspace."
+description = "Shared test and gas-probe helpers for the rapier-cairo workspace."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

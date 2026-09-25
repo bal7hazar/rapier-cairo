@@ -1,4 +1,4 @@
-//! Golden-vector harness for rapier.cairo. See `README.md`.
+//! Golden-vector harness for rapier-cairo. See `README.md`.
 //!
 //! `cargo run --release` regenerates `vectors/*.json` and the Cairo fixtures under
 //! `crates/rapier_golden/src/generated/`. The output is a pure function of the pinned upstream

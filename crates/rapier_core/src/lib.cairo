@@ -1,4 +1,4 @@
-//! Dimension-agnostic data structures shared by every rapier.cairo crate.
+//! Dimension-agnostic data structures shared by every rapier-cairo crate.
 
 pub mod collider;
 pub mod data;

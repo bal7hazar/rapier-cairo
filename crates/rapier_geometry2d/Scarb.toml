@@ -1,6 +1,6 @@
 [package]
 name = "rapier_geometry2d"
-description = "2D collision geometry of rapier.cairo (port of the Parry subset Rapier needs): shapes, AABB, mass properties, contact manifolds, broad phase."
+description = "2D collision geometry of rapier-cairo (port of the Parry subset Rapier needs): shapes, AABB, mass properties, contact manifolds, broad phase."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

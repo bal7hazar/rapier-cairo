@@ -1,8 +1,8 @@
-//! Physics-side maths for rapier.cairo, on top of the shared `fixed` scalar from glam.cairo.
+//! Physics-side maths for rapier-cairo, on top of the shared `fixed` scalar from glam-cairo.
 //!
 //! This crate plays the role of upstream's `glamx`: `Rot2`, `Pose2`, the fused kernels the engine
 //! needs and the scalar helpers Rapier/Parry rely on (`inv(0) = 0`, wide comparisons of squared
-//! quantities, angular constants). See `docs/PLAN.md` (D12) for the split with glam.cairo.
+//! quantities, angular constants). See `docs/PLAN.md` (D12) for the split with glam-cairo.
 
 pub mod consts;
 pub mod math_ext;

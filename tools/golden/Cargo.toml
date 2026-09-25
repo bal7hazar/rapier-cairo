@@ -3,7 +3,7 @@ name = "rapier-golden"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "Golden-vector harness: runs upstream Rapier/Parry (f64, 2D) and emits reference vectors for rapier.cairo."
+description = "Golden-vector harness: runs upstream Rapier/Parry (f64, 2D) and emits reference vectors for rapier-cairo."
 license = "MIT"
 
 [[bin]]

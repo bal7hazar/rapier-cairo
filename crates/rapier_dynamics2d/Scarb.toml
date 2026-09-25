@@ -1,6 +1,6 @@
 [package]
 name = "rapier_dynamics2d"
-description = "2D rigid-body dynamics of rapier.cairo: bodies, colliders, narrow-phase bookkeeping, joints, contact and joint solver."
+description = "2D rigid-body dynamics of rapier-cairo: bodies, colliders, narrow-phase bookkeeping, joints, contact and joint solver."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

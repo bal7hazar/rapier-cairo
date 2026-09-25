@@ -1,6 +1,6 @@
 [package]
 name = "rapier2d"
-description = "Public facade of rapier.cairo in 2D: World, step(), events."
+description = "Public facade of rapier-cairo in 2D: World, step(), events."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
