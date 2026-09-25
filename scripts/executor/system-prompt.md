@@ -16,12 +16,16 @@ Non-negotiable frame:
    table-driven tests instead of one function per case. Test-crate compile time is the first cause
    of CI failures.
 5. Definition of done, run in the FOREGROUND from the repository root of your worktree (a
-   background command followed by the end of your turn is lost — the session stops):
-     scarb fmt --workspace && scarb lint --workspace --deny-warnings && scarb build --workspace
-     && snforge test --workspace
-   then regenerate the gas snapshot of your modules only:
-     python3 scripts/gas.py snapshot --filter <crate>::<module>   (one call per module you own)
-   and commit the resulting `gas/<crate>/<module>.snap` files with your code.
+   background command followed by the end of your turn is lost — the session stops). Locally you run
+   ONLY crate-scoped checks — never `snforge test --workspace`, never the full workspace gate: the PR's
+   CI is the full gate (4 parallel test groups + gas + golden + api-parity, ~4 min), and a local
+   workspace run queues the whole machine behind one lock. Locally:
+     scarb fmt --workspace && scarb lint -p <crate> --deny-warnings && scarb build -p <crate>
+     && snforge test -p <crate>          (each crate you touched, and its direct dependents)
+   then regenerate the gas snapshot of your modules, crate-scoped:
+     python3 scripts/gas.py snapshot --filter <crate>::<module>   (runs `snforge test -p <crate>`)
+   and commit the resulting `gas/<crate>/<module>.snap` files with your code. If CI's `gas` job reports a
+   drift in a dependent crate, regenerate that crate's modules the same way and push again.
 6. Commit with conventional messages ending with the line
    `Co-Authored-By: Claude <noreply@anthropic.com>` (or `Co-Authored-By: Codex <noreply@openai.com>`),
    push your branch (`git push -u origin <branch>`), open the PR with
