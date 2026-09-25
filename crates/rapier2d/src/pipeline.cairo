@@ -69,9 +69,7 @@ use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait, ColliderEnabled, ColliderType};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
-use rapier_core::rigid_body::{
-    RigidBodyChangesTrait, RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType,
-};
+use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
@@ -98,6 +96,11 @@ pub(crate) mod fixtures;
 
 pub mod force_events;
 use force_events::{CollisionOnly, StepOutput, WithForces};
+mod free_path;
+use free_path::{
+    body_info, collision_proxies_from_entries_with_events, collision_scratch, no_body_info,
+    solve_and_advance_free,
+};
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
 pub mod islands;
@@ -148,23 +151,54 @@ pub fn step_with_force_events(
 }
 
 fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T {
-    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+    let no_joints = world.impulse_joints.len() == 0;
+    let (snapshot, mut infos, entries, census) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
         Some(world.integration_parameters.dt),
+        !world.narrow_phase.pairs.is_empty() || !no_joints,
     );
     let prediction = world.integration_parameters.prediction_distance();
-    let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
-        snapshot, infos, ref world.bodies, prediction,
-    );
+    let free_candidate = world.narrow_phase.pairs.is_empty() && no_joints && !census.eligible;
+    let (scratch, sleeping, force_events, pairs) = if free_candidate {
+        let (proxies, sleeping, force_events) = collision_proxies_from_entries_with_events(
+            snapshot, entries, ref world.bodies, prediction,
+        );
+        let pairs = find_pairs(proxies.span());
+        if !sleeping && pairs.is_empty() {
+            solve_and_advance_free(
+                world.gravity,
+                world.integration_parameters,
+                ref world.bodies,
+                ref world.colliders,
+                entries,
+                snapshot,
+                census.awake == entries.len(),
+            );
+            return Output::finish(
+                array![],
+                force_events,
+                world.integration_parameters.dt,
+                ref world.narrow_phase,
+                ref world.colliders,
+            );
+        }
+        let (fresh_infos, _) = body_infos(entries);
+        infos = fresh_infos.span();
+        (collision_scratch(snapshot, infos, ref world.bodies), sleeping, force_events, pairs)
+    } else {
+        let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
+            snapshot, infos, ref world.bodies, prediction,
+        );
+        (scratch, sleeping, force_events, find_pairs(proxies.span()))
+    };
     let mut dormant = array![];
     if sleeping {
         let (active, asleep) = split_dormant(world.narrow_phase.pairs.span(), entries);
         world.narrow_phase.pairs = active;
         dormant = asleep;
     }
-    let pairs = find_pairs(proxies.span());
     let events = compute_contacts_from_scratch::<
         DefaultDispatcher,
     >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
@@ -221,43 +255,6 @@ pub struct BodyInfo {
     pub sleeping: bool,
 }
 
-/// The [`BodyInfo`] of a missing parent or of no parent: a fixed body at the origin.
-#[inline(always)]
-fn no_body_info() -> (RigidBodyType, Vec2, i16, bool) {
-    let dominance: RigidBodyDominance = Default::default();
-    (
-        RigidBodyType::Fixed,
-        Default::default(),
-        dominance.effective_group(RigidBodyType::Fixed),
-        false,
-    )
-}
-
-/// The `(body_type, world_com, dominance, sleeping)` of the body `handle`: `infos[handle.index]`
-/// when that entry has the handle (always the case in a set without free slot), a set read
-/// otherwise. The read is inlined: in the loop body it is only paid when reached
-/// (`fused_alternatives::collision_inputs_outlined_fallback` puts it behind a call).
-#[inline(always)]
-fn body_info(
-    infos: Span<BodyInfo>, handle: Handle, ref bodies: RigidBodySet,
-) -> (RigidBodyType, Vec2, i16, bool) {
-    if let Some(info) = infos.get(handle.index) {
-        let info = *info.unbox();
-        if info.handle == handle {
-            return (info.body_type, info.world_com, info.dominance, info.sleeping);
-        }
-    }
-    match bodies.get(handle) {
-        Some(body) => (
-            body.body_type,
-            body.mprops.world_com,
-            body.dominance.effective_group(body.body_type),
-            body.activation.sleeping,
-        ),
-        None => no_body_info(),
-    }
-}
-
 /// One [`BodyInfo`] per entry of `entries` (ascending slot), and their [`SleepCensus`].
 pub fn body_infos(entries: Span<(Handle, RigidBody)>) -> (Array<BodyInfo>, SleepCensus) {
     let mut infos = array![];
@@ -312,7 +309,7 @@ pub fn user_changes_snapshot(
 pub fn user_changes_bodies(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
-    user_changes_bodies_for_step(ref bodies, ref colliders, pairs, None)
+    user_changes_bodies_for_step(ref bodies, ref colliders, pairs, None, true)
 }
 
 fn user_changes_bodies_for_step(
@@ -320,6 +317,7 @@ fn user_changes_bodies_for_step(
     ref colliders: ColliderSet,
     pairs: Span<ContactPair>,
     dt: Option<Fixed>,
+    build_infos: bool,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
@@ -358,7 +356,9 @@ fn user_changes_bodies_for_step(
         if body_type == RigidBodyType::KinematicPositionBased {
             has_kinematic = true;
         }
-        infos.append(BodyInfo { handle: *handle, body_type, world_com, dominance, sleeping });
+        if build_infos {
+            infos.append(BodyInfo { handle: *handle, body_type, world_com, dominance, sleeping });
+        }
     }
     // Only a world with position-based bodies pays for the extra walk. The ordinary
     // body's hot path keeps snapshot field reads and no per-body loop dispatch.

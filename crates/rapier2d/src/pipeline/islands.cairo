@@ -336,6 +336,13 @@ pub fn update_sleep_timer(ref body: RigidBody, previous: Pose2, params: Integrat
             let position = body.pos.position;
             let dx: felt252 = position.translation.x.raw.into() - previous.translation.x.raw.into();
             let dy: felt252 = position.translation.y.raw.into() - previous.translation.y.raw.into();
+            if body.activation.time_since_can_sleep == ZERO
+                && is_default_configuration(
+                    body.activation.normalized_linear_threshold, params.length_unit, params.dt,
+                )
+                && !translation_near(dx, dy) {
+                return;
+            }
             let mut can_sleep = false;
             let mut pending = true;
             let mut near = false;

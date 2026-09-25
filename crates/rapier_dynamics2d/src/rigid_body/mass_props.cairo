@@ -26,10 +26,28 @@ use super::locked_axes::{
     LockedAxes, LockedAxesTrait, ROTATION_LOCKED, TRANSLATION_LOCKED_X, TRANSLATION_LOCKED_Y,
 };
 
+/// Mass or full mass properties added on top of attached colliders (upstream
+/// `RigidBodyAdditionalMassProps`).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum RigidBodyAdditionalMassProps {
+    /// Local mass properties added as-is.
+    MassProps: MassProperties,
+    /// Mass added while scaling the colliders' inertia when they already contribute mass.
+    Mass: Fixed,
+}
+
+/// Upstream default: no additional mass properties.
+pub impl RigidBodyAdditionalMassPropsDefault of Default<RigidBodyAdditionalMassProps> {
+    #[inline(always)]
+    fn default() -> RigidBodyAdditionalMassProps {
+        RigidBodyAdditionalMassProps::MassProps(Default::default())
+    }
+}
+
 /// Mass properties of a rigid-body: the local ones, their world-space projection and the locked
 /// axes. The `effective_*` fields are **inverses**, zero when the corresponding axis is locked,
 /// and are only meaningful after [`RigidBodyMassPropsTrait::update_world_mass_properties`].
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct RigidBodyMassProps {
     /// Translation and rotation axes the body may not move along.
     pub flags: LockedAxes,
@@ -49,6 +67,30 @@ pub struct RigidBodyMassProps {
     /// collider; `fixed::MAX` when a collider is a half-space (upstream: infinite). Used by the
     /// sleep test only; recomputed with the mass properties from the colliders.
     pub max_extent: Fixed,
+}
+
+/// Upstream default: no mass, no locks, no additional mass and zeroed world projection.
+pub impl RigidBodyMassPropsDefault of Default<RigidBodyMassProps> {
+    #[inline(always)]
+    fn default() -> RigidBodyMassProps {
+        RigidBodyMassPropsTrait::from_local(Default::default(), LockedAxesTrait::empty())
+    }
+}
+
+/// Upstream `From<LockedAxes>`.
+pub impl LockedAxesIntoRigidBodyMassProps of Into<LockedAxes, RigidBodyMassProps> {
+    #[inline(always)]
+    fn into(self: LockedAxes) -> RigidBodyMassProps {
+        RigidBodyMassPropsTrait::from_local(Default::default(), self)
+    }
+}
+
+/// Upstream `From<MassProperties>`.
+pub impl MassPropertiesIntoRigidBodyMassProps of Into<MassProperties, RigidBodyMassProps> {
+    #[inline(always)]
+    fn into(self: MassProperties) -> RigidBodyMassProps {
+        RigidBodyMassPropsTrait::from_local(self, LockedAxesTrait::empty())
+    }
 }
 
 /// Accessors and world-space update of [`RigidBodyMassProps`].

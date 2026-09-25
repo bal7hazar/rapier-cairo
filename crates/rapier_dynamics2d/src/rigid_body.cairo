@@ -34,7 +34,10 @@ pub use locked_axes::{
     LockedAxes, LockedAxesBitAnd, LockedAxesBitOr, LockedAxesImpl, LockedAxesTrait, ROTATION_LOCKED,
     TRANSLATION_LOCKED, TRANSLATION_LOCKED_X, TRANSLATION_LOCKED_Y,
 };
-pub use mass_props::{RigidBodyMassProps, RigidBodyMassPropsImpl, RigidBodyMassPropsTrait};
+pub use mass_props::{
+    RigidBodyAdditionalMassProps, RigidBodyAdditionalMassPropsDefault, RigidBodyMassProps,
+    RigidBodyMassPropsImpl, RigidBodyMassPropsTrait,
+};
 pub use position::{
     RigidBodyPosition, RigidBodyPositionDefault, RigidBodyPositionImpl, RigidBodyPositionTrait,
 };

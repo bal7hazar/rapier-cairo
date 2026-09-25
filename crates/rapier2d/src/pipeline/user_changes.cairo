@@ -17,6 +17,7 @@
 //! step (`sleeping::wake_touched_partners`, upstream's modified-colliders pass in the narrow
 //! phase).
 
+use fixed::{ONE, ZERO};
 use rapier_core::Handle;
 use rapier_core::collider::ColliderChangesTrait;
 use rapier_core::collider::changes::{
@@ -28,8 +29,12 @@ use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::narrow_phase::ContactPair;
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
-use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
+use rapier_dynamics2d::rigid_body_set::{
+    RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait, cold_or_default,
+    extra_additional_is_mass,
+};
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
+use rapier_geometry2d::shape::ShapeTrait;
 use super::islands::max_extent;
 use super::sleeping::wake_touched_partners;
 
@@ -128,18 +133,37 @@ pub(crate) fn body_changes(
 /// properties become the sum, in attachment order, of the enabled colliders' mass properties
 /// expressed in the body frame; the world ones are refreshed; `max_extent` is recomputed from
 /// the same colliders (upstream `recompute_max_extent`, see `islands::max_extent`).
+#[inline(never)]
 pub fn recompute_mass_properties_from_colliders(ref body: RigidBody, ref colliders: ColliderSet) {
-    let mut local: MassProperties = Default::default();
     let mut shapes = array![];
+    let mut local: MassProperties = Default::default();
+    let mut unit: MassProperties = Default::default();
     for co_handle in body.colliders {
         if let Some(collider) = colliders.get(*co_handle) {
             if collider.is_enabled() {
                 if let Some(parent) = collider.parent {
                     local = local + collider.mass_properties().transform_by(parent.pos_wrt_parent);
+                    unit = unit
+                        + collider.shape.mass_properties(ONE).transform_by(parent.pos_wrt_parent);
                     shapes.append((collider.shape, parent.pos_wrt_parent));
                 }
             }
         }
+    }
+    let cold = cold_or_default(body.cold);
+    if extra_additional_is_mass(cold.solver_flags) {
+        let mass = cold.additional_local_mprops.mass();
+        let prev_mass = local.mass();
+        if prev_mass > ZERO {
+            local.set_mass(prev_mass + mass, true);
+        } else if unit.mass() > ZERO {
+            unit.set_mass(mass, true);
+            local = local + unit;
+        } else {
+            local.set_mass(mass, true);
+        }
+    } else {
+        local = local + cold.additional_local_mprops;
     }
     body.mprops.local_mprops = local;
     body.mprops.max_extent = max_extent(local.local_com, shapes.span());

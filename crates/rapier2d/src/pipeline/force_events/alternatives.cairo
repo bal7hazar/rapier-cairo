@@ -44,6 +44,7 @@ pub fn step_world(ref world: World) -> (Array<CollisionEvent>, Array<ContactForc
         ref world.colliders,
         world.narrow_phase.pairs.span(),
         Some(world.integration_parameters.dt),
+        true,
     );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
@@ -108,6 +109,7 @@ pub fn step_reduced(ref world: World) -> (Array<CollisionEvent>, Array<ContactFo
         ref world.colliders,
         world.narrow_phase.pairs.span(),
         Some(world.integration_parameters.dt),
+        true,
     );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
@@ -166,6 +168,7 @@ pub fn step_unwalleted(ref world: World) -> (Array<CollisionEvent>, Array<Contac
         ref world.colliders,
         world.narrow_phase.pairs.span(),
         Some(world.integration_parameters.dt),
+        true,
     );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
@@ -228,6 +231,7 @@ pub fn step_wallet(ref world: World) -> (Array<CollisionEvent>, Array<ContactFor
         ref world.colliders,
         world.narrow_phase.pairs.span(),
         Some(world.integration_parameters.dt),
+        true,
     );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
@@ -312,6 +316,7 @@ fn step_unit_internal<T, Forces, impl Output: UnitOutput<T, Forces>, +Drop<Force
         ref world.colliders,
         world.narrow_phase.pairs.span(),
         Some(world.integration_parameters.dt),
+        true,
     );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(

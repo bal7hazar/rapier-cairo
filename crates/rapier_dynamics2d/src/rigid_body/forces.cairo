@@ -180,6 +180,14 @@ pub impl RigidBodyForcesImpl of RigidBodyForcesTrait {
         }
     }
 
+    /// Upstream component name for applying a force at a point.
+    #[inline(always)]
+    fn apply_force_at_point(
+        self: RigidBodyForces, mprops: RigidBodyMassProps, force: Vec2, point: Vec2,
+    ) -> RigidBodyForces {
+        self.add_force_at_point(mprops, force, point)
+    }
+
     /// Clears the user force (upstream `RigidBody::reset_forces`); the effective `force` keeps
     /// its value until the next `compute_effective_force_and_torque`.
     #[inline(always)]

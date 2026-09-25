@@ -95,6 +95,7 @@ mod tests {
                 ref world.colliders,
                 array![].span(),
                 Some(world.integration_parameters.dt),
+                true,
             );
         }
     }
@@ -151,7 +152,7 @@ mod tests {
             );
         } else {
             let _ = super::super::user_changes_bodies_for_step(
-                ref world.bodies, ref world.colliders, array![].span(), dt,
+                ref world.bodies, ref world.colliders, array![].span(), dt, true,
             );
         }
         world.bodies.iter()
