@@ -135,7 +135,7 @@ pub trait ArenaTrait<A, T> {
 ///
 /// Restoring it with [`ArenaStateTrait::from_state`] yields an arena that behaves exactly like
 /// the original one (same handles for the same future calls).
-#[derive(Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct ArenaState<T> {
     /// Arena generation counter.
     pub generation: u32,

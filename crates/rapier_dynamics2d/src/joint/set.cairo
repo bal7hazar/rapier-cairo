@@ -1,6 +1,6 @@
 //! Generational storage with ascending-slot iteration, never dictionary order.
 use fixed::{Fixed, ZERO};
-use rapier_core::data::arena::{Arena, ArenaTrait};
+use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
 use rapier_core::data::handle::Handle;
 use super::GenericJoint;
 /// Joint plus signed impulses indexed by LinX, LinY, AngX.
@@ -48,6 +48,23 @@ pub impl ImpulseJointSetImpl of ImpulseJointSetTrait {
     /// Copy all live entries in ascending slot order; exact, O(capacity).
     fn to_array(ref self: ImpulseJointSet) -> Array<(Handle, ImpulseJoint)> {
         self.joints.to_array()
+    }
+
+    /// Flat image of the set (generation counter, capacity, free list, every `(handle, joint)` in
+    /// ascending slot index), for save / restore. [`from_state`](Self::from_state) rebuilds a set
+    /// that issues the same handles as this one for the same future calls, removals included.
+    /// Cost: one dict read per allocated slot and per free slot.
+    fn to_state(ref self: ImpulseJointSet) -> ArenaState<ImpulseJoint> {
+        self.joints.to_state()
+    }
+
+    /// Rebuilds a set from its [`to_state`](Self::to_state) image. Cost: one dict write per
+    /// allocated slot.
+    ///
+    /// # Panics
+    /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
+    fn from_state(state: ArenaState<ImpulseJoint>) -> ImpulseJointSet {
+        ImpulseJointSet { joints: ArenaStateTrait::from_state(state) }
     }
 }
 #[cfg(test)]
@@ -97,6 +114,42 @@ mod tests {
             3 => { let _ = s.to_array(); },
             _ => { let _ = opaque(s.len()); },
         }
+    }
+    /// Save / restore of eight joints, one of them removed: `gas_to_state` − `gas_state_setup`,
+    /// `gas_from_state` − `gas_to_state`.
+    fn state_setup() -> ImpulseJointSet {
+        let mut s = ImpulseJointSetTrait::new();
+        let b = opaque(Handle { index: 0, generation: 0 });
+        let mut i: u32 = 0;
+        while i != 8 {
+            let _ = s.insert(b, b, Default::default());
+            i += 1;
+        }
+        let _ = s.remove(Handle { index: 3, generation: 0 });
+        s
+    }
+    #[test]
+    fn gas_state_setup() {
+        let _ = state_setup();
+    }
+    #[test]
+    fn gas_to_state() {
+        let mut s = state_setup();
+        let _ = s.to_state();
+    }
+    #[test]
+    fn gas_from_state() {
+        let mut s = state_setup();
+        let state = s.to_state();
+        let mut restored = ImpulseJointSetTrait::from_state(state);
+        assert_eq!(restored.len(), 7);
+        let issued = restored
+            .insert(
+                Handle { index: 0, generation: 0 },
+                Handle { index: 0, generation: 0 },
+                Default::default(),
+            );
+        assert_eq!(issued, Handle { index: 3, generation: 1 });
     }
     #[test]
     fn gas_insert_len() {

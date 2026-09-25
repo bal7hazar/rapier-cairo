@@ -169,8 +169,9 @@ pub impl ContactPairImpl of ContactPairTrait {
 }
 
 /// The narrow phase: this step's contact and intersection (sensor) pairs, in ascending
-/// `(collider1, collider2)` slot index.
-#[derive(Drop, Default)]
+/// `(collider1, collider2)` slot index. Its whole content is persistent state (D9), saved as is
+/// by `rapier2d`'s `WorldState`.
+#[derive(Drop, Default, Serde, PartialEq, Debug)]
 pub struct NarrowPhase {
     pub pairs: Array<ContactPair>,
 }

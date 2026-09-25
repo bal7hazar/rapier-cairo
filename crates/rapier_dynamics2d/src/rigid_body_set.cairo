@@ -25,7 +25,7 @@ use core::num::traits::DivRem;
 use fixed::{ONE, ZERO};
 use rapier_core::Handle;
 use rapier_core::collider::changes::{PARENT, POSITION as COLLIDER_POSITION};
-use rapier_core::data::arena::{Arena, ArenaTrait};
+use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
 use rapier_core::rigid_body::changes::{COLLIDERS, POSITION};
 use rapier_core::rigid_body::{
     RigidBodyActivation, RigidBodyChanges, RigidBodyChangesTrait, RigidBodyDamping,
@@ -381,6 +381,23 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
             }
         }
     }
+
+    /// Flat image of the set (generation counter, capacity, free list, every `(handle, body)` in
+    /// ascending slot index), for save / restore. [`from_state`](Self::from_state) rebuilds a set
+    /// that issues the same handles as this one for the same future calls, removals included.
+    /// Cost: one dict read per allocated slot and per free slot.
+    fn to_state(ref self: RigidBodySet) -> ArenaState<RigidBody> {
+        self.bodies.to_state()
+    }
+
+    /// Rebuilds a set from its [`to_state`](Self::to_state) image. Cost: one dict write per
+    /// allocated slot.
+    ///
+    /// # Panics
+    /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
+    fn from_state(state: ArenaState<RigidBody>) -> RigidBodySet {
+        RigidBodySet { bodies: ArenaStateTrait::from_state(state) }
+    }
 }
 
 /// Upstream `RigidBodyColliders::attach_collider`: appends `co_handle` to the collider list of
@@ -682,6 +699,39 @@ mod tests {
             i += 1;
         }
         bodies.propagate_modified_body_positions_to_colliders(ref colliders);
+    }
+
+    /// Save / restore of eight bodies, one of them removed: `gas_to_state` − `gas_state_setup`,
+    /// `gas_from_state` − `gas_to_state`.
+    fn state_setup() -> RigidBodySet {
+        let mut bodies = RigidBodySetTrait::new();
+        let mut colliders = ColliderSetTrait::new();
+        let body = opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+        let mut i: u32 = 0;
+        while i != 8 {
+            let _ = bodies.insert(body);
+            i += 1;
+        }
+        let _ = bodies.remove(Handle { index: 3, generation: 0 }, ref colliders, true);
+        bodies
+    }
+
+    #[test]
+    fn gas_state_setup() {
+        let _ = state_setup();
+    }
+
+    #[test]
+    fn gas_to_state() {
+        let mut bodies = state_setup();
+        let _ = bodies.to_state();
+    }
+
+    #[test]
+    fn gas_from_state() {
+        let mut bodies = state_setup();
+        let restored = RigidBodySetTrait::from_state(bodies.to_state());
+        assert_eq!(restored.len(), 7);
     }
 
     /// Sleep helpers on a sleeping dynamic body (file budget: one probe per family;
