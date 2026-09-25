@@ -9,6 +9,10 @@
   `free_fall32` without the fast path); `gas_setup_*` (world construction) +3.7 %. Both are BT items (`docs/PLAN.md`).
   Exact steps after RB: `free_fall32` 535,449; `balls_halfspace32` 1,856,887; `cuboid_stack10` 754,143;
   `mixed_pile8` 810,808. The full matrix is refreshed with G0.
+- WS #131 (world state save / restore, G0-like pile after one step, net; Sierra gas | Cairo steps): pile10 1,864 felts,
+  round trip (`to_state` + `serialize` + `deserialize` + `from_state`) 6,621,940 | 51,974 (`into_state` instead of
+  `to_state` saves ≈ 290k | 2.9k); pile20 4,896 felts, 14,451,140 | 114,814. `deserialize` is ≈ 70 % of the steps and
+  the narrow-phase pairs ≈ 70 % of the felts (next lever: a hand-written `Serde` for the pairs).
 
 ## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
 
