@@ -1,6 +1,6 @@
 # rapier-cairo — execution plan
 
-Status: **v2.42, 2026-09-25** (v2: scalar delegated to glam-cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched; v2.37: KD merged; v2.38: EV launched; v2.39: EV merged, ADR 18–19; v2.40: RJ merged, repo renames, parry-split proposal, paused; v2.41: resumed for feature parity, AP + SE; v2.42: AP merged, parity waves 9–14, api-parity CI job, RB). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.43, 2026-09-25** (v2: scalar delegated to glam-cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched; v2.37: KD merged; v2.38: EV launched; v2.39: EV merged, ADR 18–19; v2.40: RJ merged, repo renames, parry-split proposal, paused; v2.41: resumed for feature parity, AP + SE; v2.42: AP merged, parity waves 9–14, api-parity CI job, RB; v2.43: programme target (game), G0, machine rule). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -373,6 +373,21 @@ shapes, query pipeline (ray, point, AABB), one-way platforms as a built-in flag,
 events, optional 2×2 block solver (measure first), `rapier_starknet` storage packing (D9/D10), a
 demo game contract.
 
+**Programme target (2026-09-25, from the project-manager session "Angry Birds Cairo orchestration", `~/projects/pm/`;
+owner confirmation pending in `pm/decisions/PENDING-*.md`).** The first product is a 2D Angry Birds-like game on
+rapier-cairo: shots replayed through a Cairo `#[executable]`, proved locally (`scarb execute` / `scarb prove`), the
+proof verified on Starknet. Consequences for this plan: open question 2 → client-side execution + local proof +
+on-chain verification, so **ST / `rapier_starknet` leaves the near plan** (the contract stores level hashes and
+results, not worlds); question 3 → 2D confirmed; question 1 (parry split) → "yes, after the game's critical path",
+prerequisites only when the machine is free, no repository cut before the owner answers. Game-driven priorities:
+RB and SE (running) → **CW** (collider / world API) → **G0**, a level-shaped golden scene (a ~20–30 m/s "slingshot"
+ball into a stack of ~20 cuboids / convex polygons on a half-space with 3 sensor targets, 300 steps at 60 Hz, 4
+substeps, traced against rapier-rs; per-step and whole-scene gas and Cairo steps in `docs/BUDGETS.md` — it sizes the
+proof budget of one level) → the rest of the parity waves (RS, SH1/SH2, CC later; measure whether a speculative
+margin suffices before CCD). `step_with_force_events` is the game's damage source: keep its overhead. Machine rule
+(pm `OPERATIONS.md` §3): at most ~4 sub-agents machine-wide, 2 per orchestrator, **1 when another orchestrator runs
+2**. Escalations to fixed / glam / nalgebra go through the project-manager session.
+
 **Feature-parity waves (from AP #119, `docs/API_PARITY.md`: 24.3 % of 1 997 in-scope items ported, 1 511 missing).**
 Every lot closes one AP work package (or part of it) and regenerates the inventory; CI checks it (`api-parity` job).
 
@@ -380,7 +395,8 @@ Every lot closes one AP work package (or part of it) and regenerates the invento
 |---|---|---|---|
 | 9 | SE | Sensors and intersection events (53) | running |
 | 10 | RB | Rigid-body API completion (123), incl. additional mass properties | brief `rb-rigid-body-api.md` |
-| 10 | CW | Collider API completion (59) + Pipeline and world facade (67) | |
+| 10 | CW | Collider API completion (59) + Pipeline and world facade (67) | game priority after RB/SE |
+| 10 | G0 | Level-shaped golden scene (slingshot into a ~20-block stack, 3 sensor targets, 300 steps) + per-level budget | requested by the programme; after RB/SE |
 | 11 | SH1 | Additional 2D shapes (210), part 1: triangle, round shapes | |
 | 11 | QY | Query completion (342), part 1: per-shape point/ray/distance/contact/closest-points queries | |
 | 12 | CC | CCD and shape casts (91) | hard |
@@ -484,7 +500,7 @@ Stwo > 22 GB). Phase 2 starts with wave 6; later waves are refined after each me
 | 8 | EV ✅ #114 | One-way platforms (built-in collider flag, no hooks), contact-force events (threshold, total/max force) | brief `ev-events-one-way.md` |
 | 8 | RJ ✅ #116 | Coupled limits/motors, rope and spring joints | brief `rj-rope-spring-joints.md` |
 | 8 | RS | Round shapes (round cuboid / polygon) | |
-| 9 | ST | `rapier_starknet`: storage packing of the persistent state (D9/D10), demo game contract | depends on open question 2 (target runtime) |
+| 9 | ST | `rapier_starknet`: storage packing of the persistent state (D9/D10), demo game contract | out of the near plan: the game verifies proofs on-chain, it does not store worlds |
 
 ### Phase 3 — Robustness and controllers
 
