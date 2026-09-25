@@ -47,6 +47,11 @@ REPORT.md. Upstream semantics exactly (wake-ups, change flags, events on removal
   `missing` with that reason unless the Cairo sleep code has a real equivalent; `BroadPhaseBvh`: Cairo's broad phase
   is not a BVH (ADR 0001) — map only what has the same contract.
 - `collider_set_parent_depenetration` is an upstream test: leave it `missing`, reason "upstream test".
+- **Removed colliders, upstream-exact (ADR 0001 entry 22):** SE's `pipeline::sleeping::wake_removed_partners`
+  wakes a removed collider's sleeping sensor partners so that the dormant pair ends at the next step. Upstream
+  wakes nobody for intersection pairs: end the pairs of removed colliders (contact and sensor, dormant or not) at
+  the next step with their `REMOVED` events, without that wake-up; keep the contact-pair wake-ups upstream does.
+  Update entry 22 in REPORT.md's deviations (the orchestrator edits the ADR).
 
 No behaviour change for existing scenes: every golden and scene test bit-identical, P3 scenes ≤ +0.5 % in gas and exact
 Cairo steps (ceilings unchanged). Hot value structs stay compact (`Collider`, `RigidBody`): cold data behind one `Box`.

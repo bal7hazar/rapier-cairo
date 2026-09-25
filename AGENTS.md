@@ -47,7 +47,7 @@ implementation lot; `codex:<model>[:<effort>]` is for audits and second opinions
 2026-09-25; the launcher refuses a codex launch unless the id starts with `audit-`).
 `scripts/executor.sh resume <id> <runner> "<follow-up>"` continues an interrupted agent in the same
 worktree (`EXECUTOR_FRESH=1` starts a new claude session there, e.g. to take over a codex lot). The launcher prepends `scripts/executor/system-prompt.md`
-(the frame every executor must obey) to the brief. Logs go to `.executor-logs/<id>.log`; the
+(the frame every executor must obey) to the brief. Logs go to `~/orchestrator/logs/rapier-cairo/<id>.log` (outside every worktree); the
 orchestrator reads `REPORT.md` and the log, never the transcript.
 
 Model choice by difficulty (`docs/ORCHESTRATOR.md`):

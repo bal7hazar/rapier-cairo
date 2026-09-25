@@ -13,7 +13,7 @@
 #   brief   Markdown brief in the mandatory format (docs/ORCHESTRATOR.md §"The brief")
 #
 # Environment:
-#   EXECUTOR_LOG_DIR   where to write <id>.log (default: ./.executor-logs)
+#   EXECUTOR_LOG_DIR   where to write <id>.log (default: ~/orchestrator/logs/rapier-cairo, outside every worktree)
 #   EXECUTOR_MAX_TURNS claude turn budget (default 300)
 #   EXECUTOR_BASE      ref the new branch starts from (default: origin/main)
 #   EXECUTOR_FRESH=1   resume with a NEW claude session (no --continue) primed with the frame, BRIEF.md and the
@@ -44,7 +44,7 @@ COMMON="$(git -C "$ROOT" rev-parse --git-common-dir)"
 REPO_ROOT="$(cd "$COMMON/.." && pwd)"
 WORKTREE="$REPO_ROOT/.claude/worktrees/exec-$ID"
 BRANCH="feat/$ID"
-LOG_DIR="${EXECUTOR_LOG_DIR:-$ROOT/.executor-logs}"
+LOG_DIR="${EXECUTOR_LOG_DIR:-$HOME/orchestrator/logs/rapier-cairo}"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$ID.log"
 
