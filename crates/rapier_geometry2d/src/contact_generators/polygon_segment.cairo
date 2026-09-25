@@ -38,6 +38,19 @@ fn generate(
     }) {
         return;
     }
+    generate_fresh(p, polygon, s, radius, prediction, flipped, ref m);
+}
+
+/// `generate` without its persistence check (see `cuboid_cuboid::cuboid_cuboid_fresh`).
+pub(crate) fn generate_fresh(
+    p: Pose2,
+    polygon: ConvexPolygon,
+    s: Segment,
+    radius: Fixed,
+    prediction: Fixed,
+    flipped: bool,
+    ref m: ContactManifold,
+) {
     match separating_axis(polygon, core(s), p, prediction + radius) {
         None => m.clear(),
         Some((

@@ -200,6 +200,19 @@ pub fn contact_manifold_polygon_polygon(
     if manifold.try_update_contacts(pos12) {
         return;
     }
+    polygon_polygon_fresh(pos12, polygon1, polygon2, prediction, ref manifold);
+}
+
+/// [`contact_manifold_polygon_polygon`] without its persistence check (see
+/// `cuboid_cuboid::cuboid_cuboid_fresh`).
+#[inline(never)]
+pub(crate) fn polygon_polygon_fresh(
+    pos12: Pose2,
+    polygon1: ConvexPolygon,
+    polygon2: ConvexPolygon,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) {
     match separating_axis(polygon1, polygon2, pos12, prediction) {
         Some((
             n, witnesses,
@@ -236,6 +249,20 @@ pub fn contact_manifold_polygon_cuboid(
     }) {
         return;
     }
+    polygon_cuboid_fresh(pos12, polygon1, cuboid2, prediction, flipped, ref manifold);
+}
+
+/// [`contact_manifold_polygon_cuboid`] without its persistence check (see
+/// `cuboid_cuboid::cuboid_cuboid_fresh`).
+#[inline(never)]
+pub(crate) fn polygon_cuboid_fresh(
+    pos12: Pose2,
+    polygon1: ConvexPolygon,
+    cuboid2: Cuboid,
+    prediction: Fixed,
+    flipped: bool,
+    ref manifold: ContactManifold,
+) {
     match separating_axis(polygon1, cuboid_core(cuboid2), pos12, prediction) {
         Some((
             n, witnesses,
