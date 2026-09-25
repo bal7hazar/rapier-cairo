@@ -11,12 +11,12 @@
 //!   accesses);
 //! * the kernels gathering and scattering their two bodies unconditionally in the sweep loop:
 //!   370,598 → 363,781 once the scatter moved after the metered loop (both metered).
+use super::*;
 use super::super::super::super::body::SolverBody;
 use super::super::super::super::contact::element::tangent;
 use super::super::super::super::contact::{
     ContactConstraint, ContactConstraintElement, SoftCacheTrait, generate_cached,
 };
-use super::*;
 
 #[derive(Copy, Drop)]
 pub(crate) struct MeteredBiased {}
@@ -127,4 +127,3 @@ pub(crate) fn generate_via_constraints(
     }
     (frozen, hot)
 }
-

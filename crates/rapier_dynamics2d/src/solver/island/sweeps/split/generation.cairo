@@ -56,9 +56,7 @@ fn split_manifold(
     if count == 0 || enabled == 0 {
         return;
     }
-    assert(
-        dt >= ZERO && m.data.friction >= ZERO && m.data.restitution >= ZERO, errors::NEGATIVE,
-    );
+    assert(dt >= ZERO && m.data.friction >= ZERO && m.data.restitution >= ZERO, errors::NEGATIVE);
     let raw1 = resolve(ref index, bodies, m.data.rigid_body1);
     let raw2 = resolve(ref index, bodies, m.data.rigid_body2);
     assert(raw1 == WORLD || raw2 == WORLD || raw1 != raw2, errors::SAME_BODY);
@@ -90,7 +88,9 @@ fn split_manifold(
     let dir = -m.data.normal;
     let t = tangent(dir);
     let [sc0, sc1] = m.data.solver_contacts;
-    let ends = Ends { b1, b2, com1: original1.position.translation, com2: original2.position.translation };
+    let ends = Ends {
+        b1, b2, com1: original1.position.translation, com2: original2.position.translation,
+    };
     let (fa, ha, cid0) = split_point(sc0, m, dir, t, ends, i == WORLD, j == WORLD);
     let (fb, hb) = if count == 2 {
         let (fb, hb, cid1) = split_point(sc1, m, dir, t, ends, i == WORLD, j == WORLD);

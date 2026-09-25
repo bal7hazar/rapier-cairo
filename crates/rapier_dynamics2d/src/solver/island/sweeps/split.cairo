@@ -151,7 +151,9 @@ fn sweep<K, +Kernel<K>, +Copy<K>, +Drop<K>>(
 /// `v + floor(w * impulse)` is one `mul_add` (`floor(v + p) = v + floor(p)` for an integer `v`);
 /// the second body's weights are stored negated (BT3), so the impulse is not.
 #[inline(always)]
-fn apply(w: @Weights, ig1: Fixed, ig2: Fixed, impulse: Fixed, ref v1: SolverVel, ref v2: SolverVel) {
+fn apply(
+    w: @Weights, ig1: Fixed, ig2: Fixed, impulse: Fixed, ref v1: SolverVel, ref v2: SolverVel,
+) {
     let (w1, w2) = (*w.first, *w.neg_second);
     v1
         .linear =
@@ -250,7 +252,10 @@ fn separation(a: Vec2, b: Vec2, dir: Vec2, t: Vec2, dist: Fixed) -> (Fixed, Fixe
             .sub(wide_mul(b.y, dir.y))
             .add(wide_from(dist))
             .narrow(),
-        wide_mul(a.x, t.x).sub(wide_mul(b.x, t.x)).add(wide_mul(a.y, t.y)).sub(wide_mul(b.y, t.y))
+        wide_mul(a.x, t.x)
+            .sub(wide_mul(b.x, t.x))
+            .add(wide_mul(a.y, t.y))
+            .sub(wide_mul(b.y, t.y))
             .narrow(),
     )
 }
@@ -268,9 +273,7 @@ fn normal_separation(a: Vec2, b: Vec2, dir: Vec2, dist: Fixed) -> Fixed {
 /// A warm-start coefficient of exactly one (the default) skips its two products (`x * ONE ==
 /// x` exactly, BT3).
 #[inline(always)]
-fn update_point(
-    ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, k: Update,
-) {
+fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, k: Update) {
     let (dist, t_dist) = separation(
         transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist,
     );
@@ -394,12 +397,7 @@ impl RelaxKernel of Kernel<Relax> {
 /// `bounce`: rhs and cfm are not restored, nothing reads them after the final sweep.
 #[inline(always)]
 fn bounce(
-    ref h: HotPoint,
-    f: @FrozenPoint,
-    dir: Vec2,
-    w: @Weights,
-    ref v1: SolverVel,
-    ref v2: SolverVel,
+    ref h: HotPoint, f: @FrozenPoint, dir: Vec2, w: @Weights, ref v1: SolverVel, ref v2: SolverVel,
 ) {
     if *f.seed < ZERO && h.acc + h.impulse > ZERO {
         h.rhs = *f.seed;
