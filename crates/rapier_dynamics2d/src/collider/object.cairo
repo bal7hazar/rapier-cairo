@@ -326,9 +326,11 @@ pub impl ColliderImpl of ColliderTrait {
 
     /// The smallest AABB containing the shape at the current pose and at `next_position`
     /// (upstream `compute_swept_aabb`, parry's `Shape::compute_swept_aabb`: the merge of the two
-    /// world AABBs; the motion in between is not swept).
+    /// world AABBs; the motion in between is not swept). Inlined: outlined, the two shape
+    /// `match`es are charged their costliest arm (`alternatives`, 154k against 32k–42k gas).
     /// #### Panics
     /// * As `Shape::compute_aabb`.
+    #[inline(always)]
     fn compute_swept_aabb(self: Collider, next_position: Pose2) -> Aabb {
         self.shape.compute_aabb(self.pos.pose).merged(self.shape.compute_aabb(next_position))
     }
@@ -463,6 +465,23 @@ pub impl ColliderImpl of ColliderTrait {
     #[inline(always)]
     fn set_contact_force_event_threshold(ref self: Collider, threshold: Fixed) {
         self.contact_force_event_threshold = threshold;
+    }
+}
+
+#[cfg(test)]
+pub mod alternatives {
+    use rapier_geometry2d::aabb::{Aabb, AabbTrait};
+    use rapier_geometry2d::shape::ShapeTrait;
+    use rapier_math::pose2::Pose2;
+    use super::Collider;
+
+    /// Rejected: `compute_swept_aabb` out of line (every shape arm of both `match`es charged).
+    #[inline(never)]
+    pub fn compute_swept_aabb_outlined(collider: Collider, next_position: Pose2) -> Aabb {
+        collider
+            .shape
+            .compute_aabb(collider.pos.pose)
+            .merged(collider.shape.compute_aabb(next_position))
     }
 }
 

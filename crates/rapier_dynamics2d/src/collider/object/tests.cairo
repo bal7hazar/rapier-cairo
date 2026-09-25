@@ -362,6 +362,7 @@ fn test_collision_broad_phase_and_swept_aabbs() {
         assert_eq!((aabb.mins, aabb.maxs), (cmin, cmax));
         let swept = c.compute_swept_aabb(next);
         assert_eq!((swept.mins, swept.maxs), (smin, smax));
+        assert_eq!(super::alternatives::compute_swept_aabb_outlined(c, next), swept);
         // A swept AABB to the current pose is the plain AABB.
         assert_eq!(c.compute_swept_aabb(c.position()), c.compute_aabb());
     }
@@ -425,6 +426,16 @@ fn gas_compute_swept_aabb_cuboid_rotated() {
     let next = Pose2Trait::new(v(TWO, ZERO), quarter_turn());
     let c = ColliderBuilderTrait::cuboid(TWO, ONE).build();
     assert!(opaque(c).compute_swept_aabb(opaque(next)).maxs.x != ZERO);
+}
+
+#[test]
+fn gas_compute_swept_aabb_ball_outlined() {
+    let next = Pose2Trait::new(v(TWO, ZERO), IDENTITY.rotation);
+    assert!(
+        super::alternatives::compute_swept_aabb_outlined(opaque(quiet()), opaque(next))
+            .maxs
+            .x != ZERO,
+    );
 }
 
 #[test]
