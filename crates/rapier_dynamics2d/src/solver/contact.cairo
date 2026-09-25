@@ -8,7 +8,7 @@
 //! divisions round to nearest. Overflow panics come from fixed/core; masses and coefficients must
 //! be nonnegative and all intermediates representable. Normals must be unit. Masses, dt, softness,
 //! manifold membership and body-array ordering are frozen until the next `generate`.
-mod element;
+pub(crate) mod element;
 pub(crate) mod pair;
 mod set;
 use core::num::traits::DivRem;

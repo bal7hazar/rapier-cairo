@@ -11,8 +11,7 @@ use rapier_core::integration_parameters::{IntegrationParameters, IntegrationPara
 use rapier_core::rigid_body::RigidBodyDamping;
 use rapier_geometry2d::contact::ContactManifold;
 use sweeps::array_joint::joints;
-use sweeps::contact::contacts;
-use sweeps::{prepare_joints, rebuild_joints};
+use sweeps::{prepare_joints, rebuild_joints, split};
 use crate::joint::ImpulseJoint;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use crate::rigid_body_set::RigidBody;
@@ -82,41 +81,35 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let directions = super::contact::cached::prepare(cs.constraints.span());
+    let (frozen, mut hot) = split::prepare(cs.constraints.span());
+    let frozen = frozen.span();
     let mut rows = array![];
     let mut substep = 0;
     while substep != params.num_solver_iterations {
         add_forces(ref bodies, steps);
         rows = rebuild_joints(ref bodies, builders.span(), rows.span(), params, substep != 0);
-        contacts(ref cs, ref bodies, manifolds.span(), params, 0, directions.span());
+        split::contacts(ref hot, frozen, ref bodies, params, 0);
         let mut i = 0;
         while i != params.num_internal_pgs_iterations {
             joints(ref rows, ref bodies, true, params.warmstart_joints && i == 0);
-            contacts(ref cs, ref bodies, manifolds.span(), params, 1, directions.span());
+            split::contacts(ref hot, frozen, ref bodies, params, 1);
             i += 1;
         }
         integrate(ref bodies, steps, dt, max_lin, max_ang);
         let mut i = 0;
         while i != params.num_internal_stabilization_iterations {
             joints(ref rows, ref bodies, false, false);
-            contacts(
-                ref cs,
-                ref bodies,
-                manifolds.span(),
-                params,
-                if i == 0 {
-                    2
-                } else {
-                    3
-                },
-                directions.span(),
-            );
+            split::contacts(ref hot, frozen, ref bodies, params, if i == 0 {
+                2
+            } else {
+                3
+            });
             i += 1;
         }
         substep += 1;
     }
-    contacts(ref cs, ref bodies, manifolds.span(), params, 4, directions.span());
-    cs.writeback_impulses(ref manifolds);
+    split::contacts(ref hot, frozen, ref bodies, params, 4);
+    split::writeback(frozen, hot.span(), ref manifolds);
     sweeps::write_joints(rows.span(), ref joint_set);
     damp(ref bodies, steps, params.dt);
 }

@@ -159,6 +159,7 @@ mod checks;
 pub(crate) mod contact;
 #[cfg(test)]
 mod joint_benches;
+pub(crate) mod split;
 #[cfg(test)]
 use contact as zero;
 pub(crate) mod array_joint;
