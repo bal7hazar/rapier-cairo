@@ -61,7 +61,8 @@ pub fn detect_collisions(
 /// touching manifolds of the active pairs and the joints, runs `solve_island` over every body
 /// (sleeping ones as immovable copies, `from_entries`), writes velocities / `next_position`
 /// back to the moving bodies and the impulses back to the pairs and the joints. Run
-/// [`update_islands`] before it.
+/// [`super::kinematic::interpolate_kinematic_velocities`] before collision detection and
+/// [`update_islands`] before this stage.
 pub fn solve(
     gravity: Vec2,
     params: IntegrationParameters,

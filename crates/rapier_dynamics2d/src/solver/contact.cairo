@@ -96,12 +96,15 @@ pub impl ContactConstraintImpl of ContactConstraintTrait {
         let original2 = read(bodies, raw2);
         validate_mass(original1);
         validate_mass(original2);
-        let id1 = if manifold.data.relative_dominance > 0 || immovable(original1) {
+        // Zero inverse mass does not imply WORLD: kinematic endpoints retain their
+        // velocity and substep pose, including when initially stationary. Fixed parents
+        // already dominate through effective_group; absent parents resolve to WORLD.
+        let id1 = if manifold.data.relative_dominance > 0 {
             WORLD
         } else {
             raw1
         };
-        let id2 = if manifold.data.relative_dominance < 0 || immovable(original2) {
+        let id2 = if manifold.data.relative_dominance < 0 {
             WORLD
         } else {
             raw2
@@ -330,9 +333,6 @@ fn resolve(mut bodies: Span<SolverBody>, handle: Option<Handle>) -> u32 {
         id += 1;
     }
     core::panic_with_felt252(errors::BODY)
-}
-fn immovable(b: SolverBody) -> bool {
-    b.im.x == ZERO && b.im.y == ZERO && b.ii == ZERO
 }
 fn validate_mass(b: SolverBody) {
     assert(b.im.x >= ZERO && b.im.y >= ZERO && b.ii >= ZERO, errors::NEGATIVE);

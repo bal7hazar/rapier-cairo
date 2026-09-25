@@ -24,6 +24,7 @@ use rapier_math::rot2::Rot2;
 
 mod builder;
 mod joint_controls;
+mod kinematic;
 mod sleep_diagnostics;
 mod slope_diagnostics;
 mod stack_diagnostics;

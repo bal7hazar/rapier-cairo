@@ -91,7 +91,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `mass_properties.json` | 11 + 1 | `<shape>/<params>_d<density>`, `compound/<parts>` | `Shape::mass_properties(density)` for ball, cuboid, capsule (incl. oblique and zero-length); a Rapier body with two colliders (local properties, world COM, effective inverse mass / inertia), cross-checked against the Parry sum |
 | `aabb.json` | 32 | `<shape>/<pose>` | `Shape::compute_aabb(pose)`, 4 shapes × 8 poses (identity, translation, exact 90°/180°, 30°, 45°, −135°, 1° far from the origin) |
 | `contact_manifolds.json` | 87 | `<shape1>_<shape2>/<regime>` | `DefaultQueryDispatcher::contact_manifolds` with the default prediction distance; see below |
-| `scenes.json` | 6 | scene name | full-engine traces (also exported to Cairo, see [Scene fixtures](#scene-fixtures)) |
+| `scenes.json` | 15 | scene name | full-engine traces (also exported to Cairo, see [Scene fixtures](#scene-fixtures)) |
 | `pose2.json` | 7 + 3 | `pair/<what>`, `chain/deg<angle>` | **G2** 2D pose algebra and rotation drift, see [Leaf-level families](#leaf-level-families-g2) |
 | `aabb_overlap.json` | 5 | `set/<what>` | **G2** overlapping pairs of 8–32 AABBs |
 | `sat2d.json` | 22 | `<cuboid>_<other>/<regime>` | **G2** separating-axis helpers, both directions |
@@ -992,3 +992,102 @@ constructor cost on both sides):
 | `gas_polygon_capsule` | 768,160 | 6,418 |
 | `gas_polygon_capsule_corner` | 2,095,700 | 13,917 |
 | `gas_polygon_segment` | 768,060 | 6,417 |
+
+### KD: kinematic bodies and dominance
+
+`scenes.json` adds `kinematic_platform`, `kinematic_pusher`, and `dominance_stack`.
+The existing twelve scene traces are unchanged. New fixtures live under
+`rapier_golden::scenes::{kinematic_platform,kinematic_pusher,dominance_stack}`;
+`KinematicSceneCase` wraps the existing `SceneCase` with motion and dominance controls.
+Its `Dynamic` descriptors include the sampled kinematic body, whose real type is
+restored from the wrapper before stepping. JSON records the actual body types.
+
+The position-based platform's target translation is its initial translation plus
+`step * (71582788, 35791394)` raw units. It moves right and up with friction 1.
+The velocity-based pusher moves right at 1 m/s on frictionless ground. The dominance
+stack's upper box has group 1 and the lower box group 0. All three disable sleeping
+and use the existing position/rotation tolerance of `4096 * step` ulps and twice
+that for velocities. Pusher and dominance replays use two 60-step windows (the
+second re-seeded from upstream; dominance also restores the exported step-60
+persistent contact geometry and impulses) to fit the default VM step limit. The world
+regression separately tests sleeping partners. Pinned upstream wakes the touching
+sleeper in the same step for either kinematic mode and gives it 1.004850459781326 m/s;
+the Cairo wake regression checks that velocity within 8192 ulps as well as activation.
+
+Kinematic velocities use the displacement of the centre of mass, including its
+rotation-induced displacement, and `atan2` of the relative unit-complex rotation.
+Products floor in Q32.32. The library compares the COM-displacement formula with
+upstream's literal pose conjugation in gas probes and a fixed-seed numerical check.
+The COM formula wins: 57,120 Sierra gas net of the input baseline versus 100,370
+for conjugation. The rejected formula stays under test-only `alternatives`.
+The exact user target is committed after solving, so rotation integration error
+cannot move a position-based body off its target. Interpolation happens before
+islands process wake-ups. Existing SL island wake-strength differences still apply
+(ADR 0001); no extra sleeping policy is introduced.
+
+A zero-inverse-mass kinematic contact endpoint retains its solver identity,
+velocity and substep pose. Fixed and dominance-superior endpoints retain WORLD
+handling. `cargo test --release kd_upstream_pusher_semantics -- --nocapture` records
+the pinned upstream first-step control: a velocity-based kinematic driver at 1 m/s
+pushes a touching box to 1.0045860865816727 m/s. A dominance-superior dynamic driver
+leaves its partner at zero in that step, as upstream does. Configured kinematic
+dominance groups are preserved; only fixed bodies get effective group 128.
+
+The prerequisite audit leaves OS/OI arithmetic unchanged: the inert-contact driver
+only skips constraints with zero elements; cached idle rows require both linear
+and angular velocities to be zero; cached mass products remain zero on kinematic
+sides without erasing their velocities. Both the store and free-body solvers already
+integrate every enabled non-fixed body, apply upstream's speed caps/damping, and
+preserve a position-based body's target during writeback. No joint files changed.
+
+KD preparation candidates (Sierra gas net of the 14,120 opaque baseline; each includes
+identical world construction and pending user changes):
+
+| Preparation | 8 dynamics: gas / steps | 8 dynamics + position kinematic: gas / steps |
+|---|---:|---:|
+| Copy each body through dispatch | 6,089,468 / 49,637 | 6,424,716 / 52,647 |
+| Meter interpolation for each body | 5,999,528 / 48,733 | 6,330,406 / 51,698 |
+| Conditional extra set walk | 5,962,318 / 48,370 | 6,570,506 / 53,519 |
+| Conditional reuse of snapshots (shipped) | 5,962,518 / 48,372 | 6,375,206 / 52,140 |
+
+The shipped form meets the P3 ordinary-body budget and avoids rebuilding the set
+walk when kinematics are present. The per-body form costs less in the mixed probe,
+but raised P3 free-fall gas by 1.20%. All rejected forms remain in
+`pipeline/kinematic/alternatives.cairo`; fixed-seed tests compare their resulting bodies.
+The separate interpolation formula test permits only the fixed-point rounding error
+of algebraic reassociation. Dominance's restarted window exports both persistent
+contact geometry and impulses: impulses alone do not reproduce the cached manifold.
+
+Before rebasing over JM, the isolated solver prerequisite passed 430 rapier2d tests
+and 349 solver tests.
+Its P3 free-fall and pendulum costs were unchanged. Contact-scene reductions were
+90 gas / 1 exact step for balls1 and stack1; 720 / 8 for balls8; 2,880 / 32 for
+balls32; 450 / 5 for stack3; 810 / 9 for stack5; 1,710 / 19 for stack10; and
+1,980 / 22 for mixed8. Existing golden replays passed unchanged.
+
+Final KD P3 measurements, net of paired setup probes, versus measured post-JM
+production code (`12ae5cb`, before applying the KD solver prerequisite):
+
+| Scene | Sierra gas before → KD | Exact steps before → KD | Gas change | Step change |
+|---|---:|---:|---:|---:|
+| free_fall1 | 664,424 → 669,294 | 5,851 → 5,899 | +0.733% | +0.820% |
+| free_fall8 | 3,788,342 → 3,796,712 | 32,619 → 32,702 | +0.221% | +0.254% |
+| free_fall32 | 14,743,278 → 14,763,648 | 126,432 → 126,635 | +0.138% | +0.161% |
+| balls_halfspace1 | 3,840,499 → 3,845,279 | 31,052 → 31,099 | +0.124% | +0.151% |
+| balls_halfspace8 | 26,202,412 → 26,210,062 | 206,913 → 206,988 | +0.029% | +0.036% |
+| balls_halfspace32 | 104,728,118 → 104,745,608 | 827,629 → 827,800 | +0.017% | +0.021% |
+| cuboid_stack1 | 4,132,579 → 4,137,359 | 36,730 → 36,777 | +0.116% | +0.128% |
+| cuboid_stack3 | 11,628,087 → 11,633,507 | 101,897 → 101,950 | +0.047% | +0.052% |
+| cuboid_stack5 | 19,162,715 → 19,168,775 | 167,420 → 167,479 | +0.032% | +0.035% |
+| cuboid_stack10 | 38,170,435 → 38,178,095 | 332,785 → 332,859 | +0.020% | +0.022% |
+| mixed_pile8 | 46,007,107 → 46,013,497 | 375,310 → 375,371 | +0.014% | +0.016% |
+| pendulum_chain1 | 3,682,416 → 3,687,886 | 32,322 → 32,376 | +0.149% | +0.167% |
+| pendulum_chain3 | 9,870,204 → 9,876,674 | 86,303 → 86,367 | +0.066% | +0.074% |
+
+New scenes, first step net of paired setup (target mutation included identically in both probes):
+
+| Scene | Sierra gas | Exact Cairo steps |
+|---|---:|---:|
+| kinematic_platform | 7,249,927 | 62,761 |
+| kinematic_pusher | 12,217,090 | 105,421 |
+| dominance_stack | 11,912,964 | 102,455 |

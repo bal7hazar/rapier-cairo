@@ -11,7 +11,7 @@ use rapier2d::world::{World, WorldTrait};
 use rapier_core::Handle;
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
-use rapier_core::rigid_body::RigidBodyActivationTrait;
+use rapier_core::rigid_body::{RigidBodyActivationTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::events::{CollisionEvent, CollisionEventTrait};
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
@@ -28,6 +28,56 @@ use rapier_math::rot2::Rot2;
 use rapier_testing::opaque;
 
 const GRAVITY_Y: i64 = -42133629174;
+
+// KD blocker reproducer. Two touching unit boxes, no gravity or friction. The left
+// body moves right at 1 m/s. A contact must transfer that motion to the right body
+// in the first step when the left body is dynamic or kinematic with equal dominance.
+// The dominant case records upstream's distinct world-attached endpoint semantics.
+fn kd_pusher(kind: RigidBodyType, dominant: bool) -> (RigidBody, RigidBody) {
+    let mut world = WorldTrait::new(v(ZERO, ZERO), Default::default());
+    let mut driver = RigidBodyTrait::new(kind, at(-ONE, ZERO));
+    driver.activation = RigidBodyActivationTrait::cannot_sleep();
+    driver.set_linvel(v(ONE, ZERO));
+    if dominant {
+        driver.dominance.group = 1;
+    }
+    let collider = ColliderBuilderTrait::cuboid(HALF, HALF).friction(ZERO).build();
+    let (left, _) = world.insert(driver, collider);
+    let mut passenger = RigidBodyTrait::dynamic(at(ZERO, ZERO));
+    passenger.activation = RigidBodyActivationTrait::cannot_sleep();
+    let (right, _) = world.insert(passenger, collider);
+    let _ = world.step();
+    (world.body(left).unwrap(), world.body(right).unwrap())
+}
+
+#[test]
+fn test_kd_dynamic_pusher_control() {
+    let (driver, passenger) = kd_pusher(RigidBodyType::Dynamic, false);
+    assert!(passenger.linvel().x > ZERO, "ordinary dynamic contact transfers motion");
+    assert!(driver.linvel().x < ONE, "ordinary dynamic driver receives reaction");
+}
+
+/// A zero-mass kinematic endpoint retains its solver velocity and substep pose.
+#[test]
+fn test_kd_kinematic_pusher_transfers_motion() {
+    let (driver, passenger) = kd_pusher(RigidBodyType::KinematicVelocityBased, false);
+    assert_eq!(driver.linvel().x, ONE, "kinematic velocity is unaffected");
+    assert!(driver.position().translation.x > -ONE, "kinematic driver advances");
+    assert!(
+        within(passenger.linvel().x.raw, 4314664388, 8192),
+        "upstream first-step passenger velocity: {}",
+        passenger.linvel().x.raw,
+    );
+}
+
+/// Pinned upstream treats the dominance-superior endpoint as world-attached: its
+/// velocity does not reach this contact. Keep this parity check distinct from kinematics.
+#[test]
+fn test_kd_dominant_pusher_matches_upstream() {
+    let (driver, passenger) = kd_pusher(RigidBodyType::Dynamic, true);
+    assert_eq!(driver.linvel().x, ONE, "dominant velocity is unaffected");
+    assert_eq!(passenger.linvel().x, ZERO, "upstream dominant endpoint is world-attached");
+}
 
 fn f(raw: i64) -> Fixed {
     Fixed { raw }

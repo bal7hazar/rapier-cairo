@@ -11,6 +11,10 @@ const STACK_DIAGNOSTIC_STEPS: usize = 8;
 /// Re-seed step of the second `box_stack3` window: its contact impulses are recorded too (SO).
 const STACK_RESEED_STEP: usize = 60;
 
+mod kd;
+#[cfg(test)]
+mod kd_checks;
+
 struct ColliderSpec {
     shape: ShapeSpec,
     pose_wrt_parent: QPose,
@@ -254,6 +258,7 @@ fn scenes() -> Vec<SceneSpec> {
             }],
         });
     }
+    scenes.extend(kd::scenes());
     scenes
 }
 
@@ -324,10 +329,19 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
     let mut handles = Vec::new();
     let mut bodies_json = Vec::new();
     for spec in &scene.bodies {
-        let builder = if spec.dynamic {
+        let builder = if scene.id == "kinematic_platform" && spec.name == "platform" {
+            RigidBodyBuilder::kinematic_position_based()
+        } else if scene.id == "kinematic_pusher" && spec.name == "pusher" {
+            RigidBodyBuilder::kinematic_velocity_based().linvel(Vector::new(1.0, 0.0))
+        } else if spec.dynamic {
             RigidBodyBuilder::dynamic()
         } else {
             RigidBodyBuilder::fixed()
+        };
+        let builder = if scene.id == "dominance_stack" && spec.name == "upper" {
+            builder.dominance_group(1)
+        } else {
+            builder
         };
         let handle = bodies.insert(
             builder
@@ -354,7 +368,11 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
         let body = &bodies[handle];
         bodies_json.push(json!({
             "name": spec.name,
-            "type": if spec.dynamic { "dynamic" } else { "fixed" },
+            "type": match body.body_type() {
+                RigidBodyType::KinematicPositionBased => "kinematic_position_based",
+                RigidBodyType::KinematicVelocityBased => "kinematic_velocity_based",
+                _ => if spec.dynamic { "dynamic" } else { "fixed" },
+            },
             "pose": jqpose(spec.pose),
             "linear_damping": jf(body.linear_damping()),
             "angular_damping": jf(body.angular_damping()),
@@ -450,12 +468,22 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
     };
 
     let mut diagnostics = Vec::new();
+    let mut kd_warmstart = Vec::new();
     let mut samples = vec![sample(0, &bodies)];
     // Sleeping (SL): every flip of `is_sleeping` of a dynamic body, with the step after which
     // it is observed (the sleep decision and the wake-ups happen inside that step).
     let mut sleep_transitions = Vec::new();
     let mut was_sleeping: Vec<bool> = handles.iter().map(|h| bodies[*h].is_sleeping()).collect();
     for step in 1..=NUM_STEPS {
+        if scene.id == "kinematic_platform" {
+            bodies[handles[0]].set_next_kinematic_translation(
+                QVec {
+                    x: Q(71582788 * step as i64),
+                    y: Q(35791394 * step as i64),
+                }
+                .v(),
+            );
+        }
         // SI control: wake before candidate collection, so the ground contact participates
         // immediately instead of retaining its dormant solver hint through the impact.
         if prewake && step == 87 {
@@ -475,6 +503,26 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
             &(),
             &(),
         );
+        if scene.id == "dominance_stack" && step == 60 {
+            for pair in narrow_phase.contact_pairs() {
+                for manifold in &pair.manifolds {
+                    for point in &manifold.points {
+                        kd_warmstart.push(json!({
+                            "collider1": pair.collider1.into_raw_parts().0,
+                            "collider2": pair.collider2.into_raw_parts().0,
+                            "fid1": point.fid1.0, "fid2": point.fid2.0,
+                            "local_p1": jvec(point.local_p1), "local_p2": jvec(point.local_p2),
+                            "local_n1": jvec(manifold.local_n1), "local_n2": jvec(manifold.local_n2),
+                            "dist": jf(point.dist),
+                            "impulse": jf(point.data.impulse),
+                            "tangent_impulse": jf(point.data.tangent_impulse.x),
+                            "warmstart_impulse": jf(point.data.warmstart_impulse),
+                            "warmstart_tangent_impulse": jf(point.data.warmstart_tangent_impulse.x),
+                        }));
+                    }
+                }
+            }
+        }
         if scene.id.starts_with("box_slope_") && step <= 10 {
             let c1 = bodies[handles[0]].colliders()[0];
             let c2 = bodies[handles[1]].colliders()[0];
@@ -513,12 +561,18 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
                     v
                 }).collect::<Vec<_>>(),
             })).collect();
-            let activation: Vec<Value> = handles.iter().skip(1).map(|h| {
-                let a = bodies[*h].activation();
-                json!({"sleeping": a.sleeping, "timer": jf(a.time_since_can_sleep)})
-            }).collect();
-            diagnostics.push(json!({"step": step, "bodies": sample(step, &bodies)["bodies"],
-                "activation": activation, "pairs": pairs}));
+            let activation: Vec<Value> = handles
+                .iter()
+                .skip(1)
+                .map(|h| {
+                    let a = bodies[*h].activation();
+                    json!({"sleeping": a.sleeping, "timer": jf(a.time_since_can_sleep)})
+                })
+                .collect();
+            diagnostics.push(
+                json!({"step": step, "bodies": sample(step, &bodies)["bodies"],
+                "activation": activation, "pairs": pairs}),
+            );
         }
         if scene.can_sleep {
             for (k, handle) in handles.iter().enumerate() {
@@ -567,6 +621,12 @@ fn run(scene: &SceneSpec, gravity: QVec, dt: Q, prewake: bool) -> Value {
             "anchor_frames": "solver_contacts anchors are CoM-local (world for fixed side); solver_dp1/2 are frozen world lever arms at the common midpoint",
             "steps": diagnostics,
         });
+    }
+    if scene.id == "dominance_stack" {
+        result["warmstart_60"] = json!(kd_warmstart);
+    }
+    if let Some(control) = kd::control(scene.id) {
+        result["kd_control"] = control;
     }
     result
 }

@@ -6,14 +6,13 @@
 //! `next_position` is set by the user. The substep loop writes `next_position`, and the step
 //! validates it at the end (`position := next_position`).
 //!
-//! Deferred: `pose_errors` and `interpolate_velocity`, which need the angle of a rotation
-//! (`Rot2::angle` awaits trig support in `rapier_math`, see M2), and the CCD clamping of
-//! `predict_position_using_velocity_and_forces_with_max_dist`.
+//! Deferred: the CCD clamping of `predict_position_using_velocity_and_forces_with_max_dist`.
 
 use fixed::Fixed;
-use glam::Vec2;
-use rapier_math::pose2::{IDENTITY, Pose2};
-use rapier_math::rot2::Rot2;
+use fixed::trig::TrigTrait;
+use glam::{Vec2, Vec2Trait};
+use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};
+use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::forces::{RigidBodyForces, RigidBodyForcesTrait};
 use super::mass_props::RigidBodyMassProps;
 use super::velocity::{RigidBodyVelocity, RigidBodyVelocityTrait};
@@ -66,6 +65,21 @@ pub impl RigidBodyPositionImpl of RigidBodyPositionTrait {
     #[inline(always)]
     fn set_rotation(self: RigidBodyPosition, rotation: Rot2) -> RigidBodyPosition {
         self.set_position(Pose2 { translation: self.position.translation, rotation })
+    }
+
+    /// Upstream `interpolate_velocity`: COM displacement and shortest relative angle times
+    /// `inv_dt`. Algebraically simplifies upstream's COM-shift conjugation. Products floor;
+    /// angle uses fixed atan2. Unit rotations required; overflow propagates. Zero inv_dt
+    /// yields zero velocity for representable errors. No pose is changed.
+    fn interpolate_velocity(
+        self: RigidBodyPosition, inv_dt: Fixed, local_com: Vec2,
+    ) -> RigidBodyVelocity {
+        let linear = self.next_position.transform_point(local_com)
+            - self.position.transform_point(local_com);
+        let rotation = self.next_position.rotation * self.position.rotation.inverse();
+        RigidBodyVelocity {
+            linvel: linear.mul_scalar(inv_dt), angvel: rotation.im.atan2(rotation.re) * inv_dt,
+        }
     }
 
     /// Pose of the body after `dt`, integrating the forces first and the resulting velocities
@@ -352,3 +366,8 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod body_tests;
+#[cfg(test)]
+mod kinematic_tests;

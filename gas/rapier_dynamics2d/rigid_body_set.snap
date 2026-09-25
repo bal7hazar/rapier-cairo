@@ -10,8 +10,4 @@ rapier_dynamics2d::rigid_body_set::tests::gas_propagate_modified_body_positions_
 rapier_dynamics2d::rigid_body_set::tests::gas_remove 119212
 rapier_dynamics2d::rigid_body_set::tests::gas_sleeping_body 41752
 rapier_dynamics2d::rigid_body_set::tests::gas_wake_up 43535
-rapier_dynamics2d::rigid_body_set::tests::test_constructors 156006
-rapier_dynamics2d::rigid_body_set::tests::test_forces_and_impulses_wake_dynamic_bodies 849114
-rapier_dynamics2d::rigid_body_set::tests::test_set_lifecycle 360116
-rapier_dynamics2d::rigid_body_set::tests::test_setters 101024
-rapier_dynamics2d::rigid_body_set::tests::test_sleep_and_wake_up 149223
+rapier_dynamics2d::rigid_body_set::tests::test_set_lifecycle 360136
