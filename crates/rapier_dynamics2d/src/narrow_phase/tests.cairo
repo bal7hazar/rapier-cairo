@@ -4,7 +4,7 @@
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
-use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED};
+use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::collider::{ActiveEventsTrait, CollisionEventFlagsTrait};
 use rapier_core::interaction_groups::{
     ALL, GROUP_1, GROUP_2, InteractionGroupsTrait, InteractionTestMode,
@@ -18,8 +18,8 @@ use rapier_testing::opaque;
 use crate::collider::ColliderBuilderTrait;
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
 use crate::events::{
-    CollisionEvent, CollisionEventTrait, PairEventStatusTrait, START_EVENT_EMITTED, started,
-    stopped,
+    CollisionEvent, CollisionEventTrait, PairEventStatus, PairEventStatusTrait, START_EVENT_EMITTED,
+    started, stopped,
 };
 use crate::rigid_body_set::{RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
 use super::alternatives::{compute_contacts_dict, pair_key};
@@ -332,6 +332,63 @@ fn test_warm_start_and_events_over_steps() {
     assert_eq!(events, array![stopped(g, b, REMOVED)]);
     assert_eq!(narrow_phase.len(), 0);
     assert!(narrow_phase.contact_pair(g, b).is_none());
+}
+
+/// `(collider1, collider2, status bits)`: contact (0, 1), sensor pairs (0, 2) intersecting and
+/// (1, 2) not, with a start event on the first.
+fn mixed_pairs() -> NarrowPhase {
+    let mut pairs = array![];
+    for (c1, c2, bits) in array![(0, 1, 1_u8), (0, 2, 13), (1, 2, 4)] {
+        let mut pair = ContactPairTrait::new(h(c1), h(c2));
+        pair.event_status = PairEventStatus { bits };
+        pairs.append(pair);
+    }
+    NarrowPhase { pairs }
+}
+
+#[test]
+fn test_intersection_queries() {
+    let np = mixed_pairs();
+    // (collider1, collider2, contact_pair found, intersection_pair)
+    let cases = array![
+        (0, 1, true, None), (1, 0, false, None), (0, 2, false, Some(true)),
+        (2, 0, false, Some(true)), (2, 1, false, Some(false)), (1, 3, false, None),
+    ];
+    for (c1, c2, contact, intersection) in cases {
+        assert_eq!(np.contact_pair(h(c1), h(c2)).is_some(), contact);
+        assert_eq!(np.intersection_pair(h(c1), h(c2)), intersection);
+    }
+    assert_eq!(np.intersection_pairs(), array![(h(0), h(2), true), (h(1), h(2), false)]);
+    assert_eq!(np.intersection_pairs_with(h(1)), array![(h(1), h(2), false)]);
+    assert_eq!(np.intersection_pairs_with(h(3)), array![]);
+    let [contact, sensor, idle] = [*np.pairs[0], *np.pairs[1], *np.pairs[2]];
+    assert!(!contact.is_intersection_pair() && !contact.intersecting());
+    assert!(sensor.is_intersection_pair() && sensor.intersecting());
+    assert!(idle.is_intersection_pair() && !idle.intersecting());
+    // A dropped sensor pair whose start was emitted: `SENSOR`, plus `REMOVED` without colliders.
+    let mut colliders = ColliderSetTrait::new();
+    assert_eq!(
+        dropped_events(array![contact, sensor, idle], ref colliders),
+        array![stopped(h(0), h(1), REMOVED), stopped(h(0), h(2), SENSOR | REMOVED)],
+    );
+}
+
+#[test]
+fn gas_intersection_pair() {
+    let np = mixed_pairs();
+    let _ = opaque(np.intersection_pair(opaque(h(2)), h(1)));
+}
+
+#[test]
+fn gas_intersection_pairs_with() {
+    let np = mixed_pairs();
+    let _ = opaque(np.intersection_pairs_with(opaque(h(2))));
+}
+
+#[test]
+fn gas_intersection_pairs() {
+    let np = mixed_pairs();
+    let _ = opaque(np.intersection_pairs());
 }
 
 #[test]

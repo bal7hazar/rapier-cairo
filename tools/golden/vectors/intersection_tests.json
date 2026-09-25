@@ -1,0 +1,1524 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "intersection_tests",
+  "cases": [
+    {
+      "id": "ball_ball/separated",
+      "pair": "ball_ball",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pos12": {
+        "translation": { "f64": [1.5, 0.25], "raw": [6442450944, 1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "ball_ball/touching",
+      "pair": "ball_ball",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pos12": {
+        "translation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_ball/overlapping",
+      "pair": "ball_ball",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "pos12": {
+        "translation": { "f64": [0.30000000004656613, 0.39999999990686774], "raw": [1288490189, 1717986918] },
+        "rotation": { "f64": [0.7071067811921239, 0.7071067811921239], "raw": [3037000500, 3037000500] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_ball/contained",
+      "pair": "ball_ball",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "ball", "radius": { "f64": 0.25, "raw": 1073741824 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.10000000009313226], "raw": [429496730, 429496730] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_cuboid/separated",
+      "pair": "ball_cuboid",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [2.5, 0.0], "raw": [10737418240, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "ball_cuboid/touching",
+      "pair": "ball_cuboid",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_cuboid/overlapping",
+      "pair": "ball_cuboid",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.3000000000465661, 0.8000000000465661], "raw": [5583457485, 3435973837] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_cuboid/contained",
+      "pair": "ball_cuboid",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_capsule/separated",
+      "pair": "ball_capsule",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "ball_capsule/touching",
+      "pair": "ball_capsule",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.75, 0.0], "raw": [3221225472, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_capsule/overlapping",
+      "pair": "ball_capsule",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.8000000000465661, 0.8999999999068677], "raw": [3435973837, 3865470566] },
+        "rotation": { "f64": [0.8660254038404673, -0.5], "raw": [3719550787, -2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_capsule/contained",
+      "pair": "ball_capsule",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 1.5, "raw": 6442450944 } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_segment/separated",
+      "pair": "ball_segment",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "ball_segment/touching",
+      "pair": "ball_segment",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_segment/overlapping",
+      "pair": "ball_segment",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_segment/contained",
+      "pair": "ball_segment",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 2.0, "raw": 8589934592 } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_halfspace/separated",
+      "pair": "ball_halfspace",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "ball_halfspace/touching",
+      "pair": "ball_halfspace",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_halfspace/overlapping",
+      "pair": "ball_halfspace",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.0, -0.30000000004656613], "raw": [0, -1288490189] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_halfspace/contained",
+      "pair": "ball_halfspace",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 2.0], "raw": [0, 8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_polygon/separated",
+      "pair": "ball_polygon",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 3.0], "raw": [0, 12884901888] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "ball_polygon/touching",
+      "pair": "ball_polygon",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, -1.5], "raw": [0, -6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_polygon/overlapping",
+      "pair": "ball_polygon",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": {
+          "f64": [0.30000000004656613, -1.1999999999534339],
+          "raw": [1288490189, -5153960755]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "ball_polygon/contained",
+      "pair": "ball_polygon",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.25, "raw": 1073741824 } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.19999999995343387], "raw": [0, 858993459] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_cuboid/separated",
+      "pair": "cuboid_cuboid",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "cuboid_cuboid/touching",
+      "pair": "cuboid_cuboid",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_cuboid/overlapping",
+      "pair": "cuboid_cuboid",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [1.6000000000931323, 0.30000000004656613], "raw": [6871947674, 1288490189] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_cuboid/contained",
+      "pair": "cuboid_cuboid",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.0], "raw": [858993459, 0] },
+        "rotation": { "f64": [0.7071067811921239, 0.7071067811921239], "raw": [3037000500, 3037000500] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_capsule/separated",
+      "pair": "cuboid_capsule",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "cuboid_capsule/touching",
+      "pair": "cuboid_capsule",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [1.25, 0.0], "raw": [5368709120, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_capsule/overlapping",
+      "pair": "cuboid_capsule",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [1.3000000000465661, 0.19999999995343387], "raw": [5583457485, 858993459] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_capsule/contained",
+      "pair": "cuboid_capsule",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+        "rotation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_segment/separated",
+      "pair": "cuboid_segment",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "cuboid_segment/touching",
+      "pair": "cuboid_segment",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_segment/overlapping",
+      "pair": "cuboid_segment",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "cuboid_segment/contained",
+      "pair": "cuboid_segment",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-0.5, 0.0], "raw": [-2147483648, 0] },
+        "b": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.10000000009313226], "raw": [858993459, 429496730] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "capsule_capsule/separated",
+      "pair": "capsule_capsule",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "capsule_capsule/touching",
+      "pair": "capsule_capsule",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "capsule_capsule/overlapping",
+      "pair": "capsule_capsule",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.8999999999068677, 0.0], "raw": [3865470566, 0] },
+        "rotation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "capsule_capsule/contained",
+      "pair": "capsule_capsule",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+        "b": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "radius": { "f64": 1.0, "raw": 4294967296 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+        "b": { "f64": [0.0, 0.25], "raw": [0, 1073741824] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.19999999995343387], "raw": [429496730, 858993459] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_cuboid/separated",
+      "pair": "halfspace_cuboid",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 2.0], "raw": [0, 8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "halfspace_cuboid/touching",
+      "pair": "halfspace_cuboid",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.5], "raw": [12884901888, 2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_cuboid/overlapping",
+      "pair": "halfspace_cuboid",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.8999999999068677], "raw": [0, 3865470566] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_cuboid/contained",
+      "pair": "halfspace_cuboid",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, -2.0], "raw": [0, -8589934592] },
+        "rotation": { "f64": [0.7071067811921239, 0.7071067811921239], "raw": [3037000500, 3037000500] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_capsule/separated",
+      "pair": "halfspace_capsule",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "halfspace_capsule/touching",
+      "pair": "halfspace_capsule",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.75], "raw": [0, 3221225472] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_capsule/overlapping",
+      "pair": "halfspace_capsule",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_capsule/contained",
+      "pair": "halfspace_capsule",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, -2.0], "raw": [0, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_segment/separated",
+      "pair": "halfspace_segment",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "halfspace_segment/touching",
+      "pair": "halfspace_segment",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_segment/overlapping",
+      "pair": "halfspace_segment",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_segment/contained",
+      "pair": "halfspace_segment",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_polygon/separated",
+      "pair": "halfspace_polygon",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "halfspace_polygon/touching",
+      "pair": "halfspace_polygon",
+      "regime": "touching",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_polygon/overlapping",
+      "pair": "halfspace_polygon",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_polygon/contained",
+      "pair": "halfspace_polygon",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, -2.0], "raw": [0, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_capsule/separated",
+      "pair": "polygon_capsule",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 3.0], "raw": [0, 12884901888] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "polygon_capsule/touching",
+      "pair": "polygon_capsule",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.75], "raw": [0, 7516192768] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_capsule/overlapping",
+      "pair": "polygon_capsule",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_capsule/contained",
+      "pair": "polygon_capsule",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+        "b": { "f64": [0.0, 0.25], "raw": [0, 1073741824] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_cuboid/separated",
+      "pair": "polygon_cuboid",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "polygon_cuboid/touching",
+      "pair": "polygon_cuboid",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_cuboid/overlapping",
+      "pair": "polygon_cuboid",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [1.0, 0.5], "raw": [4294967296, 2147483648] } },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_cuboid/contained",
+      "pair": "polygon_cuboid",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "shape2": { "type": "cuboid", "half_extents": { "f64": [0.5, 0.25], "raw": [2147483648, 1073741824] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.10000000009313226], "raw": [0, 429496730] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_segment/separated",
+      "pair": "polygon_segment",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 2.0], "raw": [0, 8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "polygon_segment/touching",
+      "pair": "polygon_segment",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_segment/overlapping",
+      "pair": "polygon_segment",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_segment/contained",
+      "pair": "polygon_segment",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-0.5, 0.0], "raw": [-2147483648, 0] },
+        "b": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.19999999995343387], "raw": [0, 858993459] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_polygon/separated",
+      "pair": "polygon_polygon",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [3.0, 0.0], "raw": [12884901888, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "polygon_polygon/touching",
+      "pair": "polygon_polygon",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_polygon/overlapping",
+      "pair": "polygon_polygon",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "polygon_polygon/contained",
+      "pair": "polygon_polygon",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.5, 0.0], "raw": [6442450944, 0] },
+          { "f64": [0.0, 1.5], "raw": [0, 6442450944] },
+          { "f64": [-1.5, 0.0], "raw": [-6442450944, 0] }
+        ]
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+          { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "segment_segment/separated",
+      "pair": "segment_segment",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "segment_segment/touching",
+      "pair": "segment_segment",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "segment_segment/overlapping",
+      "pair": "segment_segment",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [0.0, 1.0], "raw": [0, 4294967296] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "segment_segment/contained",
+      "pair": "segment_segment",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "segment",
+        "a": { "f64": [-0.5, 0.0], "raw": [-2147483648, 0] },
+        "b": { "f64": [0.5, 0.0], "raw": [2147483648, 0] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.19999999995343387, 0.0], "raw": [858993459, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "segment_capsule/separated",
+      "pair": "segment_capsule",
+      "regime": "separated",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 2.0], "raw": [0, 8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": false }
+    },
+    {
+      "id": "segment_capsule/touching",
+      "pair": "segment_capsule",
+      "regime": "touching",
+      "gjk_touching": true,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [1.25, 0.0], "raw": [5368709120, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "segment_capsule/overlapping",
+      "pair": "segment_capsule",
+      "regime": "overlapping",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+        "b": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "segment_capsule/contained",
+      "pair": "segment_capsule",
+      "regime": "contained",
+      "gjk_touching": false,
+      "shape1": {
+        "type": "segment",
+        "a": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+        "b": { "f64": [0.0, 0.25], "raw": [0, 1073741824] }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+        "b": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 0.25, "raw": 1073741824 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": true, "intersecting": true }
+    },
+    {
+      "id": "halfspace_halfspace/unsupported",
+      "pair": "halfspace_halfspace",
+      "regime": "unsupported",
+      "gjk_touching": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": { "supported": false, "intersecting": false }
+    }
+  ]
+}

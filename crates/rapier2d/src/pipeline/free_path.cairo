@@ -4,7 +4,7 @@ use rapier_core::Handle;
 use rapier_core::collider::ActiveEventsTrait;
 use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_core::integration_parameters::IntegrationParameters;
-use rapier_core::rigid_body::RigidBodyType;
+use rapier_core::rigid_body::{RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::narrow_phase::PairCollider;
@@ -14,7 +14,42 @@ use rapier_dynamics2d::solver::island::FreeBodySolverTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
 use rapier_geometry2d::shape::ShapeTrait;
-use super::{BodyInfo, advance_body_with_snapshot, body_info, islands, moving, no_body_info};
+use super::{BodyInfo, advance_body_with_snapshot, islands, moving};
+
+/// The [`BodyInfo`] of a missing or absent parent.
+#[inline(always)]
+pub(crate) fn no_body_info() -> (RigidBodyType, Vec2, i16, bool) {
+    let dominance: RigidBodyDominance = Default::default();
+    (
+        RigidBodyType::Fixed,
+        Default::default(),
+        dominance.effective_group(RigidBodyType::Fixed),
+        false,
+    )
+}
+
+/// The `(body_type, world_com, dominance, sleeping)` of the body `handle`: `infos[handle.index]`
+/// when that entry has the handle, a set read otherwise.
+#[inline(always)]
+pub(crate) fn body_info(
+    infos: Span<BodyInfo>, handle: Handle, ref bodies: RigidBodySet,
+) -> (RigidBodyType, Vec2, i16, bool) {
+    if let Some(info) = infos.get(handle.index) {
+        let info = *info.unbox();
+        if info.handle == handle {
+            return (info.body_type, info.world_com, info.dominance, info.sleeping);
+        }
+    }
+    match bodies.get(handle) {
+        Some(body) => (
+            body.body_type,
+            body.mprops.world_com,
+            body.dominance.effective_group(body.body_type),
+            body.activation.sleeping,
+        ),
+        None => no_body_info(),
+    }
+}
 
 #[inline(always)]
 fn body_info_from_entries(
@@ -89,6 +124,7 @@ pub(crate) fn collision_scratch(
                 PairCollider {
                     handle: *handle,
                     solid: collider.is_enabled() && !collider.is_sensor(),
+                    sensor: collider.is_enabled() && collider.is_sensor(),
                     shape: collider.shape,
                     pose: collider.pos.pose,
                     friction: collider.material.friction,

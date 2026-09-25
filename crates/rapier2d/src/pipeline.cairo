@@ -53,8 +53,12 @@
 //! the sleep timer of every moved body is updated in the position update
 //! (`islands::update_sleep_timer`).
 //!
+//! Sensors (work package SE): the narrow phase keeps intersection pairs in the same list as the
+//! contact pairs (`narrow_phase`), with no solver contact: they only take part in the dormant
+//! split, which keeps a sleeping body's sensor pairs (and their events) unchanged.
+//!
 //! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
-//! every step (upstream persists them, see `islands`); no user hooks or sensor events,
+//! every step (upstream persists them, see `islands`); no user hooks,
 //! a body whose enabled state changes does not propagate it
 //! to its colliders (disable the colliders).
 //!
@@ -63,11 +67,9 @@ use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
-use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait};
+use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait, ColliderEnabled, ColliderType};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
-use rapier_core::rigid_body::{
-    RigidBodyChangesTrait, RigidBodyDominance, RigidBodyDominanceTrait, RigidBodyType,
-};
+use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
@@ -96,7 +98,8 @@ pub mod force_events;
 use force_events::{CollisionOnly, StepOutput, WithForces};
 mod free_path;
 use free_path::{
-    collision_proxies_from_entries_with_events, collision_scratch, solve_and_advance_free,
+    body_info, collision_proxies_from_entries_with_events, collision_scratch, no_body_info,
+    solve_and_advance_free,
 };
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
@@ -109,6 +112,8 @@ mod narrow_benches;
 #[cfg(test)]
 mod narrow_tests;
 mod ordering;
+#[cfg(test)]
+mod sensor_benches;
 pub mod sleeping;
 #[cfg(test)]
 pub(crate) mod solve_alternatives;
@@ -248,41 +253,6 @@ pub struct BodyInfo {
     pub dominance: i16,
     /// The body sleeps (SL): its colliders' proxies are static.
     pub sleeping: bool,
-}
-
-/// The [`BodyInfo`] of a missing or absent parent.
-#[inline(always)]
-pub(crate) fn no_body_info() -> (RigidBodyType, Vec2, i16, bool) {
-    let dominance: RigidBodyDominance = Default::default();
-    (
-        RigidBodyType::Fixed,
-        Default::default(),
-        dominance.effective_group(RigidBodyType::Fixed),
-        false,
-    )
-}
-
-/// The `(body_type, world_com, dominance, sleeping)` of the body `handle`: `infos[handle.index]`
-/// when that entry has the handle, a set read otherwise.
-#[inline(always)]
-pub(crate) fn body_info(
-    infos: Span<BodyInfo>, handle: Handle, ref bodies: RigidBodySet,
-) -> (RigidBodyType, Vec2, i16, bool) {
-    if let Some(info) = infos.get(handle.index) {
-        let info = *info.unbox();
-        if info.handle == handle {
-            return (info.body_type, info.world_com, info.dominance, info.sleeping);
-        }
-    }
-    match bodies.get(handle) {
-        Some(body) => (
-            body.body_type,
-            body.mprops.world_com,
-            body.dominance.effective_group(body.body_type),
-            body.activation.sleeping,
-        ),
-        None => no_body_info(),
-    }
 }
 
 /// One [`BodyInfo`] per entry of `entries` (ascending slot), and their [`SleepCensus`].
@@ -474,6 +444,14 @@ pub(crate) fn collision_inputs_with_events(
             any_sleeping = true;
         }
         let pose = collider.pos.pose;
+        // One match for both flags (SE): a second `is_enabled() && ..` costs ~0.9k per collider.
+        let (solid, sensor) = match collider.flags.enabled {
+            ColliderEnabled::Enabled => match collider.co_type {
+                ColliderType::Solid => (true, false),
+                ColliderType::Sensor => (false, true),
+            },
+            _ => (false, false),
+        };
         proxies
             .append(
                 BroadPhaseProxy {
@@ -486,7 +464,8 @@ pub(crate) fn collision_inputs_with_events(
             .append(
                 PairCollider {
                     handle: *handle,
-                    solid: collider.is_enabled() && !collider.is_sensor(),
+                    solid,
+                    sensor,
                     shape: collider.shape,
                     pose,
                     friction: collider.material.friction,

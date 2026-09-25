@@ -99,6 +99,8 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `point_projection.json` | 33 | `<shape>/<what>` | **G2** point projection on ball, cuboid, capsule, segment |
 | `segment_segment.json` | 24 | `seg/<what>` | **G2** closest points between two segments |
 | `ray_casts.json` | 64 | `<shape>/<regime>` | **QP** world-space ray casts on the five shapes, solid and hollow, see [ray_casts](#ray_casts) |
+| `intersection_tests.json` | 81 | `<shape1>_<shape2>/<regime>` | **SE** `DefaultQueryDispatcher::intersection_test`, see [intersection_tests](#intersection_tests-and-sensor_trigger-se) |
+| `sensor_trigger.json` | 1 scene | — | **SE** a ball falling through a standalone sensor slab: events, ball samples, intersection pair state |
 
 ### contact_manifolds
 
@@ -735,6 +737,27 @@ second / both, three posed cases, and 6 **swapped copies** (`*_swap`) for the sy
 
 Tolerances: `dist_sq` 16 ulp (distances ≤ 2); points and `u` 4 ulp (a division scaled by the segment
 length); locations exact unless `ambiguous`.
+
+### intersection_tests and sensor_trigger (SE)
+
+`intersection_tests`: `DefaultQueryDispatcher::intersection_test(pos12, shape1, shape2)` on the
+18 pairs that have a contact generator, plus `segment_segment` and `segment_capsule` (upstream:
+GJK), each over four regimes — `separated`, `touching`, `overlapping`, `contained` — and the
+unsupported `halfspace_halfspace` (`supported: false`). Shapes: ball 0.5, cuboid (1, 0.5),
+capsule `capsule_y(0.5, 0.25)`, segment (−1, 0)–(1, 0), up half-space, triangle
+(−1, −1), (1, −1), (0, 1); a few `contained` cases scale one shape. Touching poses are exact in
+Q32.32 and f64. `gjk_touching` tags the touching case of a pair upstream sends to GJK (no ball,
+no half-space, not two cuboids): its answer sits on GJK's tolerance; upstream answers `true` on
+all nine, as the port's exact kernels do.
+
+`sensor_trigger`: its own file (so that `scenes.json` stays byte-identical), 60 steps with the
+[scene settings](#settings-deviating-from-rapiers-defaults): per event its step, kind, collider
+indices and flags; per step the ball's `y`, `vy` and `NarrowPhase::intersection_pair(slab, ball)`
+(`null` when the pair does not exist).
+
+Tolerances: answers and event steps exact; the ball's samples as the scenes (`2^12 · step` ulp).
+The pair's *existence* follows each broad phase (the port's is stateless, D7) and may differ by a
+step at the ends; its `intersecting` state must not.
 
 ## Settings deviating from Rapier's defaults
 

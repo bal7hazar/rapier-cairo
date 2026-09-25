@@ -9,8 +9,11 @@ use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier2d::world::{World, WorldTrait};
 use rapier_core::Handle;
-use rapier_core::collider::events::COLLISION_EVENTS;
+use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
+use rapier_core::interaction_groups::{
+    ALL, GROUP_1, GROUP_2, InteractionGroupsTrait, InteractionTestMode,
+};
 use rapier_core::rigid_body::{RigidBodyActivationTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::events::{CollisionEvent, CollisionEventTrait};
@@ -576,6 +579,127 @@ fn test_contact_start_wakes_a_sleeping_body() {
 
 // ---------------------------------------------------------------------------------------------
 // Gas probes: `gas_step_<scene>` − `gas_setup_<scene>` = one `World::step` in that state.
+
+const QUARTER_RAW: i64 = 1073741824;
+
+/// Whether a ball of radius 1/2 at height `y` touches the slab `y` in `[1.75, 2.25]`.
+fn overlaps_slab(y: Fixed) -> bool {
+    let two = FixedTrait::from_int(2);
+    let quarter = f(QUARTER_RAW);
+    (y - HALF <= two + quarter) && (y + HALF >= two - quarter)
+}
+
+/// A standalone sensor slab (collider 0, `y` in `[1.75, 2.25]`) and a ball of radius 1/2
+/// falling from `y = 4` through it (collider 1). Rows: (events on the sensor, events on the ball,
+/// groups exclude the pair, sensor events expected). The ball's motion ignores the sensor.
+#[test]
+fn test_sensor_trigger_events_flags_and_groups() {
+    let excluded = InteractionGroupsTrait::new(GROUP_2, GROUP_2, InteractionTestMode::And);
+    let member_of_1 = InteractionGroupsTrait::new(GROUP_1, ALL, InteractionTestMode::And);
+    let rows: Array<(bool, bool, bool, bool)> = array![
+        (true, false, false, true), (false, true, false, true), (false, false, false, false),
+        (true, true, true, false),
+    ];
+    let quarter = f(QUARTER_RAW);
+    for (on_sensor, on_ball, groups, expected) in rows {
+        let mut world = WorldTrait::new(gravity(), Default::default());
+        let mut slab = ColliderBuilderTrait::cuboid(FixedTrait::from_int(4), quarter)
+            .position(at(ZERO, FixedTrait::from_int(2)))
+            .sensor(true);
+        if on_sensor {
+            slab = slab.active_events(COLLISION_EVENTS);
+        }
+        if groups {
+            slab = slab.collision_groups(excluded);
+        }
+        let sensor = world.insert_collider(slab.build(), None);
+        let mut ball = ColliderBuilderTrait::ball(HALF);
+        if on_ball {
+            ball = ball.active_events(COLLISION_EVENTS);
+        }
+        if groups {
+            ball = ball.collision_groups(member_of_1);
+        }
+        let (ball_body, ball) = world
+            .insert(RigidBodyTrait::dynamic(at(ZERO, FixedTrait::from_int(4))), ball.build());
+        let mut started_at = 0;
+        let mut stopped_at = 0;
+        let mut first_inside = 0;
+        let mut first_out = 0;
+        let mut count = 0;
+        let mut step = 1;
+        while step != 61 {
+            // The narrow phase runs on the poses at the start of the step.
+            let inside = overlaps_slab(body(ref world, ball_body).position().translation.y);
+            if inside && first_inside == 0 {
+                first_inside = step;
+            }
+            if !inside && first_inside != 0 && first_out == 0 {
+                first_out = step;
+            }
+            for event in world.step() {
+                assert!(event.sensor() && !event.removed());
+                assert_eq!((event.collider1(), event.collider2()), (sensor, ball));
+                if event.started() {
+                    started_at = step;
+                } else {
+                    stopped_at = step;
+                }
+                count += 1;
+            }
+            let answer = world.intersection_pair(ball, sensor);
+            if groups {
+                assert!(answer != Some(true));
+            } else if answer.is_some() {
+                assert_eq!(answer, Some(inside), "step {}", step);
+            }
+            step += 1;
+        }
+        assert!(first_inside != 0 && first_out != 0);
+        if expected {
+            assert_eq!((count, started_at, stopped_at), (2, first_inside, first_out));
+        } else {
+            assert_eq!(count, 0);
+        }
+        // Free fall, untouched by the sensor: 60 steps from rest.
+        assert!(body(ref world, ball_body).linvel().y < f(-38654705664));
+        assert!(world.contact_pair(sensor, ball).is_none());
+    }
+}
+
+/// A sensor attached to a body that falls asleep on the ground keeps its intersection pair
+/// (dormant: no update, no event, no wake-up); removing it wakes the body and ends the pair with
+/// `Stopped | SENSOR | REMOVED`. The sensor and the body's own collider share the parent: their
+/// pair is filtered (never intersecting, as upstream).
+#[test]
+fn test_sensor_on_a_sleeping_body_and_removal() {
+    let mut world = WorldTrait::new(gravity(), Default::default());
+    let ground = world.insert_collider(ColliderBuilderTrait::halfspace(v(ZERO, ONE)).build(), None);
+    let mut rb = RigidBodyTrait::dynamic(at(ZERO, HALF));
+    rb.activation.time_until_sleep = SHORT_SLEEP;
+    let (handle, own) = world.insert(rb, ColliderBuilderTrait::cuboid(HALF, HALF).build());
+    let sensor = world
+        .insert_collider(
+            ColliderBuilderTrait::ball(ONE).sensor(true).active_events(COLLISION_EVENTS).build(),
+            Some(handle),
+        );
+    let events = world.step();
+    assert_eq!(events, array![CollisionEvent::Started((ground, sensor, SENSOR))]);
+    assert_eq!(world.intersection_pair(own, sensor), Some(false));
+    let _ = run(ref world, 20);
+    assert!(body(ref world, handle).is_sleeping());
+    assert_eq!(run(ref world, 3), array![]);
+    assert_eq!(world.intersection_pair(sensor, ground), Some(true));
+    assert_eq!(
+        world.intersection_pairs_with(sensor), array![(ground, sensor, true), (own, sensor, false)],
+    );
+    assert!(body(ref world, handle).is_sleeping());
+    assert!(world.remove_collider(sensor).is_some());
+    assert_eq!(world.intersection_pairs(), array![]);
+    let events = world.step();
+    assert_eq!(events, array![CollisionEvent::Stopped((ground, sensor, SENSOR | REMOVED))]);
+    assert_eq!(world.intersection_pair(ground, sensor), None);
+}
 
 /// Builds the world of probe `id` and steps it `warmup` times, then `measured` more times.
 #[inline(never)]

@@ -15,6 +15,7 @@ use std::process::Command;
 mod leaf_families;
 mod polygons;
 mod scenes;
+mod sensors;
 mod sleep_impact;
 
 const MAX_WIDTH: usize = 100;
@@ -684,6 +685,8 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("sat2d", leaf_families::sat2d(vectors)),
         ("sleep_impact", sleep_impact::generate(vectors)),
         ("segment_segment", leaf_families::segment_segment(vectors)),
+        ("intersection_tests", sensors::intersection_tests(vectors)),
+        ("sensor_trigger", sensors::sensor_trigger(vectors)),
     ];
     files.extend(polygons::manifold_files(vectors));
     files.extend(scenes::generate(vectors));

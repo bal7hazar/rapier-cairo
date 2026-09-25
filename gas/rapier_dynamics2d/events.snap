@@ -5,4 +5,4 @@ rapier_dynamics2d::events::tests::gas_started 15720
 rapier_dynamics2d::events::tests::gas_stopped_accessors 21216
 rapier_dynamics2d::events::tests::test_accessors 90243
 rapier_dynamics2d::events::tests::test_force_event_normal_impulses_and_status 65789
-rapier_dynamics2d::events::tests::test_pair_event_status 33150
+rapier_dynamics2d::events::tests::test_pair_event_status 73480

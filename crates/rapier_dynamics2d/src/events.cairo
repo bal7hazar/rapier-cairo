@@ -3,7 +3,8 @@
 //!
 //! Upstream hands events to a `dyn EventHandler` as they happen; here the narrow phase returns
 //! them as an array (`docs/PLAN.md` D9), in a deterministic order documented on
-//! `NarrowPhaseTrait::compute_contacts`. Sensor intersection events remain deferred.
+//! `NarrowPhaseTrait::compute_contacts`. The events of sensor pairs carry the `SENSOR` flag
+//! (`crate::narrow_phase::intersections`).
 
 use fixed::{FixedTrait, ZERO};
 use glam::Vec2Trait;
@@ -80,10 +81,11 @@ pub impl ContactForceEventImpl of ContactForceEventTrait {
 /// The handles are the pair's `(collider1, collider2)`, in ascending slot index.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub enum CollisionEvent {
-    /// The pair gained its first solver contact.
+    /// The pair gained its first solver contact, or (flag `SENSOR`) its shapes started
+    /// intersecting.
     Started: (Handle, Handle, CollisionEventFlags),
-    /// The pair lost its last solver contact, stopped overlapping in the broad phase, or lost a
-    /// collider (then with the `REMOVED` flag).
+    /// The pair lost its last solver contact (a sensor pair: stopped intersecting), stopped
+    /// overlapping in the broad phase, or lost a collider (then with the `REMOVED` flag).
     Stopped: (Handle, Handle, CollisionEventFlags),
 }
 
@@ -149,8 +151,17 @@ pub const START_EVENT_EMITTED: PairEventStatus = PairEventStatus { bits: 0x1 };
 /// Bit of `PairEventStatus`: the previous step exceeded the force threshold.
 pub const INITIAL_FORCE_THRESHOLD_EVENT_EMITTED: PairEventStatus = PairEventStatus { bits: 2 };
 
+/// Bit of `PairEventStatus` (SE): the pair is an intersection (sensor) pair, upstream's
+/// `IntersectionPair`, kept in the same list as the contact pairs with an empty manifold.
+pub const INTERSECTION_PAIR: PairEventStatus = PairEventStatus { bits: 4 };
+
+/// Bit of `PairEventStatus` (SE): the shapes of an intersection pair intersect (upstream
+/// `IntersectionPair::intersecting`); only set together with [`INTERSECTION_PAIR`].
+pub const INTERSECTING: PairEventStatus = PairEventStatus { bits: 8 };
+
 /// Event bookkeeping of a contact pair (upstream `PairEventStatus`):
-/// bit 0 tracks collision starts; bit 1 tracks force-threshold crossings.
+/// bit 0 tracks collision starts; bit 1 tracks force-threshold crossings; bit 2 marks an
+/// intersection (sensor) pair and bit 3 its intersecting state (upstream `IntersectionPair`).
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
 pub struct PairEventStatus {
     pub bits: u8,
@@ -170,6 +181,19 @@ pub impl PairEventStatusImpl of PairEventStatusTrait {
     fn start_event_emitted(self: PairEventStatus) -> bool {
         let (_, bit) = DivRem::div_rem(self.bits, 2);
         bit != 0
+    }
+
+    /// `true` for an intersection (sensor) pair. Bits 2 and 3 are the only high bits, so the
+    /// test is one comparison.
+    #[inline(always)]
+    fn is_intersection_pair(self: PairEventStatus) -> bool {
+        self.bits >= INTERSECTION_PAIR.bits
+    }
+
+    /// `true` when the shapes of an intersection pair intersect (bit 3, the highest).
+    #[inline(always)]
+    fn intersecting(self: PairEventStatus) -> bool {
+        self.bits >= INTERSECTING.bits
     }
 }
 
@@ -229,8 +253,17 @@ mod tests {
         assert!(!status.start_event_emitted());
         assert!(START_EVENT_EMITTED.start_event_emitted());
         assert_eq!(PairEventStatusTrait::empty(), status);
-        for (bits, collision_started) in array![(0, false), (1, true), (2, false), (3, true)] {
-            assert_eq!(PairEventStatus { bits }.start_event_emitted(), collision_started);
+        // (bits, start emitted, intersection pair, intersecting)
+        let cases = array![
+            (0, false, false, false), (1, true, false, false), (2, false, false, false),
+            (3, true, false, false), (4, false, true, false), (5, true, true, false),
+            (12, false, true, true), (13, true, true, true),
+        ];
+        for (bits, collision_started, sensor_pair, intersecting) in cases {
+            let status = PairEventStatus { bits };
+            assert_eq!(status.start_event_emitted(), collision_started);
+            assert_eq!(status.is_intersection_pair(), sensor_pair);
+            assert_eq!(status.intersecting(), intersecting);
         }
     }
 

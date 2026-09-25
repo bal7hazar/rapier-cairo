@@ -94,6 +94,10 @@ Least-squares fits over the sized families:
 | cuboid stack | per manifold point | 3,106,722 | 25,942 |
 | pendulum chain | per joint | 4,322,824 | 34,935 |
 
+Sensor pairs (SE #127, `pipeline::sensor_benches`, narrow phase per pair per step, net): ball–ball 111,309 gas /
+1,010 steps; cuboid–ball 117,959 / 1,066; cuboid–cuboid 133,829 / 1,188 (the same pair as a contact pair: 721,015 /
+5,120); triangle–cuboid 288,929 / 2,605. P3 scenes (no sensor) moved ≤ +0.21 % with SE; ceilings unchanged.
+
 `scripts/gas.py rank rapier2d_integrationtest::gas_scenes` ranks the gross probes from
 `gas_baseline` (14,120) through `gas_step_balls_halfspace32` (312,754,634); the net table above is
 the budget source because each scene subtracts its matching warm-up/setup probe.
