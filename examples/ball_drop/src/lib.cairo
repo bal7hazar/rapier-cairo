@@ -13,9 +13,6 @@
 //! (`BOX_STACK3` of the golden scenes), `2` pendulum (`PENDULUM` of the golden scenes).
 
 use rapier2d::prelude::*;
-use rapier_core::collider::events::COLLISION_EVENTS;
-use rapier_math::pose2::Pose2;
-use rapier_math::rot2::Rot2;
 
 pub const BALL_DROP: u8 = 0;
 pub const BOX_STACK3: u8 = 1;

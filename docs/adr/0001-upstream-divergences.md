@@ -43,5 +43,9 @@ it and where the evidence lives.
 
 Golden comparisons that cross one of these entries are either regenerated from a corrected reference (1),
 judged on invariants or strict up to the divergence point with a counterfactual proving the cause (3, 9),
-or compared on the quantities the divergence does not touch (4, 5). A new divergence found by a lot is
+or compared on the quantities the divergence does not touch (4, 5). Entry 9 decides the fidelity of level-shaped
+scenes (G0 #133): a level's traces match upstream up to the impact tick and diverge from it, because the impact wakes
+the structure; pre-waking the structure in the upstream run brings the pebble within 0.003 m/s (`level_checks::
+prewake_before_impact`). The port keeps its behaviour (upstream defect); level replays are judged on invariants after
+the impact. A new divergence found by a lot is
 added here by the orchestrator in the PR that merges the lot's findings.

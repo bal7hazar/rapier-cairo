@@ -1,6 +1,30 @@
 # Step Budgets
 
-## Since the matrix below (2026-09-25)
+## Cost of a level (G0 #133, 2026-09-25)
+
+Half-space, 10 pre-settled sleeping blocks (cuboids + 2 polygons) + 3 cores, pebble r = 0.25, density 4, (18, 4) m/s
+from 7.2 m; level 20 adds a copy of the blocks. Whole runs include the load (one setup step without gravity, then
+`sleep()`) and the despawn. Sierra gas / exact Cairo steps.
+
+| level, setting | ticks | gas | steps | gas per tick avg / max | awake avg / max | all asleep (port / upstream) |
+|---|---:|---:|---:|---|---|---|
+| 10, 60 Hz × 4 | 300 | 24,058,098,795 | 203,657,538 | 79.3M / 101.2M | 12.3 / 14 | — / 278 |
+| 10, 60 Hz × 2 | 300 | 15,515,727,742 | 130,498,852 | 50.9M / 70.8M | 12.0 / 14 | — / — |
+| 10, 60 Hz × 1 | 300 | 12,265,353,729 | 102,643,616 | 40.1M / 50.9M | 11.6 / 14 | — / — |
+| 10, 30 Hz × 4 | 150 | 9,576,253,056 | 79,472,837 | 62.6M / 100.2M | 9.8 / 14 | 130 / — |
+| 20, 60 Hz × 4 | 150 (prefix) | 19,115,223,376 | 164,005,950 | 125.9M / 184.0M | 17.8 / 24 | — / — |
+| 20, 60 Hz × 2 | 150 (prefix) | 13,811,914,419 | 117,046,734 | 90.8M / 130.8M | 18.2 / 24 | — / — |
+| 20, 60 Hz × 1 | 300 | 22,795,671,297 | 183,601,385 | 75.2M / 99.1M | 20.0 / 24 | 286 / — |
+| 20, 30 Hz × 4 | 150 | 22,458,221,991 | 193,814,539 | 148.2M / 182.3M | 20.9 / 24 | — / — |
+
+CI windows (`crates/rapier2d/tests/level_budget.cairo`): load 88.3M / 722,788 steps (L10), 160.9M / 1,321,457 (L20);
+flight tick 6.59M / 61,042 (L10), 10.99M / 102,182 (L20); impact tick 89.9M / 773,821 (L10), 97.5M / 845,534 (L20).
+Awake body-tick at impact: 5.8M gas (× 4 substeps), 3.8M (× 2), 2.8M (× 1). All-asleep tick: 3.37M (L10), 8.14M (L20).
+Stage shares, ticks 1–60 (L10 / L20): solver 76.9 / 68.9 %, narrow phase 16.5 / 14.7 %, broad phase 3.2 / 7.5 %, user
+changes 2.0 / 3.1 %, islands + sleeping 1.3 / 5.7 %; flight ticks 1–25: broad phase 38 / 42 %, islands 31 / 31 %,
+user changes 19 / 19 %, solver 9 / 7 %. Engine sleep timer 0.5 s; the programme's calm rule (all awake bodies below a
+velocity threshold for 20 ticks) fires within 1–4 ticks of the engine where either fires, at 0.15M gas per tick.
+
 
 - SE #127 (sensors): every P3 scene ≤ +0.21 %; ceilings unchanged.
 - RB #121 (rigid-body API, cold data boxed): contact and joint scenes +0.05 % to +0.29 % net; `free_fall1/8/32`
