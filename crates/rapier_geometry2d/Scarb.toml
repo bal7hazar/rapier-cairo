@@ -5,18 +5,21 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "README.md"
+keywords = ["physics", "collision", "geometry", "2d", "cairo"]
+documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapier_geometry2d"
 
 [dependencies]
 fixed.workspace = true
 glam.workspace = true
-rapier_core = { path = "../rapier_core" }
-rapier_math = { path = "../rapier_math" }
+rapier_core.workspace = true
+rapier_math.workspace = true
 
 [dev-dependencies]
 snforge_std.workspace = true
 assert_macros.workspace = true
-rapier_testing = { path = "../rapier_testing" }
-rapier_golden = { path = "../rapier_golden" }
+rapier_testing.workspace = true
+rapier_golden.workspace = true
 
 [tool]
 fmt.workspace = true

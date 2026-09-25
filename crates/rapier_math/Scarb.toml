@@ -5,6 +5,9 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "README.md"
+keywords = ["physics", "math", "fixed-point", "cairo", "starknet"]
+documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapier_math"
 
 [dependencies]
 fixed.workspace = true
@@ -13,8 +16,8 @@ glam.workspace = true
 [dev-dependencies]
 snforge_std.workspace = true
 assert_macros.workspace = true
-rapier_testing = { path = "../rapier_testing" }
-rapier_golden = { path = "../rapier_golden" }
+rapier_testing.workspace = true
+rapier_golden.workspace = true
 
 [tool]
 fmt.workspace = true

@@ -5,20 +5,23 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "README.md"
+keywords = ["physics", "rapier", "rigid-body", "2d", "cairo"]
+documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapier2d"
 
 [dependencies]
 fixed.workspace = true
 glam.workspace = true
-rapier_core = { path = "../rapier_core" }
-rapier_math = { path = "../rapier_math" }
-rapier_geometry2d = { path = "../rapier_geometry2d" }
-rapier_dynamics2d = { path = "../rapier_dynamics2d" }
+rapier_core.workspace = true
+rapier_math.workspace = true
+rapier_geometry2d.workspace = true
+rapier_dynamics2d.workspace = true
 
 [dev-dependencies]
 snforge_std.workspace = true
 assert_macros.workspace = true
-rapier_testing = { path = "../rapier_testing" }
-rapier_golden = { path = "../rapier_golden" }
+rapier_testing.workspace = true
+rapier_golden.workspace = true
 
 [tool]
 fmt.workspace = true
