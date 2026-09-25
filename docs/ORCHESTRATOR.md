@@ -75,3 +75,13 @@ Audits on codex (only `gpt-5.5` and `gpt-6-astra` are available on this login): 
 - An interrupted agent (rate limit, end of turn) is resumed with `claude --continue -p` rather
   than relaunched from scratch.
 - Watch the compile budget of the test crates: it is the first cause of CI failure observed.
+
+## Releases
+
+No registry release or release tag without **the owner's go or the programme session's written go** (owner's
+standing delegation, confirmed in the rapier session on 2026-09-25; conditions in
+`~/projects/pm/decisions/2026-09-25-release-go-delegated-to-pm.md`: green CI on `main` at the release commit, the
+release checklist, the version policy, the dependency order). The registry token stays in the owner's settings; the
+permission adjustments an orchestrator's guard needs are the owner's to make in that session. rapier-cairo:
+`scripts/release.sh bump <version>` in a release PR, then `scripts/release.sh publish` from a clean `origin/main`
+(publishes `rapier_math` → `rapier_core` → `rapier_geometry2d` → `rapier_dynamics2d` → `rapier2d`, tags `v<version>`).

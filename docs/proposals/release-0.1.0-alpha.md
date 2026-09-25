@@ -1,6 +1,8 @@
 # Release assessment — `0.1.0-alpha.1` of the rapier-cairo crates on scarbs.xyz
 
-Status: **assessment, no release before the owner's go** (`~/projects/pm/decisions/PENDING-rapier2d-publication.md`).
+Status: **done** — `0.1.0-alpha.1` published on 2026-09-25 (owner's go; #134, tag `v0.1.0-alpha.1`). Choices made: option
+(b) for the dev-dependencies (`rapier_testing` / `rapier_golden` unpublished); `examples/ball_drop` stays on a path
+dependency so that the `execute` CI job tracks `main` (games pin the registry version).
 Requested by the project-manager session (2026-09-25): the game must consume `rapier2d` by registry version.
 
 ## What `scarb package` says today (measured 2026-09-25, scarb 2.19.4)

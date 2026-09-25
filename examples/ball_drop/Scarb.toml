@@ -10,10 +10,9 @@ license = "MIT"
 # Same versions as the root workspace (two sources of `fixed` would mean two `Fixed` types).
 fixed = "0.3.0"
 glam = "0.3.0"
+# By path, so that the example (run by the `execute` CI job) tracks `main`; games pin the registry version,
+# e.g. `rapier2d = "0.1.0-alpha.1"`.
 rapier2d = { path = "../../crates/rapier2d" }
-# Not in `rapier2d::prelude` yet: `Pose2`, `Rot2`, `COLLISION_EVENTS`.
-rapier_core = { path = "../../crates/rapier_core" }
-rapier_math = { path = "../../crates/rapier_math" }
 cairo_execute = "2.19.4"
 
 [dev-dependencies]

@@ -123,7 +123,8 @@ python3 scripts/gas.py snapshot --filter <crate>::<module>        # runs `snforg
 # CI: fmt, lint, build, 4 test groups, gas check on the merged logs, golden, api-parity
 ```
 
-The orchestrator runs workspace-wide commands only for releases and toolchain bumps.
+The orchestrator runs workspace-wide commands only for releases and toolchain bumps. Releases need the owner's go or
+the programme session's written go (`docs/ORCHESTRATOR.md` § Releases).
 
 ## 7. Coding conventions
 
