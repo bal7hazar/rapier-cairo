@@ -6,21 +6,25 @@
 #
 #   id      work package id, lowercase (e.g. ga-broad-phase): branch feat/<id>, worktree
 #           .claude/worktrees/exec-<id>, created from $EXECUTOR_BASE (default origin/main)
-#   runner  claude:<sonnet|opus|fable>            e.g. claude:sonnet
-#           codex:<model>[:<effort>]             e.g. codex:gpt-5.5:medium, codex:gpt-6-astra:xhigh
+#   runner  claude:<sonnet|opus|fable>            e.g. claude:opus — every implementation lot
+#           codex:<model>[:<effort>]             e.g. codex:gpt-5.5:high — AUDITS ONLY: a launch on codex
+#                                                requires an id starting with `audit-` (owner's rule,
+#                                                2026-09-25: the codex quota is small and shared)
 #   brief   Markdown brief in the mandatory format (docs/ORCHESTRATOR.md §"The brief")
 #
 # Environment:
 #   EXECUTOR_LOG_DIR   where to write <id>.log (default: ./.executor-logs)
 #   EXECUTOR_MAX_TURNS claude turn budget (default 300)
 #   EXECUTOR_BASE      ref the new branch starts from (default: origin/main)
+#   EXECUTOR_FRESH=1   resume with a NEW claude session (no --continue) primed with the frame, BRIEF.md and the
+#                      follow-up: hands a lot started on codex (or a lost session) over to claude
 #
 # The agent works with all permission prompts disabled inside its own worktree, opens its own PR
 # and writes REPORT.md (not committed) at the worktree root: read that file and the log, not the
 # transcript. Both CLIs use their own logins, distinct from the orchestrator's session.
 set -euo pipefail
 
-usage() { sed -n '2,20p' "$0"; exit 64; }
+usage() { sed -n '2,24p' "$0"; exit 64; }
 
 MODE=launch
 if [ "${1:-}" = "resume" ]; then MODE=resume; shift; fi
@@ -29,6 +33,11 @@ if [ "${1:-}" = "resume" ]; then MODE=resume; shift; fi
 ID="$1"; RUNNER="$2"; INPUT="$3"; shift 3
 CLI="${RUNNER%%:*}"; REST="${RUNNER#*:}"; MODEL="${REST%%:*}"; EFFORT=""
 [ "$REST" != "$MODEL" ] && EFFORT="${REST#*:}"
+if [ "$CLI" = codex ] && [ "$MODE" = launch ] && [ "${ID#audit-}" = "$ID" ]; then
+  echo "codex is for audits only (owner's rule, 2026-09-25): launch implementation lots on claude:<sonnet|opus|fable>," \
+       "or name an audit lot audit-<id>" >&2
+  exit 64
+fi
 
 ROOT="$(git rev-parse --show-toplevel)"
 COMMON="$(git -C "$ROOT" rev-parse --git-common-dir)"
@@ -60,6 +69,23 @@ $(cat "$INPUT")"
 else
   [ -d "$WORKTREE" ] || { echo "no worktree to resume: $WORKTREE" >&2; exit 66; }
   PROMPT="$INPUT"
+  if [ "${EXECUTOR_FRESH:-}" = 1 ]; then
+    PROMPT="$(cat "$ROOT/scripts/executor/system-prompt.md")
+
+----
+
+You take over a lot in progress: another executor started it in this worktree (branch $BRANCH). Its
+commits (git log origin/main..HEAD), uncommitted work (git status, git diff) and notes (REPORT.md,
+LAST_MESSAGE.md if present) are yours to continue; do not redo what is done. Brief (BRIEF.md):
+
+$(cat "$WORKTREE/BRIEF.md")
+
+----
+
+Orchestrator's follow-up:
+
+$INPUT"
+  fi
 fi
 
 # Build locks (scripts/build-shims/lock.sh): one rapier-cairo build at a time (project lock), and the
@@ -74,7 +100,7 @@ case "$CLI" in
   claude)
     ARGS=(-p --model "$MODEL" --max-turns "${EXECUTOR_MAX_TURNS:-300}" --name "exec-$ID" \
           --dangerously-skip-permissions --output-format stream-json --verbose)
-    [ "$MODE" = resume ] && ARGS+=(--continue)
+    [ "$MODE" = resume ] && [ "${EXECUTOR_FRESH:-}" != 1 ] && ARGS+=(--continue)
     # A workspace test run behind the shared build lock can exceed Claude Code's default 10-minute
     # Bash cap; a capped command is moved to the background and a headless session then ends
     # without its result. Raise both caps to one hour.

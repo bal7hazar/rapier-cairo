@@ -13,27 +13,33 @@ large directly.
   research.
 - Every sub-task runs in its own git worktree + branch (`feat/<module>`), launched in the
   background with its output redirected to a log file.
-- Two interchangeable CLIs, on two accounts distinct from the session; alternate according to
-  the remaining quota of each:
-  - `claude -p "$(cat brief.md)" --model <sonnet|opus|fable> --dangerously-skip-permissions --name <task>`;
-    resume with context: `claude --continue -p "<follow-up>"` in the same worktree.
-  - `codex exec -C <worktree> -m <model> -c model_reasoning_effort=<low|medium|high|xhigh> --dangerously-bypass-approvals-and-sandbox -o REPORT.md "$(cat brief.md)"`.
+- **Every implementation lot runs on the `claude` CLI** (its own account, distinct from the
+  session): `claude -p "$(cat brief.md)" --model <sonnet|opus|fable> --dangerously-skip-permissions --name <task>`;
+  resume with context: `claude --continue -p "<follow-up>"` in the same worktree.
+- **`codex` is for audits and second opinions only, used sparingly** (owner's rule, 2026-09-25: its
+  quota is small and shared between the orchestrators): the review of a merged lot, a cross-check
+  of a numeric decision, an independent opinion on a design. Never an implementation lot.
+  `codex exec -C <worktree> -m <model> -c model_reasoning_effort=<medium|high|xhigh> --dangerously-bypass-approvals-and-sandbox -o LAST_MESSAGE.md "$(cat audit.md)"`.
+  `scripts/executor.sh` refuses a codex launch unless the lot id starts with `audit-`. A lot started
+  on codex that hits the quota is handed over to claude in the same worktree
+  (`EXECUTOR_FRESH=1 scripts/executor-unit.sh resume <id> claude:opus "<follow-up>"`).
 - The agent writes a `REPORT.md` (not committed) at the root of its worktree: the orchestrator
   reads that file and the log, not the transcript.
 
 ## Model choice by difficulty
 
-| difficulty | claude CLI | codex CLI | examples |
-|---|---|---|---|
-| mechanical, well framed | Sonnet | `gpt-5.5` or `gpt-5.6-*` (effort `medium`) | template-generated code, test compaction, spec alignment, benching variants already identified |
-| standard port with numerics | Opus | `gpt-5.6-*` (effort `high`) | a new module: kernels, tests, golden vectors, benches |
-| genuinely complex | Fable 5.1 | `gpt-6-astra` (effort `xhigh`) | novel numerics, hard debugging, cross-module design, API arbitration |
+| difficulty | claude CLI (implementation) | examples |
+|---|---|---|
+| mechanical, well framed | Sonnet 5 | template-generated code, test compaction, spec alignment, benching variants already identified |
+| standard port with numerics | Opus 5.5 | a new module: kernels, tests, golden vectors, benches |
+| genuinely complex | Fable 5.1 (sparingly) | novel numerics, hard debugging, cross-module design, API arbitration |
+
+Audits on codex (only `gpt-5.5` and `gpt-6-astra` are available on this login): `gpt-5.5` effort
+`high` for a lot review, `gpt-6-astra` effort `xhigh` for a hard numeric or design cross-check.
 
 - The strong models are not the default, but do not rule them out when the problem warrants
   them.
 - The smaller the model (or the lower the effort), the tighter the brief must be.
-- The codex model tiering is inferred from the names (`gpt-6-astra` above `gpt-5.6-*`, which are
-  above `gpt-5.5`); adjust it if the actual ranking is known.
 
 ## The brief (mandatory, in this order)
 

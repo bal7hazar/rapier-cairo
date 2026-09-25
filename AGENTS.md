@@ -37,27 +37,30 @@ The orchestrator-side strategy (CLIs, model tiers, brief format, parallelism) is
 | Role | Does | Does not |
 |---|---|---|
 | **Orchestrator** | Owns `docs/PLAN.md`, `docs/interfaces/**`, root `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, every `lib.cairo` and crate `Scarb.toml`; pre-declares the stubs of a wave (modules, test files, snapshot files) before launching it; writes the briefs; reviews `REPORT.md` + CI; merges; updates re-exports/status/decisions after each merge | Large implementation work |
-| **Executor** (headless CLI agent: `claude -p` or `codex exec`, own account, own worktree and branch `feat/<id>`) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its PR and drives it to green CI; writes `REPORT.md` (uncommitted) | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, ask questions |
-| **Reviewer** | Checks API parity with upstream, deviations, gas table, conventions | First implementation |
+| **Executor** (headless CLI agent: `claude -p`, own account, own worktree and branch `feat/<id>`) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its PR and drives it to green CI; writes `REPORT.md` (uncommitted) | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, ask questions |
+| **Reviewer** (the orchestrator, or an `audit-<id>` lot on `codex exec`) | Checks API parity with upstream, deviations, gas table, conventions | First implementation |
 
 ### Launching executors
 
-`scripts/executor.sh <id> <runner> <brief.md>` with `runner` = `claude:sonnet|opus|fable` or
-`codex:<model>[:<effort>]`; `scripts/executor.sh resume <id> <runner> "<follow-up>"` continues an
-interrupted agent in the same worktree. The launcher prepends `scripts/executor/system-prompt.md`
+`scripts/executor.sh <id> <runner> <brief.md>` with `runner` = `claude:sonnet|opus|fable` for every
+implementation lot; `codex:<model>[:<effort>]` is for audits and second opinions only (owner's rule,
+2026-09-25; the launcher refuses a codex launch unless the id starts with `audit-`).
+`scripts/executor.sh resume <id> <runner> "<follow-up>"` continues an interrupted agent in the same
+worktree (`EXECUTOR_FRESH=1` starts a new claude session there, e.g. to take over a codex lot). The launcher prepends `scripts/executor/system-prompt.md`
 (the frame every executor must obey) to the brief. Logs go to `.executor-logs/<id>.log`; the
 orchestrator reads `REPORT.md` and the log, never the transcript.
 
 Model choice by difficulty (`docs/ORCHESTRATOR.md`):
 
-| difficulty | claude | codex |
-|---|---|---|
-| mechanical, well framed (generated code, spec alignment, benching already-identified variants) | `sonnet` | `gpt-5.5` / `gpt-5.6-*`, effort `medium` |
-| standard port with numerics (a new module: kernels, tests, golden vectors, benches) | `opus` | `gpt-5.6-*`, effort `high` |
-| genuinely complex (novel numerics, hard debugging, cross-module design) | `fable` | `gpt-6-astra`, effort `xhigh` |
+| difficulty | claude (implementation) |
+|---|---|
+| mechanical, well framed (generated code, spec alignment, benching already-identified variants) | `sonnet` |
+| standard port with numerics (a new module: kernels, tests, golden vectors, benches) | `opus` |
+| genuinely complex (novel numerics, hard debugging, cross-module design) | `fable`, sparingly |
 
-The smaller the model, the tighter the brief. On the current codex account only `gpt-5.5` and
-`gpt-6-astra` are accepted (`gpt-5.6-*` is refused): use `gpt-5.5` at `high` effort for the middle tier.
+The smaller the model, the tighter the brief. Audits on codex: only `gpt-5.5` (effort `high`, lot
+reviews) and `gpt-6-astra` (effort `xhigh`, hard numeric or design cross-checks) are accepted on the
+current account.
 
 ### Brief (mandatory sections, in this order)
 
