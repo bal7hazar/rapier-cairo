@@ -5,9 +5,10 @@
 //! solid, enabled, all-pass groups, no hooks, no events, no force threshold, `user_data` 0.
 //!
 //! Deviations: `rotation` takes a unit [`Rot2`] where upstream takes an angle (no trigonometry in
-//! `rapier_math` yet); `halfspace` takes a plain `Vec2` outward normal (expected unit); the
-//! deprecated `position_wrt_parent` and `delta`, the shapes that are not in the closed `Shape`
-//! enum and `contact_skin` are not ported.
+//! `rapier_math` yet); `halfspace` takes a plain `Vec2` outward normal (expected unit);
+//! `convex_hull` is exact and starts the polygon at the lexicographically smallest vertex
+//! (`super::convex_hull`); the shapes that are not in the closed `Shape` enum and `contact_skin`
+//! are not ported.
 
 use fixed::trig::TrigTrait;
 use fixed::{Fixed, HALF, ONE, ZERO};
@@ -66,14 +67,22 @@ pub impl ColliderBuilderDefault of Default<ColliderBuilder> {
     }
 }
 
+/// Upstream `From<ColliderBuilder> for Collider`: [`ColliderBuilderTrait::build`].
+pub impl ColliderBuilderIntoCollider of Into<ColliderBuilder, Collider> {
+    #[inline(always)]
+    fn into(self: ColliderBuilder) -> Collider {
+        self.build()
+    }
+}
+
 #[generate_trait]
 pub impl ColliderBuilderImpl of ColliderBuilderTrait {
     /// A builder for `shape` with the default settings.
     fn new(shape: Shape) -> ColliderBuilder {
         ColliderBuilder {
             shape,
-            mass_properties: ColliderMassProps::Density(ONE),
-            friction: HALF,
+            mass_properties: ColliderMassProps::Density(Self::default_density()),
+            friction: Self::default_friction(),
             friction_combine_rule: CoefficientCombineRule::Average,
             restitution: ZERO,
             restitution_combine_rule: CoefficientCombineRule::Average,
@@ -97,6 +106,18 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
     fn convex_polygon(points: Span<Vec2>) -> Option<ColliderBuilder> {
         let polygon = rapier_geometry2d::shape::ConvexPolygonTrait::from_convex_polyline(points)?;
         Some(Self::new(Shape::ConvexPolygon(BoxTrait::new(polygon))))
+    }
+
+    /// The convex polygon hull of `points` (upstream `convex_hull`, parry's `convex_hull2` then
+    /// `from_convex_polyline`): exact, counter-clockwise from the lexicographically smallest
+    /// point, collinear and duplicate points dropped. `None` when the hull has fewer than 3
+    /// vertices (fewer than 3 distinct points, or all collinear) or more than 8 (the most a
+    /// `ConvexPolygon` holds).
+    /// #### Panics
+    /// * `'Fixed: overflow'` when a coordinate difference leaves the Q32.32 range.
+    fn convex_hull(points: Span<Vec2>) -> Option<ColliderBuilder> {
+        let hull = super::convex_hull::convex_hull(points)?;
+        Self::convex_polygon(hull.span())
     }
 
     /// A disc of radius `radius`.
@@ -221,6 +242,30 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
     /// Sets the whole pose: relative to the parent body, or in the world when standalone.
     fn position(self: ColliderBuilder, position: Pose2) -> ColliderBuilder {
         ColliderBuilder { position, ..self }
+    }
+
+    /// Deprecated upstream alias of [`Self::position`] (the pose relative to the parent body).
+    #[inline(always)]
+    fn position_wrt_parent(self: ColliderBuilder, pos: Pose2) -> ColliderBuilder {
+        ColliderBuilder { position: pos, ..self }
+    }
+
+    /// Deprecated upstream alias of [`Self::position`].
+    #[inline(always)]
+    fn delta(self: ColliderBuilder, delta: Pose2) -> ColliderBuilder {
+        ColliderBuilder { position: delta, ..self }
+    }
+
+    /// The default friction coefficient of a builder, `0.5`.
+    #[inline(always)]
+    fn default_friction() -> Fixed {
+        HALF
+    }
+
+    /// The default density of a builder, `1`.
+    #[inline(always)]
+    fn default_density() -> Fixed {
+        ONE
     }
 
     /// Whether the collider starts enabled.
@@ -444,6 +489,55 @@ mod tests {
         assert!(
             ColliderBuilderTrait::convex_polygon([v(ZERO, ZERO), v(ONE, ZERO)].span()).is_none(),
         );
+    }
+
+    /// Hull round trip: the builder holds the exact polygon of the hull, whatever the order and
+    /// the interior points; degenerate sets are rejected as upstream returns `None`.
+    #[test]
+    fn test_convex_hull_constructor() {
+        let square = [v(-ONE, -ONE), v(ONE, -ONE), v(ONE, ONE), v(-ONE, ONE)];
+        let expected = ColliderBuilderTrait::convex_polygon(square.span()).unwrap();
+        // (points, hull is the square)
+        let cases = array![
+            (array![v(ONE, ONE), v(-ONE, ONE), v(ONE, -ONE), v(-ONE, -ONE)], true),
+            (array![v(ZERO, ZERO), v(-ONE, ONE), v(ONE, -ONE), v(ONE, ONE), v(-ONE, -ONE)], true),
+            (array![v(ONE, ONE), v(ONE, ONE), v(ONE, ONE)], false),
+            (array![v(ZERO, ZERO), v(ONE, ONE), v(TWO, TWO)], false),
+            (array![v(ZERO, ZERO), v(ONE, ONE)], false),
+        ];
+        for (points, is_square) in cases {
+            let built = ColliderBuilderTrait::convex_hull(points.span());
+            if is_square {
+                assert_eq!(built.unwrap(), expected);
+            } else {
+                assert!(built.is_none());
+            }
+        }
+    }
+
+    /// Deprecated pose aliases, default coefficients and `Into<Collider>`.
+    #[test]
+    fn test_aliases_defaults_and_into() {
+        let pose = Pose2Trait::new(v(ONE, TWO), Rot2 { re: ZERO, im: ONE });
+        let base = ColliderBuilderTrait::ball(ONE);
+        assert_eq!(base.position_wrt_parent(pose), base.position(pose));
+        assert_eq!(base.delta(pose), base.position(pose));
+        assert_eq!(ColliderBuilderTrait::default_friction(), base.friction);
+        assert_eq!(ColliderBuilderTrait::default_density(), ONE);
+        assert_eq!(base.mass_properties, ColliderMassProps::Density(ONE));
+        let collider: super::Collider = base.position(pose).into();
+        assert_eq!(collider, base.position(pose).build());
+    }
+
+    #[test]
+    fn gas_convex_hull_8() {
+        let points = opaque(
+            [
+                v(TWO, TWO), v(ZERO, -TWO), v(-TWO, ZERO), v(TWO, ZERO), v(-ONE, TWO), v(ONE, -TWO),
+                v(ZERO, TWO), v(-TWO, -ONE),
+            ],
+        );
+        let _ = ColliderBuilderTrait::convex_hull(points.span());
     }
 
     #[test]

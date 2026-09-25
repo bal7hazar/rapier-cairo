@@ -6,7 +6,11 @@ rapier_dynamics2d::collider_set::tests::gas_get_set 84270
 rapier_dynamics2d::collider_set::tests::gas_insert 51010
 rapier_dynamics2d::collider_set::tests::gas_insert_with_parent 306077
 rapier_dynamics2d::collider_set::tests::gas_iter_8 364390
+rapier_dynamics2d::collider_set::tests::gas_iter_enabled_8 463140
 rapier_dynamics2d::collider_set::tests::gas_remove_with_parent 377130
+rapier_dynamics2d::collider_set::tests::gas_set_parent_detach 433255
+rapier_dynamics2d::collider_set::tests::gas_set_parent_move 601180
+rapier_dynamics2d::collider_set::tests::gas_set_parent_setup 339409
 rapier_dynamics2d::collider_set::tests::gas_state_setup 270280
 rapier_dynamics2d::collider_set::tests::gas_to_state 407580
 rapier_dynamics2d::collider_set::tests::test_body_remove_detaches_or_removes_colliders 1350163
@@ -16,3 +20,5 @@ rapier_dynamics2d::collider_set::tests::test_insert_with_missing_parent_panics 3
 rapier_dynamics2d::collider_set::tests::test_insert_with_parent_links_and_poses 572095
 rapier_dynamics2d::collider_set::tests::test_propagate_positions 843137
 rapier_dynamics2d::collider_set::tests::test_remove_swap_removes_from_parent 1085366
+rapier_dynamics2d::collider_set::tests::test_set_and_handle_helpers 1197533
+rapier_dynamics2d::collider_set::tests::test_set_parent 4838272

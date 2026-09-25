@@ -220,14 +220,16 @@ OWNER_ALIASES = {name: (name,) for name in """
 ShapeType HalfSpace Cuboid Ball Capsule Segment ConvexPolygon Aabb Ray RayIntersection
 """.split()}
 OWNER_ALIASES.update({
-    "PhysicsWorld": ("World",), "PhysicsPipeline": ("World", "pipeline"),
+    "PhysicsWorld": ("World",), "PhysicsPipeline": ("World", "pipeline", "PhysicsPipeline"),
     "QueryPipeline": ("World", "queries"), "DefaultQueryDispatcher": ("dispatch",),
     "PersistentQueryDispatcher": ("dispatch",), "RigidBodyHandle": ("Handle",),
     "ColliderHandle": ("Handle",), "ImpulseJointHandle": ("Handle",),
-    "MultibodyJointHandle": ("Handle",), "IslandManager": ("pipeline::islands",),
+    "MultibodyJointHandle": ("Handle",), "IslandManager": ("pipeline::islands", "World"),
     "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase",),
     "Halfspace": ("HalfSpace",),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
+    "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),
+    "RigidBodyColliders": ("RigidBodyColliders", "RigidBodySet"), "ColliderShape": ("Shape",),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -239,6 +241,17 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("QueryPipeline", "project_point"): ("project_point",),
     ("QueryPipeline", "intersection_with_shape"): ("intersect_shape",),
     ("Collider", "parent"): ("parent", "parent_handle"), ("Shape", "as_typed_shape"): ("shape_type",),
+    # Values, not references: `*_mut` accessors are the copy-out reads (write back with `set`).
+    ("Collider", "shape_mut"): ("shape",), ("Collider", "shared_shape"): ("shape",),
+    ("ColliderSet", "get_mut"): ("get",), ("ColliderSet", "iter_mut"): ("iter",),
+    ("ColliderSet", "iter_enabled_mut"): ("iter_enabled",),
+    ("ColliderSet", "get_unknown_gen_mut"): ("get_unknown_gen",),
+    ("PhysicsWorld", "rigid_bodies_mut"): ("rigid_bodies",),
+    ("PhysicsWorld", "all_colliders_mut"): ("all_colliders",),
+    ("PhysicsWorld", "step_with_events"): ("step_with_force_events",),
+    ("PhysicsWorld", "PhysicsWorld"): ("World",), ("ColliderShape", "ColliderShape"): ("Shape",),
+    ("ColliderHandle", "ColliderHandle"): ("Handle",), ("ColliderHandle", "from_raw_parts"): ("new",),
+    ("ColliderPosition", "From<T>"): ("From<Pose2>",),
 }
 
 
@@ -547,19 +560,21 @@ def load_inventory(path: Path) -> list[Item]:
 def exclusion_reason(item: Item) -> str:
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
-    if "soft_body" in blob or "softbody" in blob:
+    if any(x in blob for x in ("soft_body", "softbody", "softelastic", "deformable_mesh", "insert_deformable")) \
+            or item.name == "soft_bodies" and item.owner in ("PhysicsWorld", "Quarantine"):
         return "soft bodies"
     if "multibody" in blob:
         return "multibody"
-    if any(x in blob for x in ("simd", "parallel", "coloring", "graph_col")):
+    if any(x in blob for x in ("simd", "parallel", "coloring", "graph_col", "thread_pool", "num_threads")):
         return "SIMD/parallel"
     if "debug_render" in blob:
         return "debug render"
     if any(x in blob for x in ("counter", "timer")) and "controller" not in blob:
         return "profiling counters"
-    if item.owner in ("PhysicsHooks", "EventHandler") or "physics_hooks" in blob:
+    if item.owner in ("PhysicsHooks", "EventHandler", "ChannelEventCollector") or "physics_hooks" in blob:
         return "dyn hooks"
-    if any(x in blob for x in ("trimesh", "voxels", "heightfield3", "height_field3")):
+    if any(x in blob for x in ("trimesh", "voxels", "heightfield3", "height_field3")) \
+            or (item.owner, item.name) == ("ColliderBuilder", "voxelized_mesh"):
         return "trimesh/voxels/3D heightfield"
     if any(x in blob for x in ("epa", "gjk", "simplex")):
         return "EPA/GJK internals not exposed"
@@ -572,7 +587,8 @@ def exclusion_reason(item: Item) -> str:
     if any(x in blob for x in ("f32", "f64", "approx")):
         return "f32/f64 conversions and approx traits"
     if "Spherical" in item.owner or any(x in blob for x in (
-        "dim3", "polyhedron", "tetrahedron", "cone", "cylinder", "spherical_joint")):
+        "dim3", "polyhedron", "tetrahedron", "cone", "cylinder", "spherical_joint")) \
+            or (item.owner, item.name) == ("ColliderBuilder", "capsule_z"):
         return "dim3-only"
     return ""
 

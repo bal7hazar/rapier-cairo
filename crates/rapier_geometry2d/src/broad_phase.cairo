@@ -167,6 +167,9 @@ mod grid;
 mod merge_sorted;
 
 mod ordering;
+/// `ColliderPair`: two collider handles.
+pub mod pair;
+pub use pair::{ColliderPair, ColliderPairDefault, ColliderPairImpl, ColliderPairTrait};
 mod scale;
 #[cfg(test)]
 mod scale_benches;

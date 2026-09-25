@@ -6,7 +6,7 @@
 //! flag) raise it only when the value actually changes. Getters and setters are cold paths:
 //! plain field accesses, no candidates.
 
-use fixed::{Fixed, ONE};
+use fixed::{Fixed, HALF, ONE};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::changes::{
@@ -14,10 +14,12 @@ use rapier_core::collider::changes::{
 };
 use rapier_core::collider::{
     ActiveCollisionTypes, ActiveEvents, ActiveHooks, CoefficientCombineRule, ColliderChanges,
-    ColliderEnabled, ColliderFlags, ColliderMaterial, ColliderType, ColliderTypeTrait,
+    ColliderChangesTrait, ColliderEnabled, ColliderFlags, ColliderMaterial, ColliderType,
+    ColliderTypeTrait,
 };
+use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::interaction_groups::InteractionGroups;
-use rapier_geometry2d::aabb::Aabb;
+use rapier_geometry2d::aabb::{Aabb, AabbTrait};
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::{Shape, ShapeTrait};
 use rapier_math::pose2::Pose2;
@@ -302,6 +304,55 @@ pub impl ColliderImpl of ColliderTrait {
         self.shape.compute_aabb(self.pos.pose)
     }
 
+    /// The world AABB loosened by `prediction` on every side (upstream
+    /// `compute_collision_aabb`; the port has no contact skin, so the margin is `prediction`).
+    /// #### Panics
+    /// * As `Shape::compute_aabb`; `'Fixed: overflow'` when a loosened bound leaves the range.
+    #[inline(always)]
+    fn compute_collision_aabb(self: Collider, prediction: Fixed) -> Aabb {
+        self.shape.compute_aabb(self.pos.pose).loosened(prediction)
+    }
+
+    /// The AABB the broad phase uses (upstream `compute_broad_phase_aabb`): the collision AABB
+    /// for half the prediction distance of `params` (`prediction * 1/2`, rounded as `Fixed`
+    /// products, the margin of `ColliderSetTrait::broad_phase_proxies`). Upstream also reads the
+    /// parent body for soft CCD, which the port does not have, hence no body-set argument.
+    /// #### Panics
+    /// * As [`Self::compute_collision_aabb`].
+    #[inline(always)]
+    fn compute_broad_phase_aabb(self: Collider, params: IntegrationParameters) -> Aabb {
+        self.compute_collision_aabb(params.prediction_distance() * HALF)
+    }
+
+    /// The smallest AABB containing the shape at the current pose and at `next_position`
+    /// (upstream `compute_swept_aabb`, parry's `Shape::compute_swept_aabb`: the merge of the two
+    /// world AABBs; the motion in between is not swept). Inlined: outlined, the two shape
+    /// `match`es are charged their costliest arm (`alternatives`, 154k against 32k–42k gas).
+    /// #### Panics
+    /// * As `Shape::compute_aabb`.
+    #[inline(always)]
+    fn compute_swept_aabb(self: Collider, next_position: Pose2) -> Aabb {
+        self.shape.compute_aabb(self.pos.pose).merged(self.shape.compute_aabb(next_position))
+    }
+
+    /// Copies every property of `other` into `self` except the parent link (upstream
+    /// `copy_from`: it cannot re-parent), and raises every change flag. The world pose is copied
+    /// only when `self` has no parent (a parent body drives it otherwise).
+    fn copy_from(ref self: Collider, other: Collider) {
+        if self.parent.is_none() {
+            self.pos = other.pos;
+        }
+        self.co_type = other.co_type;
+        self.shape = other.shape;
+        self.mprops = other.mprops;
+        self.material = other.material;
+        self.contact_force_event_threshold = other.contact_force_event_threshold;
+        self.user_data = other.user_data;
+        self.flags = other.flags;
+        self.one_way = other.one_way;
+        self.changes = ColliderChangesTrait::all();
+    }
+
     /// Material of the collider.
     #[inline(always)]
     fn material(self: Collider) -> ColliderMaterial {
@@ -418,340 +469,21 @@ pub impl ColliderImpl of ColliderTrait {
 }
 
 #[cfg(test)]
-mod tests {
-    use fixed::{Fixed, FixedTrait, HALF, ONE, PI, TWO, ZERO};
-    use glam::Vec2;
-    use rapier_core::Handle;
-    use rapier_core::collider::changes::{
-        ENABLED_OR_DISABLED, GROUPS, LOCAL_MASS_PROPERTIES, PARENT, POSITION, SHAPE, TYPE,
-    };
-    use rapier_core::collider::{
-        ActiveEventsTrait, ActiveHooksTrait, CoefficientCombineRule, ColliderChangesTrait,
-        ColliderEnabled, ColliderType,
-    };
-    use rapier_core::interaction_groups::{GROUP_1, GROUP_2, InteractionGroupsTrait};
-    use rapier_geometry2d::mass::MassPropertiesTrait;
-    use rapier_geometry2d::shape::{CuboidTrait, Shape};
-    use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};
-    use rapier_math::rot2::Rot2;
-    use rapier_testing::opaque;
-    use super::super::builder::ColliderBuilderTrait;
-    use super::super::components::{ColliderMassProps, ColliderParent};
-    use super::{Collider, ColliderTrait};
+pub mod alternatives {
+    use rapier_geometry2d::aabb::{Aabb, AabbTrait};
+    use rapier_geometry2d::shape::ShapeTrait;
+    use rapier_math::pose2::Pose2;
+    use super::Collider;
 
-    fn v(x: Fixed, y: Fixed) -> Vec2 {
-        Vec2 { x, y }
-    }
-
-    fn quarter_turn() -> Rot2 {
-        Rot2 { re: ZERO, im: ONE }
-    }
-
-    /// A fresh unit-density ball, with the change flags cleared.
-    fn quiet() -> Collider {
-        Collider {
-            changes: ColliderChangesTrait::empty(), ..ColliderBuilderTrait::ball(ONE).build(),
-        }
-    }
-
-    fn attached() -> Collider {
-        let parent = ColliderParent {
-            handle: Handle { index: 3, generation: 1 },
-            pos_wrt_parent: Pose2Trait::new(v(ONE, TWO), quarter_turn()),
-        };
-        Collider { parent: Some(parent), ..quiet() }
-    }
-
-    fn near(a: Fixed, b: Fixed, ulps: i64) {
-        let d = if a.raw > b.raw {
-            a.raw - b.raw
-        } else {
-            b.raw - a.raw
-        };
-        assert!(d <= ulps, "{} vs {}", a.raw, b.raw);
-    }
-
-    #[test]
-    fn test_sensor_and_enabled_transitions() {
-        let mut c = quiet();
-        assert!(!c.is_sensor() && c.is_enabled());
-        // No-op calls raise nothing.
-        c.set_sensor(false);
-        c.set_enabled(true);
-        assert!(c.changes.is_empty());
-        c.set_sensor(true);
-        assert!(c.is_sensor() && c.co_type == ColliderType::Sensor);
-        assert_eq!(c.changes, TYPE);
-        c.set_enabled(false);
-        assert!(!c.is_enabled() && c.flags.enabled == ColliderEnabled::Disabled);
-        assert_eq!(c.changes, TYPE | ENABLED_OR_DISABLED);
-        // A collider disabled by its parent is not enabled, and disabling it makes it
-        // `Disabled`; enabling it does nothing (upstream only leaves `Disabled`).
-        let mut c = quiet();
-        c.flags.enabled = ColliderEnabled::DisabledByParent;
-        assert!(!c.is_enabled());
-        c.set_enabled(true);
-        assert!(c.changes.is_empty() && c.flags.enabled == ColliderEnabled::DisabledByParent);
-        c.set_enabled(false);
-        assert_eq!(c.flags.enabled, ColliderEnabled::Disabled);
-        assert_eq!(c.changes, ENABLED_OR_DISABLED);
-        c.set_enabled(true);
-        assert!(c.is_enabled());
-        c.set_sensor(true);
-        c.set_sensor(false);
-        assert!(!c.is_sensor());
-    }
-
-    #[test]
-    fn test_pose_setters_and_getters() {
-        let mut c = quiet();
-        assert_eq!(c.position(), IDENTITY);
-        let t = v(ONE, -TWO);
-        c.set_translation(t);
-        assert_eq!(c.translation(), t);
-        assert_eq!(c.rotation(), Rot2 { re: ONE, im: ZERO });
-        assert_eq!(c.changes, POSITION);
-        c.set_rotation(quarter_turn());
-        assert_eq!(c.position(), Pose2Trait::new(t, quarter_turn()));
-        let pose = Pose2Trait::new(v(TWO, TWO), Rot2 { re: -ONE, im: ZERO });
-        c.set_position(pose);
-        assert_eq!(c.position(), pose);
-        assert_eq!(c.pos.pose, pose);
-    }
-
-    #[test]
-    fn test_parent_accessors_and_setters() {
-        // Standalone: no parent, and every `_wrt_parent` setter is a no-op.
-        let mut c = quiet();
-        assert!(c.parent().is_none() && c.position_wrt_parent().is_none());
-        c.set_position_wrt_parent(Pose2Trait::new(v(ONE, ONE), quarter_turn()));
-        c.set_translation_wrt_parent(v(ONE, ONE));
-        c.set_rotation_wrt_parent(quarter_turn());
-        assert_eq!(c, quiet());
-        // Attached.
-        let mut c = attached();
-        assert_eq!(c.parent(), Some(Handle { index: 3, generation: 1 }));
-        assert_eq!(c.position_wrt_parent(), Some(Pose2Trait::new(v(ONE, TWO), quarter_turn())));
-        c.set_translation_wrt_parent(v(-ONE, ZERO));
-        assert_eq!(c.position_wrt_parent(), Some(Pose2Trait::new(v(-ONE, ZERO), quarter_turn())));
-        c.set_rotation_wrt_parent(Rot2 { re: ONE, im: ZERO });
-        assert_eq!(
-            c.position_wrt_parent(), Some(Pose2Trait::new(v(-ONE, ZERO), IDENTITY.rotation)),
-        );
-        let pose = Pose2Trait::new(v(TWO, ONE), quarter_turn());
-        c.set_position_wrt_parent(pose);
-        assert_eq!(c.position_wrt_parent(), Some(pose));
-        assert_eq!(c.parent(), Some(Handle { index: 3, generation: 1 }));
-        assert_eq!(c.changes, PARENT);
-        // The world pose is not touched.
-        assert_eq!(c.position(), IDENTITY);
-    }
-
-    /// Guarded setters raise their bit on a change only; the others always raise or never do.
-    #[test]
-    fn test_change_tracking_of_setters() {
-        let mut c = quiet();
-        let all = InteractionGroupsTrait::all();
-        c.set_collision_groups(all);
-        c.set_solver_groups(all);
-        c.set_density(ONE);
-        assert!(c.changes.is_empty());
-        let groups = InteractionGroupsTrait::new(GROUP_1, GROUP_2, Default::default());
-        c.set_collision_groups(groups);
-        assert_eq!((c.changes, c.collision_groups()), (GROUPS, groups));
-        let mut c = quiet();
-        c.set_solver_groups(groups);
-        assert_eq!((c.changes, c.solver_groups()), (GROUPS, groups));
-        let mut c = quiet();
-        c.set_shape(Shape::Cuboid(CuboidTrait::new(v(ONE, HALF))));
-        assert_eq!(c.changes, SHAPE);
-        assert_eq!(c.shape(), Shape::Cuboid(CuboidTrait::new(v(ONE, HALF))));
-        // Material and flags never raise a bit.
-        let mut c = quiet();
-        c.set_friction(TWO);
-        c.set_restitution(HALF);
-        c.set_friction_combine_rule(CoefficientCombineRule::Max);
-        c.set_restitution_combine_rule(CoefficientCombineRule::Min);
-        c.set_active_hooks(ActiveHooksTrait::all());
-        c.set_active_events(ActiveEventsTrait::all());
-        c.set_contact_force_event_threshold(ONE);
-        assert!(c.changes.is_empty());
-        assert_eq!((c.friction(), c.restitution()), (TWO, HALF));
-        assert_eq!(c.friction_combine_rule(), CoefficientCombineRule::Max);
-        assert_eq!(c.restitution_combine_rule(), CoefficientCombineRule::Min);
-        assert_eq!(c.material(), c.material);
-        assert_eq!(c.active_hooks(), ActiveHooksTrait::all());
-        assert_eq!(c.active_events(), ActiveEventsTrait::all());
-        assert_eq!(c.contact_force_event_threshold(), ONE);
-    }
-
-    /// Density, mass and explicit mass properties, with the change bit on a change only.
-    #[test]
-    fn test_mass_variants() {
-        let mut c = quiet();
-        let volume = c.volume();
-        near(volume, PI, 4);
-        // `Density`: density is stored, mass is `density * area`.
-        assert_eq!(c.density(), ONE);
-        near(c.mass(), volume, 64);
-        c.set_density(TWO);
-        assert_eq!((c.changes, c.mprops), (LOCAL_MASS_PROPERTIES, ColliderMassProps::Density(TWO)));
-        near(c.mass(), volume * TWO, 64);
-        // `Mass`: mass is stored, density is `mass / area`.
-        let mut c = quiet();
-        c.set_mass(volume * TWO);
-        assert_eq!(c.changes, LOCAL_MASS_PROPERTIES);
-        assert_eq!(c.mass(), volume * TWO);
-        near(c.density(), TWO, 64);
-        near(c.mass_properties().mass(), volume * TWO, 64);
-        // `MassProperties`: returned as given, whatever the shape.
-        let mut c = quiet();
-        let props = MassPropertiesTrait::new(v(HALF, ZERO), TWO, ONE);
-        c.set_mass_properties(props);
-        assert_eq!(c.mass_properties(), props);
-        near(c.mass(), TWO, 4);
-        near(c.density(), TWO / volume, 64);
-        c.changes = ColliderChangesTrait::empty();
-        c.set_mass_properties(props);
-        assert!(c.changes.is_empty());
-        // A shape without area has no density to derive.
-        let segment = ColliderBuilderTrait::segment(v(ZERO, ZERO), v(ONE, ZERO)).mass(TWO).build();
-        assert_eq!(segment.density(), ZERO);
-        assert_eq!(segment.mass(), TWO);
-        assert_eq!(segment.volume(), ZERO);
-    }
-
-    #[test]
-    fn test_aabb_follows_the_pose() {
-        let mut c = quiet();
-        let aabb = c.compute_aabb();
-        assert_eq!((aabb.mins, aabb.maxs), (v(-ONE, -ONE), v(ONE, ONE)));
-        c.set_translation(v(TWO, -ONE));
-        let aabb = c.compute_aabb();
-        assert_eq!((aabb.mins, aabb.maxs), (v(ONE, -TWO), v(FixedTrait::from_int(3), ZERO)));
-        // A quarter turn swaps the extents of a box, exactly.
-        let mut c = ColliderBuilderTrait::cuboid(TWO, ONE).build();
-        c.set_rotation(quarter_turn());
-        let aabb = c.compute_aabb();
-        assert_eq!((aabb.mins, aabb.maxs), (v(-ONE, -TWO), v(ONE, TWO)));
-    }
-
-    #[test]
-    fn gas_baseline() {}
-
-    #[test]
-    fn gas_set_sensor() {
-        let mut c = opaque(quiet());
-        c.set_sensor(opaque(true));
-        assert!(c.is_sensor());
-    }
-
-    #[test]
-    fn gas_set_enabled() {
-        let mut c = opaque(quiet());
-        c.set_enabled(opaque(false));
-        assert!(!c.is_enabled());
-    }
-
-    #[test]
-    fn gas_set_position() {
-        let mut c = opaque(quiet());
-        c.set_position(opaque(IDENTITY));
-        assert!(c.changes.intersects(POSITION));
-    }
-
-    #[test]
-    fn gas_set_position_wrt_parent() {
-        let mut c = opaque(attached());
-        c.set_position_wrt_parent(opaque(IDENTITY));
-        assert!(c.changes.intersects(PARENT));
-    }
-
-    #[test]
-    fn gas_set_collision_groups() {
-        let mut c = opaque(quiet());
-        c.set_collision_groups(opaque(InteractionGroupsTrait::none()));
-        assert!(c.changes.intersects(GROUPS));
-    }
-
-    #[test]
-    fn gas_position() {
-        let pose: Pose2 = opaque(quiet()).position();
-        assert!(pose.rotation.re == ONE);
-    }
-
-    #[test]
-    fn gas_friction() {
-        assert!(opaque(quiet()).friction() == HALF);
-    }
-
-    #[test]
-    fn gas_mass_from_density() {
-        assert!(opaque(quiet()).mass() != ZERO);
-    }
-
-    #[test]
-    fn gas_mass_stored() {
-        let c = Collider { mprops: ColliderMassProps::Mass(opaque(TWO)), ..quiet() };
-        assert!(opaque(c).mass() != ZERO);
-    }
-
-    #[test]
-    fn gas_density_stored() {
-        assert!(opaque(quiet()).density() != ZERO);
-    }
-
-    #[test]
-    fn gas_density_from_mass() {
-        let c = Collider { mprops: ColliderMassProps::Mass(opaque(TWO)), ..quiet() };
-        assert!(opaque(c).density() != ZERO);
-    }
-
-    #[test]
-    fn gas_mass_from_mass_properties() {
-        let props = MassPropertiesTrait::new(v(ZERO, ZERO), opaque(TWO), opaque(ONE));
-        let c = Collider { mprops: ColliderMassProps::MassProperties(props), ..quiet() };
-        assert!(opaque(c).mass() != ZERO);
-    }
-
-    #[test]
-    fn gas_mass_properties_density() {
-        assert!(opaque(quiet()).mass_properties().inv_mass != ZERO);
-    }
-
-    #[test]
-    fn gas_mass_properties_cuboid() {
-        assert!(
-            opaque(ColliderBuilderTrait::cuboid(TWO, ONE).build())
-                .mass_properties()
-                .inv_mass != ZERO,
-        );
-    }
-
-    #[test]
-    fn gas_mass_properties_capsule() {
-        assert!(
-            opaque(ColliderBuilderTrait::capsule_y(HALF, HALF).build())
-                .mass_properties()
-                .inv_mass != ZERO,
-        );
-    }
-
-    #[test]
-    fn gas_compute_aabb_ball() {
-        assert!(opaque(quiet()).compute_aabb().maxs.x != ZERO);
-    }
-
-    #[test]
-    fn gas_compute_aabb_cuboid_rotated() {
-        let mut c = ColliderBuilderTrait::cuboid(TWO, ONE).build();
-        c.set_rotation(opaque(quarter_turn()));
-        assert!(opaque(c).compute_aabb().maxs.x != ZERO);
-    }
-
-    /// The cost of `opaque(collider)` itself, to subtract from the probes above.
-    #[test]
-    fn gas_opaque_collider() {
-        let _ = opaque(quiet());
+    /// Rejected: `compute_swept_aabb` out of line (every shape arm of both `match`es charged).
+    #[inline(never)]
+    pub fn compute_swept_aabb_outlined(collider: Collider, next_position: Pose2) -> Aabb {
+        collider
+            .shape
+            .compute_aabb(collider.pos.pose)
+            .merged(collider.shape.compute_aabb(next_position))
     }
 }
+
+#[cfg(test)]
+mod tests;

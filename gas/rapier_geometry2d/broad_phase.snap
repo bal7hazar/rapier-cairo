@@ -271,6 +271,10 @@ rapier_geometry2d::broad_phase::benches::gas_variant_3_64_0 3638500
 rapier_geometry2d::broad_phase::benches::gas_variant_3_64_1 7994390
 rapier_geometry2d::broad_phase::benches::gas_variant_3_64_2 15562270
 rapier_geometry2d::broad_phase::benches::gas_variant_3_64_3 4697660
+rapier_geometry2d::broad_phase::pair::tests::gas_baseline 14120
+rapier_geometry2d::broad_phase::pair::tests::gas_new 15320
+rapier_geometry2d::broad_phase::pair::tests::gas_swap 15720
+rapier_geometry2d::broad_phase::pair::tests::test_pair_helpers 33180
 rapier_geometry2d::broad_phase::scale_benches::gas_baseline 13620
 rapier_geometry2d::broad_phase::scale_benches::gas_cell_size 1051400
 rapier_geometry2d::broad_phase::scale_benches::gas_cell_size_max3 1038280

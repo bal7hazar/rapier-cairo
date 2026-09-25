@@ -17,18 +17,25 @@
 //! Sleeping (work package SL): bodies fall asleep and wake up island by island inside `step`
 //! (`crate::pipeline::islands`); as upstream's `PhysicsWorld`, inserting or removing a joint
 //! wakes both of its bodies up, removing a body or a collider wakes up every body it was in
-//! contact with, and a body woken up by hand (`RigidBodyTrait::wake_up`, the setters, forces
+//! contact with (not its sensor partners: its intersection pairs end at the next step, dormant
+//! or not), and a body woken up by hand (`RigidBodyTrait::wake_up`, the setters, forces
 //! and impulses) written back with [`WorldTrait::set_body`] wakes its island at the next step.
+//! The island manager's view is derived from the bodies' sleep state:
+//! [`WorldTrait::active_bodies`] / [`WorldTrait::num_active_bodies`] (no per-step bookkeeping).
 //!
 //! Deviations from upstream: no persistent island manager (islands are rebuilt every step),
 //! broad-phase state, CCD solver, multibody or soft body sets, query pipeline (the scene queries
 //! scan the collider set, `crate::queries`), hooks or event handler (events are returned by
-//! `step`).
+//! `step` and `step_with_force_events`, the counterpart of `step_with_events`), thread pool or
+//! quarantine (Q32.32 state cannot become non-finite: an overflow panics). Sets are read by
+//! copy: [`WorldTrait::rigid_bodies`] / [`WorldTrait::all_colliders`] also stand for upstream's
+//! `_mut` iterators (write changes back with `set_body` / `set_collider`).
 
-use fixed::Fixed;
+use fixed::{Fixed, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
+use rapier_core::rigid_body::RigidBodyType;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
@@ -58,6 +65,20 @@ pub struct World {
     /// its sensor intersection pairs.
     pub narrow_phase: NarrowPhase,
 }
+
+/// Upstream's name of the world.
+pub type PhysicsWorld = World;
+
+/// Upstream `PhysicsWorld::default`: gravity `(0, -9.81)` (nearest Q32.32) and the default
+/// integration parameters.
+pub impl WorldDefault of Default<World> {
+    fn default() -> World {
+        WorldTrait::new(Vec2 { x: ZERO, y: DEFAULT_GRAVITY_Y }, Default::default())
+    }
+}
+
+/// `-9.81` in Q32.32, rounded to nearest (upstream's default gravity).
+pub const DEFAULT_GRAVITY_Y: Fixed = Fixed { raw: -42133629174 };
 
 /// Operations of [`World`] (upstream `PhysicsWorld` names).
 #[generate_trait]
@@ -135,10 +156,11 @@ pub impl WorldImpl of WorldTrait {
     }
 
     /// Removes a collider (upstream `PhysicsWorld::remove_collider`); `None` when the handle
-    /// does not resolve. Every body in contact with it is woken up (its parent included); its
-    /// parent's mass is recomputed at the next step, which also ends its contact and sensor
-    /// pairs (see [`WorldTrait::remove_body`]; a sensor pair ends with `Stopped` flagged
-    /// `SENSOR | REMOVED` if its `Started` was emitted).
+    /// does not resolve. Every body in contact with it is woken up (its parent included, which
+    /// the next step's user changes also wake as its collider list changed); its sensor partners
+    /// are not, as upstream. The next step recomputes its parent's mass and ends its contact and
+    /// sensor pairs, dormant or not (see [`WorldTrait::remove_body`]; a sensor pair ends with
+    /// `Stopped` flagged `SENSOR | REMOVED` if its `Started` was emitted).
     fn remove_collider(ref self: World, handle: Handle) -> Option<Collider> {
         self.wake_contact_partners(handle);
         self.colliders.remove(handle, ref self.bodies)
@@ -164,14 +186,78 @@ pub impl WorldImpl of WorldTrait {
         }
     }
 
-    /// Wakes up the parents of both colliders of every contact pair of `collider` (upstream
-    /// `NarrowPhase::remove_collider`), and of its intersection pairs (so that a sleeping one
-    /// ends at the next step with its `REMOVED` event), before the collider goes.
+    /// Before `collider` goes: wakes up the parents of both colliders of every contact pair of
+    /// `collider` (upstream `NarrowPhase::remove_collider`: the contact graph only; its
+    /// intersection pairs wake nobody), and clears the body links of all its pairs
+    /// (`pipeline::sleeping::release_removed_pairs`) so that the next step ends them, dormant or
+    /// not, with their `REMOVED` event.
     fn wake_contact_partners(ref self: World, collider: Handle) {
         let mut touched = array![collider];
-        let _ = crate::pipeline::sleeping::wake_removed_partners(
+        let _ = crate::pipeline::sleeping::wake_touched_partners(
             touched.span(), self.narrow_phase.pairs.span(), ref self.bodies, ref self.colliders,
         );
+        self
+            .narrow_phase
+            .pairs =
+                crate::pipeline::sleeping::release_removed_pairs(
+                    self.narrow_phase.pairs.span(), collider,
+                );
+    }
+
+    /// Wakes up every non-fixed body (upstream `wake_up_all`, `IslandManager::wake_up` on each):
+    /// a sleeping body wakes up strongly (upstream wakes its whole sleeping island with a strong
+    /// timer reset), an awake one resets its sleep timer only when `strong`. Fixed bodies are
+    /// skipped. Cost: one read per body, one write per woken body.
+    fn wake_up_all(ref self: World, strong: bool) {
+        for (handle, body) in self.bodies.iter() {
+            if !body.is_fixed()
+                && (body.activation.sleeping
+                    || (strong && body.activation.time_since_can_sleep != ZERO)) {
+                let mut body = body;
+                body.wake_up(true);
+                let _ = self.bodies.set(handle, body);
+            }
+        }
+    }
+
+    /// Every awake island member as `(handle, body)`, ascending handle order (upstream
+    /// `active_bodies`, `IslandManager::active_bodies`): the enabled dynamic and kinematic bodies
+    /// that do not sleep. Derived from the sleep flags, as of the last step and the wake-ups
+    /// since. Cost: one read per body.
+    fn active_bodies(ref self: World) -> Array<(Handle, RigidBody)> {
+        let mut out = array![];
+        for (handle, body) in self.bodies.iter() {
+            if is_active(@body) {
+                out.append((handle, body));
+            }
+        }
+        out
+    }
+
+    /// The number of [`WorldTrait::active_bodies`] (upstream `IslandManager::
+    /// num_active_bodies`), without building the array.
+    fn num_active_bodies(ref self: World) -> u32 {
+        let mut count = 0;
+        for (_, body) in self.bodies.iter() {
+            if is_active(@body) {
+                count += 1;
+            }
+        }
+        count
+    }
+
+    /// Every `(handle, body)`, ascending handle order (upstream `rigid_bodies` and, by copy,
+    /// `rigid_bodies_mut`: write changes back with [`WorldTrait::set_body`]).
+    #[inline(always)]
+    fn rigid_bodies(ref self: World) -> Array<(Handle, RigidBody)> {
+        self.bodies.iter()
+    }
+
+    /// Every `(handle, collider)`, ascending handle order (upstream `all_colliders` and, by
+    /// copy, `all_colliders_mut`: write changes back with [`WorldTrait::set_collider`]).
+    #[inline(always)]
+    fn all_colliders(ref self: World) -> Array<(Handle, Collider)> {
+        self.colliders.iter()
     }
 
     /// A copy of the body behind `handle`.
@@ -332,6 +418,12 @@ pub impl WorldImpl of WorldTrait {
     }
 }
 
+/// An island member that does not sleep: enabled, not fixed, `sleeping` clear.
+#[inline(always)]
+fn is_active(body: @RigidBody) -> bool {
+    *body.enabled && *body.body_type != RigidBodyType::Fixed && !*body.activation.sleeping
+}
+
 /// The entries of `pairs` whose two colliders exist.
 fn existing(
     ref colliders: ColliderSet, pairs: Span<(Handle, Handle, bool)>,
@@ -346,261 +438,17 @@ fn existing(
 }
 
 #[cfg(test)]
-mod tests {
-    use fixed::{HALF, ONE, ZERO};
-    use glam::Vec2;
-    use rapier_core::Handle;
-    use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
-    use rapier_dynamics2d::collider_set::ColliderSetTrait;
-    use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
-    use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};
-    use rapier_math::pose2::Pose2;
-    use rapier_math::rot2::Rot2;
-    use rapier_testing::opaque;
-    use super::{World, WorldTrait};
-
-    fn at(x: fixed::Fixed, y: fixed::Fixed) -> Pose2 {
-        Pose2 { translation: Vec2 { x, y }, rotation: Rot2 { re: ONE, im: ZERO } }
-    }
-
-    /// Two dynamic balls joined by a revolute joint, and a standalone ground collider.
-    fn pair_world() -> (World, Handle, Handle, Handle) {
-        let mut world = WorldTrait::new(Vec2 { x: ZERO, y: -ONE }, Default::default());
-        let (a, _) = world
-            .insert(
-                RigidBodyTrait::dynamic(at(ZERO, ONE)), ColliderBuilderTrait::ball(HALF).build(),
-            );
-        let (b, _) = world
-            .insert(
-                RigidBodyTrait::dynamic(at(ONE, ONE)), ColliderBuilderTrait::ball(HALF).build(),
-            );
-        let joint = world.insert_impulse_joint(a, b, RevoluteJointBuilderTrait::new().build());
-        let _ = world
-            .insert_collider(
-                ColliderBuilderTrait::halfspace(Vec2 { x: ZERO, y: ONE }).build(), None,
-            );
-        (world, a, b, joint)
-    }
-
-    #[test]
-    fn test_insert_links_and_poses() {
-        let (mut world, a, _, joint) = pair_world();
-        assert_eq!(world.bodies.len(), 2);
-        let body = world.body(a).unwrap();
-        assert_eq!(body.colliders.len(), 1);
-        let collider = world.collider(*body.colliders.at(0)).unwrap();
-        assert_eq!(collider.parent(), Some(a));
-        assert_eq!(collider.position(), at(ZERO, ONE));
-        let standalone = world.collider(rapier_core::Handle { index: 2, generation: 0 }).unwrap();
-        assert_eq!(standalone.parent(), None);
-        assert_eq!(world.impulse_joint(joint).unwrap().body1, a);
-    }
-
-    /// `remove_body` removes the body's colliders and every joint attached to it; the other
-    /// body and the standalone collider stay.
-    #[test]
-    fn test_remove_body_detaches_colliders_and_joints() {
-        let (mut world, a, b, joint) = pair_world();
-        let co = *world.body(a).unwrap().colliders.at(0);
-        assert!(world.remove_body(a).is_some());
-        assert!(world.remove_body(a).is_none());
-        assert!(world.collider(co).is_none());
-        assert!(world.impulse_joint(joint).is_none());
-        assert!(world.body(b).is_some());
-        assert_eq!(world.colliders.len(), 2);
-        let _ = world.step();
-    }
-
-    #[test]
-    fn test_remove_collider_and_joint() {
-        let (mut world, a, _, joint) = pair_world();
-        let co = *world.body(a).unwrap().colliders.at(0);
-        assert!(world.remove_collider(co).is_some());
-        assert!(world.remove_collider(co).is_none());
-        assert_eq!(world.body(a).unwrap().colliders.len(), 0);
-        assert_eq!(
-            world.remove_impulse_joint(joint), Some(RevoluteJointBuilderTrait::new().build()),
-        );
-        assert!(world.remove_impulse_joint(joint).is_none());
-    }
-
-    #[test]
-    fn test_setters_write_back() {
-        let (mut world, a, _, _) = pair_world();
-        let mut body = world.body(a).unwrap();
-        body.set_linvel(Vec2 { x: ONE, y: ZERO });
-        assert!(world.set_body(a, body));
-        assert_eq!(world.body(a).unwrap().linvel(), Vec2 { x: ONE, y: ZERO });
-        let co = *body.colliders.at(0);
-        let mut collider = world.collider(co).unwrap();
-        collider.set_friction(ONE);
-        assert!(world.set_collider(co, collider));
-        assert_eq!(world.collider(co).unwrap().friction(), ONE);
-        let stale = Handle { index: a.index, generation: a.generation + 1 };
-        assert!(!world.set_body(stale, body));
-        assert!(world.contact_pair(co, co).is_none());
-    }
-
-    // Gas probes: `gas_<op>` − `gas_setup` is one call on the `pair_world` state.
-
-    #[test]
-    fn gas_baseline() {
-        let _ = opaque(1_u32);
-    }
-
-    #[test]
-    fn gas_new() {
-        let _ = WorldTrait::new(opaque(Vec2 { x: ZERO, y: -ONE }), Default::default());
-    }
-
-    #[test]
-    fn gas_setup() {
-        let _ = pair_world();
-    }
-
-    #[test]
-    fn gas_insert_body() {
-        let (mut world, _, _, _) = pair_world();
-        let _ = world.insert_body(RigidBodyTrait::dynamic(opaque(at(ZERO, ZERO))));
-    }
-
-    #[test]
-    fn gas_insert_collider_attached() {
-        let (mut world, a, _, _) = pair_world();
-        let _ = world.insert_collider(ColliderBuilderTrait::ball(opaque(HALF)).build(), Some(a));
-    }
-
-    /// `pair_world` plus a standalone sensor ball around the first ball, after one step.
-    fn sensor_world() -> (World, Handle, Handle) {
-        let (mut world, _, _, _) = pair_world();
-        let sensor = world
-            .insert_collider(
-                ColliderBuilderTrait::ball(ONE).sensor(true).position(at(ZERO, ONE)).build(), None,
-            );
-        let _ = world.step();
-        (world, sensor, Handle { index: 0, generation: 0 })
-    }
-
-    #[test]
-    fn test_intersection_queries_skip_removed_colliders() {
-        let (mut world, sensor, ball) = sensor_world();
-        assert_eq!(world.intersection_pair(sensor, ball), Some(true));
-        assert_eq!(world.intersection_pairs().len(), 2);
-        assert_eq!(world.intersection_pairs_with(ball), array![(ball, sensor, true)]);
-        let _ = world.remove_collider(ball);
-        assert_eq!(world.intersection_pairs_with(sensor).len(), 1);
-    }
-
-    #[test]
-    fn gas_intersection_pair() {
-        let (world, sensor, ball) = sensor_world();
-        let _ = opaque(world.intersection_pair(opaque(sensor), ball));
-    }
-
-    #[test]
-    fn gas_intersection_pairs_with() {
-        let (mut world, sensor, _) = sensor_world();
-        let _ = opaque(world.intersection_pairs_with(opaque(sensor)));
-    }
-
-    #[test]
-    fn gas_insert_collider_standalone() {
-        let (mut world, _, _, _) = pair_world();
-        let _ = world.insert_collider(ColliderBuilderTrait::ball(opaque(HALF)).build(), None);
-    }
-
-    #[test]
-    fn gas_insert() {
-        let (mut world, _, _, _) = pair_world();
-        let _ = world
-            .insert(
-                RigidBodyTrait::dynamic(opaque(at(ZERO, ZERO))),
-                ColliderBuilderTrait::ball(HALF).build(),
-            );
-    }
-
-    #[test]
-    fn gas_insert_impulse_joint() {
-        let (mut world, a, b, _) = pair_world();
-        let _ = world.insert_impulse_joint(opaque(a), b, RevoluteJointBuilderTrait::new().build());
-    }
-
-    #[test]
-    fn gas_remove_body() {
-        let (mut world, a, _, _) = pair_world();
-        assert!(world.remove_body(opaque(a)).is_some());
-    }
-
-    #[test]
-    fn gas_remove_collider() {
-        let (mut world, _, _, _) = pair_world();
-        assert!(world.remove_collider(opaque(Handle { index: 2, generation: 0 })).is_some());
-    }
-
-    #[test]
-    fn gas_remove_impulse_joint() {
-        let (mut world, _, _, joint) = pair_world();
-        assert!(world.remove_impulse_joint(opaque(joint)).is_some());
-    }
-
-    #[test]
-    fn gas_body() {
-        let (mut world, a, _, _) = pair_world();
-        assert!(world.body(opaque(a)).is_some());
-    }
-
-    #[test]
-    fn gas_set_body() {
-        let (mut world, a, _, _) = pair_world();
-        let body = world.body(a).unwrap();
-        assert!(world.set_body(opaque(a), body));
-    }
-
-    #[test]
-    fn gas_collider() {
-        let (mut world, _, _, _) = pair_world();
-        assert!(world.collider(opaque(Handle { index: 2, generation: 0 })).is_some());
-    }
-
-    #[test]
-    fn gas_set_collider() {
-        let (mut world, _, _, _) = pair_world();
-        let h = Handle { index: 2, generation: 0 };
-        let collider = world.collider(h).unwrap();
-        assert!(world.set_collider(opaque(h), collider));
-    }
-
-    #[test]
-    fn gas_impulse_joint() {
-        let (mut world, _, _, joint) = pair_world();
-        assert!(world.impulse_joint(opaque(joint)).is_some());
-    }
-
-    #[test]
-    fn gas_contact_pair() {
-        let (mut world, _, _, _) = pair_world();
-        let _ = world.step();
-        let h = Handle { index: 2, generation: 0 };
-        let _ = world.contact_pair(opaque(h), h);
-    }
-
-    #[test]
-    fn gas_step() {
-        let (mut world, _, _, _) = pair_world();
-        world.gravity = opaque(world.gravity);
-        let _ = world.step();
-    }
-    #[test]
-    fn gas_step_wrapped() {
-        let (mut world, _, _, _) = pair_world();
-        world.gravity = opaque(world.gravity);
-        let _ = super::alternatives::step_wrapped(ref world);
-    }
-}
+mod tests;
 
 #[cfg(test)]
 mod alternatives {
-    use super::{CollisionEvent, World};
+    use super::{CollisionEvent, World, WorldTrait};
+
+    /// `num_active_bodies` as the length of `active_bodies` (builds the array).
+    pub fn num_active_bodies_via_array(ref world: World) -> u32 {
+        world.active_bodies().len()
+    }
+
     /// Previous step entry: the compatibility wrapper adds a full World argument/return copy.
     pub fn step_wrapped(ref world: World) -> Array<CollisionEvent> {
         crate::pipeline::step(ref world)

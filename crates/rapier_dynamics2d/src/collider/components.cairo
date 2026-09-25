@@ -29,6 +29,16 @@ pub impl ColliderPositionDefault of Default<ColliderPosition> {
     }
 }
 
+#[generate_trait]
+pub impl ColliderPositionImpl of ColliderPositionTrait {
+    /// The identity pose (upstream `ColliderPosition::identity`).
+    #[inline(always)]
+    fn identity() -> ColliderPosition {
+        ColliderPosition { pose: IDENTITY }
+    }
+}
+
+/// Upstream `From<T: Into<Pose>>`: a pose is the only type that converts to one.
 pub impl Pose2IntoColliderPosition of Into<Pose2, ColliderPosition> {
     #[inline(always)]
     fn into(self: Pose2) -> ColliderPosition {
@@ -176,7 +186,8 @@ mod tests {
     use rapier_testing::opaque;
     use super::alternatives::{mass_properties_inline, mass_properties_split};
     use super::{
-        ColliderMassProps, ColliderMassPropsTrait, ColliderPosition, Pose2IntoColliderPosition,
+        ColliderMassProps, ColliderMassPropsTrait, ColliderPosition, ColliderPositionTrait,
+        Pose2IntoColliderPosition,
     };
 
     fn v(x: Fixed, y: Fixed) -> Vec2 {
@@ -221,6 +232,7 @@ mod tests {
         assert_eq!(props, ColliderMassProps::Density(ONE));
         let position: ColliderPosition = Default::default();
         assert_eq!(position.pose, IDENTITY);
+        assert_eq!(ColliderPositionTrait::identity(), position);
         let pose = Pose2Trait::new(v(ONE, TWO), Rot2 { re: ZERO, im: ONE });
         let converted: ColliderPosition = pose.into();
         assert_eq!(converted, ColliderPosition { pose });
