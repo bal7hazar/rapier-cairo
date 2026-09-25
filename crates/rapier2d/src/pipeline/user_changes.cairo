@@ -30,7 +30,8 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::narrow_phase::ContactPair;
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{
-    RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait, extra_additional_is_mass,
+    RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait, cold_or_default,
+    extra_additional_is_mass,
 };
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::ShapeTrait;
@@ -149,8 +150,9 @@ pub fn recompute_mass_properties_from_colliders(ref body: RigidBody, ref collide
             }
         }
     }
-    if extra_additional_is_mass(body.solver_flags) {
-        let mass = body.mprops.additional_local_mprops.mass();
+    let cold = cold_or_default(body.cold);
+    if extra_additional_is_mass(cold.solver_flags) {
+        let mass = cold.additional_local_mprops.mass();
         let prev_mass = local.mass();
         if prev_mass > ZERO {
             local.set_mass(prev_mass + mass, true);
@@ -161,7 +163,7 @@ pub fn recompute_mass_properties_from_colliders(ref body: RigidBody, ref collide
             local.set_mass(mass, true);
         }
     } else {
-        local = local + body.mprops.additional_local_mprops;
+        local = local + cold.additional_local_mprops;
     }
     body.mprops.local_mprops = local;
     body.mprops.max_extent = max_extent(local.local_com, shapes.span());

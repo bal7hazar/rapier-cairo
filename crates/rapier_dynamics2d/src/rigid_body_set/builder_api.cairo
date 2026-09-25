@@ -9,7 +9,7 @@ use rapier_math::rot2::Rot2;
 use crate::rigid_body::{LockedAxes, RigidBodyMassPropsTrait, RigidBodyPositionTrait};
 use super::body_api::RigidBodyTrait;
 use super::{
-    RigidBody, set_extra_additional_is_mass, set_extra_allow_fast_rotation,
+    RigidBody, cold_or_default, set_extra_additional_is_mass, set_extra_allow_fast_rotation,
     set_extra_pgs_iterations, set_extra_solver_iterations,
 };
 
@@ -137,26 +137,27 @@ pub impl RigidBodyBuilderImpl of RigidBodyBuilderTrait {
     }
     /// Initial user data.
     fn user_data(mut self: RigidBodyBuilder, data: u128) -> RigidBodyBuilder {
-        self.body.user_data = data;
+        let mut cold = cold_or_default(self.body.cold);
+        cold.user_data = data;
+        self.body.cold = BoxTrait::new(Some(cold));
         self
     }
     /// Initial additional solver iterations.
     fn additional_solver_iterations(
         mut self: RigidBodyBuilder, additional_iterations: u32,
     ) -> RigidBodyBuilder {
-        self
-            .body
-            .solver_flags =
-                set_extra_solver_iterations(self.body.solver_flags, additional_iterations);
+        let mut cold = cold_or_default(self.body.cold);
+        cold.solver_flags = set_extra_solver_iterations(cold.solver_flags, additional_iterations);
+        self.body.cold = BoxTrait::new(Some(cold));
         self
     }
     /// Initial additional PGS iterations.
     fn additional_pgs_iterations(
         mut self: RigidBodyBuilder, additional_iterations: u32,
     ) -> RigidBodyBuilder {
-        self
-            .body
-            .solver_flags = set_extra_pgs_iterations(self.body.solver_flags, additional_iterations);
+        let mut cold = cold_or_default(self.body.cold);
+        cold.solver_flags = set_extra_pgs_iterations(cold.solver_flags, additional_iterations);
+        self.body.cold = BoxTrait::new(Some(cold));
         self
     }
     /// Initial locked axes.
@@ -202,16 +203,20 @@ pub impl RigidBodyBuilderImpl of RigidBodyBuilderTrait {
     fn additional_mass_properties(
         mut self: RigidBodyBuilder, mprops: MassProperties,
     ) -> RigidBodyBuilder {
-        self.body.mprops.additional_local_mprops = mprops;
-        self.body.solver_flags = set_extra_additional_is_mass(self.body.solver_flags, false);
+        let mut cold = cold_or_default(self.body.cold);
+        cold.additional_local_mprops = mprops;
+        cold.solver_flags = set_extra_additional_is_mass(cold.solver_flags, false);
+        self.body.cold = BoxTrait::new(Some(cold));
         self
     }
     /// Initial additional mass.
     fn additional_mass(mut self: RigidBodyBuilder, mass: Fixed) -> RigidBodyBuilder {
         let mut mprops: MassProperties = Default::default();
         mprops.set_mass(mass, true);
-        self.body.mprops.additional_local_mprops = mprops;
-        self.body.solver_flags = set_extra_additional_is_mass(self.body.solver_flags, true);
+        let mut cold = cold_or_default(self.body.cold);
+        cold.additional_local_mprops = mprops;
+        cold.solver_flags = set_extra_additional_is_mass(cold.solver_flags, true);
+        self.body.cold = BoxTrait::new(Some(cold));
         self
     }
     /// Can the body sleep?
@@ -234,7 +239,9 @@ pub impl RigidBodyBuilderImpl of RigidBodyBuilderTrait {
     }
     /// Initial fast-rotation switch.
     fn allow_fast_rotation(mut self: RigidBodyBuilder, allow: bool) -> RigidBodyBuilder {
-        self.body.solver_flags = set_extra_allow_fast_rotation(self.body.solver_flags, allow);
+        let mut cold = cold_or_default(self.body.cold);
+        cold.solver_flags = set_extra_allow_fast_rotation(cold.solver_flags, allow);
+        self.body.cold = BoxTrait::new(Some(cold));
         self
     }
     /// 3D-only upstream switch, ignored in 2D.

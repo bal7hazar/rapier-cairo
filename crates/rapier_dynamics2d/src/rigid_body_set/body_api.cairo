@@ -19,9 +19,10 @@ use crate::rigid_body::{
     TRANSLATION_LOCKED, TRANSLATION_LOCKED_X, TRANSLATION_LOCKED_Y,
 };
 use super::{
-    RigidBody, extra_additional_is_mass, extra_allow_fast_rotation, extra_pgs_iterations,
-    extra_solver_iterations, recompute_body_mass_properties, set_extra_additional_is_mass,
-    set_extra_allow_fast_rotation, set_extra_pgs_iterations, set_extra_solver_iterations,
+    RigidBody, cold_or_default, extra_additional_is_mass, extra_allow_fast_rotation,
+    extra_pgs_iterations, extra_solver_iterations, no_cold, recompute_body_mass_properties,
+    set_extra_additional_is_mass, set_extra_allow_fast_rotation, set_extra_pgs_iterations,
+    set_extra_solver_iterations,
 };
 
 #[generate_trait]
@@ -46,8 +47,7 @@ pub impl RigidBodyImpl of RigidBodyTrait {
             body_type,
             dominance: Default::default(),
             enabled: true,
-            solver_flags: 0,
-            user_data: 0,
+            cold: no_cold(),
         }
     }
 
@@ -143,25 +143,27 @@ pub impl RigidBodyImpl of RigidBodyTrait {
     /// Extra solver substeps requested by this body.
     #[inline(always)]
     fn additional_solver_iterations(self: @RigidBody) -> u32 {
-        extra_solver_iterations(*self.solver_flags)
+        extra_solver_iterations(cold_or_default(*self.cold).solver_flags)
     }
 
     /// Sets extra solver substeps.
-    #[inline(always)]
     fn set_additional_solver_iterations(ref self: RigidBody, additional_iterations: u32) {
-        self.solver_flags = set_extra_solver_iterations(self.solver_flags, additional_iterations);
+        let mut cold = cold_or_default(self.cold);
+        cold.solver_flags = set_extra_solver_iterations(cold.solver_flags, additional_iterations);
+        self.cold = BoxTrait::new(Some(cold));
     }
 
     /// Extra PGS iterations requested by this body.
     #[inline(always)]
     fn additional_pgs_iterations(self: @RigidBody) -> u32 {
-        extra_pgs_iterations(*self.solver_flags)
+        extra_pgs_iterations(cold_or_default(*self.cold).solver_flags)
     }
 
     /// Sets extra PGS iterations.
-    #[inline(always)]
     fn set_additional_pgs_iterations(ref self: RigidBody, additional_iterations: u32) {
-        self.solver_flags = set_extra_pgs_iterations(self.solver_flags, additional_iterations);
+        let mut cold = cold_or_default(self.cold);
+        cold.solver_flags = set_extra_pgs_iterations(cold.solver_flags, additional_iterations);
+        self.cold = BoxTrait::new(Some(cold));
     }
 
     /// World pose of the body frame.
@@ -702,13 +704,14 @@ pub impl RigidBodyImpl of RigidBodyTrait {
     /// Returns whether fast rotation is allowed.
     #[inline(always)]
     fn is_fast_rotation_allowed(self: @RigidBody) -> bool {
-        extra_allow_fast_rotation(*self.solver_flags)
+        extra_allow_fast_rotation(cold_or_default(*self.cold).solver_flags)
     }
 
     /// Allows or disallows fast rotation.
-    #[inline(always)]
     fn set_allow_fast_rotation(ref self: RigidBody, allow: bool) {
-        self.solver_flags = set_extra_allow_fast_rotation(self.solver_flags, allow);
+        let mut cold = cold_or_default(self.cold);
+        cold.solver_flags = set_extra_allow_fast_rotation(cold.solver_flags, allow);
+        self.cold = BoxTrait::new(Some(cold));
     }
 
     /// Gyroscopic forces are 3D-only; always disabled in 2D.
@@ -757,8 +760,7 @@ pub impl RigidBodyImpl of RigidBodyTrait {
         self.body_type = other.body_type;
         self.dominance = other.dominance;
         self.enabled = other.enabled;
-        self.solver_flags = other.solver_flags;
-        self.user_data = other.user_data;
+        self.cold = other.cold;
         self.colliders = colliders;
         self.changes = RigidBodyChangesTrait::all();
     }
@@ -775,15 +777,16 @@ pub impl RigidBodyImpl of RigidBodyTrait {
         self.do_set_additional_mass_properties(props, false, wake_up);
     }
 
-    /// Internal additional-mass setter.
     fn do_set_additional_mass_properties(
         ref self: RigidBody, props: MassProperties, is_mass: bool, wake_up: bool,
     ) {
-        if self.mprops.additional_local_mprops != props
-            || extra_additional_is_mass(self.solver_flags) != is_mass {
+        let mut cold = cold_or_default(self.cold);
+        if cold.additional_local_mprops != props
+            || extra_additional_is_mass(cold.solver_flags) != is_mass {
             self.changes.insert(LOCAL_MASS_PROPERTIES);
-            self.mprops.additional_local_mprops = props;
-            self.solver_flags = set_extra_additional_is_mass(self.solver_flags, is_mass);
+            cold.additional_local_mprops = props;
+            cold.solver_flags = set_extra_additional_is_mass(cold.solver_flags, is_mass);
+            self.cold = BoxTrait::new(Some(cold));
             if self.is_dynamic_or_kinematic() && wake_up {
                 self.wake_up(true);
             }

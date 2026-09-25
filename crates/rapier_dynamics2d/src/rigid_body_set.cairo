@@ -67,9 +67,57 @@ pub struct RigidBody {
     pub body_type: RigidBodyType,
     pub dominance: RigidBodyDominance,
     pub enabled: bool,
-    /// Cold options packed as solver iterations | pgs iterations | flags.
+    /// Cold API-only data, boxed so the per-frame step copies one word for default bodies.
+    pub cold: Box<Option<RigidBodyCold>>,
+}
+
+/// Rarely used rigid-body API data kept out of the hot body value.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RigidBodyCold {
+    pub additional_local_mprops: MassProperties,
+    /// Packed as solver iterations | pgs iterations | flags.
     pub solver_flags: u128,
     pub user_data: u128,
+}
+
+pub impl RigidBodyColdDefault of Default<RigidBodyCold> {
+    #[inline(always)]
+    fn default() -> RigidBodyCold {
+        RigidBodyCold { additional_local_mprops: Default::default(), solver_flags: 0, user_data: 0 }
+    }
+}
+
+/// Box serialization stores the cold value, independent of allocation identity.
+pub impl BoxedRigidBodyColdSerde of Serde<Box<Option<RigidBodyCold>>> {
+    fn serialize(self: @Box<Option<RigidBodyCold>>, ref output: Array<felt252>) {
+        let value = (*self).unbox();
+        value.serialize(ref output);
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<Box<Option<RigidBodyCold>>> {
+        Some(BoxTrait::new(Serde::<Option<RigidBodyCold>>::deserialize(ref serialized)?))
+    }
+}
+
+/// Structural equality of boxed cold data.
+pub impl BoxedRigidBodyColdPartialEq of PartialEq<Box<Option<RigidBodyCold>>> {
+    fn eq(lhs: @Box<Option<RigidBodyCold>>, rhs: @Box<Option<RigidBodyCold>>) -> bool {
+        (*lhs).unbox() == (*rhs).unbox()
+    }
+
+    fn ne(lhs: @Box<Option<RigidBodyCold>>, rhs: @Box<Option<RigidBodyCold>>) -> bool {
+        !Self::eq(lhs, rhs)
+    }
+}
+
+#[inline(always)]
+pub fn no_cold() -> Box<Option<RigidBodyCold>> {
+    BoxTrait::new(None)
+}
+
+#[inline(always)]
+pub fn cold_or_default(cold: Box<Option<RigidBodyCold>>) -> RigidBodyCold {
+    cold.unbox().unwrap_or_default()
 }
 
 const RB_EXTRA_WORD: NonZero<u128> = 0x100000000;
@@ -408,8 +456,9 @@ pub fn recompute_body_mass_properties(ref body: RigidBody, ref colliders: Collid
             }
         }
     }
-    if extra_additional_is_mass(body.solver_flags) {
-        let mass = body.mprops.additional_local_mprops.mass();
+    let cold = cold_or_default(body.cold);
+    if extra_additional_is_mass(cold.solver_flags) {
+        let mass = cold.additional_local_mprops.mass();
         let prev_mass = local.mass();
         if prev_mass > ZERO {
             local.set_mass(prev_mass + mass, true);
@@ -420,7 +469,7 @@ pub fn recompute_body_mass_properties(ref body: RigidBody, ref colliders: Collid
             local.set_mass(mass, true);
         }
     } else {
-        local = local + body.mprops.additional_local_mprops;
+        local = local + cold.additional_local_mprops;
     }
     body.mprops.local_mprops = local;
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
@@ -458,7 +507,7 @@ mod tests {
     use crate::rigid_body::{LockedAxesTrait, ROTATION_LOCKED};
     use super::{
         RigidBody, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait, RigidBodyTrait,
-        extra_additional_is_mass, recompute_body_mass_properties,
+        cold_or_default, extra_additional_is_mass, recompute_body_mass_properties,
     };
 
     fn at(x: Fixed, y: Fixed) -> Pose2 {
@@ -548,13 +597,14 @@ mod tests {
         assert_eq!(body.gravity_scale(), HALF);
         assert_eq!(body.dominance_group(), -3);
         assert!(!body.is_enabled());
-        assert_eq!(body.user_data, 99);
+        let cold = cold_or_default(body.cold);
+        assert_eq!(cold.user_data, 99);
         assert_eq!(body.additional_solver_iterations(), 7);
         assert_eq!(body.additional_pgs_iterations(), 5);
         assert!(body.locked_axes().contains(ROTATION_LOCKED));
         assert!(body.is_fast_rotation_allowed());
-        assert_eq!(body.mprops.additional_local_mprops, extra);
-        assert!(!extra_additional_is_mass(body.solver_flags));
+        assert_eq!(cold.additional_local_mprops, extra);
+        assert!(!extra_additional_is_mass(cold.solver_flags));
     }
 
     #[test]

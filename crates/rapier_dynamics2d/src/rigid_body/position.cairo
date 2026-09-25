@@ -174,9 +174,6 @@ mod tests {
     const MPROPS: RigidBodyMassProps = RigidBodyMassProps {
         flags: LockedAxes { bits: 0 },
         local_mprops: LOCAL,
-        additional_local_mprops: MassProperties {
-            local_com: Vec2 { x: ZERO, y: ZERO }, inv_mass: ZERO, inv_principal_inertia: ZERO,
-        },
         world_com: Vec2 { x: ONE, y: TWO },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,

@@ -24,7 +24,7 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | pipeline | 37 | 0 | 68 | 53 | 158 | 35.2% |
 | **total** | **599** | **0** | **1398** | **741** | **2738** | **30.0%** |
 
-Cairo-only public items not matched to upstream: **921**.
+Cairo-only public items not matched to upstream: **932**.
 
 ## Aabb
 
@@ -5637,7 +5637,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** impl `BitAnd` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** impl `BitOr` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** method `bitand` (`crates/rapier_core/src/collider/changes.cairo`)
-- ... 721 more
+- ... 732 more
 
 ## Embedded Rust inventory
 

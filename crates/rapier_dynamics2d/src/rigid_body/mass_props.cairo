@@ -54,8 +54,6 @@ pub struct RigidBodyMassProps {
     /// Mass properties in the local frame of the body (centre of mass, inverse mass, inverse
     /// principal angular inertia).
     pub local_mprops: MassProperties,
-    /// Additional local mass properties payload requested on the rigid body itself.
-    pub additional_local_mprops: MassProperties,
     /// World-space centre of mass, `position * local_mprops.local_com`.
     pub world_com: Vec2,
     /// Inverse mass per world axis, zeroed on a locked axis or a non-dynamic body.
@@ -109,7 +107,6 @@ pub impl RigidBodyMassPropsImpl of RigidBodyMassPropsTrait {
         RigidBodyMassProps {
             flags,
             local_mprops,
-            additional_local_mprops: Default::default(),
             world_com: Vec2Trait::ZERO,
             effective_inv_mass: Vec2Trait::ZERO,
             effective_world_inv_inertia: ZERO,
@@ -193,7 +190,6 @@ pub impl RigidBodyMassPropsImpl of RigidBodyMassPropsTrait {
         RigidBodyMassProps {
             flags: self.flags,
             local_mprops: self.local_mprops,
-            additional_local_mprops: self.additional_local_mprops,
             world_com: position.transform_point(self.local_mprops.local_com),
             effective_inv_mass: Vec2 {
                 x: if locked.contains(TRANSLATION_LOCKED_X) {
@@ -238,7 +234,6 @@ mod alternatives {
         RigidBodyMassProps {
             flags: props.flags,
             local_mprops: props.local_mprops,
-            additional_local_mprops: props.additional_local_mprops,
             world_com: position.transform_point(props.local_mprops.local_com),
             effective_inv_mass: Vec2 {
                 x: if movable && !props.flags.contains(TRANSLATION_LOCKED_X) {
@@ -290,9 +285,6 @@ mod tests {
     const UPDATED: RigidBodyMassProps = RigidBodyMassProps {
         flags: LockedAxes { bits: 0 },
         local_mprops: LOCAL,
-        additional_local_mprops: MassProperties {
-            local_com: Vec2 { x: ZERO, y: ZERO }, inv_mass: ZERO, inv_principal_inertia: ZERO,
-        },
         world_com: Vec2 { x: HALF, y: Fixed { raw: 12884901888 } },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,
