@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 223 | 0 | 601 | 387 | 1211 | 27.1% |
+| dynamics | 336 | 0 | 488 | 387 | 1211 | 40.8% |
 | geometry | 153 | 0 | 156 | 16 | 325 | 49.5% |
 | parry::bounding_volume | 9 | 0 | 83 | 30 | 122 | 9.8% |
 | parry::mass_properties | 13 | 0 | 10 | 7 | 30 | 56.5% |
 | parry::query | 7 | 0 | 305 | 112 | 424 | 2.2% |
 | parry::shape | 44 | 0 | 241 | 136 | 421 | 15.4% |
 | pipeline | 37 | 0 | 68 | 53 | 158 | 35.2% |
-| **total** | **486** | **0** | **1511** | **741** | **2738** | **24.3%** |
+| **total** | **599** | **0** | **1398** | **741** | **2738** | **30.0%** |
 
-Cairo-only public items not matched to upstream: **903**.
+Cairo-only public items not matched to upstream: **921**.
 
 ## Aabb
 
@@ -155,8 +155,8 @@ Cairo-only public items not matched to upstream: **903**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): BodyPair, BodyPairTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
-| type `BodyPair` | dynamics | missing | Not found on Cairo candidate(s): BodyPair, BodyPairTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
+| type `BodyPair` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 
 ## BodyStatus
 
@@ -2498,98 +2498,98 @@ Cairo-only public items not matched to upstream: **903**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| impl `From<RigidBodyBuilder>` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `activation` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `activation_mut` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| impl `From<RigidBodyBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `activation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `activation_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `add_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `add_force_at_point` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `add_torque` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `additional_pgs_iterations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `additional_solver_iterations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `angular_damping` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `angvel` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `angvel_with_gyroscopic_forces` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `additional_pgs_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `additional_solver_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `angular_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `angvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `angvel_with_gyroscopic_forces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `apply_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `apply_impulse_at_point` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `apply_torque_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `body_type` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `center_of_mass` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `colliders` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `copy_from` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `body_type` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `center_of_mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `colliders` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `copy_from` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `effective_active_set_offset` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `effective_dominance_group` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `effective_active_set_offset` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `effective_dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `enable_ccd` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enable_gyroscopic_forces` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gravitational_potential_energy` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gravity_scale` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gyroscopic_forces_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `enable_gyroscopic_forces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `gravitational_potential_energy` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `gyroscopic_forces_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_ccd_active` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_ccd_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_dynamic_or_kinematic` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_fast_rotation_allowed` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_dynamic_or_kinematic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_fast_rotation_allowed` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_fixed` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_kinematic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_moving` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_rotation_locked` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_moving` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_rotation_locked` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_sleeping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_soft_frame` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_translation_locked` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `kinetic_energy` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `linear_damping` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_soft_frame` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_translation_locked` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `kinetic_energy` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `linear_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `linvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `local_center_of_mass` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `lock_rotations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `lock_translations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `locked_axes` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `mass` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `mass_properties` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `local_center_of_mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `lock_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `lock_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `locked_axes` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `mass_properties` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `next_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `predict_position_using_velocity` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `predict_position_using_velocity_and_forces` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `recompute_mass_properties_from_colliders` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `predict_position_using_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `predict_position_using_velocity_and_forces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `recompute_mass_properties_from_colliders` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `reset_forces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `reset_torques` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `restrict_rotations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `restrict_translations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `rotation` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_additional_mass` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_additional_mass_properties` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_additional_pgs_iterations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_additional_solver_iterations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_allow_fast_rotation` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_angular_damping` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `restrict_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `restrict_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_additional_mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_additional_mass_properties` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_additional_pgs_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_additional_solver_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_allow_fast_rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_angular_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_angvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_body_type` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_body_type` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_enabled_rotations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_enabled_translations` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_gravity_scale` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_linear_damping` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_enabled_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_enabled_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_linear_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_linvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_locked_axes` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_locked_axes` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_next_kinematic_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_next_kinematic_rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_next_kinematic_translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_rotation` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_soft_ccd_prediction` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_translation` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_vels` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_vels` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_body` | dynamics | excluded | soft bodies | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_ccd_prediction` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `soft_cluster` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `translation` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `user_force` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `user_torque` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `velocity_at_point` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `vels` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `soft_cluster` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `user_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `user_torque` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `velocity_at_point` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `vels` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `wake_up` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | type `RigidBody` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 
@@ -2614,52 +2614,52 @@ Cairo-only public items not matched to upstream: **903**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyAdditionalMassProps, RigidBodyAdditionalMassPropsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `RigidBodyAdditionalMassProps` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyAdditionalMassProps, RigidBodyAdditionalMassPropsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `RigidBodyAdditionalMassProps` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `additional_mass` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `additional_mass_properties` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `additional_pgs_iterations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `additional_solver_iterations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `allow_fast_rotation` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `angular_damping` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `angvel` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `additional_mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `additional_mass_properties` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `additional_pgs_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `additional_solver_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `allow_fast_rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `angular_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `angvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `build` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `can_sleep` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `can_sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `ccd_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enabled_rotations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enabled_translations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `enabled_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `enabled_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `fixed` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gravity_scale` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gyroscopic_forces_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `gyroscopic_forces_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `kinematic_position_based` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `kinematic_velocity_based` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `linear_damping` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `linvel` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `lock_rotations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `lock_translations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `locked_axes` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `linear_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `linvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `lock_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `lock_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `locked_axes` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `new_kinematic_position_based` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `new_kinematic_velocity_based` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `new_static` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `pose` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `new_kinematic_position_based` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `new_kinematic_velocity_based` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `new_static` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `pose` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `restrict_rotations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `restrict_translations` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `rotation` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `sleeping` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `restrict_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `restrict_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `sleeping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_ccd_prediction` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `translation` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `user_data` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `user_data` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | type `RigidBodyBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 
 ## RigidBodyCcd
@@ -2707,7 +2707,7 @@ Cairo-only public items not matched to upstream: **903**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `apply_force_at_point` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyForces, RigidBodyForcesTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `apply_force_at_point` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `compute_effective_force_and_torque` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `integrate` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | type `RigidBodyForces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
@@ -2739,9 +2739,9 @@ Cairo-only public items not matched to upstream: **903**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyMassProps, RigidBodyMassPropsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| impl `From<LockedAxes>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyMassProps, RigidBodyMassPropsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| impl `From<MassProperties>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyMassProps, RigidBodyMassPropsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `From<LockedAxes>` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `From<MassProperties>` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `effective_angular_inertia` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `effective_mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `mass` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
@@ -2758,7 +2758,7 @@ Cairo-only public items not matched to upstream: **903**.
 | impl `From<T>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyPosition, RigidBodyPositionTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `integrate_forces_and_velocities` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `interpolate_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `pose_errors` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyPosition, RigidBodyPositionTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `pose_errors` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | type `RigidBodyPosition` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodySet
@@ -2770,19 +2770,19 @@ Cairo-only public items not matched to upstream: **903**.
 | impl `IndexMut<RigidBodyHandle>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `contains` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `get` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
-| method `get_mut` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
-| method `get_pair_mut` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
-| method `get_unknown_gen` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
-| method `get_unknown_gen_mut` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `get_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `get_pair_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `get_unknown_gen` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `get_unknown_gen_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `insert` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `is_empty` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `iter` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
-| method `iter_mut` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `iter_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `len` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `propagate_modified_body_positions_to_colliders` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `remove` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
-| method `with_capacity` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
+| method `with_capacity` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | type `RigidBodySet` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 
 ## RigidBodyType
@@ -2800,18 +2800,18 @@ Cairo-only public items not matched to upstream: **903**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `apply_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `apply_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `apply_impulse_at_point` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `apply_torque_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `as_mut_slice` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `as_slice` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `as_vector` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `as_vector_mut` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `from_slice` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `as_mut_slice` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `as_slice` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `as_vector` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `as_vector_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `from_slice` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `integrate` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `is_finite` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyVelocity, RigidBodyVelocityTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `is_finite` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `is_zero` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `kinetic_energy` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
@@ -4641,14 +4641,14 @@ Cairo-only public items not matched to upstream: **903**.
 | [Query completion](#wp-query-completion) | 342 | standard | QP queries |
 | [Joint API completion](#wp-joint-api-completion) | 239 | standard | JL/RJ |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 210 | standard | shape interface |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 179 | mechanical | AP triage |
-| [Rigid-body API completion](#wp-rigid-body-api-completion) | 123 | mechanical | KD/SL |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 177 | mechanical | AP triage |
 | [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 101 | standard | geometry |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 91 | hard | QP queries |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 67 | standard | P1/SL/EV |
-| [Collider API completion](#wp-collider-api-completion) | 59 | mechanical | DB/EV |
+| [Collider API completion](#wp-collider-api-completion) | 57 | mechanical | DB/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 53 | standard | SE sensors |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
+| [Rigid-body API completion](#wp-rigid-body-api-completion) | 14 | mechanical | KD/SL |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 
 ### WP: Query completion
@@ -4911,7 +4911,7 @@ Tier: standard. Depends/context: shape interface. Estimate: 210 public items.
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 179 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 177 public items.
 
 - **AxesMask** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **AxesMask** type `AxesMask` (`rapier/src/dynamics/rigid_body_components.rs`)
@@ -4924,8 +4924,6 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 179 public items.
 - **BlockMatrix** method `make_dirichlet` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
 - **BlockMatrix** method `mul` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
 - **BlockMatrix** method `num_rows` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BodyPair** method `new` (`rapier/src/dynamics/rigid_body_set.rs`)
-- **BodyPair** type `BodyPair` (`rapier/src/dynamics/rigid_body_set.rs`)
 - **BodyStatus** type `BodyStatus` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
 - **Capsule** impl `Shape` (`parry/src/shape/shape.rs`)
@@ -4993,93 +4991,9 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 179 public items.
 - **Shape** trait `Shape` (`parry/src/shape/shape.rs`)
 - **SkylineCholesky** method `envelope_len` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SkylineCholesky** method `factorize` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- ... 99 more
-
-### WP: Rigid-body API completion
-
-Tier: mechanical. Depends/context: KD/SL. Estimate: 123 public items.
-
-- **RigidBody** impl `Default` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** impl `From<RigidBodyBuilder>` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `activation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `activation_mut` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `additional_pgs_iterations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `additional_solver_iterations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `angular_damping` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `angvel` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `angvel_with_gyroscopic_forces` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `body_type` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `center_of_mass` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `copy_from` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `effective_active_set_offset` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `effective_dominance_group` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `enable_gyroscopic_forces` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `gravitational_potential_energy` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `gravity_scale` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `gyroscopic_forces_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_dynamic_or_kinematic` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_fast_rotation_allowed` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_moving` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_rotation_locked` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_soft_frame` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_translation_locked` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `kinetic_energy` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `linear_damping` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `local_center_of_mass` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `lock_rotations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `lock_translations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `locked_axes` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `mass` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `mass_properties` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `predict_position_using_velocity` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `predict_position_using_velocity_and_forces` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `restrict_rotations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `restrict_translations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `rotation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_additional_mass` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_additional_mass_properties` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_additional_pgs_iterations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_additional_solver_iterations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_allow_fast_rotation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_angular_damping` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_body_type` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_enabled_rotations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_enabled_translations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_gravity_scale` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_linear_damping` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_locked_axes` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_rotation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_translation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_vels` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `soft_cluster` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `translation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `user_force` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `user_torque` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `velocity_at_point` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `vels` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyActivation** method `default_angular_threshold` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyActivation** method `default_normalized_linear_threshold` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyActivation** method `default_time_until_sleep` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyAdditionalMassProps** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyAdditionalMassProps** type `RigidBodyAdditionalMassProps` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyBuilder** impl `Default` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `additional_mass` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `additional_mass_properties` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `additional_pgs_iterations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `additional_solver_iterations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `allow_fast_rotation` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `angular_damping` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `angvel` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `can_sleep` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `enabled_rotations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `enabled_translations` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `gravity_scale` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `gyroscopic_forces_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `linear_damping` (`rapier/src/dynamics/rigid_body.rs`)
-- ... 43 more
+- **SkylineCholesky** method `new` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
+- **SkylineCholesky** method `solve` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
+- ... 97 more
 
 ### WP: Mass, AABB, and shape helpers
 
@@ -5327,7 +5241,7 @@ Tier: standard. Depends/context: P1/SL/EV. Estimate: 67 public items.
 
 ### WP: Collider API completion
 
-Tier: mechanical. Depends/context: DB/EV. Estimate: 59 public items.
+Tier: mechanical. Depends/context: DB/EV. Estimate: 57 public items.
 
 - **Collider** impl `From<ColliderBuilder>` (`rapier/src/geometry/collider.rs`)
 - **Collider** method `compute_broad_phase_aabb` (`rapier/src/geometry/collider.rs`)
@@ -5380,8 +5294,6 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 59 public items.
 - **PhysicsWorld** method `all_colliders` (`rapier/src/pipeline/physics_world.rs`)
 - **PhysicsWorld** method `all_colliders_mut` (`rapier/src/pipeline/physics_world.rs`)
 - **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **RigidBody** method `colliders` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `recompute_mass_properties_from_colliders` (`rapier/src/dynamics/rigid_body.rs`)
 - **RigidBodyColliders** method `attach_collider` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **RigidBodyColliders** method `detach_collider` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **RigidBodyColliders** type `RigidBodyColliders` (`rapier/src/dynamics/rigid_body_components.rs`)
@@ -5486,6 +5398,25 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelContactPoint** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
+
+### WP: Rigid-body API completion
+
+Tier: mechanical. Depends/context: KD/SL. Estimate: 14 public items.
+
+- **RigidBodyActivation** method `default_angular_threshold` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyActivation** method `default_normalized_linear_threshold` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyActivation** method `default_time_until_sleep` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyChanges** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyGraphIndex** type `RigidBodyGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **RigidBodyHandle** method `from_raw_parts` (`rapier/src/dynamics/rigid_body_handle.rs`)
+- **RigidBodyHandle** type `RigidBodyHandle` (`rapier/src/dynamics/rigid_body_handle.rs`)
+- **RigidBodyIds** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyIds** type `RigidBodyIds` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyPosition** impl `From<T>` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodySet** impl `Index<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
+- **RigidBodySet** impl `Index<data::Index>` (`rapier/src/dynamics/rigid_body_set.rs`)
+- **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
+- **RigidBodyType** method `is_soft_frame` (`rapier/src/dynamics/rigid_body_components.rs`)
 
 ### WP: Character controller
 
@@ -5671,6 +5602,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **BroadPhase** method `find_pairs` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
 - **BroadPhaseProxy** type `BroadPhaseProxy` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
 - **Builder** const `ONE_WAY_ANGLE` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
+- **BuilderApi** method `into` (`crates/rapier_dynamics2d/src/rigid_body_set/builder_api.cairo`)
 - **Capsule** method `cast_local_ray_and_get_normal_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
@@ -5705,8 +5637,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** impl `BitAnd` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** impl `BitOr` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** method `bitand` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** method `bitor` (`crates/rapier_core/src/collider/changes.cairo`)
-- ... 703 more
+- ... 721 more
 
 ## Embedded Rust inventory
 

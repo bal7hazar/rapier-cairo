@@ -12,8 +12,8 @@
 //! —
 //! the linearisation lengthens the rotation by `dθ²/2` per substep.
 //!
-//! Deferred: `is_finite` / `from_slice` / `as_vector` (no NaN, no slice view in Cairo), the
-//! gyroscopic 3D terms.
+//! Deferred: mutable borrowed vector/slice views (Cairo returns value snapshots), the gyroscopic
+//! 3D terms.
 
 use fixed::wide::{dot2, dot3, dot3_add, mul_add, mul_sub};
 use fixed::{Fixed, HALF, ZERO};
@@ -24,14 +24,28 @@ use rapier_math::pose2::Pose2;
 use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::mass_props::{RigidBodyMassProps, RigidBodyMassPropsTrait};
 
+/// Panic messages of the velocity component.
+pub mod errors {
+    /// `from_slice` needs `[linvel.x, linvel.y, angvel]`.
+    pub const SLICE_TOO_SHORT: felt252 = 'RbVel: short slice';
+}
+
 /// The velocities of a rigid-body: linear velocity of its centre of mass and angular velocity
 /// (counter-clockwise, radians per second). Default: both zero.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct RigidBodyVelocity {
     /// Linear velocity of the centre of mass, in world space.
     pub linvel: Vec2,
     /// Angular velocity, radians per second, positive counter-clockwise.
     pub angvel: Fixed,
+}
+
+/// Upstream default: both velocities are exactly zero.
+pub impl RigidBodyVelocityDefault of Default<RigidBodyVelocity> {
+    #[inline(always)]
+    fn default() -> RigidBodyVelocity {
+        RigidBodyVelocity { linvel: Vec2Trait::ZERO, angvel: ZERO }
+    }
 }
 
 /// Component-wise sum, as upstream's `Add`.
@@ -63,6 +77,48 @@ pub impl RigidBodyVelocityImpl of RigidBodyVelocityTrait {
     #[inline(always)]
     fn new(linvel: Vec2, angvel: Fixed) -> RigidBodyVelocity {
         RigidBodyVelocity { linvel, angvel }
+    }
+
+    /// Builds from `[linvel.x, linvel.y, angvel]`.
+    ///
+    /// # Panics
+    /// * `'RigidBodyVelocity: slice too short'` if fewer than 3 values are supplied.
+    #[inline(always)]
+    fn from_slice(slice: Span<Fixed>) -> RigidBodyVelocity {
+        assert(slice.len() >= 3, errors::SLICE_TOO_SHORT);
+        RigidBodyVelocity {
+            linvel: Vec2 { x: *slice.at(0), y: *slice.at(1) }, angvel: *slice.at(2),
+        }
+    }
+
+    /// Fixed-point velocities are always finite: they have no NaN or infinity encodings.
+    #[inline(always)]
+    fn is_finite(self: RigidBodyVelocity) -> bool {
+        true
+    }
+
+    /// Value snapshot of `[linvel.x, linvel.y, angvel]` (Cairo has no borrowed slice view).
+    #[inline(always)]
+    fn as_slice(self: RigidBodyVelocity) -> Span<Fixed> {
+        array![self.linvel.x, self.linvel.y, self.angvel].span()
+    }
+
+    /// Value snapshot of `[linvel.x, linvel.y, angvel]` (Cairo has no mutable slice view).
+    #[inline(always)]
+    fn as_mut_slice(self: RigidBodyVelocity) -> Span<Fixed> {
+        self.as_slice()
+    }
+
+    /// Value snapshot of the flat velocity vector.
+    #[inline(always)]
+    fn as_vector(self: RigidBodyVelocity) -> RigidBodyVelocity {
+        self
+    }
+
+    /// Value snapshot of the flat velocity vector.
+    #[inline(always)]
+    fn as_vector_mut(self: RigidBodyVelocity) -> RigidBodyVelocity {
+        self
     }
 
     /// Returns `true` when both velocities are exactly zero (upstream `is_zero`).
@@ -337,6 +393,9 @@ mod tests {
     const MPROPS: RigidBodyMassProps = RigidBodyMassProps {
         flags: LockedAxes { bits: 0 },
         local_mprops: LOCAL,
+        additional_local_mprops: MassProperties {
+            local_com: Vec2 { x: ZERO, y: ZERO }, inv_mass: ZERO, inv_principal_inertia: ZERO,
+        },
         world_com: Vec2 { x: HALF, y: Fixed { raw: 12884901888 } },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,

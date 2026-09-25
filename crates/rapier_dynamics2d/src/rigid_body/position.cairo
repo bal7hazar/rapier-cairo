@@ -74,12 +74,18 @@ pub impl RigidBodyPositionImpl of RigidBodyPositionTrait {
     fn interpolate_velocity(
         self: RigidBodyPosition, inv_dt: Fixed, local_com: Vec2,
     ) -> RigidBodyVelocity {
+        let errors = self.pose_errors(local_com);
+        RigidBodyVelocity {
+            linvel: errors.linvel.mul_scalar(inv_dt), angvel: errors.angvel * inv_dt,
+        }
+    }
+
+    /// Difference between `next_position` and `position`, in upstream's 2D PD-error layout.
+    fn pose_errors(self: RigidBodyPosition, local_com: Vec2) -> RigidBodyVelocity {
         let linear = self.next_position.transform_point(local_com)
             - self.position.transform_point(local_com);
         let rotation = self.next_position.rotation * self.position.rotation.inverse();
-        RigidBodyVelocity {
-            linvel: linear.mul_scalar(inv_dt), angvel: rotation.im.atan2(rotation.re) * inv_dt,
-        }
+        RigidBodyVelocity { linvel: linear, angvel: rotation.im.atan2(rotation.re) }
     }
 
     /// Pose of the body after `dt`, integrating the forces first and the resulting velocities
@@ -168,6 +174,9 @@ mod tests {
     const MPROPS: RigidBodyMassProps = RigidBodyMassProps {
         flags: LockedAxes { bits: 0 },
         local_mprops: LOCAL,
+        additional_local_mprops: MassProperties {
+            local_com: Vec2 { x: ZERO, y: ZERO }, inv_mass: ZERO, inv_principal_inertia: ZERO,
+        },
         world_com: Vec2 { x: ONE, y: TWO },
         effective_inv_mass: Vec2 { x: TWO, y: TWO },
         effective_world_inv_inertia: HALF,
