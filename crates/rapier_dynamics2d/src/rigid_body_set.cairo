@@ -400,14 +400,15 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     }
 }
 
-/// Upstream `RigidBodyColliders::attach_collider`: appends `co_handle` to the collider list of
-/// the body behind `handle`, raises `COLLIDERS`, adds the collider's mass (expressed in the body
-/// frame through `pos_wrt_parent`) to the body's and refreshes its world mass properties.
+/// Upstream `RigidBodyColliders::attach_collider` (the list is `RigidBody::colliders`, a
+/// `Span<Handle>`): appends `co_handle` to the collider list of the body behind `handle`, raises
+/// `COLLIDERS`, adds the collider's mass (expressed in the body frame through `pos_wrt_parent`)
+/// to the body's and refreshes its world mass properties.
 /// Returns the body's world pose, which the caller composes with `pos_wrt_parent`.
 ///
 /// # Panics
 /// `RigidBodySet: body not found` when `handle` does not resolve.
-pub(crate) fn attach_collider(
+pub fn attach_collider(
     ref bodies: RigidBodySet,
     handle: Handle,
     co_handle: Handle,
@@ -427,11 +428,11 @@ pub(crate) fn attach_collider(
     body.pos.position
 }
 
-/// Upstream `remove_collider_internal`: removes `co_handle` from the collider list of the body
-/// behind `handle` with upstream's `swap_remove` (the last handle takes its place) and raises
-/// `COLLIDERS`. As upstream, the mass properties are left for the pipeline to recompute. Does
-/// nothing when the body or the collider is not found.
-pub(crate) fn detach_collider(ref bodies: RigidBodySet, handle: Handle, co_handle: Handle) {
+/// Upstream `RigidBodyColliders::detach_collider` / `remove_collider_internal`: removes
+/// `co_handle` from the collider list of the body behind `handle` with upstream's `swap_remove`
+/// (the last handle takes its place) and raises `COLLIDERS`. As upstream, the mass properties are
+/// left for the pipeline to recompute. Does nothing when the body or the collider is not found.
+pub fn detach_collider(ref bodies: RigidBodySet, handle: Handle, co_handle: Handle) {
     if let Some(mut body) = bodies.bodies.get(handle) {
         let list = body.colliders;
         let n = list.len();

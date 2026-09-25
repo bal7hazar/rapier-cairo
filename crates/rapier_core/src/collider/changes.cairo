@@ -40,10 +40,18 @@ pub const PARENT_EFFECTIVE_DOMINANCE: ColliderChanges = ColliderChanges { bits: 
 pub const ENABLED_OR_DISABLED: ColliderChanges = ColliderChanges { bits: 0x100 };
 
 /// Flags describing how a collider has been modified by the user. Default: none.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct ColliderChanges {
     /// Raw mask, bit `i` is the flag `1 << i`.
     pub bits: u32,
+}
+
+/// No flag set (upstream's bitflags `Default`, the empty set).
+pub impl ColliderChangesDefault of Default<ColliderChanges> {
+    #[inline(always)]
+    fn default() -> ColliderChanges {
+        ColliderChanges { bits: 0 }
+    }
 }
 
 /// Wraps a raw mask (upstream `from_bits_retain`).

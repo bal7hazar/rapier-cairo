@@ -10,14 +10,21 @@
 //! [`ColliderSetTrait::iter`] — the contract `NarrowPhaseTrait::compute_contacts` relies on.
 //!
 //! Deviations from upstream: no modified / removed collider lists (the step is stateless apart
-//! from the sets, `docs/PLAN.md` D7/D9); `remove` takes no island manager (no wake-up); `get_mut`
-//! is `set`.
+//! from the sets, `docs/PLAN.md` D7/D9: the pipeline reads the change flags instead), hence no
+//! `take_modified` / `take_removed`; `remove` takes no island manager (no wake-up: the world
+//! wakes the contact partners, `rapier2d::world`); colliders are values, so the `*_mut`
+//! accessors are their copy-out forms (`get`, `iter`, `iter_enabled`, `get_unknown_gen`,
+//! `get_pair_mut`) and a change is written back with `set`; `Index` / `IndexMut` are not
+//! implemented (an arena read needs `ref self`, Cairo's `IndexView` takes a snapshot).
 
 use fixed::{Fixed, HALF};
 use rapier_core::Handle;
+use rapier_core::collider::changes::PARENT;
 use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
+use rapier_core::data::handle::INVALID_HANDLE;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
+use rapier_math::pose2::IDENTITY;
 use crate::collider::{Collider, ColliderParent, ColliderTrait};
 use crate::rigid_body_set::{
     RigidBodySet, RigidBodySetTrait, RigidBodyTrait, attach_collider, detach_collider,
@@ -36,6 +43,18 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     #[inline(always)]
     fn new() -> ColliderSet {
         ColliderSet { colliders: ArenaTrait::new() }
+    }
+
+    /// An empty set. Cairo arenas reserve no memory, so `capacity` is intentionally ignored.
+    #[inline(always)]
+    fn with_capacity(_capacity: u32) -> ColliderSet {
+        Self::new()
+    }
+
+    /// The handle that never resolves (upstream `invalid_handle`: both raw parts `u32::MAX`).
+    #[inline(always)]
+    fn invalid_handle() -> Handle {
+        INVALID_HANDLE
     }
 
     /// Stores a standalone collider (its parent is cleared, as upstream) and returns its handle.
@@ -121,6 +140,84 @@ pub impl ColliderSetImpl of ColliderSetTrait {
         self.colliders.to_array()
     }
 
+    /// Every enabled `(handle, collider)` in ascending slot index (upstream `iter_enabled`).
+    fn iter_enabled(ref self: ColliderSet) -> Array<(Handle, Collider)> {
+        let mut out = array![];
+        for (handle, collider) in self.colliders.to_array() {
+            if collider.is_enabled() {
+                out.append((handle, collider));
+            }
+        }
+        out
+    }
+
+    /// The collider in slot `index` whatever its generation, with its live handle (upstream
+    /// `get_unknown_gen`); `None` for an empty slot. O(len), ascending slot order.
+    fn get_unknown_gen(ref self: ColliderSet, index: u32) -> Option<(Collider, Handle)> {
+        for (handle, collider) in self.colliders.to_array() {
+            if handle.index == index {
+                return Some((collider, handle));
+            }
+        }
+        None
+    }
+
+    /// Copies of the colliders behind two handles (upstream `get_pair_mut`); equal handles give
+    /// `(first, None)`, as upstream. Write changes back with `set`.
+    fn get_pair_mut(
+        ref self: ColliderSet, handle1: Handle, handle2: Handle,
+    ) -> (Option<Collider>, Option<Collider>) {
+        if handle1 == handle2 {
+            (self.get(handle1), None)
+        } else {
+            (self.get(handle1), self.get(handle2))
+        }
+    }
+
+    /// Re-parents the collider behind `handle` (upstream `set_parent`); nothing when it does not
+    /// resolve or when `new_parent` is its current parent. Otherwise `PARENT` is raised, the
+    /// collider leaves its current parent's collider list (swap-remove, `COLLIDERS` raised, the
+    /// mass recomputed by the next step), and with `Some(body)`:
+    /// * the pose relative to the parent is kept if it had a parent, the identity otherwise (not
+    ///   its world pose, unlike `insert_with_parent`);
+    /// * when `body` exists, the collider is appended to its list, its mass added to the body's
+    ///   and its world pose set to `body.position * pos_wrt_parent`; when it does not, only the
+    ///   link is stored, as upstream.
+    /// With `None` the collider becomes standalone and keeps its world pose.
+    ///
+    /// Cost: one collider read and write, plus the body reads and writes of the detach / attach.
+    fn set_parent(
+        ref self: ColliderSet, handle: Handle, new_parent: Option<Handle>, ref bodies: RigidBodySet,
+    ) {
+        if let Some(mut collider) = self.colliders.get(handle) {
+            let current = collider.parent();
+            if new_parent == current {
+                return;
+            }
+            collider.changes = collider.changes | PARENT;
+            if let Some(parent_handle) = current {
+                detach_collider(ref bodies, parent_handle, handle);
+            }
+            match new_parent {
+                Some(body) => {
+                    let pos_wrt_parent = match collider.parent {
+                        Some(parent) => parent.pos_wrt_parent,
+                        None => IDENTITY,
+                    };
+                    collider.parent = Some(ColliderParent { handle: body, pos_wrt_parent });
+                    if bodies.contains(body) {
+                        let body_pose = attach_collider(
+                            ref bodies, body, handle, collider, pos_wrt_parent,
+                        );
+                        collider.pos.pose = body_pose * pos_wrt_parent;
+                    }
+                },
+                None => { collider.parent = None; },
+            }
+            let _ = self.colliders.set(handle, collider);
+        }
+    }
+
     /// One broad-phase proxy per collider, in the order of [`iter`](ColliderSetTrait::iter):
     /// the world AABB loosened by `prediction / 2` on each side (upstream
     /// `compute_collision_aabb(prediction / 2)`, so two shapes closer than `prediction` overlap),
@@ -176,6 +273,7 @@ mod tests {
     use rapier_core::Handle;
     use rapier_core::collider::ColliderChangesTrait;
     use rapier_core::collider::changes::{PARENT, POSITION as CO_POSITION};
+    use rapier_core::data::handle::HandleTrait;
     use rapier_core::rigid_body::RigidBodyChangesTrait;
     use rapier_core::rigid_body::changes::{COLLIDERS, POSITION};
     use rapier_math::pose2::Pose2;
@@ -287,6 +385,120 @@ mod tests {
         }
     }
 
+    /// `with_capacity`, `invalid_handle`, `iter_enabled`, `get_unknown_gen`, `get_pair_mut`.
+    #[test]
+    fn test_set_and_handle_helpers() {
+        let mut colliders = ColliderSetTrait::with_capacity(16);
+        let mut bodies = RigidBodySetTrait::new();
+        assert!(colliders.is_empty());
+        let invalid = ColliderSetTrait::invalid_handle();
+        assert_eq!(invalid.into_raw_parts(), (0xffffffff, 0xffffffff));
+        assert!(!colliders.contains(invalid));
+        let h0 = colliders.insert(cuboid_at(ZERO, ZERO));
+        let h1 = colliders.insert(cuboid_at(ONE, ZERO));
+        let h2 = colliders.insert(cuboid_at(TWO, ZERO));
+        let mut off = colliders.get(h1).unwrap();
+        off.set_enabled(false);
+        let _ = colliders.set(h1, off);
+        let enabled = colliders.iter_enabled();
+        assert_eq!(enabled.len(), 2);
+        let (first, _) = *enabled.at(0);
+        let (last, _) = *enabled.at(1);
+        assert_eq!((first, last), (h0, h2));
+        // Slot 0 reused with a new generation: found by index, with its live handle.
+        let _ = colliders.remove(h0, ref bodies);
+        let h3 = colliders.insert(cuboid_at(ZERO, ONE));
+        assert_eq!(h3, Handle { index: 0, generation: 1 });
+        // (index, expected handle)
+        let cases = array![(0, Some(h3)), (1, Some(h1)), (2, Some(h2)), (3, None)];
+        for (index, expected) in cases {
+            match colliders.get_unknown_gen(index) {
+                Some((
+                    collider, handle,
+                )) => {
+                    assert_eq!(Some(handle), expected);
+                    assert_eq!(Some(collider), colliders.get(handle));
+                },
+                None => assert!(expected.is_none()),
+            }
+        }
+        let (a, b) = colliders.get_pair_mut(h1, h2);
+        assert_eq!((a, b), (colliders.get(h1), colliders.get(h2)));
+        let (a, b) = colliders.get_pair_mut(h2, h2);
+        assert_eq!((a, b), (colliders.get(h2), None));
+        let (a, b) = colliders.get_pair_mut(h0, h2);
+        assert!(a.is_none() && b.is_some());
+    }
+
+    /// Re-parenting (upstream `set_parent`): (from, to) over standalone, body `a`, body `b` and
+    /// a missing body; the lists, the pose relative to the parent, the world pose and the
+    /// masses follow upstream.
+    #[test]
+    fn test_set_parent() {
+        let three = FixedTrait::from_int(3);
+        // (initial parent: 0 none / 1 a / 2 b, new parent: same codes, 3 = missing body)
+        let cases: Array<(u8, u8)> = array![(0, 1), (1, 2), (1, 0), (1, 1), (0, 0), (2, 3)];
+        for (from, to) in cases {
+            let mut colliders = ColliderSetTrait::new();
+            let mut bodies = RigidBodySetTrait::new();
+            let a = bodies.insert(RigidBodyTrait::dynamic(at(ONE, ZERO)));
+            let b = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, three)));
+            let body_of = array![None, Some(a), Some(b), Some(Handle { index: 9, generation: 0 })];
+            // A second collider on `a` checks the swap-remove.
+            let other = colliders.insert_with_parent(cuboid_at(ZERO, ZERO), a, ref bodies);
+            let h = match *body_of.at(from.into()) {
+                Some(parent) => colliders
+                    .insert_with_parent(cuboid_at(ZERO, ONE), parent, ref bodies),
+                None => colliders.insert(cuboid_at(ZERO, ONE)),
+            };
+            let mut quiet = colliders.get(h).unwrap();
+            quiet.changes = ColliderChangesTrait::empty();
+            let _ = colliders.set(h, quiet);
+            let before = colliders.get(h).unwrap();
+            let target = *body_of.at(to.into());
+            colliders.set_parent(h, target, ref bodies);
+            let after = colliders.get(h).unwrap();
+            if from == to {
+                assert_eq!(after, before);
+                continue;
+            }
+            assert!(after.changes.contains(PARENT));
+            assert_eq!(after.parent(), target);
+            if from == 1 {
+                assert_eq!(bodies.get(a).unwrap().colliders, array![other].span());
+            }
+            match target {
+                Some(body) => {
+                    // A former parent's offset is kept, a standalone collider gets the identity.
+                    let offset = if from == 0 {
+                        at(ZERO, ZERO)
+                    } else {
+                        at(ZERO, ONE)
+                    };
+                    assert_eq!(after.position_wrt_parent(), Some(offset));
+                    if let Some(parent) = bodies.get(body) {
+                        assert_eq!(*parent.colliders.at(parent.colliders.len() - 1), h);
+                        assert_eq!(after.position(), parent.position() * offset);
+                    } else {
+                        assert_eq!(after.position(), before.position());
+                    }
+                },
+                None => { assert_eq!(after.position(), before.position()); },
+            }
+        }
+        // The new parent's mass grows by the collider's (two unit boxes on `b`).
+        let mut colliders = ColliderSetTrait::new();
+        let mut bodies = RigidBodySetTrait::new();
+        let b = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+        let _ = colliders.insert_with_parent(cuboid_at(ZERO, ZERO), b, ref bodies);
+        let h = colliders.insert(cuboid_at(ZERO, ZERO));
+        colliders.set_parent(h, Some(b), ref bodies);
+        assert_eq!(bodies.get(b).unwrap().mprops.local_mprops.inv_mass, HALF);
+        // A stale handle does nothing.
+        colliders.set_parent(Handle { index: 7, generation: 0 }, Some(b), ref bodies);
+        assert_eq!(bodies.get(b).unwrap().colliders.len(), 2);
+    }
+
     #[test]
     fn test_propagate_positions() {
         let mut colliders = ColliderSetTrait::new();
@@ -378,6 +590,48 @@ mod tests {
         let b = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
         let h = colliders.insert_with_parent(opaque(cuboid_at(ZERO, ZERO)), b, ref bodies);
         let _ = colliders.remove(opaque(h), ref bodies);
+    }
+
+    /// `gas_set_parent_*` − `gas_set_parent_setup`: one body `a` holding the collider, one
+    /// body `b`.
+    fn set_parent_setup() -> (
+        super::ColliderSet, crate::rigid_body_set::RigidBodySet, Handle, Handle,
+    ) {
+        let mut colliders = ColliderSetTrait::new();
+        let mut bodies = RigidBodySetTrait::new();
+        let a = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+        let b = bodies.insert(RigidBodyTrait::dynamic(at(ONE, ZERO)));
+        let h = colliders.insert_with_parent(opaque(cuboid_at(ZERO, ZERO)), a, ref bodies);
+        (colliders, bodies, h, b)
+    }
+
+    #[test]
+    fn gas_set_parent_setup() {
+        let _ = set_parent_setup();
+    }
+
+    #[test]
+    fn gas_set_parent_move() {
+        let (mut colliders, mut bodies, h, b) = set_parent_setup();
+        colliders.set_parent(opaque(h), Some(b), ref bodies);
+    }
+
+    #[test]
+    fn gas_set_parent_detach() {
+        let (mut colliders, mut bodies, h, _) = set_parent_setup();
+        colliders.set_parent(opaque(h), None, ref bodies);
+    }
+
+    #[test]
+    fn gas_iter_enabled_8() {
+        let mut colliders = ColliderSetTrait::new();
+        let c = opaque(cuboid_at(ZERO, ZERO));
+        let mut i: u32 = 0;
+        while i != 8 {
+            let _ = colliders.insert(c);
+            i += 1;
+        }
+        let _ = colliders.iter_enabled();
     }
 
     #[test]
