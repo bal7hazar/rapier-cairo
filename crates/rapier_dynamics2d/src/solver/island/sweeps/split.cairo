@@ -135,18 +135,9 @@ fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
     }
 }
 
-/// Split generated constraints, in order, dropping the inert ones.
-pub(crate) fn prepare(mut cs: Span<ContactConstraint>) -> (Array<Frozen>, Array<Hot>) {
-    let mut frozen = array![];
-    let mut hot = array![];
-    while let Some(c) = cs.pop_front() {
-        push(ref frozen, ref hot, *c);
-    }
-    (frozen, hot)
-}
-
-/// `ContactConstraintsSetTrait::generate` then [`prepare`], in one pass and with the step's
-/// constants computed once (`contact::SoftCache`): same constraints, checks and panics.
+/// `ContactConstraintsSetTrait::generate` then the split of every active constraint, in one
+/// pass and with the step's constants computed once (`contact::SoftCache`): same constraints,
+/// checks and panics.
 pub(crate) fn generate(
     mut manifolds: Span<ContactManifold>,
     bodies: Span<SolverBody>,
@@ -500,6 +491,10 @@ fn pose(poses: Span<Pose2>, i: u32) -> Pose2 {
         *poses.at(i)
     }
 }
+#[cfg(test)]
+mod alternatives;
 
 mod bodies;
+#[cfg(test)]
+mod tests;
 pub(crate) use bodies::{SweepBodies, SweepBodiesTrait};

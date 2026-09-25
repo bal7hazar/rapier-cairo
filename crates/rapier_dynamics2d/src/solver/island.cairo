@@ -11,6 +11,8 @@ use rapier_core::integration_parameters::{IntegrationParameters, IntegrationPara
 use rapier_core::rigid_body::RigidBodyDamping;
 use rapier_geometry2d::contact::ContactManifold;
 use sweeps::array_joint::joints;
+#[cfg(test)]
+use sweeps::contact::contacts;
 use sweeps::split::{SweepBodies, SweepBodiesTrait};
 use sweeps::{prepare_joints, rebuild_joints, split};
 use crate::joint::ImpulseJoint;
@@ -18,6 +20,8 @@ use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use crate::rigid_body_set::RigidBody;
 use super::body::{SolverBody, WORLD};
 use super::body_store::{BodyStep, DenseBodiesTrait, SolverBodyStore, gather, writeback};
+#[cfg(test)]
+use super::contact::ContactConstraintsSetTrait;
 
 /// Invalid timestep/velocity cap. Parameter and fixed-point panics otherwise propagate.
 pub mod errors {
