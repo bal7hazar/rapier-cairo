@@ -5,15 +5,14 @@
 //! dropped. Bodies are a `SweepBodies` (velocities in the dictionary, poses in an array
 //! rebuilt once per substep). Same expressions, operand order, rounding and panics as `contact`'s
 //! sweeps.
-use fixed::wide::{WideAdd, WideNarrow, dot2_add, mul_add, wide_from, wide_mul};
+use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2_add, mul_add, wide_from, wide_mul};
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::ContactManifold;
-use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::pose2::Pose2;
 use super::super::super::body::{SolverBody, SolverVel, WORLD};
-use super::super::super::contact::cached::WeightedPair;
-use super::super::super::contact::element::{dot, max, min, tangent};
+use super::super::super::contact::element::{max, min, tangent};
 use super::super::super::contact::{
     ContactConstraint, ContactConstraintElement, SoftCacheTrait, errors, generate_cached,
 };
@@ -41,14 +40,24 @@ pub(crate) struct FrozenPoint {
     pub contact_id: u8,
 }
 
-/// Frame-constant part of one active constraint; `count` is 1 or 2.
+/// Frame-constant `direction * inverse_mass` of both endpoints (floored once per component),
+/// the second one negated so that applying an impulse needs no negation (`floor(-w * i)` is
+/// `floor(w * -i)`: the exact product is the same).
+#[derive(Copy, Drop, Debug, PartialEq)]
+pub(crate) struct Weights {
+    pub first: Vec2,
+    pub neg_second: Vec2,
+}
+
+/// Frame-constant part of one active constraint; `count` is 1 or 2; `t` is `tangent(dir)`.
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub(crate) struct Frozen {
     pub i: u32,
     pub j: u32,
     pub dir: Vec2,
-    pub wn: WeightedPair,
-    pub wt: WeightedPair,
+    pub t: Vec2,
+    pub wn: Weights,
+    pub wt: Weights,
     pub limit: Fixed,
     pub count: u8,
     pub manifold_id: u32,
@@ -119,8 +128,9 @@ fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
                     i: c.solver_vel1,
                     j: c.solver_vel2,
                     dir: c.dir1,
-                    wn: WeightedPair { first: c.dir1 * c.im1, second: c.dir1 * c.im2 },
-                    wt: WeightedPair { first: t * c.im1, second: t * c.im2 },
+                    t,
+                    wn: Weights { first: c.dir1 * c.im1, neg_second: -(c.dir1 * c.im2) },
+                    wt: Weights { first: t * c.im1, neg_second: -(t * c.im2) },
                     limit: c.limit,
                     count: c.num_elements,
                     manifold_id: c.manifold_id,
@@ -169,7 +179,8 @@ pub(crate) fn contacts(
     match stage {
         0 => {
             assert(p.warmstart_coefficient >= ZERO, errors::NEGATIVE);
-            let k = Update { warm: p.warmstart_coefficient, cap: p.max_corrective_velocity() };
+            let warm = p.warmstart_coefficient;
+            let k = Update { warm, unit: warm == ONE, neg_cap: -p.max_corrective_velocity() };
             sweep(ref hot, frozen, ref bodies, k)
         },
         1 => {
@@ -193,7 +204,8 @@ trait Kernel<K> {
 #[derive(Copy, Drop)]
 struct Update {
     warm: Fixed,
-    cap: Fixed,
+    unit: bool,
+    neg_cap: Fixed,
 }
 #[derive(Copy, Drop)]
 struct Biased {}
@@ -218,28 +230,29 @@ fn sweep<K, +Kernel<K>, +Copy<K>, +Drop<K>>(
 }
 
 /// `apply` of `contact::cached`: weighted linear parts, inertia-weighted angular parts. Each
-/// `v + floor(w * impulse)` is one `mul_add` (`floor(v + p) = v + floor(p)` for an integer `v`).
+/// `v + floor(w * impulse)` is one `mul_add` (`floor(v + p) = v + floor(p)` for an integer `v`);
+/// the second body's weights are stored negated (BT3), so the impulse is not.
 #[inline(always)]
-fn apply(
-    w: @WeightedPair, ig1: Fixed, ig2: Fixed, impulse: Fixed, ref v1: SolverVel, ref v2: SolverVel,
-) {
-    let (w1, w2) = (*w.first, *w.second);
-    let negated = -impulse;
+fn apply(w: @Weights, ig1: Fixed, ig2: Fixed, impulse: Fixed, ref v1: SolverVel, ref v2: SolverVel) {
+    let (w1, w2) = (*w.first, *w.neg_second);
     v1
         .linear =
             Vec2 { x: mul_add(w1.x, impulse, v1.linear.x), y: mul_add(w1.y, impulse, v1.linear.y) };
     v2
         .linear =
-            Vec2 { x: mul_add(w2.x, negated, v2.linear.x), y: mul_add(w2.y, negated, v2.linear.y) };
+            Vec2 { x: mul_add(w2.x, impulse, v2.linear.x), y: mul_add(w2.y, impulse, v2.linear.y) };
     v1.angular = mul_add(ig1, impulse, v1.angular);
     v2.angular = mul_add(ig2, impulse, v2.angular);
 }
-/// `jv(..) + rhs` with one rescale: `element::jv`'s `dot4` plus `rhs`, exact as above.
+/// `jv(..) + rhs` with one rescale: `element::jv`'s `dot4` plus `rhs`. The velocity difference
+/// is distributed over the exact wide sum (BT3: `d * (a - b) = d * a - d * b` exactly), which
+/// saves the two checked subtractions; the floored result is the same.
 #[inline(always)]
 fn jv_add(dir: Vec2, g1: Fixed, g2: Fixed, v1: SolverVel, v2: SolverVel, rhs: Fixed) -> Fixed {
-    let dv = v1.linear - v2.linear;
-    wide_mul(dir.x, dv.x)
-        .add(wide_mul(dir.y, dv.y))
+    wide_mul(dir.x, v1.linear.x)
+        .sub(wide_mul(dir.x, v2.linear.x))
+        .add(wide_mul(dir.y, v1.linear.y))
+        .sub(wide_mul(dir.y, v2.linear.y))
         .add(wide_mul(g1, v1.angular))
         .add(wide_mul(g2, v2.angular))
         .add(wide_from(rhs))
@@ -247,7 +260,7 @@ fn jv_add(dir: Vec2, g1: Fixed, g2: Fixed, v1: SolverVel, v2: SolverVel, rhs: Fi
 }
 #[inline(always)]
 fn solve_normal(
-    ref h: HotPoint, dir: Vec2, row: @Row, w: @WeightedPair, ref v1: SolverVel, ref v2: SolverVel,
+    ref h: HotPoint, dir: Vec2, row: @Row, w: @Weights, ref v1: SolverVel, ref v2: SolverVel,
 ) {
     let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.rhs);
     let new_impulse = h.cfm * max(ZERO, h.impulse - *row.r * dv);
@@ -260,7 +273,7 @@ fn solve_tangent(
     ref h: HotPoint,
     dir: Vec2,
     row: @Row,
-    w: @WeightedPair,
+    w: @Weights,
     limit: Fixed,
     ref v1: SolverVel,
     ref v2: SolverVel,
@@ -285,33 +298,74 @@ fn idle(h: Hot, count: u8, v1: SolverVel, v2: SolverVel) -> bool {
         && row_zero(h.a)
         && (count == 1 || row_zero(h.b))
 }
+/// `Pose2::transform_point` inlined (BT3: the call was 785 outlined calls per impact tick):
+/// the same wide sums, `re * x - im * y + t` instead of `re * x + (-im) * y + t`, one floor per
+/// component.
+#[inline(always)]
+fn transform(p: Pose2, l: Vec2) -> Vec2 {
+    let r = p.rotation;
+    Vec2 {
+        x: wide_mul(r.re, l.x).sub(wide_mul(r.im, l.y)).add(wide_from(p.translation.x)).narrow(),
+        y: dot2_add(r.im, l.x, r.re, l.y, p.translation.y),
+    }
+}
+/// `(dist + dot(a - b, dir), dot(a - b, t))` with the difference distributed over the exact
+/// wide sums, as in `jv_add`.
+#[inline(always)]
+fn separation(a: Vec2, b: Vec2, dir: Vec2, t: Vec2, dist: Fixed) -> (Fixed, Fixed) {
+    (
+        wide_mul(a.x, dir.x)
+            .sub(wide_mul(b.x, dir.x))
+            .add(wide_mul(a.y, dir.y))
+            .sub(wide_mul(b.y, dir.y))
+            .add(wide_from(dist))
+            .narrow(),
+        wide_mul(a.x, t.x).sub(wide_mul(b.x, t.x)).add(wide_mul(a.y, t.y)).sub(wide_mul(b.y, t.y))
+            .narrow(),
+    )
+}
+/// `dist + dot(a - b, dir)`, as `separation`.
+#[inline(always)]
+fn normal_separation(a: Vec2, b: Vec2, dir: Vec2, dist: Fixed) -> Fixed {
+    wide_mul(a.x, dir.x)
+        .sub(wide_mul(b.x, dir.x))
+        .add(wide_mul(a.y, dir.y))
+        .sub(wide_mul(b.y, dir.y))
+        .add(wide_from(dist))
+        .narrow()
+}
 /// `update_element` on the hot values (the unbiased rhs is transient: refresh recomputes it).
+/// A warm-start coefficient of exactly one (the default) skips its two products (`x * ONE ==
+/// x` exactly, BT3).
 #[inline(always)]
 fn update_point(
-    ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, warm: Fixed, cap: Fixed,
+    ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, k: Update,
 ) {
-    let dp = p1.transform_point(*f.local_p1) - p2.transform_point(*f.local_p2);
-    let dir = *c.dir;
-    let dist = dot2_add(dp.x, dir.x, dp.y, dir.y, *f.dist);
+    let (dist, t_dist) = separation(
+        transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist,
+    );
     let rhs_wo_bias = max(ZERO, dist) * *c.inv_dt;
-    h.rhs = rhs_wo_bias + min(ZERO, max(-cap, dist * *c.erp_inv_dt));
+    h.rhs = rhs_wo_bias + min(ZERO, max(k.neg_cap, dist * *c.erp_inv_dt));
     h.cfm = if dist > ZERO {
         ONE
     } else {
         *c.soft_cfm
     };
     h.acc += h.impulse;
-    h.impulse = h.impulse * warm;
     h.t_acc += h.t_impulse;
-    h.t_impulse = h.t_impulse * warm;
-    h.t_rhs = mul_add(dot(dp, tangent(dir)), *c.inv_dt, *f.t_rhs_wo_bias);
+    if !k.unit {
+        h.impulse = h.impulse * k.warm;
+        h.t_impulse = h.t_impulse * k.warm;
+    }
+    h.t_rhs = mul_add(t_dist, *c.inv_dt, *f.t_rhs_wo_bias);
 }
 /// `refresh_unbiased` then `strip`.
 #[inline(always)]
 fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2) {
-    let dp = p1.transform_point(*f.local_p1) - p2.transform_point(*f.local_p2);
-    let dir = *c.dir;
-    h.rhs = max(ZERO, dot2_add(dp.x, dir.x, dp.y, dir.y, *f.dist)) * *c.inv_dt;
+    let dist = normal_separation(
+        transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *f.dist,
+    );
+    h.rhs = max(ZERO, dist) * *c.inv_dt;
     h.cfm = ONE;
     h.t_rhs = *f.t_rhs_wo_bias;
 }
@@ -322,9 +376,9 @@ impl UpdateKernel of Kernel<Update> {
         let p1 = pose(poses, *f.i);
         let p2 = pose(poses, *f.j);
         let two = *f.count == 2;
-        update_point(ref h.a, f.a, f, p1, p2, self.warm, self.cap);
+        update_point(ref h.a, f.a, f, p1, p2, self);
         if two {
-            update_point(ref h.b, f.b, f, p1, p2, self.warm, self.cap);
+            update_point(ref h.b, f.b, f, p1, p2, self);
         }
         // `cached::warmstart_sparse`: zero impulses are an exact no-op.
         if h.a.impulse == ZERO
@@ -375,7 +429,7 @@ fn solve_both(ref h: Hot, f: @Frozen, ref bodies: SweepBodies) {
     if two {
         solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
     }
-    let t = tangent(dir);
+    let t = *f.t;
     let limit = *f.limit;
     solve_tangent(ref h.a, t, f.a.t, f.wt, limit * h.a.impulse, ref v1, ref v2);
     if two {
@@ -407,7 +461,7 @@ fn bounce(
     ref h: HotPoint,
     f: @FrozenPoint,
     dir: Vec2,
-    w: @WeightedPair,
+    w: @Weights,
     ref v1: SolverVel,
     ref v2: SolverVel,
 ) {
