@@ -69,3 +69,69 @@ fn kd_upstream_pusher_semantics() {
         }
     }
 }
+
+#[test]
+fn kd_moving_kinematic_wakes_touching_sleeper() {
+    for position_based in [false, true] {
+        let params = IntegrationParameters {
+            dt: Q(71582788).f(),
+            contact_recycling: false,
+            contact_clustering: false,
+            max_ccd_substeps: 0,
+            ..Default::default()
+        };
+        let mut pipeline = PhysicsPipeline::new();
+        let mut islands = IslandManager::new();
+        let mut broad = DefaultBroadPhase::new();
+        let mut narrow = NarrowPhase::new();
+        let mut bodies = RigidBodySet::new();
+        let mut colliders = ColliderSet::new();
+        let mut joints = ImpulseJointSet::new();
+        let mut multi = MultibodyJointSet::new();
+        let mut ccd = CCDSolver::new();
+        let driver = if position_based {
+            RigidBodyBuilder::kinematic_position_based()
+        } else {
+            RigidBodyBuilder::kinematic_velocity_based()
+        };
+        let a = bodies.insert(driver.translation(Vector::new(-1.0, 0.0)));
+        let b = bodies.insert(RigidBodyBuilder::dynamic());
+        for h in [a, b] {
+            colliders.insert_with_parent(ColliderBuilder::cuboid(0.5, 0.5), h, &mut bodies);
+        }
+        let mut step = |bodies: &mut RigidBodySet| {
+            pipeline.step(
+                Vector::ZERO,
+                &params,
+                &mut islands,
+                &mut broad,
+                &mut narrow,
+                bodies,
+                &mut colliders,
+                &mut joints,
+                &mut multi,
+                &mut ccd,
+                &(),
+                &(),
+            );
+        };
+        step(&mut bodies);
+        bodies[a].sleep();
+        bodies[b].sleep();
+        step(&mut bodies);
+        assert!(bodies[b].is_sleeping());
+        if position_based {
+            bodies[a].set_next_kinematic_translation(Vector::new(-1.0 + params.dt, 0.0));
+        } else {
+            bodies[a].set_linvel(Vector::new(1.0, 0.0), true);
+        }
+        step(&mut bodies);
+        println!(
+            "position_based={position_based}: sleeping={}, vx={}",
+            bodies[b].is_sleeping(),
+            bodies[b].linvel().x
+        );
+        assert!(!bodies[b].is_sleeping());
+        assert!(bodies[b].linvel().x > 0.0);
+    }
+}

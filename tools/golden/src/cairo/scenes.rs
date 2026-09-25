@@ -43,7 +43,9 @@ fn scene_body(v: &Value) -> Node {
     let num_colliders = colliders.len();
     let kind = match v["type"].as_str().unwrap() {
         "fixed" => "BodyKindRaw::Fixed",
-        "dynamic" => "BodyKindRaw::Dynamic",
+        "dynamic" | "kinematic_position_based" | "kinematic_velocity_based" => {
+            "BodyKindRaw::Dynamic"
+        }
         other => panic!("unknown body type {other}"),
     };
     Node::Struct(
@@ -118,7 +120,7 @@ fn empty_state() -> Node {
     )
 }
 
-pub(super) fn generate(vectors: &Path) -> String {
+pub(super) fn generate(vectors: &Path) -> Vec<(&'static str, String)> {
     let json = load(vectors, "scenes.json");
     let mut module = Module::new(
         "scenes.json",
@@ -127,6 +129,7 @@ pub(super) fn generate(vectors: &Path) -> String {
     let num_steps = json["num_steps"].as_u64().unwrap();
 
     let mut joint_cases = Vec::new();
+    let mut kd_cases = Vec::new();
     let cases: Vec<(String, Node)> = json["scenes"]
         .as_array()
         .unwrap()
@@ -142,7 +145,7 @@ pub(super) fn generate(vectors: &Path) -> String {
             };
             let dynamic: Vec<&str> = bodies
                 .iter()
-                .filter(|b| b["type"] == "dynamic")
+                .filter(|b| b["type"] != "fixed")
                 .map(|b| b["name"].as_str().unwrap())
                 .collect();
 
@@ -239,7 +242,28 @@ pub(super) fn generate(vectors: &Path) -> String {
                     ("samples", Node::Array(samples)),
                 ],
             );
-            if controlled {
+            if !c["kd_control"].is_null() {
+                let control = &c["kd_control"];
+                kd_cases.push((
+                    const_name(c),
+                    Node::Struct(
+                        "crate::types::KinematicSceneCase",
+                        vec![
+                            ("scene", node),
+                            ("kinematic_body", int(&control["kinematic_body"])),
+                            (
+                                "position_based",
+                                Node::Lit(control["position_based"].to_string()),
+                            ),
+                            ("velocity", vec2(&control["velocity"])),
+                            ("target_delta", vec2(&control["target_delta"])),
+                            ("dominance_body", int(&control["dominance_body"])),
+                            ("dominance_group", int(&control["dominance_group"])),
+                        ],
+                    ),
+                ));
+                None
+            } else if controlled {
                 let j = &c["joints"][0];
                 assert_eq!(c["joints"].as_array().unwrap().len(), 1);
                 let field = |name: &str| {
@@ -325,5 +349,66 @@ pub(super) fn generate(vectors: &Path) -> String {
         "joint_cases",
         &joint_cases,
     );
-    module.finish(&ALL_TYPES)
+    let mut parent = module.finish(&ALL_TYPES);
+    let mut files = vec![];
+    for (path, case) in [
+        "scenes/kinematic_platform",
+        "scenes/kinematic_pusher",
+        "scenes/dominance_stack",
+    ]
+    .into_iter()
+    .zip(kd_cases)
+    {
+        parent.push_str(&format!("\npub mod {};\n", path.split('/').nth(1).unwrap()));
+        let mut leaf = Module::new("scenes.json", "KD kinematic/dominance golden trace; dynamic descriptors include the controlled kinematic body.");
+        leaf.table("crate::types::KinematicSceneCase", "ALL", "cases", &[case]);
+        if path == "scenes/dominance_stack" {
+            let scene = json["scenes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|c| c["id"] == "dominance_stack")
+                .unwrap();
+            let seeds: Vec<Node> = scene["warmstart_60"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|point| {
+                    Node::Struct(
+                        "crate::types::SceneWarmstartRaw",
+                        vec![
+                            ("collider1", int(&point["collider1"])),
+                            ("collider2", int(&point["collider2"])),
+                            ("fid1", int(&point["fid1"])),
+                            ("fid2", int(&point["fid2"])),
+                            ("local_p1", vec2(&point["local_p1"])),
+                            ("local_p2", vec2(&point["local_p2"])),
+                            ("local_n1", vec2(&point["local_n1"])),
+                            ("local_n2", vec2(&point["local_n2"])),
+                            ("dist", raw(&point["dist"])),
+                            ("impulse", raw(&point["impulse"])),
+                            ("tangent_impulse", raw(&point["tangent_impulse"])),
+                            ("warmstart_impulse", raw(&point["warmstart_impulse"])),
+                            (
+                                "warmstart_tangent_impulse",
+                                raw(&point["warmstart_tangent_impulse"]),
+                            ),
+                        ],
+                    )
+                })
+                .collect();
+            let ty = format!("[crate::types::SceneWarmstartRaw; {}]", seeds.len());
+            let mut warm = Module::new(
+                "scenes.json",
+                "KD dominance replay boundary: persistent geometry and impulses.",
+            );
+            warm.body
+                .push_str(&konst("WARMSTART_60", &ty, &Node::Array(seeds)));
+            files.push(("scenes/dominance_stack/warmstart", warm.finish(&ALL_TYPES)));
+            leaf.body.push_str("\npub mod warmstart;\n");
+        }
+        files.push((path, leaf.finish(&ALL_TYPES)));
+    }
+    files.push(("scenes", parent));
+    files
 }

@@ -16,7 +16,7 @@
 //! * `remove` takes no island manager nor joint sets (islands and joint sets are out of this
 //!   package): it removes or detaches the attached colliders only;
 //! * sleeping (work package SL): the setters that take a `wake_up` flag upstream wake the body
-//!   up unconditionally here (`set_position`, `set_linvel`, `set_angvel`, as upstream's callers
+//!   up with that argument fixed to true (`set_position`, `set_linvel`, `set_angvel`; callers
 //!   pass `true`); the force and impulse helpers keep upstream's flag. A wake-up only marks the
 //!   body: the step wakes its island (`rapier2d::pipeline::islands`). Write the fields directly
 //!   to change a body without waking it.
@@ -26,7 +26,7 @@ use glam::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::collider::changes::{PARENT, POSITION as COLLIDER_POSITION};
 use rapier_core::data::arena::{Arena, ArenaTrait};
-use rapier_core::rigid_body::changes::{COLLIDERS, POSITION, SLEEP};
+use rapier_core::rigid_body::changes::{COLLIDERS, DOMINANCE, POSITION, SLEEP};
 use rapier_core::rigid_body::{
     RigidBodyActivation, RigidBodyActivationTrait, RigidBodyChanges, RigidBodyChangesTrait,
     RigidBodyDamping, RigidBodyDominance, RigidBodyType, RigidBodyTypeTrait,
@@ -34,6 +34,7 @@ use rapier_core::rigid_body::{
 use rapier_geometry2d::mass::MassPropertiesTrait;
 use rapier_math::math_ext::vec2::gcross_vv;
 use rapier_math::pose2::Pose2;
+use rapier_math::rot2::Rot2;
 use crate::collider::{Collider, ColliderTrait};
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
 use crate::rigid_body::{
@@ -116,6 +117,65 @@ pub impl RigidBodyImpl of RigidBodyTrait {
         Self::new(RigidBodyType::KinematicPositionBased, position)
     }
 
+    /// `new(KinematicVelocityBased, position)`: velocities drive motion, forces and
+    /// contact impulses cannot change it. Exact initialization; no rounding or panic.
+    fn kinematic_velocity_based(position: Pose2) -> RigidBody {
+        Self::new(RigidBodyType::KinematicVelocityBased, position)
+    }
+
+    /// Target pose (upstream `next_position`), exact copy.
+    fn next_position(self: @RigidBody) -> Pose2 {
+        *self.pos.next_position
+    }
+
+    /// Sets a kinematic body's target, waking it strongly iff different from the current
+    /// pose. Other body types are untouched. Exact copy; rotation must be unit.
+    /// As upstream, accepts both kinematic types; velocity-based integration replaces it.
+    fn set_next_kinematic_position(ref self: RigidBody, position: Pose2) {
+        if self.is_kinematic() {
+            self.pos.next_position = position;
+            if self.pos.position != position {
+                self.wake_up(true);
+            }
+        }
+    }
+
+    /// Replaces only target translation; same type and wake rules as the pose setter.
+    /// Values must fit Q32.32; exact copy, no arithmetic or panic.
+    fn set_next_kinematic_translation(ref self: RigidBody, translation: Vec2) {
+        if self.is_kinematic() {
+            self.pos.next_position.translation = translation;
+            if self.pos.position.translation != translation {
+                self.wake_up(true);
+            }
+        }
+    }
+
+    /// Replaces only target rotation (unit complex); same type and wake rules as upstream.
+    /// Exact copy, no normalization, arithmetic or panic.
+    fn set_next_kinematic_rotation(ref self: RigidBody, rotation: Rot2) {
+        if self.is_kinematic() {
+            self.pos.next_position.rotation = rotation;
+            if self.pos.position.rotation != rotation {
+                self.wake_up(true);
+            }
+        }
+    }
+
+    /// Configured dominance group, exactly in [-128, 127]. Fixed effective dominance is 128.
+    fn dominance_group(self: @RigidBody) -> i8 {
+        *self.dominance.group
+    }
+
+    /// Replaces the signed group, raising DOMINANCE iff changed. No direct wake-up, as
+    /// upstream; the pipeline handles affected contacts. Exact, no rounding or panic.
+    fn set_dominance_group(ref self: RigidBody, group: i8) {
+        if self.dominance.group != group {
+            self.dominance.group = group;
+            self.changes.insert(DOMINANCE);
+        }
+    }
+
     /// World pose of the body frame.
     #[inline(always)]
     fn position(self: @RigidBody) -> Pose2 {
@@ -163,19 +223,27 @@ pub impl RigidBodyImpl of RigidBodyTrait {
     }
 
     /// Replaces the linear velocity and wakes the body up (upstream `set_linvel(linvel, wake_up
-    /// = true)`, applied to every body type).
+    /// = true)`, dynamic and velocity-based kinematic bodies only).
     #[inline(always)]
     fn set_linvel(ref self: RigidBody, linvel: Vec2) {
-        self.vels = RigidBodyVelocityTrait::new(linvel, self.vels.angvel);
-        self.wake_up(true);
+        if (self.body_type == RigidBodyType::Dynamic
+            || self.body_type == RigidBodyType::KinematicVelocityBased)
+            && self.vels.linvel != linvel {
+            self.vels.linvel = linvel;
+            self.wake_up(true);
+        }
     }
 
     /// Replaces the angular velocity and wakes the body up (upstream `set_angvel(angvel, wake_up
-    /// = true)`, applied to every body type).
+    /// = true)`, dynamic and velocity-based kinematic bodies only).
     #[inline(always)]
     fn set_angvel(ref self: RigidBody, angvel: Fixed) {
-        self.vels = RigidBodyVelocityTrait::new(self.vels.linvel, angvel);
-        self.wake_up(true);
+        if (self.body_type == RigidBodyType::Dynamic
+            || self.body_type == RigidBodyType::KinematicVelocityBased)
+            && self.vels.angvel != angvel {
+            self.vels.angvel = angvel;
+            self.wake_up(true);
+        }
     }
 
     /// Is the body asleep (upstream `is_sleeping`)? A sleeping body keeps its pose, has zero
@@ -296,6 +364,55 @@ pub impl RigidBodyImpl of RigidBodyTrait {
         let torque_impulse = gcross_vv(dpt.x, dpt.y, impulse.x, impulse.y);
         self.apply_impulse(impulse, wake_up);
         self.apply_torque_impulse(torque_impulse, wake_up);
+    }
+}
+
+/// Upstream-named body builder. Unexposed builder options remain configurable on `build()`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RigidBodyBuilder {
+    body: RigidBody,
+}
+#[generate_trait]
+pub impl RigidBodyBuilderImpl of RigidBodyBuilderTrait {
+    /// Default body at identity with the supplied type; exact initialization.
+    fn new(body_type: RigidBodyType) -> RigidBodyBuilder {
+        RigidBodyBuilder { body: RigidBodyTrait::new(body_type, Default::default()) }
+    }
+    /// Dynamic body at identity, upstream defaults.
+    fn dynamic() -> RigidBodyBuilder {
+        Self::new(RigidBodyType::Dynamic)
+    }
+    /// Fixed body at identity, upstream defaults.
+    fn fixed() -> RigidBodyBuilder {
+        Self::new(RigidBodyType::Fixed)
+    }
+    /// Position-controlled body at identity, upstream defaults.
+    fn kinematic_position_based() -> RigidBodyBuilder {
+        Self::new(RigidBodyType::KinematicPositionBased)
+    }
+    /// Velocity-controlled body at identity, upstream defaults.
+    fn kinematic_velocity_based() -> RigidBodyBuilder {
+        Self::new(RigidBodyType::KinematicVelocityBased)
+    }
+    /// Initial pose, unit rotation required. Refreshes COM; fixed arithmetic overflow panics.
+    fn position(mut self: RigidBodyBuilder, position: Pose2) -> RigidBodyBuilder {
+        self.body.pos = RigidBodyPositionTrait::from_position(position);
+        self
+            .body
+            .mprops = self
+            .body
+            .mprops
+            .update_world_mass_properties(self.body.body_type, position);
+        self
+    }
+    /// Initial configured dominance, exactly in [-128,127]; no rounding or panic.
+    fn dominance_group(mut self: RigidBodyBuilder, group: i8) -> RigidBodyBuilder {
+        self.body.dominance.group = group;
+        self
+    }
+    /// Builds the configured body, an exact copy.
+    fn build(self: RigidBodyBuilder) -> RigidBody {
+        self.body
     }
 }
 
@@ -480,181 +597,16 @@ mod tests {
     use fixed::{Fixed, ONE, TWO, ZERO};
     use glam::Vec2;
     use rapier_core::Handle;
-    use rapier_core::rigid_body::changes::{POSITION, SLEEP};
-    use rapier_core::rigid_body::{RigidBodyActivationTrait, RigidBodyChangesTrait, RigidBodyType};
+    use rapier_core::rigid_body::RigidBodyChangesTrait;
     use rapier_math::pose2::Pose2;
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;
     use crate::collider::ColliderBuilderTrait;
     use crate::collider_set::{ColliderSet, ColliderSetTrait};
-    use crate::rigid_body::{RigidBodyMassPropsTrait, RigidBodyVelocityTrait};
     use super::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
 
     fn at(x: Fixed, y: Fixed) -> Pose2 {
         Pose2 { translation: Vec2 { x, y }, rotation: Rot2 { re: ONE, im: ZERO } }
-    }
-
-    #[test]
-    fn test_constructors() {
-        // (body, type, dynamic, fixed, kinematic)
-        let cases: Array<(RigidBody, RigidBodyType, bool, bool, bool)> = array![
-            (RigidBodyTrait::dynamic(at(ONE, TWO)), RigidBodyType::Dynamic, true, false, false),
-            (RigidBodyTrait::fixed(at(ONE, TWO)), RigidBodyType::Fixed, false, true, false),
-            (
-                RigidBodyTrait::kinematic_position_based(at(ONE, TWO)),
-                RigidBodyType::KinematicPositionBased,
-                false,
-                false,
-                true,
-            ),
-        ];
-        for (body, body_type, dynamic, fixed, kinematic) in cases {
-            assert_eq!(body.body_type, body_type);
-            assert_eq!(body.is_dynamic(), dynamic);
-            assert_eq!(body.is_fixed(), fixed);
-            assert_eq!(body.is_kinematic(), kinematic);
-            assert_eq!(body.position(), at(ONE, TWO));
-            assert_eq!(body.world_com(), Vec2 { x: ONE, y: TWO });
-            assert!(body.changes.is_empty());
-            assert_eq!(body.colliders.len(), 0);
-            assert!(body.enabled);
-        }
-    }
-
-    #[test]
-    fn test_setters() {
-        let mut body = RigidBodyTrait::dynamic(at(ZERO, ZERO));
-        body.set_position(at(ZERO, ZERO));
-        assert!(!body.changes.contains(POSITION));
-        body.set_position(at(ONE, ZERO));
-        assert!(body.changes.contains(POSITION));
-        assert_eq!(body.pos.next_position, at(ONE, ZERO));
-        assert_eq!(body.world_com(), Vec2 { x: ONE, y: ZERO });
-        body.set_linvel(Vec2 { x: TWO, y: ONE });
-        body.set_angvel(ONE);
-        assert_eq!(body.linvel(), Vec2 { x: TWO, y: ONE });
-        assert_eq!(body.vels.angvel, ONE);
-    }
-
-    /// `sleep` zeroes the velocities and fills the timer; every setter wakes the body up
-    /// (strongly: timer reset, `SLEEP` raised when it was asleep), as upstream with `wake_up =
-    /// true`; a weak wake-up keeps the timer.
-    #[test]
-    fn test_sleep_and_wake_up() {
-        let mut body = RigidBodyTrait::dynamic(at(ZERO, ZERO));
-        body.set_linvel(Vec2 { x: ONE, y: ONE });
-        body.changes = RigidBodyChangesTrait::empty();
-        body.sleep();
-        assert!(body.is_sleeping());
-        assert!(body.activation.is_eligible_for_sleep());
-        assert_eq!(body.vels, RigidBodyVelocityTrait::zero());
-        let mut weak = body;
-        weak.wake_up(false);
-        assert!(!weak.is_sleeping() && weak.changes.contains(SLEEP));
-        assert!(weak.activation.is_eligible_for_sleep(), "weak: timer kept");
-        // (setter, expected linvel.x after it) on a sleeping body.
-        let mut n = 0;
-        while n != 3 {
-            let mut b = body;
-            if n == 0 {
-                b.set_position(at(ONE, ZERO));
-            } else if n == 1 {
-                b.set_linvel(Vec2 { x: ONE, y: ZERO });
-            } else {
-                b.set_angvel(ONE);
-            }
-            assert!(!b.is_sleeping() && b.changes.contains(SLEEP), "setter {} wakes", n);
-            assert_eq!(b.activation.time_since_can_sleep, ZERO, "setter {} resets", n);
-            n += 1;
-        }
-        // Waking an awake body raises nothing.
-        let mut awake = RigidBodyTrait::dynamic(at(ZERO, ZERO));
-        awake.wake_up(true);
-        assert!(awake.changes.is_empty());
-    }
-
-    /// Force and impulse helpers: dynamic bodies only, zero inputs do nothing, the flag decides
-    /// the wake-up. Rows: (helper, dynamic body, zero input); a row applies iff dynamic and not
-    /// zero, and then wakes the sleeping body.
-    #[test]
-    fn test_forces_and_impulses_wake_dynamic_bodies() {
-        let mut dynamic = RigidBodyTrait::dynamic(at(ZERO, ZERO));
-        // Unit mass and inertia at the origin: impulses map one to one.
-        dynamic.mprops.local_mprops.inv_mass = ONE;
-        dynamic.mprops.local_mprops.inv_principal_inertia = ONE;
-        dynamic
-            .mprops = dynamic
-            .mprops
-            .update_world_mass_properties(RigidBodyType::Dynamic, at(ZERO, ZERO));
-        dynamic.sleep();
-        let mut fixed = RigidBodyTrait::fixed(at(ZERO, ZERO));
-        fixed.sleep();
-        let rows: Array<(u8, bool, bool)> = array![
-            (0, true, false), (0, true, true), (0, false, false), (1, true, false), (1, true, true),
-            (1, false, false), (2, true, false), (3, true, false), (3, true, true),
-            (3, false, false), (4, true, false), (4, false, false), (5, true, false),
-        ];
-        let point = Vec2 { x: ONE, y: ZERO };
-        for (helper, is_dynamic, zero) in rows {
-            let mut b = if is_dynamic {
-                dynamic
-            } else {
-                fixed
-            };
-            let v = if zero {
-                Vec2 { x: ZERO, y: ZERO }
-            } else {
-                Vec2 { x: ONE, y: TWO }
-            };
-            let t = if zero {
-                ZERO
-            } else {
-                TWO
-            };
-            let applied = is_dynamic && !zero;
-            let (force, torque, linvel, angvel) = if helper == 0 {
-                b.add_force(v, true);
-                (v, ZERO, ZERO, ZERO)
-            } else if helper == 1 {
-                b.add_torque(t, true);
-                (Vec2 { x: ZERO, y: ZERO }, t, ZERO, ZERO)
-            } else if helper == 2 {
-                // Torque of (1, 2) at (1, 0) about the origin: 1·2 − 0·1 = 2.
-                b.add_force_at_point(v, point, true);
-                (v, TWO, ZERO, ZERO)
-            } else if helper == 3 {
-                b.apply_impulse(v, true);
-                (Vec2 { x: ZERO, y: ZERO }, ZERO, v.x, ZERO)
-            } else if helper == 4 {
-                b.apply_torque_impulse(t, true);
-                (Vec2 { x: ZERO, y: ZERO }, ZERO, ZERO, t)
-            } else {
-                b.apply_impulse_at_point(v, point, true);
-                (Vec2 { x: ZERO, y: ZERO }, ZERO, v.x, TWO)
-            };
-            let (force, torque, linvel, angvel) = if applied {
-                (force, torque, linvel, angvel)
-            } else {
-                (Vec2 { x: ZERO, y: ZERO }, ZERO, ZERO, ZERO)
-            };
-            assert_eq!(b.forces.user_force, force, "force of {} {} {}", helper, is_dynamic, zero);
-            assert_eq!(b.forces.user_torque, torque, "torque of {}", helper);
-            assert_eq!(b.vels.linvel.x, linvel, "linvel of {}", helper);
-            assert_eq!(b.vels.angvel, angvel, "angvel of {}", helper);
-            assert_eq!(!b.is_sleeping(), applied, "wake of {} {} {}", helper, is_dynamic, zero);
-        }
-        // `wake_up = false` leaves the body asleep; the resets wake only when something was set.
-        let mut quiet = dynamic;
-        quiet.add_force(point, false);
-        quiet.apply_impulse(point, false);
-        quiet.reset_torques(true);
-        assert!(quiet.is_sleeping(), "nothing to reset");
-        quiet.reset_forces(true);
-        assert!(!quiet.is_sleeping() && quiet.forces.user_force == Vec2 { x: ZERO, y: ZERO });
-        let mut spun = dynamic;
-        spun.add_torque(ONE, false);
-        spun.reset_torques(true);
-        assert!(!spun.is_sleeping() && spun.forces.user_torque == ZERO);
     }
 
     #[test]

@@ -35,6 +35,10 @@
 //! walk and written once. Same results as [`solve`] then [`advance_to_final_positions`] (raw
 //! equivalence in `tests`, candidate by candidate and on random worlds).
 //!
+//! Position-based kinematic velocities are interpolated in the fused user-change stage,
+//! after mass updates and before collision detection/islands. Separate-stage callers use
+//! `kinematic::interpolate_kinematic_velocities` at the same boundary. Targets stay exact.
+//!
 //! Every loop runs in ascending slot / pair order; no dict is iterated (determinism, AGENTS.md
 //! §2.4). Change flags are only raised by user mutations: stages 3–4 move bodies and colliders
 //! without raising them, as upstream's internal motion.
@@ -51,8 +55,7 @@
 //!
 //! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
 //! every step (upstream persists them, see `islands`); no hooks, contact-force or sensor events,
-//! kinematic velocity interpolation (a position-based kinematic body moves to its `next_position`
-//! with the velocity the user gave it); a body whose enabled state changes does not propagate it
+//! a body whose enabled state changes does not propagate it
 //! to its colliders (disable the colliders).
 //!
 //! # Cost
@@ -157,6 +160,7 @@ pub(crate) mod fixtures;
 pub(crate) mod fused_alternatives;
 
 pub mod islands;
+pub mod kinematic;
 #[cfg(test)]
 pub(crate) mod narrow_alternatives;
 #[cfg(test)]
@@ -188,8 +192,11 @@ pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colli
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    let (snapshot, infos, entries, census) = user_changes_bodies(
-        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+        ref world.bodies,
+        ref world.colliders,
+        world.narrow_phase.pairs.span(),
+        Some(world.integration_parameters.dt),
     );
     let prediction = world.integration_parameters.prediction_distance();
     let (proxies, scratch, sleeping) = collision_inputs_sleeping(
@@ -341,6 +348,15 @@ pub fn user_changes_snapshot(
 pub fn user_changes_bodies(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
+    user_changes_bodies_for_step(ref bodies, ref colliders, pairs, None)
+}
+
+fn user_changes_bodies_for_step(
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    pairs: Span<ContactPair>,
+    dt: Option<Fixed>,
+) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     let mut touched = array![];
@@ -354,26 +370,40 @@ pub fn user_changes_bodies(
     let mut bodies_dirty = false;
     let mut infos = array![];
     let mut census: SleepCensus = Default::default();
+    let mut has_kinematic = false;
     for (handle, body) in entries {
         let (body_type, world_com, dominance, sleeping) = if body.changes.is_empty() {
             census.count(body);
-            (*body.body_type, *body.mprops.world_com, *body.dominance, *body.activation.sleeping)
+            (
+                *body.body_type,
+                *body.mprops.world_com,
+                body.dominance.effective_group(*body.body_type),
+                *body.activation.sleeping,
+            )
         } else {
             bodies_dirty = true;
             let body = body_changes(*handle, *body, ref bodies, ref colliders, ref touched);
             census.count(@body);
-            (body.body_type, body.mprops.world_com, body.dominance, body.activation.sleeping)
+            (
+                body.body_type,
+                body.mprops.world_com,
+                body.dominance.effective_group(body.body_type),
+                body.activation.sleeping,
+            )
         };
-        infos
-            .append(
-                BodyInfo {
-                    handle: *handle,
-                    body_type,
-                    world_com,
-                    dominance: dominance.effective_group(body_type),
-                    sleeping,
-                },
-            );
+        if body_type == RigidBodyType::KinematicPositionBased {
+            has_kinematic = true;
+        }
+        infos.append(BodyInfo { handle: *handle, body_type, world_com, dominance, sleeping });
+    }
+    // Only a world with position-based bodies pays for the extra walk. The ordinary
+    // body's hot path keeps snapshot field reads and no per-body loop dispatch.
+    while has_kinematic {
+        if let Some(dt) = dt {
+            kinematic::prepare_existing(ref bodies, entries, dt);
+            bodies_dirty = true;
+        }
+        has_kinematic = false;
     }
     if !touched.is_empty()
         && !pairs.is_empty()

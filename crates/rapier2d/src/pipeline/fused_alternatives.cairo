@@ -26,6 +26,9 @@ use super::{
 /// sets on its own (user changes, proxies, `pair_colliders`, position update).
 pub fn step_staged(ref world: World) -> Array<CollisionEvent> {
     handle_user_changes(ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span());
+    super::kinematic::interpolate_kinematic_velocities(
+        ref world.bodies, world.integration_parameters,
+    );
     let events = detect_collisions(
         world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
     );

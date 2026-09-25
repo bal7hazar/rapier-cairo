@@ -8341,3 +8341,9 @@ pub const JOINT_CASES: [crate::types::JointSceneCase; 4] = [
 pub fn joint_cases() -> Span<crate::types::JointSceneCase> {
     JOINT_CASES.span()
 }
+
+pub mod dominance_stack;
+
+pub mod kinematic_platform;
+
+pub mod kinematic_pusher;

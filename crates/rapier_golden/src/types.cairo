@@ -706,3 +706,35 @@ pub struct PolygonManifoldCase {
     pub local_n2: Vec2Raw,
     pub points: [ContactPointRaw; 2],
 }
+
+/// KD wrapper keeps existing SceneCase fixtures unchanged. In `scene`, Dynamic marks
+/// every sampled body, including the controlled kinematic body. Body index 4 means absent.
+#[derive(Copy, Drop)]
+pub struct KinematicSceneCase {
+    pub scene: SceneCase,
+    pub kinematic_body: u32,
+    pub position_based: bool,
+    pub velocity: Vec2Raw,
+    /// Integer Q32.32 translation increment per frame, starting at the initial pose.
+    pub target_delta: Vec2Raw,
+    pub dominance_body: u32,
+    pub dominance_group: i8,
+}
+
+/// One upstream contact point at a replay-window boundary, matched by colliders/features.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SceneWarmstartRaw {
+    pub collider1: u32,
+    pub collider2: u32,
+    pub fid1: u32,
+    pub fid2: u32,
+    pub local_p1: Vec2Raw,
+    pub local_p2: Vec2Raw,
+    pub local_n1: Vec2Raw,
+    pub local_n2: Vec2Raw,
+    pub dist: i64,
+    pub impulse: i64,
+    pub tangent_impulse: i64,
+    pub warmstart_impulse: i64,
+    pub warmstart_tangent_impulse: i64,
+}
