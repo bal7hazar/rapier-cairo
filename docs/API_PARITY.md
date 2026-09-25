@@ -16,15 +16,15 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
 | dynamics | 223 | 0 | 601 | 387 | 1211 | 27.1% |
-| geometry | 153 | 0 | 156 | 16 | 325 | 49.5% |
+| geometry | 156 | 0 | 153 | 16 | 325 | 50.5% |
 | parry::bounding_volume | 9 | 0 | 83 | 30 | 122 | 9.8% |
 | parry::mass_properties | 13 | 0 | 10 | 7 | 30 | 56.5% |
 | parry::query | 7 | 0 | 305 | 112 | 424 | 2.2% |
 | parry::shape | 44 | 0 | 241 | 136 | 421 | 15.4% |
-| pipeline | 37 | 0 | 68 | 53 | 158 | 35.2% |
-| **total** | **486** | **0** | **1511** | **741** | **2738** | **24.3%** |
+| pipeline | 40 | 0 | 65 | 53 | 158 | 38.1% |
+| **total** | **492** | **0** | **1505** | **741** | **2738** | **24.6%** |
 
-Cairo-only public items not matched to upstream: **903**.
+Cairo-only public items not matched to upstream: **931**.
 
 ## Aabb
 
@@ -1852,10 +1852,10 @@ Cairo-only public items not matched to upstream: **903**.
 | method `contact_pairs_with_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
 | method `intersection_graph` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `intersection_pair` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `intersection_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `intersection_pairs` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `intersection_pairs_with` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `intersection_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `intersection_pairs_with` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pairs_with_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `new` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/mod.rs` |
 | method `query_dispatcher` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
@@ -2072,9 +2072,9 @@ Cairo-only public items not matched to upstream: **903**.
 | method `intersect_point` | pipeline | ported | Mapped to World.intersect_point | `rapier/src/pipeline/physics_world.rs` |
 | method `intersect_ray` | pipeline | ported | Mapped to World.intersect_ray | `rapier/src/pipeline/physics_world.rs` |
 | method `intersect_shape` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `intersection_pair` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `intersection_pairs` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `intersection_pairs_with` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `intersection_pair` | pipeline | ported | Mapped to World.intersection_pair | `rapier/src/pipeline/physics_world.rs` |
+| method `intersection_pairs` | pipeline | ported | Mapped to World.intersection_pairs | `rapier/src/pipeline/physics_world.rs` |
+| method `intersection_pairs_with` | pipeline | ported | Mapped to World.intersection_pairs_with | `rapier/src/pipeline/physics_world.rs` |
 | method `multibody_joints` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `multibody_joints_with` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `new` | pipeline | ported | Mapped to World.new | `rapier/src/pipeline/physics_world.rs` |
@@ -4647,7 +4647,7 @@ Cairo-only public items not matched to upstream: **903**.
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 91 | hard | QP queries |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 67 | standard | P1/SL/EV |
 | [Collider API completion](#wp-collider-api-completion) | 59 | mechanical | DB/EV |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 53 | standard | SE sensors |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 47 | standard | SE sensors |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 
@@ -5391,7 +5391,7 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 59 public items.
 
 ### WP: Sensors and intersection events
 
-Tier: standard. Depends/context: SE sensors. Estimate: 53 public items.
+Tier: standard. Depends/context: SE sensors. Estimate: 47 public items.
 
 - **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
 - **Aabb** method `intersection` (`parry/src/bounding_volume/aabb.rs`)
@@ -5403,16 +5403,10 @@ Tier: standard. Depends/context: SE sensors. Estimate: 53 public items.
 - **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
 - **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
 - **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pair` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **NarrowPhase** method `intersection_pair_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pairs` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pairs_with` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **NarrowPhase** method `intersection_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **PhysicsWorld** method `intersect_aabb_conservative` (`rapier/src/pipeline/physics_world.rs`)
 - **PhysicsWorld** method `intersect_shape` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `intersection_pair` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `intersection_pairs` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `intersection_pairs_with` (`rapier/src/pipeline/physics_world.rs`)
 - **QueryDispatcher** method `intersection_test` (`parry/src/query/query_dispatcher.rs`)
 - **QueryPipeline** method `intersect_aabb_conservative` (`rapier/src/pipeline/query_pipeline.rs`)
 - **QueryPipeline** method `intersect_shape` (`rapier/src/pipeline/query_pipeline.rs`)
@@ -5576,6 +5570,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Alternatives** method `contact_manifold_plain_outlined` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_shapes_chain` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_step_fallback` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
+- **Alternatives** method `cuboid_cuboid_upstream_sat` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `find_pairs_sort_and_prune` (`crates/rapier_geometry2d/src/broad_phase/alternatives.cairo`)
 - **Alternatives** method `find_pairs_sorted_x_then_brute` (`crates/rapier_geometry2d/src/broad_phase/alternatives.cairo`)
 - **Alternatives** method `fixed_inv` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
@@ -5585,10 +5580,13 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Alternatives** method `generate_public_jl` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
 - **Alternatives** method `handle_user_changes_flagged` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `handle_user_changes_propagate` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
+- **Alternatives** method `intersection_test_from_contacts` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `literal` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
 - **Alternatives** method `local_world_frame` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `midpoint_two_stage` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `pair_key` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
+- **Alternatives** method `point_polygon_projection` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
+- **Alternatives** method `segment_segment_endpoints` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `solve` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `solve_all_manifolds` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `solve_early_return` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
@@ -5702,11 +5700,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** const `SHAPE` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `SLEEP` (`crates/rapier_core/src/rigid_body/changes.cairo`)
 - **Changes** const `TYPE` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** impl `BitAnd` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** impl `BitOr` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** method `bitand` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** method `bitor` (`crates/rapier_core/src/collider/changes.cairo`)
-- ... 703 more
+- ... 731 more
 
 ## Embedded Rust inventory
 
