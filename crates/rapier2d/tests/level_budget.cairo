@@ -23,14 +23,18 @@ use rapier2d::pipeline::{
 };
 use rapier2d::prelude::{Fixed, Handle, RigidBodyTrait, World, WorldTrait};
 use rapier_core::integration_parameters::IntegrationParametersTrait;
+use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
-use rapier_dynamics2d::narrow_phase::compute_contacts_from_scratch;
+use rapier_dynamics2d::narrow_phase::{ContactDispatcher, compute_contacts_from_scratch};
 use rapier_dynamics2d::rigid_body_set::RigidBody;
 use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
 use rapier_dynamics2d::solver::contact::ContactConstraintsSetTrait;
 use rapier_dynamics2d::solver::island::solve_island;
 use rapier_geometry2d::broad_phase::find_pairs;
+use rapier_geometry2d::contact::ContactManifold;
+use rapier_geometry2d::shape::Shape;
 use rapier_golden::generated::level_scenes;
+use rapier_math::pose2::Pose2;
 use rapier_testing::opaque;
 use crate::golden_scenes::levels::{awake_count, despawn, handle, level, load_level, tick};
 
@@ -467,9 +471,31 @@ fn profiled_step(ref world: World, ref stages: Stages, upto: u8, solver: u8) {
     if upto == 2 {
         return;
     }
-    let _ = compute_contacts_from_scratch::<
-        DefaultDispatcher,
-    >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    if upto == 3 && solver == 1 {
+        let _ = compute_contacts_from_scratch::<
+            KeepDispatcher,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    } else if upto == 3 && solver == 3 {
+        let _ = compute_contacts_from_scratch::<
+            TmpCc,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    } else if upto == 3 && solver == 4 {
+        let _ = compute_contacts_from_scratch::<
+            TmpHalf,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    } else if upto == 3 && solver == 5 {
+        let _ = compute_contacts_from_scratch::<
+            TmpBall,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    } else if upto == 3 && solver == 2 {
+        let _ = compute_contacts_from_scratch::<
+            NullDispatcher,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    } else {
+        let _ = compute_contacts_from_scratch::<
+            DefaultDispatcher,
+        >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    }
     now = get_available_gas();
     stages.narrow += spent(g, now);
     g = now;
@@ -574,6 +600,31 @@ fn profile_stages_level10() {
 #[ignore]
 fn profile_stages_level20() {
     stages(20);
+}
+
+/// Narrow-phase stubs of the stage probes: keep the previous manifold, or report an unsupported
+/// pair (the narrow phase clears its manifold).
+impl KeepDispatcher of ContactDispatcher {
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        true
+    }
+}
+impl NullDispatcher of ContactDispatcher {
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        false
+    }
 }
 
 // --- Stage probes (BT1): exact Cairo steps of one impact tick, by stage and solver part. ----
@@ -880,4 +931,118 @@ fn test_impact_digest_level20() {
         impact_digest(20),
         2536114172100514642348097745032330135272153081367581830010923825855114040884,
     );
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow_keep() {
+    stage(10, 3, 1);
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow_null() {
+    stage(10, 3, 2);
+}
+
+#[test]
+#[ignore]
+fn tmp_pairs() {
+    let mut world = run(10, 0, STAGE_TICK - 1);
+    for pair in world.narrow_phase.pairs.span() {
+        let c1 = world.colliders.get(*pair.collider1).unwrap();
+        let c2 = world.colliders.get(*pair.collider2).unwrap();
+        let k1: felt252 = match c1.shape {
+            Shape::Ball(_) => 'ball',
+            Shape::Cuboid(_) => 'cuboid',
+            Shape::HalfSpace(_) => 'half',
+            Shape::ConvexPolygon(_) => 'poly',
+            _ => 'other',
+        };
+        let k2: felt252 = match c2.shape {
+            Shape::Ball(_) => 'ball',
+            Shape::Cuboid(_) => 'cuboid',
+            Shape::HalfSpace(_) => 'half',
+            Shape::ConvexPolygon(_) => 'poly',
+            _ => 'other',
+        };
+        println!(
+            "pair {} {} points {} solver {}",
+            k1,
+            k2,
+            *pair.manifold.num_points,
+            *pair.manifold.data.num_solver_contacts,
+        );
+    }
+}
+
+impl TmpCc of ContactDispatcher {
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        match (shape1, shape2) {
+            (
+                Shape::Cuboid(_), Shape::Cuboid(_),
+            ) => rapier_geometry2d::dispatch::contact_manifold_step(
+                pos12, shape1, shape2, prediction, ref manifold,
+            ),
+            _ => true,
+        }
+    }
+}
+impl TmpHalf of ContactDispatcher {
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        match shape1 {
+            Shape::HalfSpace(_) => rapier_geometry2d::dispatch::contact_manifold_step(
+                pos12, shape1, shape2, prediction, ref manifold,
+            ),
+            _ => true,
+        }
+    }
+}
+impl TmpBall of ContactDispatcher {
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        match (shape1, shape2) {
+            (
+                Shape::Cuboid(_), Shape::Ball(_),
+            ) => rapier_geometry2d::dispatch::contact_manifold_step(
+                pos12, shape1, shape2, prediction, ref manifold,
+            ),
+            _ => true,
+        }
+    }
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow_tmp_cc() {
+    stage(10, 3, 3);
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow_tmp_half() {
+    stage(10, 3, 4);
+}
+
+#[test]
+#[ignore]
+fn stage10_narrow_tmp_ball() {
+    stage(10, 3, 5);
 }

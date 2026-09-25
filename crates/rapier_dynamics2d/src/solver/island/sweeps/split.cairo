@@ -5,6 +5,7 @@
 //! dropped. Bodies are a `SweepBodies` (velocities in the dictionary, poses in an array
 //! rebuilt once per substep). Same expressions, operand order, rounding and panics as `contact`'s
 //! sweeps.
+use fixed::wide::{WideAdd, WideNarrow, dot2_add, mul_add, wide_from, wide_mul};
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
@@ -12,7 +13,7 @@ use rapier_geometry2d::contact::ContactManifold;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use super::super::super::body::{SolverBody, SolverVel, WORLD};
 use super::super::super::contact::cached::WeightedPair;
-use super::super::super::contact::element::{dot, jv, max, min, tangent};
+use super::super::super::contact::element::{dot, max, min, tangent};
 use super::super::super::contact::{
     ContactConstraint, ContactConstraintElement, SoftCacheTrait, errors, generate_cached,
 };
@@ -225,21 +226,39 @@ fn sweep<K, +Kernel<K>, +Copy<K>, +Drop<K>>(
     hot = out;
 }
 
-/// `apply` of `contact::cached`: weighted linear parts, inertia-weighted angular parts.
+/// `apply` of `contact::cached`: weighted linear parts, inertia-weighted angular parts. Each
+/// `v + floor(w * impulse)` is one `mul_add` (`floor(v + p) = v + floor(p)` for an integer `v`).
 #[inline(always)]
 fn apply(
     w: @WeightedPair, ig1: Fixed, ig2: Fixed, impulse: Fixed, ref v1: SolverVel, ref v2: SolverVel,
 ) {
-    v1.linear = v1.linear + *w.first * Vec2 { x: impulse, y: impulse };
-    v2.linear = v2.linear + *w.second * Vec2 { x: -impulse, y: -impulse };
-    v1.angular += ig1 * impulse;
-    v2.angular += ig2 * impulse;
+    let (w1, w2) = (*w.first, *w.second);
+    let negated = -impulse;
+    v1
+        .linear =
+            Vec2 { x: mul_add(w1.x, impulse, v1.linear.x), y: mul_add(w1.y, impulse, v1.linear.y) };
+    v2
+        .linear =
+            Vec2 { x: mul_add(w2.x, negated, v2.linear.x), y: mul_add(w2.y, negated, v2.linear.y) };
+    v1.angular = mul_add(ig1, impulse, v1.angular);
+    v2.angular = mul_add(ig2, impulse, v2.angular);
+}
+/// `jv(..) + rhs` with one rescale: `element::jv`'s `dot4` plus `rhs`, exact as above.
+#[inline(always)]
+fn jv_add(dir: Vec2, g1: Fixed, g2: Fixed, v1: SolverVel, v2: SolverVel, rhs: Fixed) -> Fixed {
+    let dv = v1.linear - v2.linear;
+    wide_mul(dir.x, dv.x)
+        .add(wide_mul(dir.y, dv.y))
+        .add(wide_mul(g1, v1.angular))
+        .add(wide_mul(g2, v2.angular))
+        .add(wide_from(rhs))
+        .narrow()
 }
 #[inline(always)]
 fn solve_normal(
     ref h: HotPoint, dir: Vec2, row: @Row, w: @WeightedPair, ref v1: SolverVel, ref v2: SolverVel,
 ) {
-    let dv = jv(dir, *row.g1, *row.g2, v1, v2) + h.rhs;
+    let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.rhs);
     let new_impulse = h.cfm * max(ZERO, h.impulse - *row.r * dv);
     let delta = new_impulse - h.impulse;
     h.impulse = new_impulse;
@@ -255,7 +274,7 @@ fn solve_tangent(
     ref v1: SolverVel,
     ref v2: SolverVel,
 ) {
-    let dv = jv(dir, *row.g1, *row.g2, v1, v2) + h.t_rhs;
+    let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.t_rhs);
     let new_impulse = min(limit, max(-limit, h.t_impulse - *row.r * dv));
     let delta = new_impulse - h.t_impulse;
     h.t_impulse = new_impulse;
@@ -281,7 +300,8 @@ fn update_point(
     ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, warm: Fixed, cap: Fixed,
 ) {
     let dp = p1.transform_point(*f.local_p1) - p2.transform_point(*f.local_p2);
-    let dist = *f.dist + dot(dp, *c.dir);
+    let dir = *c.dir;
+    let dist = dot2_add(dp.x, dir.x, dp.y, dir.y, *f.dist);
     let rhs_wo_bias = max(ZERO, dist) * *c.inv_dt;
     h.rhs = rhs_wo_bias + min(ZERO, max(-cap, dist * *c.erp_inv_dt));
     h.cfm = if dist > ZERO {
@@ -293,13 +313,14 @@ fn update_point(
     h.impulse = h.impulse * warm;
     h.t_acc += h.t_impulse;
     h.t_impulse = h.t_impulse * warm;
-    h.t_rhs = *f.t_rhs_wo_bias + dot(dp, tangent(*c.dir)) * *c.inv_dt;
+    h.t_rhs = mul_add(dot(dp, tangent(dir)), *c.inv_dt, *f.t_rhs_wo_bias);
 }
 /// `refresh_unbiased` then `strip`.
 #[inline(always)]
 fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2) {
     let dp = p1.transform_point(*f.local_p1) - p2.transform_point(*f.local_p2);
-    h.rhs = max(ZERO, *f.dist + dot(dp, *c.dir)) * *c.inv_dt;
+    let dir = *c.dir;
+    h.rhs = max(ZERO, dot2_add(dp.x, dir.x, dp.y, dir.y, *f.dist)) * *c.inv_dt;
     h.cfm = ONE;
     h.t_rhs = *f.t_rhs_wo_bias;
 }
