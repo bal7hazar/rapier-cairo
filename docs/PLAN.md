@@ -1,6 +1,6 @@
 # rapier.cairo — execution plan
 
-Status: **v2.35, 2026-09-25** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.36, 2026-09-25** (v2: scalar delegated to glam.cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
@@ -373,6 +373,13 @@ shapes, query pipeline (ray, point, AABB), one-way platforms as a built-in flag,
 events, optional 2×2 block solver (measure first), `rapier_starknet` storage packing (D9/D10), a
 demo game contract.
 
+JM ✅ (#109, claude opus): joint kinds specialised once per step (`Plain` / `Controlled` / `Legacy`), one frame
+construction, interior limits with zero impulse not emitted, a "gas wallet" (AGENTS §7): inactive limit +7.7 % over
+a plain joint (was +63 %), active limit +29 %, motors +21–25 %, plain chains −2.3 / −2.8 % below their pre-JL cost;
+new probes `pendulum_limited`, `wheel_motor`. KD (running) found a **bug**: the contact solver turned every
+zero-inverse-mass endpoint into WORLD, so kinematic bodies could neither push nor carry (upstream passenger
+1.0046 m/s, port 0); KD fixes it first. Launched **RJ** (brief `rj-rope-spring-joints.md`).
+
 CP2 ✅ (#107, codex gpt-6-astra high): polygon–polygon, polygon–cuboid, polygon–segment, polygon–capsule contacts by
 SAT + clipping (no GJK/EPA), both dispatch tables; 48 golden cases within 64 raw units, feature ids exact where
 unambiguous; cold pair 0.77–0.99M gas; P3 scenes ≤ +0.18 %. Every pair of the closed shape set now has a
@@ -432,7 +439,8 @@ Stwo > 22 GB). Phase 2 starts with wave 6; later waves are refined after each me
 | 7 | CP2 ✅ #107 | Polygon contact generators: SAT + clipping vs polygon/cuboid/segment/capsule, ball and half-space through CP1, dispatch, golden manifolds (upstream: PFM–PFM with GJK/EPA) | after CP1 |
 | 8 | KD | Kinematic position-/velocity-based bodies (`set_next_kinematic_*`, velocity interpolation), dominance end to end, golden scenes | brief `kd-kinematic-dominance.md` |
 | 8 | EV | One-way platforms (built-in collider flag, no hooks), contact-force events (threshold, total/max force) | after KD |
-| 8 | RJ | Rope and spring joints, round shapes | |
+| 8 | RJ | Coupled limits/motors, rope and spring joints | brief `rj-rope-spring-joints.md` |
+| 8 | RS | Round shapes (round cuboid / polygon) | |
 | 9 | ST | `rapier_starknet`: storage packing of the persistent state (D9/D10), demo game contract | depends on open question 2 (target runtime) |
 
 ### Phase 3 — Robustness and controllers
