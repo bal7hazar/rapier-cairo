@@ -8,6 +8,7 @@ mod aabb;
 mod aabb_overlap;
 mod cairo;
 mod clip2d;
+mod intersection_tests;
 mod jsonfmt;
 mod leaf;
 mod manifolds;
@@ -20,6 +21,7 @@ mod ray_casts;
 mod sat2d;
 mod scenes;
 mod segment_segment;
+mod sensor_trigger;
 mod shapes;
 
 use serde_json::Value;
@@ -67,7 +69,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 12] = [
+        let families: [Family; 14] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -80,6 +82,8 @@ fn main() {
             ("point_projection", point_projection::generate),
             ("segment_segment", segment_segment::generate),
             ("ray_casts", ray_casts::generate),
+            ("intersection_tests", intersection_tests::generate),
+            ("sensor_trigger", sensor_trigger::generate),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

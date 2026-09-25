@@ -106,7 +106,7 @@ pub fn ray(v: &Path) -> String {
 }
 
 use super::{konst, shape};
-fn contact_shape(v: &Value) -> Node {
+pub(super) fn contact_shape(v: &Value) -> Node {
     if v["type"] == "convex_polygon" {
         Node::Variant("PolygonContactShapeRaw::Polygon", Box::new(polygon(v)))
     } else {
