@@ -294,17 +294,13 @@ impl UpdateKernel of Kernel<Update> {
         }
         let mut v1 = bodies.vel(*f.i);
         let mut v2 = bodies.vel(*f.j);
-        let mut pending = true;
-        while pending {
-            apply(f.wn, *f.a.n.ig1, *f.a.n.ig2, h.a.impulse, ref v1, ref v2);
-            if two {
-                apply(f.wn, *f.b.n.ig1, *f.b.n.ig2, h.b.impulse, ref v1, ref v2);
-            }
-            apply(f.wt, *f.a.t.ig1, *f.a.t.ig2, h.a.t_impulse, ref v1, ref v2);
-            if two {
-                apply(f.wt, *f.b.t.ig1, *f.b.t.ig2, h.b.t_impulse, ref v1, ref v2);
-            }
-            pending = false;
+        apply(f.wn, *f.a.n.ig1, *f.a.n.ig2, h.a.impulse, ref v1, ref v2);
+        if two {
+            apply(f.wn, *f.b.n.ig1, *f.b.n.ig2, h.b.impulse, ref v1, ref v2);
+        }
+        apply(f.wt, *f.a.t.ig1, *f.a.t.ig2, h.a.t_impulse, ref v1, ref v2);
+        if two {
+            apply(f.wt, *f.b.t.ig1, *f.b.t.ig2, h.b.t_impulse, ref v1, ref v2);
         }
         bodies.set_vels(*f.i, v1, *f.j, v2);
     }
@@ -317,14 +313,10 @@ impl BiasedKernel of Kernel<Biased> {
         if idle(h, *f.count, v1, v2) {
             return;
         }
-        let mut pending = true;
-        while pending {
-            let dir = *f.dir;
-            solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
-            if *f.count == 2 {
-                solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
-            }
-            pending = false;
+        let dir = *f.dir;
+        solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
+        if *f.count == 2 {
+            solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
         }
         bodies.set_vels(*f.i, v1, *f.j, v2);
     }
@@ -337,21 +329,17 @@ fn solve_both(ref h: Hot, f: @Frozen, ref bodies: SweepBodies) {
     if idle(h, *f.count, v1, v2) {
         return;
     }
-    let mut pending = true;
-    while pending {
-        let dir = *f.dir;
-        let two = *f.count == 2;
-        solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
-        if two {
-            solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
-        }
-        let t = tangent(dir);
-        let limit = *f.limit;
-        solve_tangent(ref h.a, t, f.a.t, f.wt, limit * h.a.impulse, ref v1, ref v2);
-        if two {
-            solve_tangent(ref h.b, t, f.b.t, f.wt, limit * h.b.impulse, ref v1, ref v2);
-        }
-        pending = false;
+    let dir = *f.dir;
+    let two = *f.count == 2;
+    solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
+    if two {
+        solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
+    }
+    let t = tangent(dir);
+    let limit = *f.limit;
+    solve_tangent(ref h.a, t, f.a.t, f.wt, limit * h.a.impulse, ref v1, ref v2);
+    if two {
+        solve_tangent(ref h.b, t, f.b.t, f.wt, limit * h.b.impulse, ref v1, ref v2);
     }
     bodies.set_vels(*f.i, v1, *f.j, v2);
 }
@@ -400,14 +388,10 @@ impl RestitutionKernel of Kernel<Restitution> {
         }
         let mut v1 = bodies.vel(*f.i);
         let mut v2 = bodies.vel(*f.j);
-        let mut pending = true;
-        while pending {
-            let dir = *f.dir;
-            bounce(ref h.a, f.a, dir, f.wn, ref v1, ref v2);
-            if two {
-                bounce(ref h.b, f.b, dir, f.wn, ref v1, ref v2);
-            }
-            pending = false;
+        let dir = *f.dir;
+        bounce(ref h.a, f.a, dir, f.wn, ref v1, ref v2);
+        if two {
+            bounce(ref h.b, f.b, dir, f.wn, ref v1, ref v2);
         }
         bodies.set_vels(*f.i, v1, *f.j, v2);
     }
