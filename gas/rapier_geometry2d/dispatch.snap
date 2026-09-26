@@ -16,7 +16,7 @@ rapier_geometry2d::dispatch::intersection::tests::gas_cuboid_segment 42140
 rapier_geometry2d::dispatch::intersection::tests::gas_from_contacts_ball_ball 76040
 rapier_geometry2d::dispatch::intersection::tests::gas_from_contacts_cuboid_capsule 458920
 rapier_geometry2d::dispatch::intersection::tests::gas_from_contacts_cuboid_cuboid 515400
-rapier_geometry2d::dispatch::intersection::tests::gas_from_contacts_polygon_polygon 574170
+rapier_geometry2d::dispatch::intersection::tests::gas_from_contacts_polygon_polygon 574200
 rapier_geometry2d::dispatch::intersection::tests::gas_halfspace_capsule 30690
 rapier_geometry2d::dispatch::intersection::tests::gas_halfspace_cuboid 25460
 rapier_geometry2d::dispatch::intersection::tests::gas_halfspace_polygon 173520
@@ -69,10 +69,10 @@ rapier_geometry2d::dispatch::tests::gas_helpers_ball_ball 64440
 rapier_geometry2d::dispatch::tests::gas_helpers_capsule_halfspace 244020
 rapier_geometry2d::dispatch::tests::gas_helpers_cuboid_segment 555190
 rapier_geometry2d::dispatch::tests::gas_helpers_segment_segment 23690
-rapier_geometry2d::dispatch::tests::gas_outlined_ball_ball 99870
-rapier_geometry2d::dispatch::tests::gas_outlined_capsule_halfspace 280440
-rapier_geometry2d::dispatch::tests::gas_outlined_cuboid_segment 591020
-rapier_geometry2d::dispatch::tests::gas_outlined_segment_segment 38300
+rapier_geometry2d::dispatch::tests::gas_outlined_ball_ball 99960
+rapier_geometry2d::dispatch::tests::gas_outlined_capsule_halfspace 280530
+rapier_geometry2d::dispatch::tests::gas_outlined_cuboid_segment 591110
+rapier_geometry2d::dispatch::tests::gas_outlined_segment_segment 38390
 rapier_geometry2d::dispatch::tests::gas_plain_ball_ball 57540
 rapier_geometry2d::dispatch::tests::gas_plain_capsule_halfspace 236420
 rapier_geometry2d::dispatch::tests::gas_plain_cuboid_segment 547890
@@ -93,9 +93,9 @@ rapier_geometry2d::dispatch::tests::gas_step_fallback_cuboid_cuboid_warm 610500
 rapier_geometry2d::dispatch::tests::gas_step_outlined_ball_ball 77970
 rapier_geometry2d::dispatch::tests::gas_step_segment_segment 23620
 rapier_geometry2d::dispatch::tests::test_ball_ball_is_matched_first 159540
-rapier_geometry2d::dispatch::tests::test_dispatch_matches_shapes_chain_on_every_pair 156940820
-rapier_geometry2d::dispatch::tests::test_metered_equals_plain 24723040
+rapier_geometry2d::dispatch::tests::test_dispatch_matches_shapes_chain_on_every_pair 156942320
+rapier_geometry2d::dispatch::tests::test_metered_equals_plain 24715240
 rapier_geometry2d::dispatch::tests::test_polygon_dispatch_candidate_equivalence 45495770
-rapier_geometry2d::dispatch::tests::test_step_matches_metered_cold_warm_and_moved 148295390
+rapier_geometry2d::dispatch::tests::test_step_matches_metered_cold_warm_and_moved 150141830
 rapier_geometry2d::dispatch::tests::test_step_moved_cuboid_cuboid_matches_fallback 2753400
-rapier_geometry2d::dispatch::tests::test_unsupported_pairs_clear_the_manifold 167510
+rapier_geometry2d::dispatch::tests::test_unsupported_pairs_clear_the_manifold 167910

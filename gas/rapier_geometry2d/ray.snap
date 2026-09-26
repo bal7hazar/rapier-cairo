@@ -15,7 +15,7 @@ rapier_geometry2d::ray::cast::tests::gas_aabb_intersects_local_ray 140320
 rapier_geometry2d::ray::cast::tests::gas_baseline 13620
 rapier_geometry2d::ray::cast::tests::gas_shape_cast_ray_and_get_normal_ball 107670
 rapier_geometry2d::ray::cast::tests::test_aabb_casts_table 1428230
-rapier_geometry2d::ray::cast::tests::test_trait_matches_free_functions 4745320
+rapier_geometry2d::ray::cast::tests::test_trait_matches_free_functions 4746160
 rapier_geometry2d::ray::cuboid::tests::gas_baseline 13620
 rapier_geometry2d::ray::cuboid::tests::gas_cast_local_ray_and_get_normal_cuboid 151320
 rapier_geometry2d::ray::cuboid::tests::gas_cast_local_ray_cuboid 123200
