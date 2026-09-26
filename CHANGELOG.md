@@ -3,7 +3,7 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
-## Unreleased
+## 0.1.0-alpha.4 — 2026-09-26
 
 **Results:** the step is unchanged since `0.1.0-alpha.3` for the existing shapes: every golden vector and scene test
 gives the same results in the same Cairo steps (Sierra gas of existing probes ≤ +0.3 %, from the new `Shape` arms).
