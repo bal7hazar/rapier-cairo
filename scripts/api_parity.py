@@ -31,7 +31,7 @@ Zeroable AbsDiffEq RelativeEq UlpsEq Shape PointQuery RayCast PointQueryWithLoca
 """.split())
 CAIRO_IMPL_TRAITS = set("""
 Add AddAssign Sub SubAssign Mul MulAssign Div DivAssign Neg Not BitAnd BitOr BitXor BitNot
-IndexView Default Into TryInto PartialEq Drop Copy Serde Debug
+IndexView Default Into TryInto PartialEq Drop Copy Serde Debug PointQuery RayCast PointQueryWithLocation
 """.split())
 
 EXCLUSIONS = (
@@ -504,6 +504,9 @@ def cairo_impl_item(impl_name: str, trait_expr: str, body: str, fallback: str) -
     owner = cairo_impl_owner(impl_name, trait_expr, fallback)
     if head in ("Into", "TryInto") and len(args) >= 2:
         return Item(normalize_owner(args[1]), "impl", f"{'From' if head == 'Into' else 'TryFrom'}<{normalize_rhs(args[0])}>")
+    if head in ("PointQuery", "RayCast", "PointQueryWithLocation") and args:
+        # Parry's shape query traits are generic over the shape in Cairo (`impl BallPointQuery of PointQuery<Ball>`).
+        return Item(normalize_owner(args[0]), "impl", head)
     if head == "IndexView" and len(args) >= 2:
         return Item(owner, "impl", f"Index<{normalize_rhs(args[1])}>")
     if head in ("Add", "AddAssign", "Sub", "SubAssign", "Mul", "MulAssign", "Div", "DivAssign") and args:

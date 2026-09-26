@@ -27,6 +27,8 @@ pub use closest_points::{
 
 pub use dispatch::{contact_manifold, intersection_test};
 pub use mass::MassPropertiesTrait;
-pub use point::{PointProjection, SegmentPointLocation};
+pub use point::{PointProjection, PointQuery, PointQueryWithLocation, SegmentPointLocation};
+pub use query::{ClosestPoints, Contact};
+pub use ray::RayCast;
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub use shape::{Shape, ShapeTrait, ShapeType};

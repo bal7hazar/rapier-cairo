@@ -39,6 +39,7 @@ it and where the evidence lives.
 | 23 | Solid ↔ sensor switch; dropped pairs | the pair keeps its graph edge; `Stopped` decided from `intersecting` and the current event flags | the pair ends (`Stopped` if started) and restarts as the other kind; `Stopped` decided from the stored start-emitted bit | one list for both kinds | SE #127 |
 | 24 | `intersection_test` kernels | GJK for most pairs; the query dispatcher is pluggable | analytic distance or SAT per pair (touching ⇒ intersecting, as upstream on the 81 golden cases); not pluggable | no GJK/EPA in the port; D10 | SE #127 |
 | 25 | Wake-up on a later user change of a collider | the parent and contact partners are woken only if the collider has a contact-graph index (it had a broad-phase pair at some point) | the parent of any modified collider that is not new is woken (a shape change on an isolated sleeping block wakes it); colliders inserted since the last step wake nobody, as upstream | no persistent contact graph | BT2 #143 |
+| 26 | `contact_support_map_halfspace` (support map first, half-space second) | parry 0.30.2 and 0.31.1 use `pos12` without inverting it, so the half-space is placed wrongly when the pair is not symmetric (an upstream defect) | `pos12` inverted before the half-space kernel; both argument orders give mirrored contacts | upstream defect | QY1 #152 (`shape_queries` golden, both orders) |
 
 ## Consequences
 
