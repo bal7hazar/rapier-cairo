@@ -120,7 +120,8 @@ scarb fmt --workspace
 scarb lint -p <crate> --deny-warnings && scarb build -p <crate>   # each touched crate + direct dependents
 snforge test -p <crate>
 python3 scripts/gas.py snapshot --filter <crate>::<module>        # runs `snforge test -p <crate>`
-# CI: fmt, lint, build, 4 test groups, gas check on the merged logs, golden, api-parity
+python3 scripts/bytecode_size.py snapshot                         # engine changes: contract class sizes
+# CI: fmt, lint, build, 4 test groups, gas check on the merged logs, golden, api-parity, bytecode
 ```
 
 The orchestrator runs workspace-wide commands only for releases and toolchain bumps. Releases need the owner's go or

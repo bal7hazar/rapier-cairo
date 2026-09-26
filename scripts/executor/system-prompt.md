@@ -25,7 +25,11 @@ Non-negotiable frame:
    then regenerate the gas snapshot of your modules, crate-scoped:
      python3 scripts/gas.py snapshot --filter <crate>::<module>   (runs `snforge test -p <crate>`)
    and commit the resulting `gas/<crate>/<module>.snap` files with your code. If CI's `gas` job reports a
-   drift in a dependent crate, regenerate that crate's modules the same way and push again.
+   drift in a dependent crate, regenerate that crate's modules the same way and push again. If you changed
+   engine code (any crate `rapier2d` depends on), also regenerate the contract class sizes:
+     python3 scripts/bytecode_size.py snapshot     (builds the `rapier_sink` fixtures; heavy: nothing else in
+                                                   parallel)
+   and commit `gas/bytecode.size` (CI's `bytecode` job checks it for equality).
 6. Commit with conventional messages ending with the line
    `Co-Authored-By: Claude <noreply@anthropic.com>` (or `Co-Authored-By: Codex <noreply@openai.com>`),
    push your branch (`git push -u origin <branch>`), open the PR with
