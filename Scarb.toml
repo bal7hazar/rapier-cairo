@@ -2,7 +2,7 @@
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 edition = "2024_07"
 cairo-version = "2.19.4"
 license = "MIT"
@@ -16,12 +16,12 @@ fixed = "0.3.0"
 glam = "0.3.0"
 # Workspace crates: a path for development, the version for `scarb package` (which drops the path).
 # `scripts/release.sh <version>` bumps `workspace.package.version` and these requirements together.
-rapier_math = { path = "crates/rapier_math", version = "0.1.0-alpha.1" }
-rapier_core = { path = "crates/rapier_core", version = "0.1.0-alpha.1" }
-rapier_geometry2d = { path = "crates/rapier_geometry2d", version = "0.1.0-alpha.1" }
-rapier_dynamics2d = { path = "crates/rapier_dynamics2d", version = "0.1.0-alpha.1" }
-rapier_testing = { path = "crates/rapier_testing", version = "0.1.0-alpha.1" }
-rapier_golden = { path = "crates/rapier_golden", version = "0.1.0-alpha.1" }
+rapier_math = { path = "crates/rapier_math", version = "0.1.0-alpha.2" }
+rapier_core = { path = "crates/rapier_core", version = "0.1.0-alpha.2" }
+rapier_geometry2d = { path = "crates/rapier_geometry2d", version = "0.1.0-alpha.2" }
+rapier_dynamics2d = { path = "crates/rapier_dynamics2d", version = "0.1.0-alpha.2" }
+rapier_testing = { path = "crates/rapier_testing", version = "0.1.0-alpha.2" }
+rapier_golden = { path = "crates/rapier_golden", version = "0.1.0-alpha.2" }
 snforge_std = "0.61.0"
 assert_macros = "2.19.4"
 
