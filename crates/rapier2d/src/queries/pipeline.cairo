@@ -37,7 +37,9 @@ use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_geometry2d::aabb::{Aabb, AabbTrait};
 use rapier_geometry2d::feature_id::FeatureId;
 use rapier_geometry2d::point::{PointProjection, PointQuery};
-use rapier_geometry2d::query::intersection_test;
+use rapier_geometry2d::query::{
+    NonlinearRigidMotion, ShapeCastHit, ShapeCastOptions, intersection_test,
+};
 use rapier_geometry2d::ray::{Ray, RayIntersection};
 use rapier_geometry2d::shape::{Shape, ShapeTrait};
 use rapier_math::math_ext::norm2::{norm2_sq_wide, sq_wide};
@@ -171,5 +173,35 @@ pub impl QueryPipelineImpl of QueryPipelineTrait {
         self: QueryPipeline, ref world: World, shape_pos: Pose2, shape: Shape,
     ) -> Array<Handle> {
         intersect_shape(ref world, shape_pos, shape, self.filter)
+    }
+
+    /// `queries::cast_shape` with the view's filter (upstream `QueryPipeline::cast_shape`).
+    #[inline(always)]
+    fn cast_shape(
+        self: QueryPipeline,
+        ref world: World,
+        shape_pos: Pose2,
+        shape_vel: Vec2,
+        shape: Shape,
+        options: ShapeCastOptions,
+    ) -> Option<(Handle, ShapeCastHit)> {
+        super::shape_casts::cast_shape(ref world, shape_pos, shape_vel, shape, options, self.filter)
+    }
+
+    /// `queries::cast_shape_nonlinear` with the view's filter (upstream
+    /// `QueryPipeline::cast_shape_nonlinear`).
+    #[inline(always)]
+    fn cast_shape_nonlinear(
+        self: QueryPipeline,
+        ref world: World,
+        shape_motion: NonlinearRigidMotion,
+        shape: Shape,
+        start_time: Fixed,
+        end_time: Fixed,
+        stop_at_penetration: bool,
+    ) -> Option<(Handle, ShapeCastHit)> {
+        super::shape_casts::cast_shape_nonlinear(
+            ref world, shape_motion, shape, start_time, end_time, stop_at_penetration, self.filter,
+        )
     }
 }

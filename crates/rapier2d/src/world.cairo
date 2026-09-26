@@ -51,6 +51,7 @@ use rapier_dynamics2d::rigid_body_set::{
 use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::feature_id::FeatureId;
 use rapier_geometry2d::point::PointProjection;
+use rapier_geometry2d::query::{NonlinearRigidMotion, ShapeCastHit, ShapeCastOptions};
 use rapier_geometry2d::ray::{Ray, RayIntersection};
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
@@ -523,6 +524,38 @@ pub impl WorldImpl of WorldTrait {
         ref self: World, shape_pos: Pose2, shape: Shape, filter: QueryFilter,
     ) -> Array<Handle> {
         crate::queries::intersect_shape(ref self, shape_pos, shape, filter)
+    }
+
+    /// The first collider hit by `shape` placed at `shape_pos` and moving at `shape_vel`, with
+    /// the hit (upstream `PhysicsWorld::cast_shape`); see `crate::queries::shape_casts`.
+    #[inline(always)]
+    fn cast_shape(
+        ref self: World,
+        shape_pos: Pose2,
+        shape_vel: Vec2,
+        shape: Shape,
+        options: ShapeCastOptions,
+        filter: QueryFilter,
+    ) -> Option<(Handle, ShapeCastHit)> {
+        crate::queries::cast_shape(ref self, shape_pos, shape_vel, shape, options, filter)
+    }
+
+    /// The first collider hit by `shape` following `shape_motion` within `[start_time,
+    /// end_time]`, with the hit (upstream `PhysicsWorld::cast_shape_nonlinear`); see
+    /// `crate::queries::shape_casts`.
+    #[inline(always)]
+    fn cast_shape_nonlinear(
+        ref self: World,
+        shape_motion: NonlinearRigidMotion,
+        shape: Shape,
+        start_time: Fixed,
+        end_time: Fixed,
+        stop_at_penetration: bool,
+        filter: QueryFilter,
+    ) -> Option<(Handle, ShapeCastHit)> {
+        crate::queries::cast_shape_nonlinear(
+            ref self, shape_motion, shape, start_time, end_time, stop_at_penetration, filter,
+        )
     }
 
     /// [`WorldTrait::project_point`] on the boundaries, with the feature the projection lands
