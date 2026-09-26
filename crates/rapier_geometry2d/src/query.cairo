@@ -34,20 +34,37 @@
 //!   `contact_halfspace_support_map` (parry 0.30.2 and 0.31.1), so it answers a contact for a
 //!   shape above a half-space placed second. The port inverts it, as the matching `distance` and
 //!   `closest_points` kernels do upstream.
-//! * Composite shapes and the shape casts are deferred (lots SH2 / CC).
+//! * Composite shapes are deferred (lot SH2).
+//!
+//! # Shape casts (CC1)
+//!
+//! [`cast_shapes`] (linear motions, [`shape_cast`]) and [`cast_shapes_nonlinear`] (rotating
+//! motions, [`nonlinear_shape_cast`]) are upstream's free functions; [`sweep`] holds upstream's
+//! `sweep_toi` (the swept-proxy time of impact that Rapier's CCD calls).
 
 pub mod ball;
 pub mod cuboid;
 pub mod dispatcher;
 pub mod halfspace;
 pub mod intersection;
+pub mod nonlinear_shape_cast;
 pub mod segment;
+pub mod shape_cast;
 pub mod support_map;
+pub mod sweep;
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
+pub use nonlinear_shape_cast::{
+    NonlinearRigidMotion, NonlinearRigidMotionTrait, NonlinearShapeCastMode,
+    NonlinearShapeCastModeTrait, cast_shapes_nonlinear,
+};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
+pub use shape_cast::{
+    ShapeCastHit, ShapeCastHitTrait, ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
+    cast_shapes,
+};
 use crate::shape::Shape;
 
 pub mod errors {
