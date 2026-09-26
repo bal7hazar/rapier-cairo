@@ -40,8 +40,10 @@ rapier_dynamics2d::narrow_phase::one_way::tests::test_two_platforms_and_two_cont
 rapier_dynamics2d::narrow_phase::tests::gas_baseline 14120
 rapier_dynamics2d::narrow_phase::tests::gas_dropped_events_2 98930
 rapier_dynamics2d::narrow_phase::tests::gas_intersection_pair 104320
+rapier_dynamics2d::narrow_phase::tests::gas_intersection_pair_unknown_gen 101400
 rapier_dynamics2d::narrow_phase::tests::gas_intersection_pairs 110850
 rapier_dynamics2d::narrow_phase::tests::gas_intersection_pairs_with 116360
+rapier_dynamics2d::narrow_phase::tests::gas_intersection_pairs_with_unknown_gen 113130
 rapier_dynamics2d::narrow_phase::tests::gas_pair_collider 100812
 rapier_dynamics2d::narrow_phase::tests::gas_pair_filtered 61039
 rapier_dynamics2d::narrow_phase::tests::gas_process_pair_ball_ball 266271
@@ -50,6 +52,7 @@ rapier_dynamics2d::narrow_phase::tests::gas_update_manifold_ball_ball 216826
 rapier_dynamics2d::narrow_phase::tests::test_candidates_agree_on_a_sequence 23483050
 rapier_dynamics2d::narrow_phase::tests::test_dropped_events_flags 703837
 rapier_dynamics2d::narrow_phase::tests::test_intersection_queries 785136
+rapier_dynamics2d::narrow_phase::tests::test_intersection_queries_unknown_gen 641780
 rapier_dynamics2d::narrow_phase::tests::test_pair_filtered 272960
 rapier_dynamics2d::narrow_phase::tests::test_process_pair_transitions 2287512
 rapier_dynamics2d::narrow_phase::tests::test_solver_contact_anchors_and_new_bit 74370

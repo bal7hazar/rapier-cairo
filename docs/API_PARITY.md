@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 534 | 0 | 192 | 466 | 1192 | 73.6% |
-| geometry | 200 | 0 | 99 | 18 | 317 | 66.9% |
-| parry::bounding_volume | 77 | 0 | 12 | 30 | 119 | 86.5% |
+| dynamics | 535 | 0 | 191 | 466 | 1192 | 73.7% |
+| geometry | 202 | 0 | 97 | 18 | 317 | 67.6% |
+| parry::bounding_volume | 79 | 0 | 10 | 30 | 119 | 88.8% |
 | parry::mass_properties | 17 | 0 | 2 | 7 | 26 | 89.5% |
 | parry::query | 130 | 0 | 176 | 118 | 424 | 42.5% |
 | parry::shape | 140 | 0 | 125 | 119 | 384 | 52.8% |
 | pipeline | 73 | 0 | 16 | 69 | 158 | 82.0% |
-| **total** | **1171** | **0** | **669** | **827** | **2667** | **63.6%** |
+| **total** | **1176** | **0** | **664** | **827** | **2667** | **63.9%** |
 
-Cairo-only public items not matched to upstream: **1219**.
+Cairo-only public items not matched to upstream: **1221**.
 
 ## Aabb
 
@@ -34,7 +34,7 @@ Cairo-only public items not matched to upstream: **1219**.
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_aabb.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_aabb.rs` |
 | method `add_half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `aligned_intersections` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `aligned_intersections` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `canonical_split` | parry::query | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/query/split/split_aabb.rs` |
 | method `center` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
@@ -57,7 +57,7 @@ Cairo-only public items not matched to upstream: **1219**.
 | method `half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `half_perimeter` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `intersection` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `intersects_moving_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `intersects_moving_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `new` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `new_invalid` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `project_on_axis` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
@@ -1664,7 +1664,7 @@ Cairo-only public items not matched to upstream: **1219**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `combine_coefficients` | dynamics | missing | Not found on Cairo candidate(s): MotorModel, MotorModelTrait. | `rapier/src/dynamics/joint/motor_model.rs` |
+| method `combine_coefficients` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/motor_model.rs` |
 | type `MotorModel` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/motor_model.rs` |
 
 ## MotorParameters
@@ -1834,10 +1834,10 @@ Cairo-only public items not matched to upstream: **1219**.
 | method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
 | method `intersection_graph` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `intersection_pair_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `intersection_pair_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pairs_with` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `intersection_pairs_with_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `intersection_pairs_with_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `new` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/mod.rs` |
 | method `query_dispatcher` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `with_query_dispatcher` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/mod.rs` |
@@ -4574,9 +4574,9 @@ Cairo-only public items not matched to upstream: **1219**.
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 14 | standard | SE sensors |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
-| [Collider API completion](#wp-collider-api-completion) | 12 | mechanical | DB/EV |
+| [Collider API completion](#wp-collider-api-completion) | 11 | mechanical | DB/EV |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 10 | standard | SE sensors |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
 | [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 2 | standard | geometry |
 
@@ -5051,25 +5051,6 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 
-### WP: Sensors and intersection events
-
-Tier: standard. Depends/context: SE sensors. Estimate: 14 public items.
-
-- **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
-- **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
-- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
-- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pair_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
-- **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
-- **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
-- **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
-- **parry::query** function `intersection_test_composite_shape_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **parry::query** function `intersection_test_shape_composite_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-
 ### WP: Character controller
 
 Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
@@ -5089,7 +5070,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 
 ### WP: Collider API completion
 
-Tier: mechanical. Depends/context: DB/EV. Estimate: 12 public items.
+Tier: mechanical. Depends/context: DB/EV. Estimate: 11 public items.
 
 - **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
@@ -5100,9 +5081,23 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 12 public items.
 - **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
 - **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
 - **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
-- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
 - **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
 - **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
+
+### WP: Sensors and intersection events
+
+Tier: standard. Depends/context: SE sensors. Estimate: 10 public items.
+
+- **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
+- **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
+- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
+- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
+- **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
+- **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
+- **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
+- **parry::query** function `intersection_test_composite_shape_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
+- **parry::query** function `intersection_test_shape_composite_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
 
 ### WP: Rigid-body API completion
 
@@ -5324,7 +5319,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **BallBall** method `contact_manifold_ball_ball` (`crates/rapier_geometry2d/src/contact_generators/ball_ball.cairo`)
 - **BallBall** method `contact_manifold_ball_ball_shapes` (`crates/rapier_geometry2d/src/contact_generators/ball_ball.cairo`)
 - **BodyInfo** type `BodyInfo` (`crates/rapier2d/src/pipeline.cairo`)
-- ... 1019 more
+- ... 1021 more
 
 ## Embedded Rust inventory
 

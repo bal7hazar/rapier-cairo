@@ -388,6 +388,22 @@ pub impl NarrowPhaseImpl of NarrowPhaseTrait {
         intersections::intersection_pairs_with(self.pairs.span(), Some(collider))
     }
 
+    /// Upstream `NarrowPhase::intersection_pair_unknown_gen`: as `intersection_pair` with the
+    /// colliders identified by slot index, whatever their generation.
+    fn intersection_pair_unknown_gen(
+        self: @NarrowPhase, collider1: u32, collider2: u32,
+    ) -> Option<bool> {
+        intersections::intersection_pair_unknown_gen(self.pairs.span(), collider1, collider2)
+    }
+
+    /// Upstream `NarrowPhase::intersection_pairs_with_unknown_gen`: as
+    /// `intersection_pairs_with` with the collider identified by slot index.
+    fn intersection_pairs_with_unknown_gen(
+        self: @NarrowPhase, collider: u32,
+    ) -> Array<(Handle, Handle, bool)> {
+        intersections::intersection_pairs_with_unknown_gen(self.pairs.span(), collider)
+    }
+
     /// Upstream `NarrowPhase::intersection_pairs`: every intersection pair as
     /// `(collider1, collider2, intersecting)`, ascending.
     fn intersection_pairs(self: @NarrowPhase) -> Array<(Handle, Handle, bool)> {
