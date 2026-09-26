@@ -21,10 +21,10 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | parry::mass_properties | 16 | 0 | 3 | 7 | 26 | 84.2% |
 | parry::query | 107 | 0 | 205 | 112 | 424 | 34.3% |
 | parry::shape | 79 | 0 | 188 | 117 | 384 | 29.6% |
-| pipeline | 57 | 0 | 33 | 68 | 158 | 63.3% |
-| **total** | **1047** | **0** | **889** | **731** | **2667** | **54.1%** |
+| pipeline | 72 | 0 | 17 | 69 | 158 | 80.9% |
+| **total** | **1062** | **0** | **873** | **732** | **2667** | **54.9%** |
 
-Cairo-only public items not matched to upstream: **1088**.
+Cairo-only public items not matched to upstream: **1098**.
 
 ## Aabb
 
@@ -2047,10 +2047,10 @@ Cairo-only public items not matched to upstream: **1088**.
 | method `insert_impulse_joint` | pipeline | ported | Mapped to World.insert_impulse_joint | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_multibody_joint` | pipeline | excluded | multibody | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_soft_body` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
-| method `intersect_aabb_conservative` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `intersect_aabb_conservative` | pipeline | ported | Mapped to World.intersect_aabb_conservative | `rapier/src/pipeline/physics_world.rs` |
 | method `intersect_point` | pipeline | ported | Mapped to World.intersect_point | `rapier/src/pipeline/physics_world.rs` |
 | method `intersect_ray` | pipeline | ported | Mapped to World.intersect_ray | `rapier/src/pipeline/physics_world.rs` |
-| method `intersect_shape` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `intersect_shape` | pipeline | ported | Mapped to World.intersect_shape | `rapier/src/pipeline/physics_world.rs` |
 | method `intersection_pair` | pipeline | ported | Mapped to World.intersection_pair | `rapier/src/pipeline/physics_world.rs` |
 | method `intersection_pairs` | pipeline | ported | Mapped to World.intersection_pairs | `rapier/src/pipeline/physics_world.rs` |
 | method `intersection_pairs_with` | pipeline | ported | Mapped to World.intersection_pairs_with | `rapier/src/pipeline/physics_world.rs` |
@@ -2059,10 +2059,10 @@ Cairo-only public items not matched to upstream: **1088**.
 | method `new` | pipeline | ported | Mapped to World.new | `rapier/src/pipeline/physics_world.rs` |
 | method `num_threads` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `project_point` | pipeline | ported | Mapped to World.project_point | `rapier/src/pipeline/physics_world.rs` |
-| method `project_point_and_get_feature` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `project_point_and_get_feature` | pipeline | ported | Mapped to World.project_point_and_get_feature | `rapier/src/pipeline/physics_world.rs` |
 | method `quarantine` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `query_pipeline` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `query_pipeline_with_filter` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `query_pipeline` | pipeline | ported | Mapped to World.query_pipeline | `rapier/src/pipeline/physics_world.rs` |
+| method `query_pipeline_with_filter` | pipeline | ported | Mapped to World.query_pipeline_with_filter | `rapier/src/pipeline/physics_world.rs` |
 | method `remove_body` | pipeline | ported | Mapped to World.remove_body | `rapier/src/pipeline/physics_world.rs` |
 | method `remove_collider` | pipeline | ported | Mapped to World.remove_collider | `rapier/src/pipeline/physics_world.rs` |
 | method `remove_impulse_joint` | pipeline | ported | Mapped to World.remove_impulse_joint | `rapier/src/pipeline/physics_world.rs` |
@@ -2337,21 +2337,21 @@ Cairo-only public items not matched to upstream: **1088**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `From<InteractionGroups>` | pipeline | missing | Not found on Cairo candidate(s): QueryFilter, QueryFilterTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| impl `From<QueryFilterFlags>` | pipeline | missing | Not found on Cairo candidate(s): QueryFilter, QueryFilterTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| impl `From<InteractionGroups>` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| impl `From<QueryFilterFlags>` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `exclude_collider` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `exclude_dynamic` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `exclude_fixed` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `exclude_kinematic` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `exclude_rigid_body` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `exclude_sensors` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `exclude_solids` | pipeline | missing | Not found on Cairo candidate(s): QueryFilter, QueryFilterTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `exclude_solids` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `groups` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `new` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `only_dynamic` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `only_fixed` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `only_kinematic` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `predicate` | pipeline | missing | Not found on Cairo candidate(s): QueryFilter, QueryFilterTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `predicate` | pipeline | excluded | dyn hooks | `rapier/src/pipeline/query_pipeline.rs` |
 | method `test` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | type `QueryFilter` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 
@@ -2359,25 +2359,25 @@ Cairo-only public items not matched to upstream: **1088**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `test` | pipeline | missing | Not found on Cairo candidate(s): QueryFilterFlags, QueryFilterFlagsTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| type `QueryFilterFlags` | pipeline | missing | Not found on Cairo candidate(s): QueryFilterFlags, QueryFilterFlagsTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `test` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| type `QueryFilterFlags` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 
 ## QueryPipeline
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `cast_ray` | pipeline | ported | Mapped to World.cast_ray, queries.cast_ray | `rapier/src/pipeline/query_pipeline.rs` |
-| method `cast_ray_and_get_normal` | pipeline | ported | Mapped to World.cast_ray_and_get_normal, queries.cast_ray_and_get_normal | `rapier/src/pipeline/query_pipeline.rs` |
-| method `cast_shape` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `cast_shape_nonlinear` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `intersect_aabb_conservative` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `intersect_point` | pipeline | ported | Mapped to World.intersect_point, queries.intersect_point | `rapier/src/pipeline/query_pipeline.rs` |
-| method `intersect_ray` | pipeline | ported | Mapped to World.intersect_ray, queries.intersect_ray | `rapier/src/pipeline/query_pipeline.rs` |
-| method `intersect_shape` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `project_point` | pipeline | ported | Mapped to World.project_point, queries.project_point | `rapier/src/pipeline/query_pipeline.rs` |
-| method `project_point_and_get_feature` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `with_filter` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| type `QueryPipeline` | pipeline | missing | Not found on Cairo candidate(s): World, queries, WorldTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `cast_ray` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `cast_ray_and_get_normal` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `cast_shape` | pipeline | missing | Not found on Cairo candidate(s): World, queries, QueryPipeline, WorldTrait, QueryPipelineTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `cast_shape_nonlinear` | pipeline | missing | Not found on Cairo candidate(s): World, queries, QueryPipeline, WorldTrait, QueryPipelineTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `intersect_aabb_conservative` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `intersect_point` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `intersect_ray` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `intersect_shape` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `project_point` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `project_point_and_get_feature` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `with_filter` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| type `QueryPipeline` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 
 ## QueryPipelineMut
 
@@ -4567,14 +4567,14 @@ Cairo-only public items not matched to upstream: **1088**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 232 | standard | QP queries |
+| [Query completion](#wp-query-completion) | 220 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 193 | standard | shape interface |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 168 | mechanical | AP triage |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 87 | hard | QP queries |
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 37 | standard | SE sensors |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 33 | standard | SE sensors |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 14 | mechanical | KD/SL |
 | [Collider API completion](#wp-collider-api-completion) | 13 | mechanical | DB/EV |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
@@ -4582,7 +4582,7 @@ Cairo-only public items not matched to upstream: **1088**.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 232 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 220 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4664,7 +4664,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 232 public items.
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 152 more
+- ... 140 more
 
 ### WP: Additional 2D shapes
 
@@ -4990,48 +4990,6 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 61 public items.
 - **WritebackId** type `WritebackId` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
 
-### WP: Sensors and intersection events
-
-Tier: standard. Depends/context: SE sensors. Estimate: 37 public items.
-
-- **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
-- **ActiveEvents** impl `Default` (`rapier/src/pipeline/event_handler.rs`)
-- **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
-- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
-- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pair_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `intersection_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **PhysicsWorld** method `intersect_aabb_conservative` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `intersect_shape` (`rapier/src/pipeline/physics_world.rs`)
-- **QueryPipeline** method `intersect_aabb_conservative` (`rapier/src/pipeline/query_pipeline.rs`)
-- **QueryPipeline** method `intersect_shape` (`rapier/src/pipeline/query_pipeline.rs`)
-- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
-- **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
-- **ShapeIntersection** impl `From<bool>` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** method `new` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** method `swapped` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** method `with_subshapes` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** type `ShapeIntersection` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
-- **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
-- **parry::query** function `intersection_test_aabb_segment` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
-- **parry::query** function `intersection_test_aabb_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
-- **parry::query** function `intersection_test_ball_point_query` (`parry/src/query/intersection_test/intersection_test_ball_point_query.rs`)
-- **parry::query** function `intersection_test_composite_shape_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **parry::query** function `intersection_test_cuboid_segment` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
-- **parry::query** function `intersection_test_cuboid_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
-- **parry::query** function `intersection_test_halfspace_support_map` (`parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs`)
-- **parry::query** function `intersection_test_point_query_ball` (`parry/src/query/intersection_test/intersection_test_ball_point_query.rs`)
-- **parry::query** function `intersection_test_segment_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
-- **parry::query** function `intersection_test_shape_composite_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **parry::query** function `intersection_test_support_map_halfspace` (`parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs`)
-- **parry::query** function `intersection_test_support_map_support_map` (`parry/src/query/intersection_test/intersection_test_support_map_support_map.rs`)
-- **parry::query** function `intersection_test_support_map_support_map_with_params` (`parry/src/query/intersection_test/intersection_test_support_map_support_map.rs`)
-- **parry::query** function `intersection_test_triangle_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
-- **parry::query** function `local_ray_intersection_with_support_map_with_params` (`parry/src/query/ray/ray_support_map.rs`)
-
 ### WP: Pipeline and world facade
 
 Tier: standard. Depends/context: P1/SL/EV. Estimate: 35 public items.
@@ -5111,6 +5069,44 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelContactPoint** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
+
+### WP: Sensors and intersection events
+
+Tier: standard. Depends/context: SE sensors. Estimate: 33 public items.
+
+- **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
+- **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
+- **ActiveEvents** impl `Default` (`rapier/src/pipeline/event_handler.rs`)
+- **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
+- **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
+- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
+- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `intersection_pair_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `intersection_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
+- **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
+- **ShapeIntersection** impl `From<bool>` (`parry/src/query/intersection_test/intersection_test.rs`)
+- **ShapeIntersection** method `new` (`parry/src/query/intersection_test/intersection_test.rs`)
+- **ShapeIntersection** method `swapped` (`parry/src/query/intersection_test/intersection_test.rs`)
+- **ShapeIntersection** method `with_subshapes` (`parry/src/query/intersection_test/intersection_test.rs`)
+- **ShapeIntersection** type `ShapeIntersection` (`parry/src/query/intersection_test/intersection_test.rs`)
+- **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
+- **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
+- **parry::query** function `intersection_test_aabb_segment` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
+- **parry::query** function `intersection_test_aabb_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
+- **parry::query** function `intersection_test_ball_point_query` (`parry/src/query/intersection_test/intersection_test_ball_point_query.rs`)
+- **parry::query** function `intersection_test_composite_shape_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
+- **parry::query** function `intersection_test_cuboid_segment` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
+- **parry::query** function `intersection_test_cuboid_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
+- **parry::query** function `intersection_test_halfspace_support_map` (`parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs`)
+- **parry::query** function `intersection_test_point_query_ball` (`parry/src/query/intersection_test/intersection_test_ball_point_query.rs`)
+- **parry::query** function `intersection_test_segment_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
+- **parry::query** function `intersection_test_shape_composite_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
+- **parry::query** function `intersection_test_support_map_halfspace` (`parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs`)
+- **parry::query** function `intersection_test_support_map_support_map` (`parry/src/query/intersection_test/intersection_test_support_map_support_map.rs`)
+- **parry::query** function `intersection_test_support_map_support_map_with_params` (`parry/src/query/intersection_test/intersection_test_support_map_support_map.rs`)
+- **parry::query** function `intersection_test_triangle_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
+- **parry::query** function `local_ray_intersection_with_support_map_with_params` (`parry/src/query/ray/ray_support_map.rs`)
 
 ### WP: Rigid-body API completion
 
@@ -5269,6 +5265,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `generate_public_jl` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
 - **Alternatives** method `handle_user_changes_flagged` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `handle_user_changes_propagate` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
+- **Alternatives** method `intersect_shape_direct` (`crates/rapier2d/src/queries/alternatives.cairo`)
 - **Alternatives** method `intersection_test_from_contacts` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `literal` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
 - **Alternatives** method `local_world_frame` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
@@ -5374,8 +5371,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Capsule** method `cast_local_ray_and_get_normal_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- **Capsule** method `compute_local_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- ... 888 more
+- ... 898 more
 
 ## Embedded Rust inventory
 

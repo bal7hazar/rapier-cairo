@@ -221,7 +221,9 @@ ShapeType HalfSpace Cuboid Ball Capsule Segment ConvexPolygon Aabb Ray RayInters
 """.split()}
 OWNER_ALIASES.update({
     "PhysicsWorld": ("World",), "PhysicsPipeline": ("World", "pipeline", "PhysicsPipeline"),
-    "QueryPipeline": ("World", "queries"),
+    # QY2: `QueryPipeline` is the filter-bundle view of `queries/pipeline.cairo` (the world is
+    # passed with each call); its methods are also the `World` and `queries` free functions.
+    "QueryPipeline": ("World", "queries", "QueryPipeline"),
     # QY1: the struct and `QueryDispatcher` trait live in `query/dispatcher.cairo`.
     "DefaultQueryDispatcher": ("dispatch", "DefaultQueryDispatcher"),
     "PersistentQueryDispatcher": ("dispatch",), "RigidBodyHandle": ("Handle",),
@@ -617,6 +619,9 @@ def exclusion_reason(item: Item) -> str:
     if any(x in blob for x in ("counter", "timer")) and "controller" not in blob:
         return "profiling counters"
     if item.owner in ("PhysicsHooks", "EventHandler", "ChannelEventCollector") or "physics_hooks" in blob:
+        return "dyn hooks"
+    # QY2: the predicate is a `&dyn Fn(ColliderHandle, &Collider) -> bool` closure.
+    if (item.owner, item.name) == ("QueryFilter", "predicate"):
         return "dyn hooks"
     if any(x in blob for x in ("trimesh", "voxels", "heightfield3", "height_field3")) \
             or (item.owner, item.name) == ("ColliderBuilder", "voxelized_mesh"):

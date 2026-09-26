@@ -29,10 +29,20 @@
 //! * [`intersect_ray`] reports every collider hit within `max_toi` (inclusive, the per-shape
 //!   bound);
 //! * disabled colliders are never reported (upstream removes them from the BVH);
-//! * [`QueryFilter`] is upstream's, minus `EXCLUDE_SOLIDS` and the predicate closure.
+//! * [`QueryFilter`] is upstream's, minus the predicate closure (`dyn hooks`);
+//! * `EXCLUDE_SOLIDS` (QY2) costs about 2.4k gas per candidate collider in the shared filter test
+//!   (`cast_ray` on 32 balls: 6.13M before, 6.21M after). `QueryFilterFlagsTrait::test` is
+//!   `#[inline(always)]` into `QueryFilterTrait::test`: as an outlined call it cost 6.41M
+//!   (about 8.8k per candidate);
+//! * every array query returns handles (or `(handle, hit)` pairs) in ascending handle order.
 //!
-//! Deviations: [`intersect_aabb`] tests the collider's tight world AABB, where upstream's
-//! `intersect_aabb_conservative` tests the (possibly enlarged) AABB stored in its BVH.
+//! QY2 adds the rest of the world-level surface (`pipeline`): [`intersect_shape`],
+//! [`project_point_and_get_feature`], [`QueryPipeline`] (a filter bundle, upstream's `with_filter`
+//! chain) and the `QueryFilterFlags` type.
+//!
+//! Deviations: [`intersect_aabb`] (and its upstream name [`intersect_aabb_conservative`]) tests
+//! the collider's tight world AABB, where upstream tests the (possibly enlarged) AABB stored in
+//! its BVH: the answer is a subset of upstream's, and never misses a real overlap.
 
 use fixed::Fixed;
 use glam::vec2::Vec2;
@@ -56,32 +66,99 @@ use rapier_math::math_ext::norm2::{norm2_sq_wide, sq_wide};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::world::World;
 
+/// `QueryPipeline` view, `intersect_shape` and `project_point_and_get_feature`.
+pub mod pipeline;
+pub use pipeline::{
+    QueryPipeline, QueryPipelineTrait, intersect_shape, project_point_and_get_feature,
+};
+
 #[cfg(test)]
 mod alternatives;
 #[cfg(test)]
 mod benches;
+#[cfg(test)]
+mod benches_qy2;
 
 /// Excludes colliders without a parent or attached to a fixed body.
-pub const EXCLUDE_FIXED: u32 = 1;
+pub const EXCLUDE_FIXED: QueryFilterFlags = QueryFilterFlags { bits: 1 };
 /// Excludes colliders attached to a kinematic body.
-pub const EXCLUDE_KINEMATIC: u32 = 2;
+pub const EXCLUDE_KINEMATIC: QueryFilterFlags = QueryFilterFlags { bits: 2 };
 /// Excludes colliders attached to a dynamic body.
-pub const EXCLUDE_DYNAMIC: u32 = 4;
+pub const EXCLUDE_DYNAMIC: QueryFilterFlags = QueryFilterFlags { bits: 4 };
 /// Excludes sensors.
-pub const EXCLUDE_SENSORS: u32 = 8;
+pub const EXCLUDE_SENSORS: QueryFilterFlags = QueryFilterFlags { bits: 8 };
+/// Excludes solid colliders (only sensors are hit).
+pub const EXCLUDE_SOLIDS: QueryFilterFlags = QueryFilterFlags { bits: 16 };
 /// `EXCLUDE_FIXED | EXCLUDE_KINEMATIC`.
-pub const ONLY_DYNAMIC: u32 = 3;
+pub const ONLY_DYNAMIC: QueryFilterFlags = QueryFilterFlags { bits: 3 };
 /// `EXCLUDE_DYNAMIC | EXCLUDE_FIXED`.
-pub const ONLY_KINEMATIC: u32 = 5;
+pub const ONLY_KINEMATIC: QueryFilterFlags = QueryFilterFlags { bits: 5 };
 /// `EXCLUDE_DYNAMIC | EXCLUDE_KINEMATIC`.
-pub const ONLY_FIXED: u32 = 6;
+pub const ONLY_FIXED: QueryFilterFlags = QueryFilterFlags { bits: 6 };
+
+/// The bit set of the `EXCLUDE_*` / `ONLY_*` constants (upstream `QueryFilterFlags`, a `bitflags`
+/// struct over `u32` with the same bit values; `bits` is upstream's `bits()`).
+#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+pub struct QueryFilterFlags {
+    pub bits: u32,
+}
+
+#[generate_trait]
+pub impl QueryFilterFlagsImpl of QueryFilterFlagsTrait {
+    /// The flags with the given raw bits (upstream `from_bits_retain`).
+    #[inline(always)]
+    fn from_bits(bits: u32) -> QueryFilterFlags {
+        QueryFilterFlags { bits }
+    }
+
+    /// No flag set.
+    #[inline(always)]
+    fn is_empty(self: QueryFilterFlags) -> bool {
+        self.bits == 0
+    }
+
+    /// Every bit of `other` is set in `self`.
+    fn contains(self: QueryFilterFlags, other: QueryFilterFlags) -> bool {
+        self.bits & other.bits == other.bits
+    }
+
+    /// The union of both sets.
+    #[inline(always)]
+    fn union(self: QueryFilterFlags, other: QueryFilterFlags) -> QueryFilterFlags {
+        QueryFilterFlags { bits: self.bits | other.bits }
+    }
+
+    /// Whether `collider` passes these flags (upstream `QueryFilterFlags::test`). Reads the
+    /// parent body only when a body-type flag is set; a collider whose parent no longer exists
+    /// passes.
+    #[inline(always)]
+    fn test(self: QueryFilterFlags, ref bodies: RigidBodySet, collider: Collider) -> bool {
+        let flags = self.bits;
+        if flags == 0 {
+            return true;
+        }
+        if (has(flags, EXCLUDE_SENSORS.bits) && collider.is_sensor())
+            || (has(flags, EXCLUDE_SOLIDS.bits) && !collider.is_sensor()) {
+            return false;
+        }
+        match collider.parent() {
+            None => !has(flags, EXCLUDE_FIXED.bits),
+            Some(parent) => match bodies.get(parent) {
+                Some(body) => !((has(flags, EXCLUDE_FIXED.bits) && body.is_fixed())
+                    || (has(flags, EXCLUDE_KINEMATIC.bits) && body.is_kinematic())
+                    || (has(flags, EXCLUDE_DYNAMIC.bits) && body.is_dynamic())),
+                None => true,
+            },
+        }
+    }
+}
 
 /// Which colliders a scene query considers (upstream `QueryFilter`, without the predicate
-/// closure and `EXCLUDE_SOLIDS`).
+/// closure: excluded as `dyn hooks`).
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
 pub struct QueryFilter {
     /// A union of the `EXCLUDE_*` / `ONLY_*` constants of this module.
-    pub flags: u32,
+    pub flags: QueryFilterFlags,
     /// When set, only colliders whose collision groups pass `InteractionGroups::test` with it.
     pub groups: Option<InteractionGroups>,
     pub exclude_collider: Option<Handle>,
@@ -98,7 +175,7 @@ pub impl QueryFilterImpl of QueryFilterTrait {
 
     /// Filter with the given flags only.
     #[inline(always)]
-    fn from_flags(flags: u32) -> QueryFilter {
+    fn from_flags(flags: QueryFilterFlags) -> QueryFilter {
         QueryFilter { flags, groups: None, exclude_collider: None, exclude_rigid_body: None }
     }
 
@@ -136,8 +213,18 @@ pub impl QueryFilterImpl of QueryFilterTrait {
     #[inline(always)]
     fn exclude_sensors(self: QueryFilter) -> QueryFilter {
         let mut f = self;
-        if !has(f.flags, EXCLUDE_SENSORS) {
-            f.flags += EXCLUDE_SENSORS;
+        if !has(f.flags.bits, EXCLUDE_SENSORS.bits) {
+            f.flags.bits += EXCLUDE_SENSORS.bits;
+        }
+        f
+    }
+
+    /// Adds `EXCLUDE_SOLIDS`: only sensors are considered.
+    #[inline(always)]
+    fn exclude_solids(self: QueryFilter) -> QueryFilter {
+        let mut f = self;
+        if !has(f.flags.bits, EXCLUDE_SOLIDS.bits) {
+            f.flags.bits += EXCLUDE_SOLIDS.bits;
         }
         f
     }
@@ -164,17 +251,17 @@ pub impl QueryFilterImpl of QueryFilterTrait {
         f
     }
 
-    /// Returns `true` when the collider `handle` passes the filter (upstream `QueryFilter::test`
-    /// and `QueryFilterFlags::test`). Reads the parent body only when a body-type flag is set.
+    /// Returns `true` when the collider `handle` passes the filter (upstream `QueryFilter::test`,
+    /// without the predicate): not the excluded collider, not attached to the excluded body,
+    /// groups compatible, then `QueryFilterFlagsTrait::test`.
     fn test(
         self: QueryFilter, ref bodies: RigidBodySet, handle: Handle, collider: Collider,
     ) -> bool {
         if self.exclude_collider == Some(handle) {
             return false;
         }
-        let parent = collider.parent();
         if let Some(body) = self.exclude_rigid_body {
-            if parent == Some(body) {
+            if collider.parent() == Some(body) {
                 return false;
             }
         }
@@ -183,27 +270,29 @@ pub impl QueryFilterImpl of QueryFilterTrait {
                 return false;
             }
         }
-        if self.flags == 0 {
-            return true;
-        }
-        if has(self.flags, EXCLUDE_SENSORS) && collider.is_sensor() {
-            return false;
-        }
-        match parent {
-            None => !has(self.flags, EXCLUDE_FIXED),
-            Some(parent) => match bodies.get(parent) {
-                Some(body) => !((has(self.flags, EXCLUDE_FIXED) && body.is_fixed())
-                    || (has(self.flags, EXCLUDE_KINEMATIC) && body.is_kinematic())
-                    || (has(self.flags, EXCLUDE_DYNAMIC) && body.is_dynamic())),
-                None => true,
-            },
-        }
+        self.flags.test(ref bodies, collider)
+    }
+}
+
+/// `QueryFilter::from(QueryFilterFlags)`: the flags alone.
+pub impl QueryFilterFlagsIntoQueryFilter of Into<QueryFilterFlags, QueryFilter> {
+    #[inline(always)]
+    fn into(self: QueryFilterFlags) -> QueryFilter {
+        QueryFilterTrait::from_flags(self)
+    }
+}
+
+/// `QueryFilter::from(InteractionGroups)`: the groups alone.
+pub impl InteractionGroupsIntoQueryFilter of Into<InteractionGroups, QueryFilter> {
+    #[inline(always)]
+    fn into(self: InteractionGroups) -> QueryFilter {
+        QueryFilterTrait::new().groups(self)
     }
 }
 
 /// `flags` contains `bit` (a single power of two): integer arithmetic, no bitwise builtin.
 #[inline(always)]
-fn has(flags: u32, bit: u32) -> bool {
+pub(crate) fn has(flags: u32, bit: u32) -> bool {
     (flags / bit) % 2 == 1
 }
 
@@ -343,6 +432,13 @@ pub fn intersect_point(ref world: World, point: Vec2, filter: QueryFilter) -> Ar
 
 /// Every collider whose world AABB intersects `aabb` (closed), ascending handle order
 /// (upstream `QueryPipeline::intersect_aabb_conservative`; see the module deviations).
+pub fn intersect_aabb_conservative(
+    ref world: World, aabb: Aabb, filter: QueryFilter,
+) -> Array<Handle> {
+    intersect_aabb(ref world, aabb, filter)
+}
+
+/// Every collider whose world AABB intersects `aabb` (closed), ascending handle order.
 pub fn intersect_aabb(ref world: World, aabb: Aabb, filter: QueryFilter) -> Array<Handle> {
     let mut out = array![];
     for (handle, collider) in candidates(ref world, filter) {
