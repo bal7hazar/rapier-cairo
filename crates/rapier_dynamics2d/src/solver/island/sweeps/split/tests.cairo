@@ -6,13 +6,14 @@ use fixed::{Fixed, FixedTrait, HALF, ONE};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::{ContactManifold, NEW_CONTACT_BIT};
 use rapier_testing::opaque;
+use super::generation::generate;
 use super::super::contact::contacts as reference;
 use super::super::super::fixtures::stack;
 use super::super::super::super::body::SolverBody;
 use super::super::super::super::body_store::{BodyStep, DenseBodies, DenseBodiesTrait};
 use super::super::super::super::contact::{ContactConstraintsSetTrait, cached};
 use super::super::super::{add_forces, damp, integrate};
-use super::{SweepBodies, SweepBodiesTrait, alternatives, contacts, generate, writeback};
+use super::{SweepBodies, SweepBodiesTrait, alternatives, contacts, writeback};
 
 /// The stack of three with velocities from `(vx, vy, spin)`, restitution on the world manifold
 /// (whose contacts are NEW), warm starts `warm` on the second manifold (tracked point ids), and
@@ -117,10 +118,15 @@ fn fuzz_split_matches_constraint_set_sweeps(vx: i16, vy: i16, spin: i16, warm: u
     check(vx / 8, vy / 8, spin / 8, warm);
 }
 
-/// Probe of the split path: generation only (`stage == 5`), or generation then one stage.
+/// Probe of the split path: generation only (`stage == 5`; `8`: BT1's generation through the
+/// constraints, `alternatives::generate_via_constraints`), or generation then one stage.
 fn probe(stage: u8) {
     let (bs, _, ms, p) = scene(opaque(0), opaque(-2000), opaque(900), opaque(3));
-    let (frozen, mut hot) = generate(ms.span(), bs.span(), p, p.substep_dt());
+    let (frozen, mut hot) = if stage == 8 {
+        alternatives::generate_via_constraints(ms.span(), bs.span(), p, p.substep_dt())
+    } else {
+        generate(ms.span(), bs.span(), p, p.substep_dt())
+    };
     let mut sb: SweepBodies = DenseBodiesTrait::new(bs.span());
     if stage < 5 {
         contacts(ref hot, frozen.span(), ref sb, p, stage);
@@ -141,6 +147,10 @@ fn gas_baseline() {
 #[test]
 fn gas_generate_stack3() {
     probe(5);
+}
+#[test]
+fn gas_generate_via_constraints_stack3() {
+    probe(8);
 }
 #[test]
 fn gas_update_stack3() {

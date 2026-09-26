@@ -83,7 +83,9 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let (frozen, mut hot) = split::generate(manifolds.span(), initial.span(), params, dt);
+    let (frozen, mut hot) = split::generation::generate(
+        manifolds.span(), initial.span(), params, dt,
+    );
     let builders = prepare_joints(joint_set.span(), initial.span(), steps);
     if frozen.is_empty() {
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);

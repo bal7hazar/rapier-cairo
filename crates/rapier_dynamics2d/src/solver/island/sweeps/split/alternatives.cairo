@@ -84,6 +84,7 @@ fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
     if c.num_elements != 0 {
         let t = tangent(c.dir1);
         let [a, b] = c.elements;
+        let (wn2, wt2) = (c.dir1 * c.im2, t * c.im2);
         frozen
             .append(
                 Frozen {
@@ -91,8 +92,8 @@ fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
                     j: c.solver_vel2,
                     dir: c.dir1,
                     t,
-                    wn: Weights { first: c.dir1 * c.im1, neg_second: -(c.dir1 * c.im2) },
-                    wt: Weights { first: t * c.im1, neg_second: -(t * c.im2) },
+                    wn: Weights { first: c.dir1 * c.im1, neg_second: -wn2 },
+                    wt: Weights { first: t * c.im1, neg_second: -wt2 },
                     limit: c.limit,
                     count: c.num_elements,
                     manifold_id: c.manifold_id,

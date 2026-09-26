@@ -99,6 +99,8 @@ fn split_manifold(
     } else {
         (Default::default(), Default::default())
     };
+    // Floored products first, then negated (the negation of `dir * im2` exactly).
+    let (wn2, wt2) = (dir * b2.im, t * b2.im);
     frozen
         .append(
             Frozen {
@@ -106,8 +108,8 @@ fn split_manifold(
                 j,
                 dir,
                 t,
-                wn: Weights { first: dir * b1.im, neg_second: -(dir * b2.im) },
-                wt: Weights { first: t * b1.im, neg_second: -(t * b2.im) },
+                wn: Weights { first: dir * b1.im, neg_second: -wn2 },
+                wt: Weights { first: t * b1.im, neg_second: -wt2 },
                 limit: m.data.friction,
                 count,
                 manifold_id,

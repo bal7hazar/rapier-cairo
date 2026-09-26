@@ -481,10 +481,9 @@ fn pose(poses: Span<Pose2>, i: u32) -> Pose2 {
 }
 #[cfg(test)]
 mod alternatives;
-mod generation;
-pub(crate) use generation::generate;
 
 mod bodies;
+pub(crate) mod generation;
 #[cfg(test)]
 mod tests;
 pub(crate) use bodies::{SweepBodies, SweepBodiesTrait};
