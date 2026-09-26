@@ -66,6 +66,7 @@
 
 use core::num::traits::Zero;
 use fixed::Fixed;
+use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, dot2_add, mul_sub, wide_from, wide_mul};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
@@ -81,8 +82,8 @@ use rapier_geometry2d::contact::{
     TrackedContact,
 };
 use rapier_geometry2d::shape::Shape;
-use rapier_math::pose2::{Pose2, Pose2Trait};
-use rapier_math::rot2::Rot2Trait;
+use rapier_math::pose2::Pose2;
+use rapier_math::rot2::Rot2;
 use crate::collider::components::BoxedOneWayPlatformPartialEq;
 use crate::collider::{Collider, ColliderTrait};
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
@@ -638,10 +639,38 @@ pub fn pair_filtered(co1: PairCollider, co2: PairCollider) -> bool {
     !co1.collision_groups.test(co2.collision_groups)
 }
 
-/// The pose of collider 2 in the frame of collider 1 (`pos12` of the dispatcher).
+/// The pose of collider 2 in the frame of collider 1 (`pos12` of the dispatcher):
+/// `Pose2::inv_mul` inlined (BT3), with the translation difference distributed over the exact
+/// wide sums (`r * (a - b) = r * a - r * b`), so the same floors of the same values.
 #[inline(always)]
 pub fn pair_pose(co1: PairCollider, co2: PairCollider) -> Pose2 {
-    co1.pose.inv_mul(co2.pose)
+    let (a, b) = (co1.pose.rotation, co2.pose.rotation);
+    let (t1, t2) = (co1.pose.translation, co2.pose.translation);
+    Pose2 {
+        translation: Vec2 {
+            x: wide_mul(a.re, t2.x)
+                .sub(wide_mul(a.re, t1.x))
+                .add(wide_mul(a.im, t2.y))
+                .sub(wide_mul(a.im, t1.y))
+                .narrow(),
+            y: wide_mul(a.re, t2.y)
+                .sub(wide_mul(a.re, t1.y))
+                .sub(wide_mul(a.im, t2.x))
+                .add(wide_mul(a.im, t1.x))
+                .narrow(),
+        },
+        rotation: Rot2 { re: dot2(a.re, b.re, a.im, b.im), im: mul_sub(a.re, b.im, a.im, b.re) },
+    }
+}
+
+/// `Pose2::transform_point` inlined (BT3): `re * x - im * y + t`, one floor per component.
+#[inline(always)]
+fn transform(p: Pose2, l: Vec2) -> Vec2 {
+    let r = p.rotation;
+    Vec2 {
+        x: wide_mul(r.re, l.x).sub(wide_mul(r.im, l.y)).add(wide_from(p.translation.x)).narrow(),
+        y: dot2_add(r.im, l.x, r.re, l.y, p.translation.y),
+    }
 }
 
 /// Runs the dispatcher on `manifold` (the previous one) and rebuilds its solver data.
@@ -698,7 +727,11 @@ pub fn solver_data(
                 co2.restitution_combine_rule,
             );
     manifold.data.relative_dominance = co1.dominance - co2.dominance;
-    manifold.data.normal = co1.pose.rotation.rotate(manifold.local_n1);
+    let (r, n1) = (co1.pose.rotation, manifold.local_n1);
+    // `Rot2::rotate` inlined (BT3).
+    manifold
+        .data
+        .normal = Vec2 { x: mul_sub(r.re, n1.x, r.im, n1.y), y: dot2(r.im, n1.x, r.re, n1.y) };
 
     let [p0, p1] = manifold.points;
     let mut first: SolverContact = Default::default();
@@ -732,8 +765,8 @@ pub fn solver_data(
 pub fn solver_contact(
     point: TrackedContact, id: u32, co1: PairCollider, co2: PairCollider,
 ) -> SolverContact {
-    let world1 = co1.pose.transform_point(point.local_p1);
-    let world2 = co2.pose.transform_point(point.local_p2);
+    let world1 = transform(co1.pose, point.local_p1);
+    let world2 = transform(co2.pose, point.local_p2);
     SolverContact {
         anchor1: world1 - co1.world_com,
         anchor2: world2 - co2.world_com,
