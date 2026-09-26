@@ -34,6 +34,7 @@ pub use prismatic_joint::{
     PrismaticJointTrait,
 };
 use rapier_core::integration_parameters::spring::{JOINT_DEFAULTS, SpringCoefficients};
+use rapier_math::math_ext::inv;
 use rapier_math::pose2::Pose2;
 pub use revolute_joint::{
     RevoluteJoint, RevoluteJointBuilderIntoGeneric, RevoluteJointIntoGeneric, RevoluteJointTrait,
@@ -165,6 +166,27 @@ pub enum MotorModel {
     AccelerationBased,
     ForceBased,
 }
+#[generate_trait]
+pub impl MotorModelImpl of MotorModelTrait {
+    /// Combines the coefficients of the spring equation (upstream `combine_coefficients`):
+    /// `(erp_inv_dt, cfm_coeff, cfm_gain)`. `erp_inv_dt = stiffness / (dt * stiffness + damping)`
+    /// and `cfm = 1 / (dt * dt * stiffness + dt * damping)` (both `0` for a zero denominator,
+    /// `inv(0) = 0`); the `cfm` goes to `cfm_coeff` for `AccelerationBased` and to `cfm_gain`
+    /// for `ForceBased`, the other one is zero. Same operation order as upstream and as the
+    /// solver's motor rows.
+    /// #### Panics
+    /// * `'Fixed: overflow'` when a product or sum leaves the scalar range.
+    fn combine_coefficients(
+        self: MotorModel, dt: Fixed, stiffness: Fixed, damping: Fixed,
+    ) -> (Fixed, Fixed, Fixed) {
+        let erp_inv_dt = stiffness * inv(dt * stiffness + damping);
+        let cfm = inv(dt * dt * stiffness + dt * damping);
+        match self {
+            MotorModel::AccelerationBased => (erp_inv_dt, cfm, ZERO),
+            MotorModel::ForceBased => (erp_inv_dt, ZERO, cfm),
+        }
+    }
+}
 /// Motor data; units follow the corresponding linear/angular axis.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct JointMotor {
@@ -233,6 +255,7 @@ pub impl GenericJointDefault of Default<GenericJoint> {
 }
 #[cfg(test)]
 mod tests {
+    use fixed::{FixedTrait, HALF, ONE};
     use rapier_testing::opaque;
     use super::*;
     #[test]
@@ -265,8 +288,36 @@ mod tests {
         let _ = JointAxesMask { bits: 8 }.contains_axis(0);
     }
     #[test]
+    fn test_motor_model_combine_coefficients_table() {
+        let dt = HALF;
+        let (two, four, one) = (FixedTrait::from_int(2), FixedTrait::from_int(4), ONE);
+        // stiffness 4, damping 2: erp = 4 / (2 + 2) = 1; cfm = 1 / (1 + 1) = 1/2.
+        assert_eq!(
+            MotorModel::AccelerationBased.combine_coefficients(dt, four, two), (one, HALF, ZERO),
+        );
+        assert_eq!(MotorModel::ForceBased.combine_coefficients(dt, four, two), (one, ZERO, HALF));
+        // Pure damping (a velocity motor): erp = 0, cfm = 1 / (dt * damping) = 1.
+        assert_eq!(
+            MotorModel::AccelerationBased.combine_coefficients(dt, ZERO, two), (ZERO, one, ZERO),
+        );
+        assert_eq!(MotorModel::ForceBased.combine_coefficients(dt, ZERO, two), (ZERO, ZERO, one));
+        // Zero denominators: inv(0) = 0.
+        assert_eq!(
+            MotorModel::AccelerationBased.combine_coefficients(dt, ZERO, ZERO), (ZERO, ZERO, ZERO),
+        );
+        assert_eq!(
+            MotorModel::ForceBased.combine_coefficients(ZERO, four, ZERO), (ZERO, ZERO, ZERO),
+        );
+    }
+
+    #[test]
     fn gas_baseline() {
         let _ = opaque(ZERO);
+    }
+    #[test]
+    fn gas_combine_coefficients() {
+        let _ = opaque(MotorModel::ForceBased)
+            .combine_coefficients(opaque(HALF), opaque(ONE), opaque(HALF));
     }
     #[test]
     fn gas_contains_axis() {

@@ -7,7 +7,7 @@
 pub mod bounding_volume;
 use bounding_volume::{BoundingSphere, local_point_cloud_aabb};
 use fixed::wide::{dot2, norm2};
-use fixed::{Fixed, FixedTrait, HALF, MAX, ZERO};
+use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, ZERO};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -208,6 +208,34 @@ pub impl AabbImpl of AabbTrait {
         } else {
             Some(result)
         }
+    }
+
+    /// The overlap of `self` and `aabb2` placed at `pos12` (`aabb2` in the local space of `self`),
+    /// as two boxes: the first in the local space of `self`, the second in that of `aabb2`
+    /// (upstream `aligned_intersections`). `None` when either box-space test finds them disjoint.
+    /// #### Panics
+    /// * As [`AabbTrait::transform_by`], and `'Fixed: overflow'` on an inverse pose that leaves
+    ///   the scalar range.
+    fn aligned_intersections(self: Aabb, pos12: Pose2, aabb2: Aabb) -> Option<(Aabb, Aabb)> {
+        let pos21 = pos12.inverse();
+        let inter1_1 = self.intersection(aabb2.transform_by(pos12))?;
+        let inter1_2 = inter1_1.transform_by(pos21);
+        let inter2_2 = aabb2.intersection(self.transform_by(pos21))?;
+        let inter2_1 = inter2_2.transform_by(pos12);
+        Some((inter1_1.intersection(inter2_1)?, inter1_2.intersection(inter2_2)?))
+    }
+
+    /// Does `aabb2`, moving at velocity `vel12` relative to `self` for one unit of time, hit
+    /// `self` (upstream `intersects_moving_aabb`)? The ray from the origin along `vel12`
+    /// against the Minkowski sum `self - aabb2`, `max_time_of_impact = 1`, solid.
+    /// #### Panics
+    /// * See [`cast_local_ray_aabb`].
+    /// #### Deviations
+    /// * See [`cast_local_ray_aabb`] (within one ulp of the box on odd-parity bounds).
+    fn intersects_moving_aabb(self: Aabb, aabb2: Aabb, vel12: Vec2) -> bool {
+        let msum = Aabb { mins: self.mins - aabb2.maxs, maxs: self.maxs - aabb2.mins };
+        cast_local_ray_aabb(msum, Ray { origin: Vec2 { x: ZERO, y: ZERO }, dir: vel12 }, ONE, true)
+            .is_some()
     }
 
     /// The corners, counter-clockwise from `mins`: `(mins.x, mins.y)`, `(maxs.x, mins.y)`,

@@ -95,11 +95,13 @@ rapier_dynamics2d::joint::spring_joint::tests::gas_baseline 14120
 rapier_dynamics2d::joint::spring_joint::tests::gas_spring_new 28023
 rapier_dynamics2d::joint::spring_joint::tests::test_spring_matches_upstream_generic_construction 37216
 rapier_dynamics2d::joint::tests::gas_baseline 14120
+rapier_dynamics2d::joint::tests::gas_combine_coefficients 35020
 rapier_dynamics2d::joint::tests::gas_contains_axis 18830
 rapier_dynamics2d::joint::tests::gas_defaults 25040
 rapier_dynamics2d::joint::tests::test_invalid_axis 14620
 rapier_dynamics2d::joint::tests::test_invalid_mask 14620
 rapier_dynamics2d::joint::tests::test_masks_and_defaults 117640
+rapier_dynamics2d::joint::tests::test_motor_model_combine_coefficients_table 137440
 rapier_dynamics2d::joint::typed_tests::gas_baseline 14120
 rapier_dynamics2d::joint::typed_tests::gas_generic_flip 64210
 rapier_dynamics2d::joint::typed_tests::gas_generic_limits 48793

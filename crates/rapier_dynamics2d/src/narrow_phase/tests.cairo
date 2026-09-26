@@ -373,6 +373,50 @@ fn test_intersection_queries() {
     );
 }
 
+fn h7(index: u32) -> Handle {
+    Handle { index, generation: 7 }
+}
+
+#[test]
+fn test_intersection_queries_unknown_gen() {
+    // The same pairs as `mixed_pairs`, but every handle carries generation 7.
+    let mut pairs = array![];
+    for (c1, c2, bits) in array![(0, 1, 1_u8), (0, 2, 13), (1, 2, 4)] {
+        let mut pair = ContactPairTrait::new(h7(c1), h7(c2));
+        pair.event_status = PairEventStatus { bits };
+        pairs.append(pair);
+    }
+    let np = NarrowPhase { pairs };
+    // (collider1, collider2, expected): a contact pair and an absent pair answer `None`.
+    let cases = array![
+        (0, 1, None), (1, 0, None), (0, 2, Some(true)), (2, 0, Some(true)), (2, 1, Some(false)),
+        (1, 3, None),
+    ];
+    for (c1, c2, expected) in cases {
+        assert_eq!(np.intersection_pair_unknown_gen(c1, c2), expected);
+        // The known-generation form does not find them under generation 0.
+        assert_eq!(np.intersection_pair(h(c1), h(c2)), None);
+    }
+    assert_eq!(
+        np.intersection_pairs_with_unknown_gen(2),
+        array![(h7(0), h7(2), true), (h7(1), h7(2), false)],
+    );
+    assert_eq!(np.intersection_pairs_with_unknown_gen(1), array![(h7(1), h7(2), false)]);
+    assert_eq!(np.intersection_pairs_with_unknown_gen(3), array![]);
+}
+
+#[test]
+fn gas_intersection_pair_unknown_gen() {
+    let np = mixed_pairs();
+    let _ = opaque(np.intersection_pair_unknown_gen(opaque(2), 1));
+}
+
+#[test]
+fn gas_intersection_pairs_with_unknown_gen() {
+    let np = mixed_pairs();
+    let _ = opaque(np.intersection_pairs_with_unknown_gen(opaque(2)));
+}
+
 #[test]
 fn gas_intersection_pair() {
     let np = mixed_pairs();

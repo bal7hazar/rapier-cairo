@@ -34,6 +34,7 @@ rapier_geometry2d::aabb::bounding_volume::tests::test_sphere_merge 142900
 rapier_geometry2d::aabb::bounding_volume::tests::test_sphere_overtightening_panics 14620
 rapier_geometry2d::aabb::bounding_volume::tests::test_support_map_boxes_match_the_shapes 374220
 rapier_geometry2d::aabb::helper_tests::gas_add_half_extents 19300
+rapier_geometry2d::aabb::helper_tests::gas_aligned_intersections 179210
 rapier_geometry2d::aabb::helper_tests::gas_baseline 13620
 rapier_geometry2d::aabb::helper_tests::gas_bounding_sphere 29100
 rapier_geometry2d::aabb::helper_tests::gas_bounding_sphere_half_extents 31800
@@ -41,15 +42,18 @@ rapier_geometry2d::aabb::helper_tests::gas_difference_hole 30220
 rapier_geometry2d::aabb::helper_tests::gas_from_points_3 29230
 rapier_geometry2d::aabb::helper_tests::gas_half_perimeter 17960
 rapier_geometry2d::aabb::helper_tests::gas_intersection 21580
+rapier_geometry2d::aabb::helper_tests::gas_intersects_moving_aabb 145380
 rapier_geometry2d::aabb::helper_tests::gas_new_invalid 14720
 rapier_geometry2d::aabb::helper_tests::gas_split_at_center 21690
 rapier_geometry2d::aabb::helper_tests::gas_take_point 19030
 rapier_geometry2d::aabb::helper_tests::gas_translated 19300
 rapier_geometry2d::aabb::helper_tests::gas_vertices 14720
+rapier_geometry2d::aabb::helper_tests::test_aligned_intersections_table 697700
 rapier_geometry2d::aabb::helper_tests::test_bounding_sphere 54940
 rapier_geometry2d::aabb::helper_tests::test_difference_table 75390
 rapier_geometry2d::aabb::helper_tests::test_from_no_point_panics 14620
 rapier_geometry2d::aabb::helper_tests::test_intersection_table 105670
+rapier_geometry2d::aabb::helper_tests::test_intersects_moving_aabb_table 814120
 rapier_geometry2d::aabb::helper_tests::test_invalid_points_and_growth 37020
 rapier_geometry2d::aabb::helper_tests::test_measures_and_moves_table 77590
 rapier_geometry2d::aabb::helper_tests::test_vertices_faces_and_quadrants 25400

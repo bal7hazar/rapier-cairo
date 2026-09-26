@@ -1,7 +1,9 @@
 //! Tests and gas probes of the MH1 `Aabb` helpers (the original `aabb::tests` stay unchanged).
 
-use fixed::{Fixed, FixedTrait, MAX, TWO, ZERO};
+use fixed::{Fixed, FixedTrait, MAX, ONE, TWO, ZERO};
 use glam::Vec2;
+use rapier_math::pose2::Pose2;
+use rapier_math::rot2::{IDENTITY, Rot2};
 use rapier_testing::opaque;
 use super::bounding_volume::BoundingSphere;
 use super::{Aabb, AabbTrait, alternatives};
@@ -123,6 +125,46 @@ fn test_difference_table() {
     assert_eq!(A.difference(aabb(2, 1, 5, 5)), array![aabb(-1, -2, 2, 2), aabb(2, -2, 3, 1)]);
 }
 
+const QUARTER_TURN: Rot2 = Rot2 { re: ZERO, im: ONE };
+
+fn pose(x: i32, y: i32, rotation: Rot2) -> Pose2 {
+    Pose2 { translation: v(x, y), rotation }
+}
+
+#[test]
+fn test_aligned_intersections_table() {
+    let cases: Span<(Pose2, Aabb, Option<(Aabb, Aabb)>)> = array![
+        // Translation only: the overlap in both frames.
+        (pose(1, 0, IDENTITY), aabb(0, 0, 2, 2), Some((aabb(1, 0, 3, 2), aabb(0, 0, 2, 2)))),
+        // A quarter turn: (x, y) -> (-y, x).
+        (pose(0, 0, QUARTER_TURN), aabb(0, 0, 2, 1), Some((aabb(-1, 0, 0, 2), aabb(0, 0, 2, 1)))),
+        // Disjoint in the frame of `self`.
+        (pose(0, 0, IDENTITY), aabb(5, 5, 6, 6), None),
+        (pose(10, 0, QUARTER_TURN), aabb(0, 0, 2, 1), None),
+    ]
+        .span();
+    for (pos12, other, expected) in cases {
+        assert_eq!(A.aligned_intersections(*pos12, *other), *expected);
+    }
+}
+
+#[test]
+fn test_intersects_moving_aabb_table() {
+    let target = aabb(0, 0, 2, 2);
+    let cases: Span<(Aabb, Vec2, bool)> = array![
+        (aabb(4, 0, 5, 1), v(-4, 0), true), // hit at t = 1/2
+        (aabb(4, 0, 5, 1), v(-2, 0), true), // touches at t = 1
+        (aabb(4, 0, 5, 1), v(-1, 0), false), // would hit at t = 2
+        (aabb(4, 0, 5, 1), v(0, 1), false), // moves alongside
+        (aabb(1, 1, 3, 3), v(0, 0), true), // already overlapping
+        (aabb(4, 0, 5, 1), v(4, 0), false) // moving away
+    ]
+        .span();
+    for (other, vel, expected) in cases {
+        assert_eq!(target.intersects_moving_aabb(*other, *vel), *expected);
+    }
+}
+
 #[test]
 fn gas_baseline() {}
 #[test]
@@ -173,4 +215,13 @@ fn gas_split_at_center() {
 #[test]
 fn gas_difference_hole() {
     let _ = opaque(A).difference(opaque(aabb(0, -1, 1, 1)));
+}
+#[test]
+fn gas_aligned_intersections() {
+    let _ = opaque(A)
+        .aligned_intersections(opaque(pose(1, 0, QUARTER_TURN)), opaque(aabb(0, 0, 2, 1)));
+}
+#[test]
+fn gas_intersects_moving_aabb() {
+    let _ = opaque(A).intersects_moving_aabb(opaque(aabb(4, 0, 5, 1)), opaque(v(-4, 0)));
 }

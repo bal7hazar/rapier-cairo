@@ -121,3 +121,36 @@ pub fn intersection_pairs_with(
     }
     out
 }
+
+/// `NarrowPhaseTrait::intersection_pair_unknown_gen` on `pairs`: as [`intersection_pair`] with
+/// the colliders identified by slot index only (the generations are ignored).
+pub fn intersection_pair_unknown_gen(
+    pairs: Span<ContactPair>, collider1: u32, collider2: u32,
+) -> Option<bool> {
+    let mut found = None;
+    for pair in pairs {
+        let (a, b) = ((*pair.collider1).index, (*pair.collider2).index);
+        if (a == collider1 && b == collider2) || (a == collider2 && b == collider1) {
+            if pair.is_intersection_pair() {
+                found = Some(pair.intersecting());
+            }
+            break;
+        }
+    }
+    found
+}
+
+/// `NarrowPhaseTrait::intersection_pairs_with_unknown_gen` on `pairs`: as
+/// [`intersection_pairs_with`] with the collider identified by slot index only.
+pub fn intersection_pairs_with_unknown_gen(
+    pairs: Span<ContactPair>, collider: u32,
+) -> Array<(Handle, Handle, bool)> {
+    let mut out = array![];
+    for pair in pairs {
+        if ((*pair.collider1).index == collider || (*pair.collider2).index == collider)
+            && pair.is_intersection_pair() {
+            out.append((*pair.collider1, *pair.collider2, pair.intersecting()));
+        }
+    }
+    out
+}
