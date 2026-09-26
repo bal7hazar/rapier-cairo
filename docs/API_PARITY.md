@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 526 | 0 | 201 | 465 | 1192 | 72.4% |
+| dynamics | 534 | 0 | 192 | 466 | 1192 | 73.6% |
 | geometry | 193 | 0 | 106 | 18 | 317 | 64.5% |
 | parry::bounding_volume | 73 | 0 | 16 | 30 | 119 | 82.0% |
 | parry::mass_properties | 16 | 0 | 3 | 7 | 26 | 84.2% |
-| parry::query | 107 | 0 | 204 | 113 | 424 | 34.4% |
+| parry::query | 120 | 0 | 186 | 118 | 424 | 39.2% |
 | parry::shape | 101 | 0 | 164 | 119 | 384 | 38.1% |
-| pipeline | 72 | 0 | 17 | 69 | 158 | 80.9% |
-| **total** | **1088** | **0** | **758** | **821** | **2667** | **58.9%** |
+| pipeline | 73 | 0 | 16 | 69 | 158 | 82.0% |
+| **total** | **1110** | **0** | **730** | **827** | **2667** | **60.3%** |
 
-Cairo-only public items not matched to upstream: **1122**.
+Cairo-only public items not matched to upstream: **1128**.
 
 ## Aabb
 
@@ -83,7 +83,7 @@ Cairo-only public items not matched to upstream: **1122**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | pipeline | missing | Not found on Cairo candidate(s): ActiveEvents, ActiveEventsTrait. | `rapier/src/pipeline/event_handler.rs` |
+| impl `Default` | pipeline | ported | Same public name. | `rapier/src/pipeline/event_handler.rs` |
 | type `ActiveEvents` | pipeline | ported | Same public name. | `rapier/src/pipeline/event_handler.rs` |
 
 ## ActiveHooks
@@ -2576,9 +2576,9 @@ Cairo-only public items not matched to upstream: **1122**.
 | impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `active` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `cannot_sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `default_angular_threshold` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyActivation, RigidBodyActivationTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `default_normalized_linear_threshold` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyActivation, RigidBodyActivationTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `default_time_until_sleep` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyActivation, RigidBodyActivationTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `default_angular_threshold` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `default_normalized_linear_threshold` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `default_time_until_sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `inactive` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `is_active` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `is_eligible_for_sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
@@ -2650,7 +2650,7 @@ Cairo-only public items not matched to upstream: **1122**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyChanges, RigidBodyChangesTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | type `RigidBodyChanges` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyColliders
@@ -2659,7 +2659,7 @@ Cairo-only public items not matched to upstream: **1122**.
 |---|---|---|---|---|
 | method `attach_collider` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `detach_collider` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `RigidBodyColliders` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyColliders, RigidBodySet, RigidBodyCollidersTrait, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `RigidBodyColliders` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyDamping
 
@@ -2695,11 +2695,11 @@ Cairo-only public items not matched to upstream: **1122**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `from_raw_parts` | dynamics | missing | Not found on Cairo candidate(s): Handle, HandleTrait. | `rapier/src/dynamics/rigid_body_handle.rs` |
+| method `from_raw_parts` | dynamics | ported | Mapped to Handle.new | `rapier/src/dynamics/rigid_body_handle.rs` |
 | method `into_raw_parts` | dynamics | ported | Mapped to Handle.into_raw_parts | `rapier/src/dynamics/rigid_body_handle.rs` |
 | method `invalid` | dynamics | ported | Mapped to Handle.invalid | `rapier/src/dynamics/rigid_body_handle.rs` |
 | method `is_invalid` | dynamics | ported | Mapped to Handle.is_invalid | `rapier/src/dynamics/rigid_body_handle.rs` |
-| type `RigidBodyHandle` | dynamics | missing | Not found on Cairo candidate(s): Handle, HandleTrait. | `rapier/src/dynamics/rigid_body_handle.rs` |
+| type `RigidBodyHandle` | dynamics | ported | Mapped to Handle.Handle | `rapier/src/dynamics/rigid_body_handle.rs` |
 
 ## RigidBodyIds
 
@@ -2728,7 +2728,7 @@ Cairo-only public items not matched to upstream: **1122**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| impl `From<T>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyPosition, RigidBodyPositionTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `From<T>` | dynamics | ported | Mapped to RigidBodyPosition.From<Pose2> | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `integrate_forces_and_velocities` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `interpolate_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `pose_errors` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
@@ -2766,7 +2766,7 @@ Cairo-only public items not matched to upstream: **1122**.
 | method `is_dynamic_or_kinematic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `is_fixed` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 | method `is_kinematic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `is_soft_frame` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyType, RigidBodyTypeTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `is_soft_frame` | dynamics | excluded | soft bodies | `rapier/src/dynamics/rigid_body_components.rs` |
 | type `RigidBodyType` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyVelocity
@@ -3016,11 +3016,11 @@ Cairo-only public items not matched to upstream: **1122**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `From<bool>` | parry::query | missing | Not found on Cairo candidate(s): ShapeIntersection, ShapeIntersectionTrait. | `parry/src/query/intersection_test/intersection_test.rs` |
-| method `new` | parry::query | missing | Not found on Cairo candidate(s): ShapeIntersection, ShapeIntersectionTrait. | `parry/src/query/intersection_test/intersection_test.rs` |
-| method `swapped` | parry::query | missing | Not found on Cairo candidate(s): ShapeIntersection, ShapeIntersectionTrait. | `parry/src/query/intersection_test/intersection_test.rs` |
-| method `with_subshapes` | parry::query | missing | Not found on Cairo candidate(s): ShapeIntersection, ShapeIntersectionTrait. | `parry/src/query/intersection_test/intersection_test.rs` |
-| type `ShapeIntersection` | parry::query | missing | Not found on Cairo candidate(s): ShapeIntersection, ShapeIntersectionTrait. | `parry/src/query/intersection_test/intersection_test.rs` |
+| impl `From<bool>` | parry::query | ported | Same public name. | `parry/src/query/intersection_test/intersection_test.rs` |
+| method `new` | parry::query | ported | Same public name. | `parry/src/query/intersection_test/intersection_test.rs` |
+| method `swapped` | parry::query | ported | Same public name. | `parry/src/query/intersection_test/intersection_test.rs` |
+| method `with_subshapes` | parry::query | ported | Same public name. | `parry/src/query/intersection_test/intersection_test.rs` |
+| type `ShapeIntersection` | parry::query | ported | Same public name. | `parry/src/query/intersection_test/intersection_test.rs` |
 
 ## ShapeType
 
@@ -4435,7 +4435,7 @@ Cairo-only public items not matched to upstream: **1122**.
 | function `closest_points_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/closest_points/closest_points_composite_shape_shape.rs` |
 | function `closest_points_support_map_halfspace` | parry::query | ported | Mapped to Halfspace.closest_points_support_map_halfspace | `parry/src/query/closest_points/closest_points_halfspace_support_map.rs` |
 | function `closest_points_support_map_support_map` | parry::query | ported | Mapped to SupportMap.closest_points_support_map_support_map | `parry/src/query/closest_points/closest_points_support_map_support_map.rs` |
-| function `closest_points_support_map_support_map_with_params` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/closest_points/closest_points_support_map_support_map.rs` |
+| function `closest_points_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/closest_points/closest_points_support_map_support_map.rs` |
 | function `closest_points_triangle_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/closest_points/closest_points_cuboid_triangle.rs` |
 | function `compute_toi` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
 | function `contact` | parry::query | ported | Mapped to Query.contact | `parry/src/query/contact/contact_shape_shape.rs` |
@@ -4479,7 +4479,7 @@ Cairo-only public items not matched to upstream: **1122**.
 | function `contact_shape_heightfield` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact/contact_heightfield_shape.rs` |
 | function `contact_support_map_halfspace` | parry::query | ported | Mapped to Halfspace.contact_support_map_halfspace | `parry/src/query/contact/contact_halfspace_support_map.rs` |
 | function `contact_support_map_support_map` | parry::query | ported | Mapped to SupportMap.contact_support_map_support_map | `parry/src/query/contact/contact_support_map_support_map.rs` |
-| function `contact_support_map_support_map_with_params` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact/contact_support_map_support_map.rs` |
+| function `contact_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/contact/contact_support_map_support_map.rs` |
 | function `cuboid_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_cuboid.rs` |
 | function `cuboid_support_map_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_support_map.rs` |
 | function `detect_proximity_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_polygon_polygon.rs` |
@@ -4493,35 +4493,35 @@ Cairo-only public items not matched to upstream: **1122**.
 | function `distance_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/distance/distance_composite_shape_shape.rs` |
 | function `distance_support_map_halfspace` | parry::query | ported | Mapped to Halfspace.distance_support_map_halfspace | `parry/src/query/distance/distance_halfspace_support_map.rs` |
 | function `distance_support_map_support_map` | parry::query | ported | Mapped to SupportMap.distance_support_map_support_map | `parry/src/query/distance/distance_support_map_support_map.rs` |
-| function `distance_support_map_support_map_with_params` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/distance/distance_support_map_support_map.rs` |
+| function `distance_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/distance/distance_support_map_support_map.rs` |
 | function `eps_tol` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
 | function `evaluate` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `find_min_separation` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `force_fixed_axis` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `generate_contacts_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs` |
 | function `intersection_test` | parry::query | ported | Mapped to Query.intersection_test, Intersection.intersection_test | `parry/src/query/intersection_test/intersection_test.rs` |
-| function `intersection_test_aabb_segment` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
+| function `intersection_test_aabb_segment` | parry::query | ported | Mapped to Intersection.intersection_test_aabb_segment | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
 | function `intersection_test_aabb_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs` |
 | function `intersection_test_ball_ball` | parry::query | ported | Mapped to Intersection.ball_ball | `parry/src/query/intersection_test/intersection_test_ball_ball.rs` |
-| function `intersection_test_ball_point_query` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_ball_point_query.rs` |
+| function `intersection_test_ball_point_query` | parry::query | ported | Mapped to Intersection.intersection_test_ball_point_query | `parry/src/query/intersection_test/intersection_test_ball_point_query.rs` |
 | function `intersection_test_composite_shape_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs` |
 | function `intersection_test_cuboid_cuboid` | parry::query | ported | Mapped to Intersection.cuboid_cuboid | `parry/src/query/intersection_test/intersection_test_cuboid_cuboid.rs` |
-| function `intersection_test_cuboid_segment` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
+| function `intersection_test_cuboid_segment` | parry::query | ported | Mapped to Intersection.intersection_test_cuboid_segment | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
 | function `intersection_test_cuboid_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs` |
-| function `intersection_test_halfspace_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs` |
-| function `intersection_test_point_query_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_ball_point_query.rs` |
-| function `intersection_test_segment_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
+| function `intersection_test_halfspace_support_map` | parry::query | ported | Mapped to Intersection.intersection_test_halfspace_support_map | `parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs` |
+| function `intersection_test_point_query_ball` | parry::query | ported | Mapped to Intersection.intersection_test_point_query_ball | `parry/src/query/intersection_test/intersection_test_ball_point_query.rs` |
+| function `intersection_test_segment_cuboid` | parry::query | ported | Mapped to Intersection.intersection_test_segment_cuboid | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
 | function `intersection_test_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs` |
 | function `intersection_test_shape_voxels` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/intersection_test/intersection_test_voxels_shape.rs` |
-| function `intersection_test_support_map_halfspace` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs` |
-| function `intersection_test_support_map_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_support_map_support_map.rs` |
-| function `intersection_test_support_map_support_map_with_params` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_support_map_support_map.rs` |
+| function `intersection_test_support_map_halfspace` | parry::query | ported | Mapped to Intersection.intersection_test_support_map_halfspace | `parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs` |
+| function `intersection_test_support_map_support_map` | parry::query | ported | Mapped to Intersection.intersection_test_support_map_support_map | `parry/src/query/intersection_test/intersection_test_support_map_support_map.rs` |
+| function `intersection_test_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/intersection_test/intersection_test_support_map_support_map.rs` |
 | function `intersection_test_triangle_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs` |
 | function `intersection_test_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/intersection_test/intersection_test_voxels_shape.rs` |
 | function `intersection_test_voxels_shape_shapes` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/intersection_test/intersection_test_voxels_shape.rs` |
 | function `line_toi_with_halfspace` | parry::query | ported | Mapped to Halfspace.line_toi_with_halfspace | `parry/src/query/ray/ray_halfspace.rs` |
 | function `local_point_projection_on_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/point/point_support_map.rs` |
-| function `local_ray_intersection_with_support_map_with_params` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/ray/ray_support_map.rs` |
+| function `local_ray_intersection_with_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/ray/ray_support_map.rs` |
 | function `point_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_point.rs` |
 | function `project_origin` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
 | function `project_point_on_pseudo_cube` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/contact_manifolds/contact_manifolds_voxels_ball.rs` |
@@ -4567,22 +4567,22 @@ Cairo-only public items not matched to upstream: **1122**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 212 | standard | QP queries |
+| [Query completion](#wp-query-completion) | 209 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 193 | standard | shape interface |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 86 | hard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 62 | mechanical | AP triage |
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 33 | standard | SE sensors |
-| [Rigid-body API completion](#wp-rigid-body-api-completion) | 14 | mechanical | KD/SL |
-| [Collider API completion](#wp-collider-api-completion) | 13 | mechanical | DB/EV |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 17 | standard | SE sensors |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
+| [Collider API completion](#wp-collider-api-completion) | 12 | mechanical | DB/EV |
+| [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
 | [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 2 | standard | geometry |
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 212 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 209 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4664,7 +4664,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 212 public items.
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 132 more
+- ... 129 more
 
 ### WP: Additional 2D shapes
 
@@ -5053,11 +5053,10 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 
 ### WP: Sensors and intersection events
 
-Tier: standard. Depends/context: SE sensors. Estimate: 33 public items.
+Tier: standard. Depends/context: SE sensors. Estimate: 17 public items.
 
 - **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
 - **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
-- **ActiveEvents** impl `Default` (`rapier/src/pipeline/event_handler.rs`)
 - **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
 - **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
 - **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
@@ -5066,65 +5065,13 @@ Tier: standard. Depends/context: SE sensors. Estimate: 33 public items.
 - **NarrowPhase** method `intersection_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
 - **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
-- **ShapeIntersection** impl `From<bool>` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** method `new` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** method `swapped` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** method `with_subshapes` (`parry/src/query/intersection_test/intersection_test.rs`)
-- **ShapeIntersection** type `ShapeIntersection` (`parry/src/query/intersection_test/intersection_test.rs`)
 - **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
 - **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
-- **parry::query** function `intersection_test_aabb_segment` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
 - **parry::query** function `intersection_test_aabb_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
-- **parry::query** function `intersection_test_ball_point_query` (`parry/src/query/intersection_test/intersection_test_ball_point_query.rs`)
 - **parry::query** function `intersection_test_composite_shape_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **parry::query** function `intersection_test_cuboid_segment` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
 - **parry::query** function `intersection_test_cuboid_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
-- **parry::query** function `intersection_test_halfspace_support_map` (`parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs`)
-- **parry::query** function `intersection_test_point_query_ball` (`parry/src/query/intersection_test/intersection_test_ball_point_query.rs`)
-- **parry::query** function `intersection_test_segment_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_segment.rs`)
 - **parry::query** function `intersection_test_shape_composite_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
-- **parry::query** function `intersection_test_support_map_halfspace` (`parry/src/query/intersection_test/intersection_test_halfspace_support_map.rs`)
-- **parry::query** function `intersection_test_support_map_support_map` (`parry/src/query/intersection_test/intersection_test_support_map_support_map.rs`)
-- **parry::query** function `intersection_test_support_map_support_map_with_params` (`parry/src/query/intersection_test/intersection_test_support_map_support_map.rs`)
 - **parry::query** function `intersection_test_triangle_cuboid` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
-- **parry::query** function `local_ray_intersection_with_support_map_with_params` (`parry/src/query/ray/ray_support_map.rs`)
-
-### WP: Rigid-body API completion
-
-Tier: mechanical. Depends/context: KD/SL. Estimate: 14 public items.
-
-- **RigidBodyActivation** method `default_angular_threshold` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyActivation** method `default_normalized_linear_threshold` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyActivation** method `default_time_until_sleep` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyChanges** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyGraphIndex** type `RigidBodyGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
-- **RigidBodyHandle** method `from_raw_parts` (`rapier/src/dynamics/rigid_body_handle.rs`)
-- **RigidBodyHandle** type `RigidBodyHandle` (`rapier/src/dynamics/rigid_body_handle.rs`)
-- **RigidBodyIds** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyIds** type `RigidBodyIds` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyPosition** impl `From<T>` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodySet** impl `Index<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
-- **RigidBodySet** impl `Index<data::Index>` (`rapier/src/dynamics/rigid_body_set.rs`)
-- **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
-- **RigidBodyType** method `is_soft_frame` (`rapier/src/dynamics/rigid_body_components.rs`)
-
-### WP: Collider API completion
-
-Tier: mechanical. Depends/context: DB/EV. Estimate: 13 public items.
-
-- **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
-- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
-- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
-- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
-- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
-- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **RigidBodyColliders** type `RigidBodyColliders` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
 
 ### WP: Character controller
 
@@ -5142,6 +5089,34 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **KinematicCharacterController** method `move_shape` (`rapier/src/control/character_controller.rs`)
 - **KinematicCharacterController** method `solve_character_collision_impulses` (`rapier/src/control/character_controller.rs`)
 - **KinematicCharacterController** type `KinematicCharacterController` (`rapier/src/control/character_controller.rs`)
+
+### WP: Collider API completion
+
+Tier: mechanical. Depends/context: DB/EV. Estimate: 12 public items.
+
+- **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
+- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
+- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
+- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
+- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
+
+### WP: Rigid-body API completion
+
+Tier: mechanical. Depends/context: KD/SL. Estimate: 6 public items.
+
+- **RigidBodyGraphIndex** type `RigidBodyGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **RigidBodyIds** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyIds** type `RigidBodyIds` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodySet** impl `Index<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
+- **RigidBodySet** impl `Index<data::Index>` (`rapier/src/dynamics/rigid_body_set.rs`)
+- **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
 
 ### WP: Mass, AABB, and shape helpers
 
@@ -5192,6 +5167,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **ActiveEvents** impl `From<u32>` (`crates/rapier_core/src/collider/events.cairo`)
 - **ActiveEvents** method `all` (`crates/rapier_core/src/collider/events.cairo`)
 - **ActiveEvents** method `contains` (`crates/rapier_core/src/collider/events.cairo`)
+- **ActiveEvents** method `default` (`crates/rapier_core/src/collider/events.cairo`)
 - **ActiveEvents** method `empty` (`crates/rapier_core/src/collider/events.cairo`)
 - **ActiveEvents** method `insert` (`crates/rapier_core/src/collider/events.cairo`)
 - **ActiveEvents** method `intersects` (`crates/rapier_core/src/collider/events.cairo`)
@@ -5351,8 +5327,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Bounded** method `ne` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
 - **Bounded** method `serialize` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
 - **BoundedRow** type `BoundedRow` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
-- **BoundedRows** type `BoundedRows` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
-- ... 922 more
+- ... 928 more
 
 ## Embedded Rust inventory
 

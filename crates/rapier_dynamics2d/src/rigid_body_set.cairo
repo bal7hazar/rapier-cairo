@@ -50,6 +50,10 @@ pub mod errors {
     pub const BODY_NOT_FOUND: felt252 = 'RigidBodySet: body not found';
 }
 
+/// The colliders attached to a body (upstream `RigidBodyColliders(pub Vec<ColliderHandle>)`):
+/// the type of [`RigidBody::colliders`], in attachment order.
+pub type RigidBodyColliders = Span<Handle>;
+
 /// A rigid body (upstream `RigidBody`, minus CCD, solver ids and soft-body links).
 ///
 /// `colliders` is a `Span<Handle>` rather than an `Array` because arena values must be `Copy`;

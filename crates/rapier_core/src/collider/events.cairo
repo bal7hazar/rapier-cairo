@@ -30,10 +30,18 @@ pub const COLLISION_EVENTS: ActiveEvents = ActiveEvents { bits: 0x1 };
 pub const CONTACT_FORCE_EVENTS: ActiveEvents = ActiveEvents { bits: 0x2 };
 
 /// The events enabled for a collider. Default: none.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct ActiveEvents {
     /// Raw mask, bit `i` is the flag `1 << i`.
     pub bits: u32,
+}
+
+/// Upstream `impl Default`: no event enabled.
+pub impl ActiveEventsDefault of Default<ActiveEvents> {
+    #[inline(always)]
+    fn default() -> ActiveEvents {
+        ActiveEvents { bits: 0 }
+    }
 }
 
 /// Wraps a raw mask (upstream `from_bits_retain`).

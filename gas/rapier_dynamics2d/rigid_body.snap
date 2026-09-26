@@ -67,6 +67,7 @@ rapier_dynamics2d::rigid_body::position::tests::gas_set_rotation 17940
 rapier_dynamics2d::rigid_body::position::tests::gas_set_translation 18140
 rapier_dynamics2d::rigid_body::position::tests::test_body_at_rest_without_forces_does_not_move 112602
 rapier_dynamics2d::rigid_body::position::tests::test_default_and_setters_keep_both_poses_equal 13620
+rapier_dynamics2d::rigid_body::position::tests::test_from_pose_is_from_position 13620
 rapier_dynamics2d::rigid_body::position::tests::test_prediction_is_forces_then_velocities 207362
 rapier_dynamics2d::rigid_body::position::tests::test_substep_chain_accumulates_the_displacement 207872
 rapier_dynamics2d::rigid_body::velocity::tests::gas_add 18860

@@ -267,6 +267,10 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("PhysicsWorld", "step_with_events"): ("step_with_force_events",),
     ("PhysicsWorld", "PhysicsWorld"): ("World",), ("ColliderShape", "ColliderShape"): ("Shape",),
     ("ColliderHandle", "ColliderHandle"): ("Handle",), ("ColliderHandle", "from_raw_parts"): ("new",),
+    # LO1: `RigidBodyHandle` is the same generational `Handle` as `ColliderHandle`.
+    ("RigidBodyHandle", "RigidBodyHandle"): ("Handle",), ("RigidBodyHandle", "from_raw_parts"): ("new",),
+    # LO1: a pose is the only type that converts to a `RigidBodyPosition` (`Into<Pose2, _>`).
+    ("RigidBodyPosition", "From<T>"): ("From<Pose2>",),
     ("ImpulseJointHandle", "ImpulseJointHandle"): ("Handle",),
     ("ImpulseJointHandle", "from_raw_parts"): ("new",),
     # JA1: joints are values, so upstream's `*_mut` accessors are the copy-out reads (write back
@@ -624,7 +628,8 @@ def exclusion_reason(item: Item) -> str:
     # ...) and sets; checked first so that `prepare` is not mistaken for `epa`.
     if any(x in blob for x in ("soft_body", "softbody", "softelastic", "deformable_mesh", "insert_deformable",
                                "soft_fem", "soft_constraint")) \
-            or item.name == "soft_bodies" and item.owner in ("PhysicsWorld", "Quarantine"):
+            or item.name == "soft_bodies" and item.owner in ("PhysicsWorld", "Quarantine") \
+            or (item.owner, item.name) == ("RigidBodyType", "is_soft_frame"):
         return "soft bodies"
     if "multibody" in blob:
         return "multibody"
@@ -652,7 +657,10 @@ def exclusion_reason(item: Item) -> str:
     if any(x in blob for x in ("trimesh", "voxels", "heightfield3", "height_field3", "mesh_converter")) \
             or (item.owner, item.name) == ("ColliderBuilder", "voxelized_mesh"):
         return "trimesh/voxels/3D heightfield"
-    if any(x in blob for x in ("epa", "gjk", "simplex")):
+    # LO1: the `*_support_map_with_params` variants take the GJK `VoronoiSimplex` (and a warm-start
+    # direction) of the algorithm Cairo replaces by analytic and SAT kernels.
+    if any(x in blob for x in ("epa", "gjk", "simplex")) \
+            or item.owner == "parry::query" and item.name.endswith("_support_map_with_params"):
         return "EPA/GJK internals not exposed"
     if impl and any(x in item.name for x in ("Serialize", "Deserialize", "Archive", "Pod", "Zeroable")):
         return "serde/rkyv/bytemuck"
