@@ -108,6 +108,31 @@ pub fn ray_toi_with_ball(
     }
 }
 
+/// Port of upstream `ray_toi_and_normal_with_ball`: [`ray_toi_with_ball`] plus the normal at
+/// the hit point (`Face(0)`), pointing into the circle when `inside`, as upstream.
+/// #### Panics
+/// * See [`ray_toi_with_ball`]; `'Fixed: overflow'` if the hit point leaves the scalar range.
+/// #### Deviations
+/// * A hit at the centre (zero-radius ball) answers a zero normal, upstream `NaN`.
+pub fn ray_toi_and_normal_with_ball(
+    center: Vec2, radius: Fixed, ray: Ray, solid: bool,
+) -> (bool, Option<RayIntersection>) {
+    let (inside, toi) = ray_toi_with_ball(center, radius, ray, solid);
+    match toi {
+        Some(t) => (
+            inside,
+            Some(
+                RayIntersection {
+                    time_of_impact: t,
+                    normal: circle_normal(center, ray.point_at(t), inside),
+                    feature: FeatureIdTrait::face(0),
+                },
+            ),
+        ),
+        None => (inside, None),
+    }
+}
+
 /// `normalize(point - center)`, negated when `inward`; zero when the point is the centre.
 #[inline(always)]
 pub fn circle_normal(center: Vec2, point: Vec2, inward: bool) -> Vec2 {
@@ -323,6 +348,34 @@ mod tests {
 
     #[test]
     fn gas_baseline() {}
+
+    #[test]
+    fn test_ray_toi_and_normal_with_ball() {
+        let center = v(ONE, ZERO);
+        let (inside, hit) = super::ray_toi_and_normal_with_ball(
+            center, HALF, ray(-ONE, ZERO, ONE, ZERO), true,
+        );
+        let hit = hit.unwrap();
+        assert!(!inside);
+        assert_eq!((hit.time_of_impact, hit.normal), (ONE + HALF, v(-ONE, ZERO)));
+        // Hollow from inside: the exit, the normal pointing inwards.
+        let (inside, hit) = super::ray_toi_and_normal_with_ball(
+            center, HALF, ray(ONE, ZERO, ONE, ZERO), false,
+        );
+        assert!(inside);
+        assert_eq!(hit.unwrap().normal, v(-ONE, ZERO));
+        let (_, miss) = super::ray_toi_and_normal_with_ball(
+            center, HALF, ray(-ONE, TWO, ONE, ZERO), true,
+        );
+        assert!(miss.is_none());
+    }
+
+    #[test]
+    fn gas_ray_toi_and_normal_with_ball() {
+        let _ = super::ray_toi_and_normal_with_ball(
+            opaque(v(ONE, ZERO)), opaque(HALF), opaque(ray(-ONE, ZERO, ONE, ZERO)), true,
+        );
+    }
 
     #[test]
     fn gas_cast_local_ray_ball() {

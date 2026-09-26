@@ -798,3 +798,48 @@ pub struct LevelBodyRaw {
     pub friction: i64,
     pub restitution: i64,
 }
+
+/// One `closest_points` answer of the QY1 family: `kind` is 0 `Intersecting`, 1
+/// `WithinMargin(p1, p2)` (world space), 2 `Disjoint`; the points are zero unless `kind == 1`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ClosestPointsRaw {
+    pub margin: i64,
+    pub kind: u8,
+    pub p1: Vec2Raw,
+    pub p2: Vec2Raw,
+}
+
+/// One `contact` answer of the QY1 family (world space); every field is zero when `some` is
+/// false.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct ContactAnswerRaw {
+    pub prediction: i64,
+    pub some: bool,
+    pub point1: Vec2Raw,
+    pub point2: Vec2Raw,
+    pub normal1: Vec2Raw,
+    pub normal2: Vec2Raw,
+    pub dist: i64,
+}
+
+/// Parry's top-level shape-pair queries on one case (QY1): shape 1 at `pos1`, shape 2 at `pos2`.
+/// `iterative_*` tell that upstream answers that query with GJK (EPA for a penetrating contact);
+/// `contact_swapped` that the contacts are upstream's answer for the swapped pair, flipped back
+/// (its half-space-second contact kernel does not invert `pos12`). Every answer is zero when
+/// `supported` is false.
+#[derive(Copy, Drop)]
+pub struct ShapeQueryCase {
+    pub id: felt252,
+    pub shape1: PolygonContactShapeRaw,
+    pub shape2: PolygonContactShapeRaw,
+    pub pos1: PoseRaw,
+    pub pos2: PoseRaw,
+    pub supported: bool,
+    pub iterative_distance: bool,
+    pub iterative_closest_points: bool,
+    pub iterative_contact: bool,
+    pub contact_swapped: bool,
+    pub distance: i64,
+    pub closest_points: [ClosestPointsRaw; 3],
+    pub contacts: [ContactAnswerRaw; 2],
+}

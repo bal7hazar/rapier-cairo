@@ -4,10 +4,16 @@
 //! `transform_by` uses Parry's absolute-rotation formula; the four-corner implementation is kept
 //! in the test-only alternatives for equivalence checks and gas ranking.
 
-use fixed::wide::dot2;
-use fixed::{Fixed, FixedTrait, HALF};
+use fixed::wide::{dot2, norm2};
+use fixed::{Fixed, FixedTrait, HALF, ZERO};
 use glam::{Vec2, Vec2Trait};
+use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::pose2::{Pose2, Pose2Trait};
+use crate::feature_id::{FeatureId, FeatureIdTrait};
+use crate::point::PointProjection;
+use crate::ray::cuboid::{cast_local_ray_and_get_normal_cuboid, cast_local_ray_cuboid};
+use crate::ray::{Ray, RayIntersection};
+use crate::shape::Cuboid;
 
 /// An axis-aligned bounding box, represented by minimum and maximum corners.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
@@ -133,6 +139,184 @@ pub impl AabbImpl of AabbTrait {
         let b = self.maxs * scale;
         Aabb { mins: a.min(b), maxs: a.max(b) }
     }
+}
+
+/// Exact decomposition of `pt` against `aabb` (upstream `Aabb::do_project_local_point`):
+/// `(inside, projected point, shift)` with `projected = pt + shift`.
+///
+/// Outside, the point is clamped. Inside and hollow, it is pushed to the nearest face; the side
+/// of each axis is chosen by the sign of `pt - center` (ties to the positive side, as
+/// upstream's `copy_sign_to(1)`), decided exactly as `pt - mins >= maxs - pt`, so the centre is
+/// never rounded.
+fn do_project_local_point_aabb(aabb: Aabb, pt: Vec2, solid: bool) -> (bool, Vec2, Vec2) {
+    let shift = Vec2 {
+        x: (aabb.mins.x - pt.x).max(ZERO) - (pt.x - aabb.maxs.x).max(ZERO),
+        y: (aabb.mins.y - pt.y).max(ZERO) - (pt.y - aabb.maxs.y).max(ZERO),
+    };
+    if shift.x != ZERO || shift.y != ZERO {
+        return (false, pt + shift, shift);
+    }
+    if solid {
+        return (true, pt, shift);
+    }
+    let (diff_x, shift_x) = nearest_face(aabb.mins.x, aabb.maxs.x, pt.x);
+    let (diff_y, shift_y) = nearest_face(aabb.mins.y, aabb.maxs.y, pt.y);
+    let shift = if diff_x <= diff_y {
+        Vec2 { x: shift_x, y: ZERO }
+    } else {
+        Vec2 { x: ZERO, y: shift_y }
+    };
+    (true, pt + shift, shift)
+}
+
+/// `(distance to the face of the side of p, signed shift to it)` for `min <= p <= max`.
+#[inline(always)]
+fn nearest_face(min: Fixed, max: Fixed, p: Fixed) -> (Fixed, Fixed) {
+    let to_max = max - p;
+    let to_min = p - min;
+    if to_min >= to_max {
+        (to_max, to_max)
+    } else {
+        (to_min, -to_min)
+    }
+}
+
+/// `2 p < min + max`, i.e. `p` below the centre of `[min, max]`, exactly.
+#[inline(always)]
+fn below_center(min: Fixed, max: Fixed, p: Fixed) -> bool {
+    let twice: i128 = p.raw.into() * 2;
+    twice < min.raw.into() + max.raw.into()
+}
+
+/// Projects `pt` on `aabb`: onto the filled box if `solid`, onto its boundary otherwise.
+///
+/// Mirrors `PointQuery::project_local_point` for `Aabb`. Exact (only subtractions and
+/// comparisons).
+/// #### Panics
+/// * `'i64_sub Overflow'` / `'i64_add Overflow'` when a coordinate difference leaves the scalar
+///   range.
+pub fn project_local_point_aabb(aabb: Aabb, pt: Vec2, solid: bool) -> PointProjection {
+    let (inside, point, _) = do_project_local_point_aabb(aabb, pt, solid);
+    PointProjection { is_inside: inside, point }
+}
+
+/// Projects `pt` on the boundary of `aabb` and returns the feature: `Face(0)` / `Face(1)` for
+/// the `+x` / `+y` faces, `Face(2)` / `Face(3)` for `-x` / `-y`, `Vertex(bits)` for a corner
+/// (bit `i` set when the corner is on the negative side of axis `i`), `Unknown` for a
+/// degenerate box.
+///
+/// Mirrors `PointQuery::project_local_point_and_get_feature` for `Aabb`, including its
+/// `DEFAULT_EPSILON` face snapping for a point on the boundary.
+/// #### Panics
+/// * See [`project_local_point_aabb`].
+pub fn project_local_point_and_get_feature_aabb(
+    aabb: Aabb, pt: Vec2,
+) -> (PointProjection, FeatureId) {
+    let (inside, point, shift) = do_project_local_point_aabb(aabb, pt, false);
+    let proj = PointProjection { is_inside: inside, point };
+    let zero_x = shift.x == ZERO;
+    let zero_y = shift.y == ZERO;
+    let feature = if zero_x && zero_y {
+        if point.x > aabb.maxs.x - DEFAULT_EPSILON {
+            FeatureIdTrait::face(0)
+        } else if point.x <= aabb.mins.x + DEFAULT_EPSILON {
+            FeatureIdTrait::face(2)
+        } else if point.y > aabb.maxs.y - DEFAULT_EPSILON {
+            FeatureIdTrait::face(1)
+        } else if point.y <= aabb.mins.y + DEFAULT_EPSILON {
+            FeatureIdTrait::face(3)
+        } else {
+            Default::default()
+        }
+    } else if zero_x {
+        if below_center(aabb.mins.y, aabb.maxs.y, point.y) {
+            FeatureIdTrait::face(3)
+        } else {
+            FeatureIdTrait::face(1)
+        }
+    } else if zero_y {
+        if below_center(aabb.mins.x, aabb.maxs.x, point.x) {
+            FeatureIdTrait::face(2)
+        } else {
+            FeatureIdTrait::face(0)
+        }
+    } else {
+        let bit_x = if below_center(aabb.mins.x, aabb.maxs.x, point.x) {
+            1
+        } else {
+            0
+        };
+        let bit_y = if below_center(aabb.mins.y, aabb.maxs.y, point.y) {
+            2
+        } else {
+            0
+        };
+        FeatureIdTrait::vertex(bit_x + bit_y)
+    };
+    (proj, feature)
+}
+
+/// Signed distance from `pt` to `aabb`: negative inside when `solid = false`, zero inside when
+/// `solid = true`.
+///
+/// Mirrors `PointQuery::distance_to_local_point` for `Aabb` (`|max(mins - pt, pt - maxs, 0)|`
+/// outside). The length is the floored wide norm.
+/// #### Panics
+/// * See [`project_local_point_aabb`].
+pub fn distance_to_local_point_aabb(aabb: Aabb, pt: Vec2, solid: bool) -> Fixed {
+    let sx = (aabb.mins.x - pt.x).max(pt.x - aabb.maxs.x).max(ZERO);
+    let sy = (aabb.mins.y - pt.y).max(pt.y - aabb.maxs.y).max(ZERO);
+    if solid || sx != ZERO || sy != ZERO {
+        norm2(sx, sy)
+    } else {
+        let proj = project_local_point_aabb(aabb, pt, false);
+        let d = pt - proj.point;
+        -norm2(d.x, d.y)
+    }
+}
+
+/// Whether `pt` is inside `aabb`, boundary included (`PointQuery::contains_local_point`).
+#[inline(always)]
+pub fn contains_local_point_aabb(aabb: Aabb, pt: Vec2) -> bool {
+    pt.x >= aabb.mins.x && pt.x <= aabb.maxs.x && pt.y >= aabb.mins.y && pt.y <= aabb.maxs.y
+}
+
+/// `aabb` as a cuboid and the ray moved to its centre: upstream's cuboid casts are its AABB
+/// casts on `[-half_extents, half_extents]`.
+#[inline(always)]
+fn centered(aabb: Aabb, ray: Ray) -> (Cuboid, Ray) {
+    let center = aabb.center();
+    (
+        Cuboid { half_extents: aabb.half_extents() },
+        Ray { origin: ray.origin - center, dir: ray.dir },
+    )
+}
+
+/// Time of impact of `ray` on `aabb` (`RayCast::cast_local_ray` for `Aabb`, the slab loop).
+/// #### Panics
+/// * See `crate::ray::cuboid`.
+/// #### Deviations
+/// * Computed as the cuboid cast of `crate::ray::cuboid` on the box re-centred at the origin:
+///   exact when `mins` and `maxs` have raws of equal parity on each axis (centre and half extents
+///   representable), within one ulp of the box otherwise.
+pub fn cast_local_ray_aabb(
+    aabb: Aabb, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+) -> Option<Fixed> {
+    let (cuboid, ray) = centered(aabb, ray);
+    cast_local_ray_cuboid(cuboid, ray, max_time_of_impact, solid)
+}
+
+/// Time of impact, normal and feature of `ray` on `aabb` (`RayCast::cast_local_ray_and_get_normal`
+/// for `Aabb`, through `clip_aabb_line`). Feature ids are upstream's for a cuboid.
+/// #### Panics
+/// * See `crate::ray::cuboid`.
+/// #### Deviations
+/// * See [`cast_local_ray_aabb`].
+pub fn cast_local_ray_and_get_normal_aabb(
+    aabb: Aabb, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+) -> Option<RayIntersection> {
+    let (cuboid, ray) = centered(aabb, ray);
+    cast_local_ray_and_get_normal_cuboid(cuboid, ray, max_time_of_impact, solid)
 }
 
 #[cfg(test)]

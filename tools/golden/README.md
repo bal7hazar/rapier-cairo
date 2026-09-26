@@ -101,6 +101,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `ray_casts.json` | 64 | `<shape>/<regime>` | **QP** world-space ray casts on the five shapes, solid and hollow, see [ray_casts](#ray_casts) |
 | `intersection_tests.json` | 81 | `<shape1>_<shape2>/<regime>` | **SE** `DefaultQueryDispatcher::intersection_test`, see [intersection_tests](#intersection_tests-and-sensor_trigger-se) |
 | `sensor_trigger.json` | 1 scene | — | **SE** a ball falling through a standalone sensor slab: events, ball samples, intersection pair state |
+| `shape_queries.json` | 81 | `<shape1>_<shape2>/<regime>` | **QY1** `query::{distance, closest_points, contact}` on the SE case table, see [shape_queries](#shape_queries-qy1) |
 | `level_scenes.json` | 2 levels × 4 settings | `<level>_<config>` | **G0** level-shaped scenes: sleeping structure, cores, pebble; awake counts, sleep / calm ticks, sampled states, see [level_scenes](#level_scenes-g0) |
 
 ### contact_manifolds
@@ -759,6 +760,29 @@ indices and flags; per step the ball's `y`, `vy` and `NarrowPhase::intersection_
 Tolerances: answers and event steps exact; the ball's samples as the scenes (`2^12 · step` ulp).
 The pair's *existence* follows each broad phase (the port's is stateless, D7) and may differ by a
 step at the ends; its `intersecting` state must not.
+
+### shape_queries (QY1)
+
+Parry's top-level `query::distance`, `query::closest_points` (margins 0, 0.1, 10) and
+`query::contact` (predictions 0, 0.1) on the case table of `intersection_tests` (shared through
+`intersection_tests::cases()`, so the two families always cover the same poses). Shape 1 sits at
+`pos1 = translation(1, -2)` and shape 2 at `pos1 * pos12`, exact in Q32.32, so every answer is in
+world space and `pos1.inv_mul(pos2)` is the recorded `pos12` on both sides. `iterative_*` tag the
+queries upstream answers with GJK (EPA for a penetrating contact) instead of an analytic kernel.
+
+Upstream's `contact_support_map_halfspace` (a half-space second) does not invert `pos12` (parry
+0.30.2 and 0.31.1): it reports contacts for separated pairs and misses penetrating ones. The cases
+concerned (`contact_swapped`: `ball_halfspace/*`) record upstream's answer for the swapped pair,
+flipped back.
+
+Tolerances (`crates/rapier_geometry2d/tests/shape_queries_golden.cairo`): scalars within 4 raw
+(analytic) or 128 raw (GJK / EPA; largest measured gap 69 raw, `polygon_capsule/separated`);
+normals within 32 raw (a projection rounded by one ulp at distance `d` turns the normal by
+`~1 ulp / d`). Points are checked as witnesses (on both surfaces, `point2 - point1 = dist *
+normal1`) and compared with upstream's where the answer is unique; the tie cases (parallel
+faces, symmetric penetrations, GJK's inexact witnesses on rounded shapes, EPA's degenerate
+touching witnesses), the GJK touching kinds and the one-ulp margin boundary are counted and the
+counts pinned by the test.
 
 ### level_scenes (G0)
 

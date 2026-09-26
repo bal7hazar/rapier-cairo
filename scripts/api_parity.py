@@ -221,7 +221,9 @@ ShapeType HalfSpace Cuboid Ball Capsule Segment ConvexPolygon Aabb Ray RayInters
 """.split()}
 OWNER_ALIASES.update({
     "PhysicsWorld": ("World",), "PhysicsPipeline": ("World", "pipeline", "PhysicsPipeline"),
-    "QueryPipeline": ("World", "queries"), "DefaultQueryDispatcher": ("dispatch",),
+    "QueryPipeline": ("World", "queries"),
+    # QY1: the struct and `QueryDispatcher` trait live in `query/dispatcher.cairo`.
+    "DefaultQueryDispatcher": ("dispatch", "DefaultQueryDispatcher"),
     "PersistentQueryDispatcher": ("dispatch",), "RigidBodyHandle": ("Handle",),
     "ColliderHandle": ("Handle",), "ImpulseJointHandle": ("Handle",),
     "MultibodyJointHandle": ("Handle",), "IslandManager": ("pipeline::islands", "World"),
@@ -230,6 +232,13 @@ OWNER_ALIASES.update({
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
     "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),
     "RigidBodyColliders": ("RigidBodyColliders", "RigidBodySet"), "ColliderShape": ("Shape",),
+    # QY1: Parry's free `query::` functions live in `rapier_geometry2d::query` (top level, and the
+    # per-pair kernel files `query/{ball,cuboid,segment,halfspace,support_map}.cairo`), next to
+    # the older `closest_points` / `dispatch` / `ray` kernels whose files carry those owners.
+    "parry::query": ("Query", "Ball", "Cuboid", "Segment", "Halfspace", "SupportMap",
+                     "ClosestPoints", "dispatch", "Intersection"),
+    # Parry's `ContactManifold` persistence methods are the `ManifoldTrait` of `manifold.cairo`.
+    "ContactManifold": ("ContactManifold", "Manifold"),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -252,6 +261,10 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("PhysicsWorld", "PhysicsWorld"): ("World",), ("ColliderShape", "ColliderShape"): ("Shape",),
     ("ColliderHandle", "ColliderHandle"): ("Handle",), ("ColliderHandle", "from_raw_parts"): ("new",),
     ("ColliderPosition", "From<T>"): ("From<Pose2>",),
+    # QY1: the exact intersection kernels of `dispatch/intersection.cairo` with upstream's
+    # signatures (`(center12, b1, b2)`, `(pos12, c1, c2)`); the other `intersection_test_*` differ.
+    ("parry::query", "intersection_test_ball_ball"): ("ball_ball",),
+    ("parry::query", "intersection_test_cuboid_cuboid"): ("cuboid_cuboid",),
 }
 
 

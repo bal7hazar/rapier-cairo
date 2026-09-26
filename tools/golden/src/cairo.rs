@@ -17,6 +17,7 @@ mod levels;
 mod polygons;
 mod scenes;
 mod sensors;
+mod shape_queries;
 mod sleep_impact;
 
 const MAX_WIDTH: usize = 100;
@@ -690,6 +691,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("segment_segment", leaf_families::segment_segment(vectors)),
         ("intersection_tests", sensors::intersection_tests(vectors)),
         ("sensor_trigger", sensors::sensor_trigger(vectors)),
+        ("shape_queries", shape_queries::shape_queries(vectors)),
     ];
     files.extend(polygons::manifold_files(vectors));
     files.extend(scenes::generate(vectors));

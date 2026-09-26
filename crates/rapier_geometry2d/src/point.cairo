@@ -28,6 +28,7 @@ pub mod capsule;
 pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
+pub mod query;
 pub mod ratio;
 pub mod segment;
 pub mod wide2;
@@ -49,6 +50,9 @@ pub use halfspace::{
     contains_local_point_halfspace, distance_to_local_point_halfspace,
     project_local_point_and_get_feature_halfspace, project_local_point_halfspace,
 };
+pub use query::{PointQuery, PointQueryWithLocation};
+use rapier_math::math_ext::norm2::is_norm2_lt;
+use rapier_math::pose2::{Pose2, Pose2Trait};
 pub use ratio::clamped_ratio;
 pub use segment::{
     contains_local_point_segment, distance_to_local_point_segment,
@@ -66,6 +70,29 @@ pub use wide2::{cross_wide, dot_wide};
 pub struct PointProjection {
     pub is_inside: bool,
     pub point: Vec2,
+}
+
+#[generate_trait]
+pub impl PointProjectionImpl of PointProjectionTrait {
+    /// A projection (upstream `PointProjection::new`).
+    #[inline(always)]
+    fn new(is_inside: bool, point: Vec2) -> PointProjection {
+        PointProjection { is_inside, point }
+    }
+
+    /// The projection with its point moved by `pos` (upstream `transform_by`).
+    #[inline(always)]
+    fn transform_by(self: PointProjection, pos: Pose2) -> PointProjection {
+        PointProjection { is_inside: self.is_inside, point: pos.transform_point(self.point) }
+    }
+
+    /// `is_inside`, or `original_point` strictly closer than `min_dist` to the projection
+    /// (upstream `is_inside_eps`, the squared comparison done wide).
+    #[inline(always)]
+    fn is_inside_eps(self: PointProjection, original_point: Vec2, min_dist: Fixed) -> bool {
+        let d = original_point - self.point;
+        self.is_inside || is_norm2_lt(d.x, d.y, min_dist)
+    }
 }
 
 /// Where a point projects on a segment (Parry `SegmentPointLocation`).

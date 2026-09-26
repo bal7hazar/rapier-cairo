@@ -23,6 +23,7 @@ mod sat2d;
 mod scenes;
 mod segment_segment;
 mod sensor_trigger;
+mod shape_queries;
 mod shapes;
 
 use serde_json::Value;
@@ -70,7 +71,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 15] = [
+        let families: [Family; 16] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -86,6 +87,7 @@ fn main() {
             ("intersection_tests", intersection_tests::generate),
             ("sensor_trigger", sensor_trigger::generate),
             ("level_scenes", level_scenes::generate),
+            ("shape_queries", shape_queries::generate),
         ];
         for (name, generate) in families {
             let value = with_header(generate());
