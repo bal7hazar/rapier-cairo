@@ -49,11 +49,11 @@ fn polygon_f64(vertices: &[QVec; 8], count: usize) -> ConvexPolygon {
 }
 
 impl Sh1Shape {
-    fn triangle(a: (f64, f64), b: (f64, f64), c: (f64, f64)) -> Self {
+    pub(crate) fn triangle(a: (f64, f64), b: (f64, f64), c: (f64, f64)) -> Self {
         Sh1Shape::Triangle { a: qv(a.0, a.1), b: qv(b.0, b.1), c: qv(c.0, c.1) }
     }
 
-    fn rounded(self, r: f64) -> Self {
+    pub(crate) fn rounded(self, r: f64) -> Self {
         let border_radius = Q::snap(r);
         match self {
             Sh1Shape::Base(ShapeSpec::Cuboid { half_extents }) => {
@@ -141,7 +141,7 @@ impl Sh1Shape {
     }
 
     /// `(min y, max y)` of the unrotated shape; `(0, 0)` for the half-space.
-    fn y_range(&self) -> (f64, f64) {
+    pub(crate) fn y_range(&self) -> (f64, f64) {
         let pts = |ps: &[QVec]| {
             let ys: Vec<f64> = ps.iter().map(|p| p.y.f()).collect();
             (ys.iter().cloned().fold(f64::MAX, f64::min), ys.iter().cloned().fold(f64::MIN, f64::max))
@@ -174,7 +174,7 @@ impl Sh1Shape {
         }
     }
 
-    fn is_halfspace(&self) -> bool {
+    pub(crate) fn is_halfspace(&self) -> bool {
         matches!(self, Sh1Shape::Base(ShapeSpec::HalfSpace { .. }))
     }
 }

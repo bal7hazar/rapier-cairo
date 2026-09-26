@@ -48,7 +48,7 @@ fn triangle(v: &Value) -> Node {
 }
 
 /// A shape of the SH1 families.
-fn sh1_shape(v: &Value) -> Node {
+pub(super) fn sh1_shape(v: &Value) -> Node {
     let r = || raw(&v["border_radius"]);
     match v["type"].as_str().unwrap() {
         "triangle" => Node::Variant("Sh1ShapeRaw::Triangle", Box::new(triangle(v))),
