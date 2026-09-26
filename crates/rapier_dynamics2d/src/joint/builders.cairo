@@ -39,6 +39,24 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
         self.data.local_frame2 = value;
         self
     }
+    /// Replace the locked axes (upstream `locked_axes`); mask 0..7 required (Joint: invalid mask).
+    fn locked_axes(mut self: GenericJointBuilder, axes: JointAxesMask) -> GenericJointBuilder {
+        assert(axes.bits <= 7, errors::MASK);
+        self.data.locked_axes = axes;
+        self
+    }
+    /// Set the rotation of the first frame from its X axis (upstream `local_axis1`); a nonunit
+    /// axis panics with Joint: nonunit axis.
+    fn local_axis1(mut self: GenericJointBuilder, axis: Vec2) -> GenericJointBuilder {
+        self.data.set_local_axis1(axis);
+        self
+    }
+    /// Set the rotation of the second frame from its X axis (upstream `local_axis2`); a nonunit
+    /// axis panics with Joint: nonunit axis.
+    fn local_axis2(mut self: GenericJointBuilder, axis: Vec2) -> GenericJointBuilder {
+        self.data.set_local_axis2(axis);
+        self
+    }
     /// Set local_anchor1; exact copy, no arithmetic or panics.
     fn local_anchor1(mut self: GenericJointBuilder, value: Vec2) -> GenericJointBuilder {
         self.data.local_frame1.translation = value;
@@ -131,6 +149,14 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
     }
     /// Return the joint; all copies are exact.
     fn build(self: GenericJointBuilder) -> GenericJoint {
+        self.data
+    }
+}
+
+/// Upstream `From<GenericJointBuilder> for GenericJoint`.
+pub impl GenericJointBuilderIntoGeneric of Into<GenericJointBuilder, GenericJoint> {
+    #[inline(always)]
+    fn into(self: GenericJointBuilder) -> GenericJoint {
         self.data
     }
 }
@@ -348,6 +374,18 @@ pub impl PrismaticJointBuilderImpl of PrismaticJointBuilderTrait {
         } else {
             JointEnabled::Disabled
         };
+        self
+    }
+    /// Set the rotation of the first frame from its X axis (upstream `local_axis1`); a nonunit
+    /// axis panics with Joint: nonunit axis.
+    fn local_axis1(mut self: PrismaticJointBuilder, axis: Vec2) -> PrismaticJointBuilder {
+        self.data.set_local_axis1(axis);
+        self
+    }
+    /// Set the rotation of the second frame from its X axis (upstream `local_axis2`); a nonunit
+    /// axis panics with Joint: nonunit axis.
+    fn local_axis2(mut self: PrismaticJointBuilder, axis: Vec2) -> PrismaticJointBuilder {
+        self.data.set_local_axis2(axis);
         self
     }
     /// Set softness; exact copy, no arithmetic or panics.

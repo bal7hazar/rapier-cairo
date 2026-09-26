@@ -328,6 +328,60 @@ pub impl WorldImpl of WorldTrait {
         self.impulse_joints.get(handle)
     }
 
+    /// Every impulse joint as `(handle, joint)` in ascending slot order (upstream
+    /// `PhysicsWorld::impulse_joints`). Copies: write a change back with
+    /// [`set_impulse_joint`](Self::set_impulse_joint).
+    #[inline(always)]
+    fn impulse_joints(ref self: World) -> Array<(Handle, ImpulseJoint)> {
+        self.impulse_joints.iter()
+    }
+
+    /// The impulse joints attached to `body` as `(body1, body2, joint handle, joint)`, in
+    /// ascending slot order (upstream `PhysicsWorld::impulse_joints_with`).
+    #[inline(always)]
+    fn impulse_joints_with(
+        ref self: World, body: Handle,
+    ) -> Array<(Handle, Handle, Handle, ImpulseJoint)> {
+        self.impulse_joints.attached_joints(body)
+    }
+
+    /// Overwrites the data and the accumulated impulses of the impulse joint behind `handle`
+    /// (upstream `ImpulseJointSet::get_mut`, which cannot rebind the bodies either: see
+    /// [`set_impulse_joint_bodies`](Self::set_impulse_joint_bodies)); `false` when the handle
+    /// does not resolve. With `wake_up_connected_bodies` both attached bodies are woken up,
+    /// strongly, as upstream.
+    fn set_impulse_joint(
+        ref self: World, handle: Handle, joint: ImpulseJoint, wake_up_connected_bodies: bool,
+    ) -> bool {
+        let Some(current) = self.impulse_joints.get(handle) else {
+            return false;
+        };
+        let updated = ImpulseJoint { data: joint.data, impulses: joint.impulses, ..current };
+        let _ = self.impulse_joints.set(handle, updated);
+        if wake_up_connected_bodies {
+            self.wake_up(current.body1);
+            self.wake_up(current.body2);
+        }
+        true
+    }
+
+    /// Attaches the impulse joint behind `handle` to two other bodies (upstream
+    /// `ImpulseJointSet::set_bodies`) and returns the updated joint; `None` when the handle does
+    /// not resolve. With `wake_up` the old and the new bodies are woken up.
+    fn set_impulse_joint_bodies(
+        ref self: World, handle: Handle, body1: Handle, body2: Handle, wake_up: bool,
+    ) -> Option<ImpulseJoint> {
+        let old = self.impulse_joints.get(handle)?;
+        let joint = self.impulse_joints.set_bodies(handle, body1, body2)?;
+        if wake_up {
+            self.wake_up(old.body1);
+            self.wake_up(old.body2);
+            self.wake_up(body1);
+            self.wake_up(body2);
+        }
+        Some(joint)
+    }
+
     /// The contact pair of `collider1` and `collider2` (in ascending slot order) found by the
     /// last step, if any (upstream `PhysicsWorld::contact_pair`). Linear scan.
     #[inline(always)]
@@ -471,6 +525,8 @@ fn existing(
     out
 }
 
+#[cfg(test)]
+mod joint_tests;
 #[cfg(test)]
 mod tests;
 

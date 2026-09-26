@@ -46,6 +46,79 @@ pub impl SpringJointBuilderImpl of SpringJointBuilderTrait {
     }
 }
 
+
+/// A spring between the two anchors (upstream `SpringJoint`): a `GenericJoint` with coupled linear
+/// axes and a force-based position motor on the first one toward the rest length.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SpringJoint {
+    pub data: GenericJoint,
+}
+#[generate_trait]
+pub impl SpringJointImpl of SpringJointTrait {
+    /// A spring pulling the anchor distance toward `rest_length` with `stiffness` and `damping`
+    /// (upstream `SpringJoint::new`); model `ForceBased`.
+    fn new(rest_length: Fixed, stiffness: Fixed, damping: Fixed) -> SpringJoint {
+        SpringJoint { data: SpringJointBuilderTrait::new(rest_length, stiffness, damping).data }
+    }
+    /// The underlying generic joint (upstream `data`).
+    #[inline(always)]
+    fn data(self: SpringJoint) -> GenericJoint {
+        self.data
+    }
+    /// Whether the two attached bodies collide (upstream `contacts_enabled`).
+    #[inline(always)]
+    fn contacts_enabled(self: SpringJoint) -> bool {
+        self.data.contacts_enabled
+    }
+    /// Sets whether the two attached bodies collide (upstream `set_contacts_enabled`).
+    #[inline(always)]
+    fn set_contacts_enabled(ref self: SpringJoint, enabled: bool) {
+        self.data.contacts_enabled = enabled;
+    }
+    /// The anchor of the joint in the first body (upstream `local_anchor1`).
+    #[inline(always)]
+    fn local_anchor1(self: SpringJoint) -> Vec2 {
+        self.data.local_frame1.translation
+    }
+    /// Sets the anchor of the joint in the first body (upstream `set_local_anchor1`); exact copy.
+    #[inline(always)]
+    fn set_local_anchor1(ref self: SpringJoint, anchor: Vec2) {
+        self.data.local_frame1.translation = anchor;
+    }
+    /// The anchor of the joint in the second body (upstream `local_anchor2`).
+    #[inline(always)]
+    fn local_anchor2(self: SpringJoint) -> Vec2 {
+        self.data.local_frame2.translation
+    }
+    /// Sets the anchor of the joint in the second body (upstream `set_local_anchor2`); exact copy.
+    #[inline(always)]
+    fn set_local_anchor2(ref self: SpringJoint, anchor: Vec2) {
+        self.data.local_frame2.translation = anchor;
+    }
+    /// Mass-dependent (`ForceBased`, default) or mass-independent (`AccelerationBased`) spring
+    /// constants (upstream `set_spring_model`); exact copy.
+    #[inline(always)]
+    fn set_spring_model(ref self: SpringJoint, model: MotorModel) {
+        self.data.set_motor_model(0, model);
+    }
+}
+
+/// Upstream `From<SpringJoint> for GenericJoint`.
+pub impl SpringJointIntoGeneric of Into<SpringJoint, GenericJoint> {
+    #[inline(always)]
+    fn into(self: SpringJoint) -> GenericJoint {
+        self.data
+    }
+}
+
+/// Upstream `From<SpringJointBuilder> for GenericJoint`.
+pub impl SpringJointBuilderIntoGeneric of Into<SpringJointBuilder, GenericJoint> {
+    #[inline(always)]
+    fn into(self: SpringJointBuilder) -> GenericJoint {
+        self.data
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use fixed::{HALF, ONE};

@@ -6,26 +6,95 @@ mod config;
 pub use config::GenericJointTrait;
 #[cfg(test)]
 mod builder_controls;
+mod fixed_joint;
+mod pin_slot_joint;
+mod prismatic_joint;
+mod revolute_joint;
 mod rope_joint;
 mod set;
 mod spring_joint;
+#[cfg(test)]
+mod typed_tests;
 pub use builders::{
-    FixedJointBuilder, FixedJointBuilderTrait, GenericJointBuilder, GenericJointBuilderTrait,
-    PrismaticJointBuilder, PrismaticJointBuilderTrait, RevoluteJointBuilder,
-    RevoluteJointBuilderTrait,
+    FixedJointBuilder, FixedJointBuilderTrait, GenericJointBuilder, GenericJointBuilderIntoGeneric,
+    GenericJointBuilderTrait, PrismaticJointBuilder, PrismaticJointBuilderTrait,
+    RevoluteJointBuilder, RevoluteJointBuilderTrait,
 };
 use core::num::traits::DivRem;
 use fixed::{Fixed, MAX, MIN, ZERO};
+pub use fixed_joint::{
+    FixedJoint, FixedJointBuilderIntoGeneric, FixedJointIntoGeneric, FixedJointTrait,
+};
+pub use pin_slot_joint::{
+    PinSlotJoint, PinSlotJointBuilder, PinSlotJointBuilderIntoGeneric, PinSlotJointBuilderTrait,
+    PinSlotJointIntoGeneric, PinSlotJointTrait,
+};
+pub use prismatic_joint::{
+    PrismaticJoint, PrismaticJointBuilderIntoGeneric, PrismaticJointIntoGeneric,
+    PrismaticJointTrait,
+};
 use rapier_core::integration_parameters::spring::{JOINT_DEFAULTS, SpringCoefficients};
 use rapier_math::pose2::Pose2;
-pub use rope_joint::{RopeJointBuilder, RopeJointBuilderTrait};
-pub use set::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
-pub use spring_joint::{SpringJointBuilder, SpringJointBuilderTrait};
+pub use revolute_joint::{
+    RevoluteJoint, RevoluteJointBuilderIntoGeneric, RevoluteJointIntoGeneric, RevoluteJointTrait,
+};
+pub use rope_joint::{
+    RopeJoint, RopeJointBuilder, RopeJointBuilderIntoGeneric, RopeJointBuilderTrait,
+    RopeJointIntoGeneric, RopeJointTrait,
+};
+pub use set::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, ImpulseJointTrait};
+pub use spring_joint::{
+    SpringJoint, SpringJointBuilder, SpringJointBuilderIntoGeneric, SpringJointBuilderTrait,
+    SpringJointIntoGeneric, SpringJointTrait,
+};
 
 /// 2D axis bits: X=1, Y=2, AngX=4. Only values 0..7 are valid.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct JointAxesMask {
     pub bits: u8,
+}
+/// The empty mask (upstream `JointAxesMask::empty()`, its `Default`).
+pub impl JointAxesMaskDefault of Default<JointAxesMask> {
+    #[inline(always)]
+    fn default() -> JointAxesMask {
+        JointAxesMask { bits: 0 }
+    }
+}
+/// One axis of a joint (upstream `JointAxis`, 2D: `LinX`, `LinY`, `AngX`). The setters of the
+/// joints take the axis index (`0`, `1`, `2`), [`JointAxisTrait::index`] gives it.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum JointAxis {
+    LinX,
+    LinY,
+    AngX,
+}
+#[generate_trait]
+pub impl JointAxisImpl of JointAxisTrait {
+    /// Index of the axis in the `limits` / `motors` arrays: `0`, `1`, `2`.
+    #[inline(always)]
+    fn index(self: JointAxis) -> u8 {
+        match self {
+            JointAxis::LinX => 0,
+            JointAxis::LinY => 1,
+            JointAxis::AngX => 2,
+        }
+    }
+    /// The single-bit mask of the axis (upstream `From<JointAxis> for JointAxesMask`).
+    #[inline(always)]
+    fn mask(self: JointAxis) -> JointAxesMask {
+        match self {
+            JointAxis::LinX => LIN_X,
+            JointAxis::LinY => LIN_Y,
+            JointAxis::AngX => ANG_X,
+        }
+    }
+}
+/// Upstream `From<JointAxis> for JointAxesMask`.
+pub impl JointAxisIntoMask of Into<JointAxis, JointAxesMask> {
+    #[inline(always)]
+    fn into(self: JointAxis) -> JointAxesMask {
+        self.mask()
+    }
 }
 /// Linear X axis.
 pub const LIN_X: JointAxesMask = JointAxesMask { bits: 1 };
@@ -39,6 +108,8 @@ pub const LIN_AXES: JointAxesMask = JointAxesMask { bits: 3 };
 pub const LOCKED_REVOLUTE_AXES: JointAxesMask = JointAxesMask { bits: 3 };
 /// Prismatic leaves local X free.
 pub const LOCKED_PRISMATIC_AXES: JointAxesMask = JointAxesMask { bits: 6 };
+/// Pin-slot locks the local Y translation only (upstream `LOCKED_PIN_SLOT_AXES`, 2D).
+pub const LOCKED_PIN_SLOT_AXES: JointAxesMask = JointAxesMask { bits: 2 };
 /// Fixed locks all three axes.
 pub const LOCKED_FIXED_AXES: JointAxesMask = JointAxesMask { bits: 7 };
 /// Invalid construction inputs.
@@ -74,6 +145,14 @@ pub struct JointLimits {
     pub min: Fixed,
     pub max: Fixed,
     pub impulse: Fixed,
+}
+/// Upstream `From<[N; 2]> for JointLimits`: `[min, max]` with a zero impulse.
+pub impl JointLimitsFromArray of Into<[Fixed; 2], JointLimits> {
+    #[inline(always)]
+    fn into(self: [Fixed; 2]) -> JointLimits {
+        let [min, max] = self;
+        JointLimits { min, max, impulse: ZERO }
+    }
 }
 pub impl JointLimitsDefault of Default<JointLimits> {
     fn default() -> JointLimits {
