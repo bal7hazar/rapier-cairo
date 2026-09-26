@@ -58,6 +58,12 @@ velocity threshold for 20 ticks) fires within 1–4 ticks of the engine where ei
   475,224 → 415,434), free fall and joints identical. L10 impact tick 476,178 → 369,855: narrow phase 101.3k,
   `solve_island` 194.4k (≈ 35.0k per substep), glue 52.2k. Per point per substep 2,202 → 1,473 steps; a non-touching
   half-space–cuboid pair 1,359 → 321. Since G0 (before BT1) the L10 impact tick went 811,866 → 369,855 (−54 %).
+- **BT4 #151** (arena `modified` bit and field accessor, pipeline glue, mixed ticks; results bit-identical,
+  `WorldState` still v2): impact windows L10 / L20 1,849,193 / 2,211,560 → 1,796,672 / 2,012,504 (−2.8 % / −9.0 %;
+  L20's excess over L10 +19.6 % → +12.0 %); flight windows 470,522 / 612,278 → 447,011 / 587,357; load 450,067 /
+  815,721 → 441,445 / 800,744; P3 `steps_step_*` −1.2 % to −3.8 % (BT2's +1–3 % recovered); activation reads
+  `is_sleeping` / `linvel` / `angvel` 146 / 150 / 146 → 88 / 92 / 88 steps (the floor is the `Felt252Dict` access);
+  `GameStep` class 435,454 → 440,868 CASM felts.
 
 ## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
 
