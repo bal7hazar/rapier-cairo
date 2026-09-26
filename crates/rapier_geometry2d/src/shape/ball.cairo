@@ -3,6 +3,7 @@
 use fixed::Fixed;
 use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
+use crate::aabb::bounding_volume::{BoundingSphere, centered_bounding_sphere};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
 
@@ -38,6 +39,30 @@ pub impl BallImpl of BallTrait {
         AabbTrait::from_half_extents(pose.translation, r)
     }
 
+    /// Upstream name of [`BallTrait::compute_local_aabb`].
+    #[inline(always)]
+    fn local_aabb(self: Ball) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+
+    /// Upstream name of [`BallTrait::compute_aabb`].
+    #[inline(always)]
+    fn aabb(self: Ball, pose: Pose2) -> Aabb {
+        Self::compute_aabb(self, pose)
+    }
+
+    /// The ball itself: centre at the origin, radius `radius`.
+    #[inline(always)]
+    fn local_bounding_sphere(self: Ball) -> BoundingSphere {
+        BoundingSphere { center: Vec2Trait::ZERO, radius: self.radius }
+    }
+
+    /// The ball placed at `pose`: centred on the translation (exact).
+    #[inline(always)]
+    fn bounding_sphere(self: Ball, pose: Pose2) -> BoundingSphere {
+        centered_bounding_sphere(pose, self.radius)
+    }
+
     /// Mass properties for `density` (`from_ball`).
     fn mass_properties(self: Ball, density: Fixed) -> MassProperties {
         MassPropertiesTrait::from_ball(density, self.radius)
@@ -53,6 +78,19 @@ pub impl BallImpl of BallTrait {
     #[inline(always)]
     fn local_support_point_toward(self: Ball, dir: Vec2) -> Vec2 {
         dir.mul_scalar(self.radius)
+    }
+}
+
+/// Rejected candidates, kept for the `gas_*` ranking.
+#[cfg(test)]
+pub mod alternatives {
+    use rapier_math::pose2::Pose2;
+    use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
+    use super::{Ball, BallTrait};
+
+    /// Upstream's literal `local_bounding_sphere().transform_by(pose)`: transforms the origin.
+    pub fn bounding_sphere_transformed(b: Ball, pose: Pose2) -> BoundingSphere {
+        b.local_bounding_sphere().transform_by(pose)
     }
 }
 

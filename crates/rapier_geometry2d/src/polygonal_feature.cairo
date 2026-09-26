@@ -7,15 +7,44 @@ use glam::Vec2;
 use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};
 use crate::clip::{ClippingPoints, clip_segment_segment_with_normal};
 use crate::contact::{ContactManifold, TrackedContact};
-use crate::feature_id::FeatureId;
+use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
+use crate::shape::Segment;
 
 /// Local vertex or face, with stable packed identifiers. `num_vertices` is 0..2.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct PolygonalFeature {
     pub vertices: [Vec2; 2],
     pub vids: [FeatureId; 2],
     pub fid: FeatureId,
     pub num_vertices: u8,
+}
+
+/// The empty feature (upstream `Default`): zero vertices, unknown ids, `num_vertices = 0`.
+pub impl PolygonalFeatureDefault of Default<PolygonalFeature> {
+    #[inline(always)]
+    fn default() -> PolygonalFeature {
+        let o = Vec2 { x: ZERO, y: ZERO };
+        PolygonalFeature {
+            vertices: [o, o],
+            vids: [FEATURE_UNKNOWN, FEATURE_UNKNOWN],
+            fid: FEATURE_UNKNOWN,
+            num_vertices: 0,
+        }
+    }
+}
+
+/// The segment as its only face (upstream `From<Segment>`): vertices `a`, `b` with ids
+/// `Vertex(0)`, `Vertex(2)` and face id `Face(1)`.
+pub impl SegmentIntoPolygonalFeature of Into<Segment, PolygonalFeature> {
+    #[inline(always)]
+    fn into(self: Segment) -> PolygonalFeature {
+        PolygonalFeature {
+            vertices: [self.a, self.b],
+            vids: [FeatureIdTrait::vertex(0), FeatureIdTrait::vertex(2)],
+            fid: FeatureIdTrait::face(1),
+            num_vertices: 2,
+        }
+    }
 }
 
 pub mod errors {
@@ -293,5 +322,20 @@ mod tests {
         PolygonalFeatureTrait::contacts(
             IDENTITY, IDENTITY, Y, -Y, opaque(face()), face(), ref m, false,
         );
+    }
+    #[test]
+    fn test_default_and_from_segment() {
+        let empty: PolygonalFeature = Default::default();
+        assert_eq!(empty.num_vertices, 0);
+        assert!(empty.fid.is_unknown());
+        let [v0, v1] = empty.vids;
+        assert!(v0.is_unknown() && v1.is_unknown());
+        let segment = crate::shape::SegmentTrait::new(O, B);
+        let feature: PolygonalFeature = segment.into();
+        assert_eq!(feature, face());
+    }
+    #[test]
+    fn gas_from_segment() {
+        let _: PolygonalFeature = opaque(crate::shape::SegmentTrait::new(O, B)).into();
     }
 }

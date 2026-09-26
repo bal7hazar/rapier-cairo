@@ -6,6 +6,7 @@ use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::{DEFAULT_EPSILON, try_normalize2, try_normalize2_eps};
 use crate::aabb::Aabb;
+use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::MassProperties;
 
@@ -14,6 +15,17 @@ use crate::mass::MassProperties;
 pub struct Segment {
     pub a: Vec2,
     pub b: Vec2,
+}
+
+/// `|v|^2` of the raw components, exact.
+#[inline(always)]
+fn squared_raw(v: Vec2) -> u128 {
+    let x: i128 = v.x.raw.into();
+    let y: i128 = v.y.raw.into();
+    // Each square is at most 2^126: exact in i128, and the sum fits u128.
+    let xx: u128 = (x * x).try_into().unwrap();
+    let yy: u128 = (y * y).try_into().unwrap();
+    xx + yy
 }
 
 #[generate_trait]
@@ -124,6 +136,51 @@ pub impl SegmentImpl of SegmentTrait {
         Self::compute_local_aabb(Self::transformed(self, pose))
     }
 
+    /// Upstream name of [`SegmentTrait::compute_local_aabb`].
+    #[inline(always)]
+    fn local_aabb(self: Segment) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+
+    /// Upstream name of [`SegmentTrait::compute_aabb`].
+    #[inline(always)]
+    fn aabb(self: Segment, pose: Pose2) -> Aabb {
+        Self::compute_aabb(self, pose)
+    }
+
+    /// Point-cloud sphere of `[a, b]` (upstream): centre `(a + b) / 2` truncated toward zero,
+    /// radius the larger floored distance to an end point (they differ by at most 1 ulp).
+    fn local_bounding_sphere(self: Segment) -> BoundingSphere {
+        let center = Vec2 {
+            x: Fixed {
+                raw: ((self.a.x.raw.into() + self.b.x.raw.into()) / 2_i128).try_into().unwrap(),
+            },
+            y: Fixed {
+                raw: ((self.a.y.raw.into() + self.b.y.raw.into()) / 2_i128).try_into().unwrap(),
+            },
+        };
+        let da = self.a - center;
+        let db = self.b - center;
+        let far = if squared_raw(db) > squared_raw(da) {
+            db
+        } else {
+            da
+        };
+        BoundingSphere { center, radius: far.length() }
+    }
+
+    /// [`SegmentTrait::local_bounding_sphere`] placed at `pose`.
+    #[inline(always)]
+    fn bounding_sphere(self: Segment, pose: Pose2) -> BoundingSphere {
+        Self::local_bounding_sphere(self).transform_by(pose)
+    }
+
+    /// Both end points multiplied component-wise by `scale` (floored products).
+    #[inline(always)]
+    fn scaled(self: Segment, scale: Vec2) -> Segment {
+        Segment { a: self.a * scale, b: self.b * scale }
+    }
+
     /// Zero: a segment has no area.
     #[inline(always)]
     fn mass_properties(self: Segment, density: Fixed) -> MassProperties {
@@ -139,6 +196,18 @@ pub impl SegmentImpl of SegmentTrait {
         } else {
             self.b
         }
+    }
+}
+
+/// Rejected candidates, kept for the `gas_*` ranking and as oracles.
+#[cfg(test)]
+pub mod alternatives {
+    use crate::aabb::bounding_volume::{BoundingSphere, point_cloud_bounding_sphere};
+    use super::Segment;
+
+    /// Upstream's literal form: the generic point-cloud sphere of `[a, b]` (a loop over a span).
+    pub fn local_bounding_sphere_point_cloud(s: Segment) -> BoundingSphere {
+        point_cloud_bounding_sphere(array![s.a, s.b].span())
     }
 }
 

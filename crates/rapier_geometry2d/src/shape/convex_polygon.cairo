@@ -9,7 +9,8 @@ use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;
 use crate::aabb::Aabb;
-use crate::feature_id::FeatureIdTrait;
+use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
+use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
 use crate::point::{cross_wide, dot_wide};
 use crate::polygonal_feature::PolygonalFeature;
@@ -42,6 +43,12 @@ pub impl BoxedConvexPolygonPartialEq of PartialEq<Box<ConvexPolygon>> {
         !Self::eq(lhs, rhs)
     }
 }
+
+/// Raw of `cos(1 degree)` (rounded): a face is the support feature when its normal is within one
+/// degree of the direction (upstream `support_feature_id_toward`).
+const COS_ONE_DEGREE_RAW: i128 = 4294313152;
+/// `2^32`: lifts a raw `Fixed` to the Q64.64 scale of `dot_wide`.
+const RAW_ONE: i128 = 0x100000000;
 
 /// Polygon invariant and arithmetic failures.
 pub mod errors {
@@ -287,6 +294,84 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
             i += 1;
         }
         (center, fixed::wide::norm2(farthest.x, farthest.y))
+    }
+
+    /// Upstream name of [`ConvexPolygonTrait::compute_local_aabb`].
+    #[inline(always)]
+    fn local_aabb(self: ConvexPolygon) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+    /// Upstream name of [`ConvexPolygonTrait::compute_aabb`] (the point-cloud box of the placed
+    /// vertices).
+    #[inline(always)]
+    fn aabb(self: ConvexPolygon, pose: Pose2) -> Aabb {
+        Self::compute_aabb(self, pose)
+    }
+    /// [`ConvexPolygonTrait::compute_local_bounding_sphere`] as a [`BoundingSphere`] (upstream
+    /// `local_bounding_sphere`, the point-cloud sphere of the vertices).
+    fn local_bounding_sphere(self: ConvexPolygon) -> BoundingSphere {
+        let (center, radius) = Self::compute_local_bounding_sphere(self);
+        BoundingSphere { center, radius }
+    }
+    /// [`ConvexPolygonTrait::local_bounding_sphere`] placed at `pose`.
+    fn bounding_sphere(self: ConvexPolygon, pose: Pose2) -> BoundingSphere {
+        Self::local_bounding_sphere(self).transform_by(pose)
+    }
+    /// Normal of a feature with upstream's `FeatureId` indices (not the PFM ids): `Face(i)` is
+    /// normal `i`, `Vertex(i)` the normalised sum of the normals of the faces meeting at vertex
+    /// `i` (rounded to nearest). `None` for the unknown feature and, unlike upstream (which
+    /// panics), for an index `>= count`.
+    fn feature_normal(self: ConvexPolygon, feature: FeatureId) -> Option<Vec2> {
+        let code = feature.code();
+        if code >= self.count.into() {
+            return None;
+        }
+        let i: u8 = code.try_into().unwrap();
+        if feature.is_face() {
+            Some(get(self.normals, i))
+        } else if feature.is_vertex() {
+            let prev = if i == 0 {
+                self.count - 1
+            } else {
+                i - 1
+            };
+            let sum = get(self.normals, prev) + get(self.normals, i);
+            match try_normalize2(sum.x, sum.y) {
+                Some((x, y)) => Some(Vec2 { x, y }),
+                None => None,
+            }
+        } else {
+            None
+        }
+    }
+    /// The feature supporting the unit `local_dir` (upstream `support_feature_id_toward`): the
+    /// first face whose normal is within one degree of it (exact wide test against the rounded
+    /// `cos(1 degree)`), else the vertex of largest dot (first on ties), with upstream's plain
+    /// indices.
+    fn support_feature_id_toward(self: ConvexPolygon, local_dir: Vec2) -> FeatureId {
+        let threshold = COS_ONE_DEGREE_RAW * RAW_ONE;
+        let mut i = 0;
+        while i != self.count {
+            let n = get(self.normals, i);
+            if dot_wide(n.x, n.y, local_dir.x, local_dir.y) >= threshold {
+                return FeatureIdTrait::face(i.into());
+            }
+            i += 1;
+        }
+        let p = get(self.vertices, 0);
+        let mut best: u8 = 0;
+        let mut score = dot_wide(p.x, p.y, local_dir.x, local_dir.y);
+        i = 1;
+        while i != self.count {
+            let p = get(self.vertices, i);
+            let d = dot_wide(p.x, p.y, local_dir.x, local_dir.y);
+            if d > score {
+                best = i;
+                score = d;
+            }
+            i += 1;
+        }
+        FeatureIdTrait::vertex(best.into())
     }
 
     /// Uniform density mass properties; panics on unrepresentable intermediate values/inverses.

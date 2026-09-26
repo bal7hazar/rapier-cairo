@@ -2,9 +2,10 @@
 //! `mass_properties_cuboid.rs`).
 
 use fixed::{Fixed, FixedTrait};
-use glam::Vec2;
+use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use rapier_math::{copy_sign_to, smallest_abs_component_index};
+use crate::aabb::bounding_volume::{BoundingSphere, centered_bounding_sphere};
 use crate::aabb::{Aabb, AabbTrait, absolute_transform_vector};
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
@@ -44,6 +45,44 @@ pub impl CuboidImpl of CuboidTrait {
         AabbTrait::from_half_extents(
             pose.translation, absolute_transform_vector(pose, self.half_extents),
         )
+    }
+
+    /// Upstream name of [`CuboidTrait::compute_local_aabb`].
+    #[inline(always)]
+    fn local_aabb(self: Cuboid) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+
+    /// Upstream name of [`CuboidTrait::compute_aabb`].
+    #[inline(always)]
+    fn aabb(self: Cuboid, pose: Pose2) -> Aabb {
+        Self::compute_aabb(self, pose)
+    }
+
+    /// Centred on the origin with radius `|half_extents|` (floored).
+    #[inline(always)]
+    fn local_bounding_sphere(self: Cuboid) -> BoundingSphere {
+        BoundingSphere { center: Vec2Trait::ZERO, radius: self.half_extents.length() }
+    }
+
+    /// [`CuboidTrait::local_bounding_sphere`] placed at `pose`: centred on the translation.
+    #[inline(always)]
+    fn bounding_sphere(self: Cuboid, pose: Pose2) -> BoundingSphere {
+        centered_bounding_sphere(pose, self.half_extents.length())
+    }
+
+    /// The cuboid with half extents multiplied component-wise by `scale` (floored products;
+    /// negative components are kept, as upstream).
+    #[inline(always)]
+    fn scaled(self: Cuboid, scale: Vec2) -> Cuboid {
+        Cuboid { half_extents: self.half_extents * scale }
+    }
+
+    /// Upstream 2D `support_face`, the same face as [`CuboidTrait::support_feature`] (upstream's
+    /// `support_feature` forwards to it).
+    #[inline(always)]
+    fn support_face(self: Cuboid, local_dir: Vec2) -> PolygonalFeature {
+        Self::support_feature(self, local_dir)
     }
 
     /// Mass properties for `density` (`from_cuboid`).

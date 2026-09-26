@@ -4,6 +4,7 @@
 use fixed::{Fixed, FixedTrait};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
+use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
 use crate::shape::segment::{Segment, SegmentTrait};
@@ -48,6 +49,12 @@ pub impl CapsuleImpl of CapsuleTrait {
         self.segment.length()
     }
 
+    /// Half the length of the core segment (floored twice, as `height() / 2`).
+    #[inline(always)]
+    fn half_height(self: Capsule) -> Fixed {
+        Fixed { raw: self.segment.length().raw / 2 }
+    }
+
     /// Midpoint of the core segment.
     #[inline(always)]
     fn center(self: Capsule) -> Vec2 {
@@ -73,6 +80,30 @@ pub impl CapsuleImpl of CapsuleTrait {
         self.segment.compute_aabb(pose).loosened(self.radius)
     }
 
+    /// Upstream name of [`CapsuleTrait::compute_local_aabb`].
+    #[inline(always)]
+    fn local_aabb(self: Capsule) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+
+    /// Upstream name of [`CapsuleTrait::compute_aabb`].
+    #[inline(always)]
+    fn aabb(self: Capsule, pose: Pose2) -> Aabb {
+        Self::compute_aabb(self, pose)
+    }
+
+    /// Centred on the core midpoint with radius `radius + half_height`.
+    #[inline(always)]
+    fn local_bounding_sphere(self: Capsule) -> BoundingSphere {
+        BoundingSphere { center: Self::center(self), radius: self.radius + Self::half_height(self) }
+    }
+
+    /// [`CapsuleTrait::local_bounding_sphere`] placed at `pose`.
+    #[inline(always)]
+    fn bounding_sphere(self: Capsule, pose: Pose2) -> BoundingSphere {
+        Self::local_bounding_sphere(self).transform_by(pose)
+    }
+
     /// Mass properties for `density` (`from_capsule`).
     fn mass_properties(self: Capsule, density: Fixed) -> MassProperties {
         MassPropertiesTrait::from_capsule(density, self.segment.a, self.segment.b, self.radius)
@@ -92,6 +123,18 @@ pub impl CapsuleImpl of CapsuleTrait {
             self.segment.b
         };
         end + dir.mul_scalar(self.radius)
+    }
+}
+
+/// Rejected candidates, kept for the `gas_*` ranking.
+#[cfg(test)]
+pub mod alternatives {
+    use fixed::{Fixed, HALF};
+    use super::{Capsule, CapsuleTrait};
+
+    /// `height() * 1/2` through a fixed-point product instead of the raw halving.
+    pub fn half_height_mul(c: Capsule) -> Fixed {
+        c.height() * HALF
     }
 }
 

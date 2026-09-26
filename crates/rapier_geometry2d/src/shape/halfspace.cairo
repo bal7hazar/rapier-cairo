@@ -2,8 +2,9 @@
 
 use core::num::traits::Zero;
 use fixed::Fixed;
-use glam::Vec2;
+use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
+use crate::aabb::bounding_volume::{BoundingSphere, UNBOUNDED_RADIUS, centered_bounding_sphere};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::MassProperties;
 
@@ -37,6 +38,39 @@ pub impl HalfSpaceImpl of HalfSpaceTrait {
     #[inline(always)]
     fn compute_aabb(self: HalfSpace, pose: Pose2) -> Aabb {
         Self::compute_local_aabb(self)
+    }
+
+    /// Upstream name of [`HalfSpaceTrait::compute_local_aabb`].
+    #[inline(always)]
+    fn local_aabb(self: HalfSpace) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+
+    /// Upstream name of [`HalfSpaceTrait::compute_aabb`] (the pose is ignored).
+    #[inline(always)]
+    fn aabb(self: HalfSpace, pose: Pose2) -> Aabb {
+        Self::compute_local_aabb(self)
+    }
+
+    /// Unbounded: centred on the origin with radius `fixed::MAX` (upstream `Real::max_value()`).
+    #[inline(always)]
+    fn local_bounding_sphere(self: HalfSpace) -> BoundingSphere {
+        BoundingSphere { center: Vec2Trait::ZERO, radius: UNBOUNDED_RADIUS }
+    }
+
+    /// The unbounded sphere centred on the translation of `pose`.
+    #[inline(always)]
+    fn bounding_sphere(self: HalfSpace, pose: Pose2) -> BoundingSphere {
+        centered_bounding_sphere(pose, UNBOUNDED_RADIUS)
+    }
+
+    /// The half-space with normal `normal * scale` renormalised (rounded to nearest), `None`
+    /// when the scaled normal is zero.
+    fn scaled(self: HalfSpace, scale: Vec2) -> Option<HalfSpace> {
+        match (self.normal * scale).try_normalize() {
+            Some(normal) => Some(HalfSpace { normal }),
+            None => None,
+        }
     }
 
     /// Zero: a half-space has infinite mass, which the inverse-mass representation encodes as 0.

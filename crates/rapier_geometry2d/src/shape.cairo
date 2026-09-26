@@ -4,7 +4,10 @@
 //! Parry API that Rapier's step consumes: `compute_local_aabb`, `compute_aabb`, `mass_properties`,
 //! the support maps and the cuboid feature ids. `match` on [`Shape`] replaces Parry's `dyn Shape`.
 //!
-//! Deferred: convex hull construction, round shapes, compounds and `scaled`.
+//! The bounding-sphere, swept-box, feature-normal and support-map / feature-map views of the
+//! `Shape` trait are ported too; they are not reached by the step.
+//!
+//! Deferred: convex hull construction, round shapes, compounds and `scaled` on `Shape`.
 
 pub mod convex_polygon;
 use convex_polygon::{BoxedConvexPolygonPartialEq, BoxedConvexPolygonSerde};
@@ -13,10 +16,15 @@ pub mod ball;
 pub mod capsule;
 pub mod cuboid;
 pub mod halfspace;
+pub mod polygonal_feature_map;
 pub mod segment;
-use fixed::Fixed;
+pub mod support_map;
+use fixed::{Fixed, ZERO};
+use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
-use crate::aabb::Aabb;
+use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
+use crate::aabb::{Aabb, AabbTrait};
+use crate::feature_id::{FeatureId, SubShapeId};
 use crate::mass::MassProperties;
 pub use crate::shape::ball::{Ball, BallTrait};
 pub use crate::shape::capsule::{Capsule, CapsuleTrait};
@@ -104,6 +112,71 @@ pub impl ShapeImpl of ShapeTrait {
         }
     }
 
+    /// Bounding sphere in the local frame (upstream `compute_local_bounding_sphere`, each
+    /// shape's `local_bounding_sphere`).
+    fn compute_local_bounding_sphere(self: Shape) -> BoundingSphere {
+        match self {
+            Shape::Ball(s) => s.local_bounding_sphere(),
+            Shape::Cuboid(s) => s.local_bounding_sphere(),
+            Shape::Capsule(s) => s.local_bounding_sphere(),
+            Shape::Segment(s) => s.local_bounding_sphere(),
+            Shape::HalfSpace(s) => s.local_bounding_sphere(),
+            Shape::ConvexPolygon(s) => s.unbox().local_bounding_sphere(),
+        }
+    }
+
+    /// Bounding sphere of the shape placed at `pose` (upstream default:
+    /// `compute_local_bounding_sphere().transform_by(pose)`).
+    fn compute_bounding_sphere(self: Shape, pose: Pose2) -> BoundingSphere {
+        Self::compute_local_bounding_sphere(self).transform_by(pose)
+    }
+
+    /// Box swept by the shape from `start_pose` to `end_pose`: the union of both boxes (upstream
+    /// default, not the continuous sweep).
+    fn compute_swept_aabb(self: Shape, start_pose: Pose2, end_pose: Pose2) -> Aabb {
+        Self::compute_aabb(self, start_pose).merged(Self::compute_aabb(self, end_pose))
+    }
+
+    /// Normal of the shape at `point` on `feature` (upstream `feature_normal_at_point`): a ball
+    /// answers the normalised `point` (`None` at the centre), a cuboid, segment or polygon its
+    /// `feature_normal`, a capsule and a half-space `None` (upstream defaults). `subshape` is
+    /// always `0` for the closed set and is ignored.
+    fn feature_normal_at_point(
+        self: Shape, subshape: SubShapeId, feature: FeatureId, point: Vec2,
+    ) -> Option<Vec2> {
+        match self {
+            Shape::Ball(_) => point.try_normalize(),
+            Shape::Cuboid(s) => s.feature_normal(feature),
+            Shape::Capsule(_) => None,
+            Shape::Segment(s) => s.feature_normal(feature),
+            Shape::HalfSpace(_) => None,
+            Shape::ConvexPolygon(s) => s.unbox().feature_normal(feature),
+        }
+    }
+
+    /// The shape as a support map (`SupportMap<Shape>`), `None` for a half-space (upstream
+    /// `as_support_map`, returning the shape itself instead of a trait object).
+    fn as_support_map(self: Shape) -> Option<Shape> {
+        match self {
+            Shape::HalfSpace(_) => None,
+            _ => Some(self),
+        }
+    }
+
+    /// The polygonal feature map of the shape and its rounding radius (upstream
+    /// `as_polygonal_feature_map`): cuboids, segments and polygons are their own with radius 0,
+    /// a capsule is its core segment with its radius; `None` for a ball or a half-space. Use the
+    /// returned shape through `PolygonalFeatureMap<Shape>`.
+    fn as_polygonal_feature_map(self: Shape) -> Option<(Shape, Fixed)> {
+        match self {
+            Shape::Cuboid(_) => Some((self, ZERO)),
+            Shape::Segment(_) => Some((self, ZERO)),
+            Shape::ConvexPolygon(_) => Some((self, ZERO)),
+            Shape::Capsule(s) => Some((Shape::Segment(s.segment), s.radius)),
+            _ => None,
+        }
+    }
+
     /// The wrapped polygon, `None` for every other shape.
     fn as_convex_polygon(self: Shape) -> Option<ConvexPolygon> {
         match self {
@@ -152,6 +225,9 @@ pub impl ShapeImpl of ShapeTrait {
         }
     }
 }
+
+#[cfg(test)]
+mod helpers_tests;
 
 #[cfg(test)]
 mod alternatives {
