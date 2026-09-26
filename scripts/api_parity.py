@@ -531,6 +531,11 @@ def cairo_owner_from_path(path: Path) -> str:
     stem = path.stem
     if stem == "lib":
         return crate
+    # CC1: the free functions of the shape casts and sweeps (`query/{shape_cast,
+    # nonlinear_shape_cast,sweep}.cairo` and their kernel files) are Parry's `query::` ones.
+    if "query" in parts[:-1] and stem in (
+            "shape_cast", "nonlinear_shape_cast", "sweep", "proxy", "ball_ball"):
+        return "Query"
     return {
         "aabb": "Aabb",
         "world": "World",
@@ -734,6 +739,37 @@ def find_matches(item: Item, cairo: set[tuple[str, str, str]]) -> list[tuple[str
     return matches
 
 
+# Items knowingly left missing, with the lot that owns them (instead of the generic "not found").
+MISSING_REASONS: dict[tuple[str, str], str] = {
+    # CC1: composite shapes (and their casts and sweeps) are lot SH2.
+    **{("CompositeShapeRef", n): "Composite shapes: lot SH2." for n in ("cast_shape", "cast_shape_nonlinear")},
+    **{("parry::query", n): "Composite shapes: lot SH2." for n in (
+        "cast_shapes_composite_shape_shape", "cast_shapes_shape_composite_shape",
+        "cast_shapes_heightfield_shape", "cast_shapes_shape_heightfield",
+        "cast_shapes_nonlinear_composite_shape_shape", "cast_shapes_nonlinear_shape_composite_shape",
+        "sweep_time_of_impact_composite", "CORE_FRACTION")},
+    ("SweepCompositeFastShape", "SweepCompositeFastShape"): "Composite shapes: lot SH2.",
+    # CC1: upstream compiles no nonlinear half-space kernel (commented out of its `mod.rs` and of
+    # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
+    **{("parry::query", n): "Not compiled upstream (commented out); the pair is unsupported, as upstream." for n in (
+        "cast_shapes_nonlinear_halfspace_support_map", "cast_shapes_nonlinear_support_map_halfspace")},
+    # CC1: `shape.cairo` is outside CC1's scope; the two values are the free functions
+    # `query::nonlinear_shape_cast::{ccd_thickness, ccd_angular_thickness}(shape)`.
+    **{("Shape", n): f"Free function `query::nonlinear_shape_cast::{n}(shape)` (Shape methods: orchestrator)." for n in (
+        "ccd_thickness", "ccd_angular_thickness")},
+    # CC2 owns the CCD solver in the step and the body / builder CCD state.
+    **{("CCDSolver", n): "CCD solver in the step: lot CC2." for n in (
+        "CCDSolver", "find_first_impact", "invalidate_fixed_targets_cache", "new", "solve_continuous",
+        "update_ccd_active_flags")},
+    **{("RigidBodyCcd", n): "Body CCD state: lot CC2." for n in (
+        "RigidBodyCcd", "FAST_BODY_SAFETY_FACTOR", "Default", "is_moving_fast",
+        "is_moving_fast_with_next_position", "max_point_velocity")},
+    **{("RigidBody", n): "Body CCD state: lot CC2." for n in (
+        "enable_ccd", "is_ccd_active", "is_ccd_enabled", "set_soft_ccd_prediction", "soft_ccd_prediction")},
+    **{("RigidBodyBuilder", n): "Body CCD state: lot CC2." for n in ("ccd_enabled", "soft_ccd_prediction")},
+}
+
+
 def classify(rust: list[Item], cairo: list[Item]) -> tuple[dict[Item, tuple[str, str]], list[Item]]:
     cairo_keys = {item.key for item in cairo}
     consumed: set[tuple[str, str, str]] = set()
@@ -750,6 +786,8 @@ def classify(rust: list[Item], cairo: list[Item]) -> tuple[dict[Item, tuple[str,
             if item.owner not in owner_candidates(item.owner) or item_names(item) != (item.name,):
                 detail = "Mapped to " + ", ".join(f"{o}.{n}" for o, _, n in matches[:3])
             statuses[item] = ("ported", detail)
+        elif (item.owner, item.name) in MISSING_REASONS:
+            statuses[item] = ("missing", MISSING_REASONS[(item.owner, item.name)])
         else:
             candidates = ", ".join(owner_candidates(item.owner))
             statuses[item] = ("missing", f"Not found on Cairo candidate(s): {candidates}.")

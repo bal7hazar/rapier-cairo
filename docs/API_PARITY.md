@@ -16,15 +16,15 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
 | dynamics | 535 | 0 | 191 | 466 | 1192 | 73.7% |
-| geometry | 202 | 0 | 97 | 18 | 317 | 67.6% |
+| geometry | 203 | 0 | 96 | 18 | 317 | 67.9% |
 | parry::bounding_volume | 79 | 0 | 10 | 30 | 119 | 88.8% |
 | parry::mass_properties | 17 | 0 | 2 | 7 | 26 | 89.5% |
-| parry::query | 130 | 0 | 176 | 118 | 424 | 42.5% |
+| parry::query | 178 | 0 | 128 | 118 | 424 | 58.2% |
 | parry::shape | 140 | 0 | 125 | 119 | 384 | 52.8% |
-| pipeline | 73 | 0 | 16 | 69 | 158 | 82.0% |
-| **total** | **1176** | **0** | **664** | **827** | **2667** | **63.9%** |
+| pipeline | 77 | 0 | 12 | 69 | 158 | 86.5% |
+| **total** | **1229** | **0** | **611** | **827** | **2667** | **66.8%** |
 
-Cairo-only public items not matched to upstream: **1221**.
+Cairo-only public items not matched to upstream: **1265**.
 
 ## Aabb
 
@@ -217,12 +217,12 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `find_first_impact` | dynamics | missing | Not found on Cairo candidate(s): CCDSolver, CCDSolverTrait. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `invalidate_fixed_targets_cache` | dynamics | missing | Not found on Cairo candidate(s): CCDSolver, CCDSolverTrait. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): CCDSolver, CCDSolverTrait. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `solve_continuous` | dynamics | missing | Not found on Cairo candidate(s): CCDSolver, CCDSolverTrait. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `update_ccd_active_flags` | dynamics | missing | Not found on Cairo candidate(s): CCDSolver, CCDSolverTrait. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| type `CCDSolver` | dynamics | missing | Not found on Cairo candidate(s): CCDSolver, CCDSolverTrait. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `find_first_impact` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `invalidate_fixed_targets_cache` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `new` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `solve_continuous` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `update_ccd_active_flags` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| type `CCDSolver` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
 
 ## CanonicalVoxelShape
 
@@ -603,8 +603,8 @@ Cairo-only public items not matched to upstream: **1221**.
 |---|---|---|---|---|
 | method `cast_local_ray` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/ray/ray_composite_shape.rs` |
 | method `cast_local_ray_and_get_normal` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/ray/ray_composite_shape.rs` |
-| method `cast_shape` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
-| method `cast_shape_nonlinear` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
+| method `cast_shape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
+| method `cast_shape_nonlinear` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
 | method `closest_points_to_shape` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/closest_points/closest_points_composite_shape_shape.rs` |
 | method `contact_with_shape` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/contact/contact_composite_shape_shape.rs` |
 | method `contains_local_point` | parry::query | missing | Not found on Cairo candidate(s): CompositeShapeRef, CompositeShapeRefTrait. | `parry/src/query/point/point_composite_shape.rs` |
@@ -1854,23 +1854,23 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `append` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `append_translation` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `constant_position` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `freeze` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `identity` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `new` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `position_at_time` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `prepend` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| method `prepend_translation` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
-| type `NonlinearRigidMotion` | parry::query | missing | Not found on Cairo candidate(s): NonlinearRigidMotion, NonlinearRigidMotionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `append` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `append_translation` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `constant_position` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `freeze` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `identity` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `new` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `position_at_time` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `prepend` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| method `prepend_translation` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
+| type `NonlinearRigidMotion` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs` |
 
 ## NonlinearShapeCastMode
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `directional_toi` | parry::query | missing | Not found on Cairo candidate(s): NonlinearShapeCastMode, NonlinearShapeCastModeTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
-| type `NonlinearShapeCastMode` | parry::query | missing | Not found on Cairo candidate(s): NonlinearShapeCastMode, NonlinearShapeCastModeTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
+| method `directional_toi` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
+| type `NonlinearShapeCastMode` | parry::query | ported | Same public name. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
 
 ## NormalConstraints
 
@@ -2029,8 +2029,8 @@ Cairo-only public items not matched to upstream: **1221**.
 | method `all_colliders_mut` | pipeline | ported | Mapped to World.all_colliders | `rapier/src/pipeline/physics_world.rs` |
 | method `cast_ray` | pipeline | ported | Mapped to World.cast_ray | `rapier/src/pipeline/physics_world.rs` |
 | method `cast_ray_and_get_normal` | pipeline | ported | Mapped to World.cast_ray_and_get_normal | `rapier/src/pipeline/physics_world.rs` |
-| method `cast_shape` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `cast_shape_nonlinear` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `cast_shape` | pipeline | ported | Mapped to World.cast_shape | `rapier/src/pipeline/physics_world.rs` |
+| method `cast_shape_nonlinear` | pipeline | ported | Mapped to World.cast_shape_nonlinear | `rapier/src/pipeline/physics_world.rs` |
 | method `clear_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `configure_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `contact_pair` | pipeline | ported | Mapped to World.contact_pair | `rapier/src/pipeline/physics_world.rs` |
@@ -2302,7 +2302,7 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ProxyDistanceOutput` | parry::query | missing | Not found on Cairo candidate(s): ProxyDistanceOutput, ProxyDistanceOutputTrait. | `parry/src/query/sweep_toi/proxy_distance.rs` |
+| type `ProxyDistanceOutput` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/proxy_distance.rs` |
 
 ## Quarantine
 
@@ -2318,8 +2318,8 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `cast_shapes` | parry::query | missing | Not found on Cairo candidate(s): QueryDispatcher, QueryDispatcherTrait. | `parry/src/query/query_dispatcher.rs` |
-| method `cast_shapes_nonlinear` | parry::query | missing | Not found on Cairo candidate(s): QueryDispatcher, QueryDispatcherTrait. | `parry/src/query/query_dispatcher.rs` |
+| method `cast_shapes` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
+| method `cast_shapes_nonlinear` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
 | method `chain` | parry::query | missing | Not found on Cairo candidate(s): QueryDispatcher, QueryDispatcherTrait. | `parry/src/query/query_dispatcher.rs` |
 | method `closest_points` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
 | method `contact` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
@@ -2368,8 +2368,8 @@ Cairo-only public items not matched to upstream: **1221**.
 |---|---|---|---|---|
 | method `cast_ray` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `cast_ray_and_get_normal` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `cast_shape` | pipeline | missing | Not found on Cairo candidate(s): World, queries, QueryPipeline, WorldTrait, QueryPipelineTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `cast_shape_nonlinear` | pipeline | missing | Not found on Cairo candidate(s): World, queries, QueryPipeline, WorldTrait, QueryPipelineTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `cast_shape` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `cast_shape_nonlinear` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `intersect_aabb_conservative` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `intersect_point` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 | method `intersect_ray` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
@@ -2498,11 +2498,11 @@ Cairo-only public items not matched to upstream: **1221**.
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `effective_active_set_offset` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `effective_dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enable_ccd` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `enable_ccd` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravitational_potential_energy` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_ccd_active` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_ccd_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_ccd_active` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_ccd_enabled` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_dynamic_or_kinematic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2554,12 +2554,12 @@ Cairo-only public items not matched to upstream: **1221**.
 | method `set_next_kinematic_translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_soft_ccd_prediction` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_soft_ccd_prediction` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_vels` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_body` | dynamics | excluded | soft bodies | `rapier/src/dynamics/rigid_body.rs` |
-| method `soft_ccd_prediction` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `soft_ccd_prediction` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_cluster` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `user_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2607,7 +2607,7 @@ Cairo-only public items not matched to upstream: **1221**.
 | method `angvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `build` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `can_sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `ccd_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `ccd_enabled` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2630,7 +2630,7 @@ Cairo-only public items not matched to upstream: **1221**.
 | method `restrict_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `sleeping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `soft_ccd_prediction` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyBuilder, RigidBodyBuilderTrait. | `rapier/src/dynamics/rigid_body.rs` |
+| method `soft_ccd_prediction` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
 | method `translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `user_data` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | type `RigidBodyBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2639,12 +2639,12 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `FAST_BODY_SAFETY_FACTOR` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyCcd, RigidBodyCcdTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyCcd, RigidBodyCcdTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `is_moving_fast` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyCcd, RigidBodyCcdTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `is_moving_fast_with_next_position` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyCcd, RigidBodyCcdTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `max_point_velocity` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyCcd, RigidBodyCcdTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `RigidBodyCcd` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyCcd, RigidBodyCcdTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| const `FAST_BODY_SAFETY_FACTOR` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `is_moving_fast` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `is_moving_fast_with_next_position` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `max_point_velocity` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `RigidBodyCcd` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyChanges
 
@@ -2964,8 +2964,8 @@ Cairo-only public items not matched to upstream: **1221**.
 | method `as_typed_shape` | parry::shape | ported | Mapped to Shape.shape_type | `parry/src/shape/shape.rs` |
 | method `as_voxels` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shape.rs` |
 | method `as_voxels_mut` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shape.rs` |
-| method `ccd_angular_thickness` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `ccd_thickness` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `ccd_angular_thickness` | parry::shape | missing | Free function `query::nonlinear_shape_cast::ccd_angular_thickness(shape)` (Shape methods: orchestrator). | `parry/src/shape/shape.rs` |
+| method `ccd_thickness` | parry::shape | missing | Free function `query::nonlinear_shape_cast::ccd_thickness(shape)` (Shape methods: orchestrator). | `parry/src/shape/shape.rs` |
 | method `clone_box` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `clone_dyn` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `compute_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -2984,23 +2984,23 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `swapped` | parry::query | missing | Not found on Cairo candidate(s): ShapeCastHit, ShapeCastHitTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
-| method `transform1_by` | parry::query | missing | Not found on Cairo candidate(s): ShapeCastHit, ShapeCastHitTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
-| type `ShapeCastHit` | geometry | missing | Not found on Cairo candidate(s): ShapeCastHit, ShapeCastHitTrait. | `rapier/src/geometry/mod.rs` |
+| method `swapped` | parry::query | ported | Same public name. | `parry/src/query/shape_cast/shape_cast.rs` |
+| method `transform1_by` | parry::query | ported | Same public name. | `parry/src/query/shape_cast/shape_cast.rs` |
+| type `ShapeCastHit` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## ShapeCastOptions
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | parry::query | missing | Not found on Cairo candidate(s): ShapeCastOptions, ShapeCastOptionsTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
-| method `with_max_time_of_impact` | parry::query | missing | Not found on Cairo candidate(s): ShapeCastOptions, ShapeCastOptionsTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
-| type `ShapeCastOptions` | parry::query | missing | Not found on Cairo candidate(s): ShapeCastOptions, ShapeCastOptionsTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
+| impl `Default` | parry::query | ported | Same public name. | `parry/src/query/shape_cast/shape_cast.rs` |
+| method `with_max_time_of_impact` | parry::query | ported | Same public name. | `parry/src/query/shape_cast/shape_cast.rs` |
+| type `ShapeCastOptions` | parry::query | ported | Same public name. | `parry/src/query/shape_cast/shape_cast.rs` |
 
 ## ShapeCastStatus
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ShapeCastStatus` | parry::query | missing | Not found on Cairo candidate(s): ShapeCastStatus, ShapeCastStatusTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
+| type `ShapeCastStatus` | parry::query | ported | Same public name. | `parry/src/query/shape_cast/shape_cast.rs` |
 
 ## ShapeDistance
 
@@ -3909,30 +3909,30 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `constant` | parry::query | missing | Not found on Cairo candidate(s): Sweep, SweepTrait. | `parry/src/query/sweep_toi/sweep.rs` |
-| method `final_transform` | parry::query | missing | Not found on Cairo candidate(s): Sweep, SweepTrait. | `parry/src/query/sweep_toi/sweep.rs` |
-| method `from_poses` | parry::query | missing | Not found on Cairo candidate(s): Sweep, SweepTrait. | `parry/src/query/sweep_toi/sweep.rs` |
-| method `shifted` | parry::query | missing | Not found on Cairo candidate(s): Sweep, SweepTrait. | `parry/src/query/sweep_toi/sweep.rs` |
-| method `transform_at` | parry::query | missing | Not found on Cairo candidate(s): Sweep, SweepTrait. | `parry/src/query/sweep_toi/sweep.rs` |
-| type `Sweep` | parry::query | missing | Not found on Cairo candidate(s): Sweep, SweepTrait. | `parry/src/query/sweep_toi/sweep.rs` |
+| method `constant` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep.rs` |
+| method `final_transform` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep.rs` |
+| method `from_poses` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep.rs` |
+| method `shifted` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep.rs` |
+| method `transform_at` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep.rs` |
+| type `Sweep` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep.rs` |
 
 ## SweepCompositeFastShape
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SweepCompositeFastShape` | parry::query | missing | Not found on Cairo candidate(s): SweepCompositeFastShape, SweepCompositeFastShapeTrait. | `parry/src/query/sweep_toi/composite.rs` |
+| type `SweepCompositeFastShape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/sweep_toi/composite.rs` |
 
 ## SweepToiOutput
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SweepToiOutput` | parry::query | missing | Not found on Cairo candidate(s): SweepToiOutput, SweepToiOutputTrait. | `parry/src/query/sweep_toi/sweep_toi.rs` |
+| type `SweepToiOutput` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep_toi.rs` |
 
 ## SweepToiStatus
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SweepToiStatus` | parry::query | missing | Not found on Cairo candidate(s): SweepToiStatus, SweepToiStatusTrait. | `parry/src/query/sweep_toi/sweep_toi.rs` |
+| type `SweepToiStatus` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/sweep_toi.rs` |
 
 ## TemporaryInteractionIndex
 
@@ -3944,14 +3944,14 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `compute_aabb` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| method `from_array` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| method `from_points` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| method `from_shape` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| method `point` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| method `points` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| method `support` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
-| type `ToiProxy` | parry::query | missing | Not found on Cairo candidate(s): ToiProxy, ToiProxyTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `compute_aabb` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `from_array` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `from_points` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `from_shape` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `point` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `points` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| method `support` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| type `ToiProxy` | parry::query | ported | Same public name. | `parry/src/query/sweep_toi/toi_proxy.rs` |
 
 ## TopoFace
 
@@ -4395,27 +4395,27 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `CORE_FRACTION` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/sweep_toi/composite.rs` |
-| const `TOI_PROXY_INLINE_POINTS` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/sweep_toi/toi_proxy.rs` |
+| const `CORE_FRACTION` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/sweep_toi/composite.rs` |
+| const `TOI_PROXY_INLINE_POINTS` | parry::query | ported | Mapped to Query.TOI_PROXY_INLINE_POINTS | `parry/src/query/sweep_toi/toi_proxy.rs` |
 | function `cast_local_ray` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
-| function `cast_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast.rs` |
-| function `cast_shapes_ball_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_ball_ball.rs` |
-| function `cast_shapes_composite_shape_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
-| function `cast_shapes_halfspace_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs` |
-| function `cast_shapes_heightfield_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_heightfield_shape.rs` |
-| function `cast_shapes_nonlinear` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast.rs` |
-| function `cast_shapes_nonlinear_composite_shape_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
-| function `cast_shapes_nonlinear_halfspace_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
-| function `cast_shapes_nonlinear_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
+| function `cast_shapes` | parry::query | ported | Mapped to Query.cast_shapes | `parry/src/query/shape_cast/shape_cast.rs` |
+| function `cast_shapes_ball_ball` | parry::query | ported | Mapped to Query.cast_shapes_ball_ball | `parry/src/query/shape_cast/shape_cast_ball_ball.rs` |
+| function `cast_shapes_composite_shape_shape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
+| function `cast_shapes_halfspace_support_map` | parry::query | ported | Mapped to Halfspace.cast_shapes_halfspace_support_map | `parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs` |
+| function `cast_shapes_heightfield_shape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/shape_cast/shape_cast_heightfield_shape.rs` |
+| function `cast_shapes_nonlinear` | parry::query | ported | Mapped to Query.cast_shapes_nonlinear | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast.rs` |
+| function `cast_shapes_nonlinear_composite_shape_shape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
+| function `cast_shapes_nonlinear_halfspace_support_map` | parry::query | missing | Not compiled upstream (commented out); the pair is unsupported, as upstream. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
+| function `cast_shapes_nonlinear_shape_composite_shape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
 | function `cast_shapes_nonlinear_shape_voxels` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs` |
-| function `cast_shapes_nonlinear_support_map_halfspace` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
-| function `cast_shapes_nonlinear_support_map_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
+| function `cast_shapes_nonlinear_support_map_halfspace` | parry::query | missing | Not compiled upstream (commented out); the pair is unsupported, as upstream. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
+| function `cast_shapes_nonlinear_support_map_support_map` | parry::query | ported | Mapped to SupportMap.cast_shapes_nonlinear_support_map_support_map | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
 | function `cast_shapes_nonlinear_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs` |
-| function `cast_shapes_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
-| function `cast_shapes_shape_heightfield` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_heightfield_shape.rs` |
+| function `cast_shapes_shape_composite_shape` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
+| function `cast_shapes_shape_heightfield` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/shape_cast/shape_cast_heightfield_shape.rs` |
 | function `cast_shapes_shape_voxels` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/shape_cast/shape_cast_voxels_shape.rs` |
-| function `cast_shapes_support_map_halfspace` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs` |
-| function `cast_shapes_support_map_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_support_map_support_map.rs` |
+| function `cast_shapes_support_map_halfspace` | parry::query | ported | Mapped to Halfspace.cast_shapes_support_map_halfspace | `parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs` |
+| function `cast_shapes_support_map_support_map` | parry::query | ported | Mapped to SupportMap.cast_shapes_support_map_support_map | `parry/src/query/shape_cast/shape_cast_support_map_support_map.rs` |
 | function `cast_shapes_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/shape_cast/shape_cast_voxels_shape.rs` |
 | function `clip_aabb_line` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/clip/clip_aabb_line.rs` |
 | function `clip_halfspace_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/clip/clip_halfspace_polygon.rs` |
@@ -4437,7 +4437,7 @@ Cairo-only public items not matched to upstream: **1221**.
 | function `closest_points_support_map_support_map` | parry::query | ported | Mapped to SupportMap.closest_points_support_map_support_map | `parry/src/query/closest_points/closest_points_support_map_support_map.rs` |
 | function `closest_points_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/closest_points/closest_points_support_map_support_map.rs` |
 | function `closest_points_triangle_cuboid` | parry::query | ported | Mapped to Cuboid.closest_points_triangle_cuboid | `parry/src/query/closest_points/closest_points_cuboid_triangle.rs` |
-| function `compute_toi` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
+| function `compute_toi` | parry::query | ported | Mapped to SupportMap.compute_toi | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
 | function `contact` | parry::query | ported | Mapped to Query.contact | `parry/src/query/contact/contact_shape_shape.rs` |
 | function `contact_ball_ball` | parry::query | ported | Mapped to Ball.contact_ball_ball | `parry/src/query/contact/contact_ball_ball.rs` |
 | function `contact_composite_shape_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact/contact_composite_shape_shape.rs` |
@@ -4525,15 +4525,15 @@ Cairo-only public items not matched to upstream: **1221**.
 | function `point_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_point.rs` |
 | function `project_origin` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
 | function `project_point_on_pseudo_cube` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/contact_manifolds/contact_manifolds_voxels_ball.rs` |
-| function `proxy_distance` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/sweep_toi/proxy_distance.rs` |
+| function `proxy_distance` | parry::query | ported | Mapped to Query.proxy_distance | `parry/src/query/sweep_toi/proxy_distance.rs` |
 | function `ray_toi_and_normal_with_ball` | parry::query | ported | Mapped to Ball.ray_toi_and_normal_with_ball | `parry/src/query/ray/ray_ball.rs` |
 | function `ray_toi_with_ball` | parry::query | ported | Mapped to Ball.ray_toi_with_ball | `parry/src/query/ray/ray_ball.rs` |
 | function `ray_toi_with_halfspace` | parry::query | ported | Mapped to Halfspace.ray_toi_with_halfspace | `parry/src/query/ray/ray_halfspace.rs` |
 | function `segment_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_segment.rs` |
 | function `segment_triangle_find_local_separating_edge_twoway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_triangle_segment.rs` |
 | function `support_map_support_map_compute_separation` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_support_map_support_map.rs` |
-| function `sweep_time_of_impact` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/sweep_toi/sweep_toi.rs` |
-| function `sweep_time_of_impact_composite` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/sweep_toi/composite.rs` |
+| function `sweep_time_of_impact` | parry::query | ported | Mapped to Query.sweep_time_of_impact | `parry/src/query/sweep_toi/sweep_toi.rs` |
+| function `sweep_time_of_impact_composite` | parry::query | missing | Composite shapes: lot SH2. | `parry/src/query/sweep_toi/composite.rs` |
 | function `triangle_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_triangle.rs` |
 | function `triangle_segment_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_triangle_segment.rs` |
 | function `triangle_support_map_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_triangle.rs` |
@@ -4567,13 +4567,13 @@ Cairo-only public items not matched to upstream: **1221**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 209 | standard | QP queries |
+| [Query completion](#wp-query-completion) | 208 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 135 | standard | shape interface |
-| [CCD and shape casts](#wp-ccd-and-shape-casts) | 86 | hard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 62 | mechanical | AP triage |
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
+| [CCD and shape casts](#wp-ccd-and-shape-casts) | 34 | hard | QP queries |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 | [Collider API completion](#wp-collider-api-completion) | 11 | mechanical | DB/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 10 | standard | SE sensors |
@@ -4582,7 +4582,7 @@ Cairo-only public items not matched to upstream: **1221**.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 209 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 208 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4664,7 +4664,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 209 public items.
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 129 more
+- ... 128 more
 
 ### WP: Additional 2D shapes
 
@@ -4751,92 +4751,6 @@ Tier: standard. Depends/context: shape interface. Estimate: 135 public items.
 - **Polyline** method `pseudo_normals` (`parry/src/shape/polyline.rs`)
 - **Polyline** method `reverse` (`parry/src/shape/polyline.rs`)
 - ... 55 more
-
-### WP: CCD and shape casts
-
-Tier: hard. Depends/context: QP queries. Estimate: 86 public items.
-
-- **CCDSolver** method `find_first_impact` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `invalidate_fixed_targets_cache` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `new` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `solve_continuous` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `update_ccd_active_flags` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** type `CCDSolver` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CompositeShapeRef** method `cast_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
-- **CompositeShapeRef** method `cast_shape_nonlinear` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
-- **NonlinearRigidMotion** method `append` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `append_translation` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `constant_position` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `freeze` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `identity` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `new` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `position_at_time` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `prepend` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** method `prepend_translation` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearRigidMotion** type `NonlinearRigidMotion` (`parry/src/query/nonlinear_shape_cast/nonlinear_rigid_motion.rs`)
-- **NonlinearShapeCastMode** method `directional_toi` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs`)
-- **NonlinearShapeCastMode** type `NonlinearShapeCastMode` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs`)
-- **PhysicsWorld** method `cast_shape` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `cast_shape_nonlinear` (`rapier/src/pipeline/physics_world.rs`)
-- **ProxyDistanceOutput** type `ProxyDistanceOutput` (`parry/src/query/sweep_toi/proxy_distance.rs`)
-- **QueryDispatcher** method `cast_shapes` (`parry/src/query/query_dispatcher.rs`)
-- **QueryDispatcher** method `cast_shapes_nonlinear` (`parry/src/query/query_dispatcher.rs`)
-- **QueryPipeline** method `cast_shape` (`rapier/src/pipeline/query_pipeline.rs`)
-- **QueryPipeline** method `cast_shape_nonlinear` (`rapier/src/pipeline/query_pipeline.rs`)
-- **RigidBody** method `enable_ccd` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_ccd_active` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_ccd_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `ccd_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyCcd** const `FAST_BODY_SAFETY_FACTOR` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** method `is_moving_fast` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** method `is_moving_fast_with_next_position` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** method `max_point_velocity` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** type `RigidBodyCcd` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **Shape** method `ccd_angular_thickness` (`parry/src/shape/shape.rs`)
-- **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
-- **ShapeCastHit** method `swapped` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **ShapeCastHit** method `transform1_by` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **ShapeCastOptions** impl `Default` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **ShapeCastOptions** method `with_max_time_of_impact` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **ShapeCastOptions** type `ShapeCastOptions` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **ShapeCastStatus** type `ShapeCastStatus` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **Sweep** method `constant` (`parry/src/query/sweep_toi/sweep.rs`)
-- **Sweep** method `final_transform` (`parry/src/query/sweep_toi/sweep.rs`)
-- **Sweep** method `from_poses` (`parry/src/query/sweep_toi/sweep.rs`)
-- **Sweep** method `shifted` (`parry/src/query/sweep_toi/sweep.rs`)
-- **Sweep** method `transform_at` (`parry/src/query/sweep_toi/sweep.rs`)
-- **Sweep** type `Sweep` (`parry/src/query/sweep_toi/sweep.rs`)
-- **SweepCompositeFastShape** type `SweepCompositeFastShape` (`parry/src/query/sweep_toi/composite.rs`)
-- **SweepToiOutput** type `SweepToiOutput` (`parry/src/query/sweep_toi/sweep_toi.rs`)
-- **SweepToiStatus** type `SweepToiStatus` (`parry/src/query/sweep_toi/sweep_toi.rs`)
-- **ToiProxy** method `compute_aabb` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** method `from_array` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** method `from_points` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** method `from_shape` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** method `point` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** method `points` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** method `support` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **ToiProxy** type `ToiProxy` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **parry::query** const `CORE_FRACTION` (`parry/src/query/sweep_toi/composite.rs`)
-- **parry::query** const `TOI_PROXY_INLINE_POINTS` (`parry/src/query/sweep_toi/toi_proxy.rs`)
-- **parry::query** function `cast_shapes` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **parry::query** function `cast_shapes_ball_ball` (`parry/src/query/shape_cast/shape_cast_ball_ball.rs`)
-- **parry::query** function `cast_shapes_composite_shape_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
-- **parry::query** function `cast_shapes_halfspace_support_map` (`parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs`)
-- **parry::query** function `cast_shapes_heightfield_shape` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
-- **parry::query** function `cast_shapes_nonlinear` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast.rs`)
-- **parry::query** function `cast_shapes_nonlinear_composite_shape_shape` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
-- **parry::query** function `cast_shapes_nonlinear_halfspace_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
-- **parry::query** function `cast_shapes_nonlinear_shape_composite_shape` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
-- **parry::query** function `cast_shapes_nonlinear_support_map_halfspace` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
-- **parry::query** function `cast_shapes_nonlinear_support_map_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs`)
-- **parry::query** function `cast_shapes_shape_composite_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
-- **parry::query** function `cast_shapes_shape_heightfield` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
-- ... 6 more
 
 ### WP: API polish and miscellaneous parity
 
@@ -5051,6 +4965,45 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 
+### WP: CCD and shape casts
+
+Tier: hard. Depends/context: QP queries. Estimate: 34 public items.
+
+- **CCDSolver** method `find_first_impact` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
+- **CCDSolver** method `invalidate_fixed_targets_cache` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
+- **CCDSolver** method `new` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
+- **CCDSolver** method `solve_continuous` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
+- **CCDSolver** method `update_ccd_active_flags` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
+- **CCDSolver** type `CCDSolver` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
+- **CompositeShapeRef** method `cast_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
+- **CompositeShapeRef** method `cast_shape_nonlinear` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
+- **RigidBody** method `enable_ccd` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBody** method `is_ccd_active` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBody** method `is_ccd_enabled` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBody** method `set_soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBody** method `soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBodyBuilder** method `ccd_enabled` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBodyBuilder** method `soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
+- **RigidBodyCcd** const `FAST_BODY_SAFETY_FACTOR` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyCcd** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyCcd** method `is_moving_fast` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyCcd** method `is_moving_fast_with_next_position` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyCcd** method `max_point_velocity` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **RigidBodyCcd** type `RigidBodyCcd` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **Shape** method `ccd_angular_thickness` (`parry/src/shape/shape.rs`)
+- **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
+- **SweepCompositeFastShape** type `SweepCompositeFastShape` (`parry/src/query/sweep_toi/composite.rs`)
+- **parry::query** const `CORE_FRACTION` (`parry/src/query/sweep_toi/composite.rs`)
+- **parry::query** function `cast_shapes_composite_shape_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
+- **parry::query** function `cast_shapes_heightfield_shape` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
+- **parry::query** function `cast_shapes_nonlinear_composite_shape_shape` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
+- **parry::query** function `cast_shapes_nonlinear_halfspace_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
+- **parry::query** function `cast_shapes_nonlinear_shape_composite_shape` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
+- **parry::query** function `cast_shapes_nonlinear_support_map_halfspace` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
+- **parry::query** function `cast_shapes_shape_composite_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
+- **parry::query** function `cast_shapes_shape_heightfield` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
+- **parry::query** function `sweep_time_of_impact_composite` (`parry/src/query/sweep_toi/composite.rs`)
+
 ### WP: Character controller
 
 Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
@@ -5185,8 +5138,11 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** const `CONVEX_BALL` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `CUBOID_CUBOID` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `OTHER` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
+- **Alternatives** method `cast_conservative_advancement` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `cast_ray_aabb_pretest` (`crates/rapier2d/src/queries/alternatives.cairo`)
 - **Alternatives** method `cast_ray_grid` (`crates/rapier2d/src/queries/alternatives.cairo`)
+- **Alternatives** method `cast_shape_direct` (`crates/rapier2d/src/queries/shape_casts/alternatives.cairo`)
+- **Alternatives** method `cast_shape_nonlinear_direct` (`crates/rapier2d/src/queries/shape_casts/alternatives.cairo`)
 - **Alternatives** method `closest_pair_exhaustive` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
 - **Alternatives** method `collect_if_enabled` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `collect_world` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
@@ -5202,6 +5158,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `contact_manifold_plain_outlined` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_shapes_chain` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_step_fallback` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
+- **Alternatives** method `cso_cast_clipped` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `cuboid_cuboid_upstream_sat` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `distance_exhaustive` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
 - **Alternatives** method `distance_witness` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
@@ -5221,6 +5178,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `midpoint_two_stage` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `pair_key` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
 - **Alternatives** method `point_polygon_projection` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
+- **Alternatives** method `position_at_time_branch` (`crates/rapier_geometry2d/src/query/nonlinear_shape_cast/alternatives.cairo`)
 - **Alternatives** method `segment_segment_endpoints` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `solve` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `solve_all_manifolds` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
@@ -5314,12 +5272,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Ball** method `local_support_point_toward` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `mass_properties` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `project_local_point_and_get_feature_ball` (`crates/rapier_geometry2d/src/point/ball.cairo`)
-- **Ball** method `project_local_point_ball` (`crates/rapier_geometry2d/src/point/ball.cairo`)
-- **Ball** method `sqrt_discriminant` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
-- **BallBall** method `contact_manifold_ball_ball` (`crates/rapier_geometry2d/src/contact_generators/ball_ball.cairo`)
-- **BallBall** method `contact_manifold_ball_ball_shapes` (`crates/rapier_geometry2d/src/contact_generators/ball_ball.cairo`)
-- **BodyInfo** type `BodyInfo` (`crates/rapier2d/src/pipeline.cairo`)
-- ... 1021 more
+- ... 1065 more
 
 ## Embedded Rust inventory
 
