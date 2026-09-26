@@ -24,6 +24,7 @@ mod scenes;
 mod segment_segment;
 mod sensor_trigger;
 mod sh1;
+mod shape_casts;
 mod shape_queries;
 mod shapes;
 
@@ -72,7 +73,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 19] = [
+        let families: [Family; 22] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -92,6 +93,9 @@ fn main() {
             ("triangle_contacts", sh1::triangle_contacts),
             ("round_shape_contacts", sh1::round_shape_contacts),
             ("sh1_queries", sh1::sh1_queries),
+            ("shape_casts", shape_casts::shape_casts),
+            ("nonlinear_shape_casts", shape_casts::nonlinear_shape_casts),
+            ("sweep_toi", shape_casts::sweep_toi),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

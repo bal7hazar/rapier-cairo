@@ -18,6 +18,7 @@ mod polygons;
 mod scenes;
 mod sensors;
 mod sh1;
+mod shape_casts;
 mod shape_queries;
 mod sleep_impact;
 
@@ -699,6 +700,11 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
     files.extend(levels::generate(vectors));
     files.extend(
         sh1::files(vectors)
+            .into_iter()
+            .map(|(name, content)| (&*Box::leak(name.into_boxed_str()), content)),
+    );
+    files.extend(
+        shape_casts::files(vectors)
             .into_iter()
             .map(|(name, content)| (&*Box::leak(name.into_boxed_str()), content)),
     );

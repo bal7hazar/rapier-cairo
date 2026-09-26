@@ -38,7 +38,8 @@
 //!
 //! QY2 adds the rest of the world-level surface (`pipeline`): [`intersect_shape`],
 //! [`project_point_and_get_feature`], [`QueryPipeline`] (a filter bundle, upstream's `with_filter`
-//! chain) and the `QueryFilterFlags` type.
+//! chain) and the `QueryFilterFlags` type. CC1 adds the shape casts ([`shape_casts`]):
+//! [`cast_shape`] and [`cast_shape_nonlinear`].
 //!
 //! Deviations: [`intersect_aabb`] (and its upstream name [`intersect_aabb_conservative`]) tests
 //! the collider's tight world AABB, where upstream tests the (possibly enlarged) AABB stored in
@@ -68,9 +69,12 @@ use crate::world::World;
 
 /// `QueryPipeline` view, `intersect_shape` and `project_point_and_get_feature`.
 pub mod pipeline;
+/// `cast_shape` and `cast_shape_nonlinear` (CC1).
+pub mod shape_casts;
 pub use pipeline::{
     QueryPipeline, QueryPipelineTrait, intersect_shape, project_point_and_get_feature,
 };
+pub use shape_casts::{cast_shape, cast_shape_nonlinear};
 
 #[cfg(test)]
 mod alternatives;

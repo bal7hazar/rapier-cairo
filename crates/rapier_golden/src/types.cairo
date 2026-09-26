@@ -3,6 +3,12 @@
 //! Every `i64` is a raw Q32.32 number (`value = raw / 2^32`). Inputs are exact; expected values
 //! are the upstream `f64` rounded to the nearest raw (ties away from zero).
 
+pub mod cc1;
+pub use cc1::{
+    NonlinearMotionRaw, NonlinearShapeCastCase, ShapeCastCase, ShapeCastHitRaw, ShapeCastOptionsRaw,
+    SweepToiCase,
+};
+
 /// A 2D vector.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct Vec2Raw {

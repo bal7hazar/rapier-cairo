@@ -24,6 +24,7 @@
 //! caller, each arm is charged only when taken.
 
 use fixed::Fixed;
+use glam::Vec2;
 use rapier_math::pose2::Pose2;
 use crate::shape::Shape;
 use super::ball::{
@@ -38,7 +39,9 @@ use super::halfspace::{
     contact_halfspace_support_map, contact_support_map_halfspace, distance_halfspace_support_map,
     distance_support_map_halfspace,
 };
+use super::nonlinear_shape_cast::{NonlinearRigidMotion, cast_shapes_nonlinear};
 use super::segment::{closest_points_segment_segment, distance_segment_segment};
+use super::shape_cast::{ShapeCastHit, ShapeCastOptions, cast_shapes_local};
 use super::support_map::{
     closest_points_support_map_support_map, contact_support_map_support_map,
     distance_support_map_support_map,
@@ -138,6 +141,26 @@ pub trait QueryDispatcher<T> {
     fn closest_points(
         self: @T, pos12: Pose2, shape1: Shape, shape2: Shape, max_dist: Fixed,
     ) -> Option<ClosestPoints>;
+    /// See `super::shape_cast::cast_shapes_local`.
+    fn cast_shapes(
+        self: @T,
+        pos12: Pose2,
+        local_vel12: Vec2,
+        shape1: Shape,
+        shape2: Shape,
+        options: ShapeCastOptions,
+    ) -> Option<Option<ShapeCastHit>>;
+    /// See `super::nonlinear_shape_cast::cast_shapes_nonlinear`.
+    fn cast_shapes_nonlinear(
+        self: @T,
+        motion1: NonlinearRigidMotion,
+        shape1: Shape,
+        motion2: NonlinearRigidMotion,
+        shape2: Shape,
+        start_time: Fixed,
+        end_time: Fixed,
+        stop_at_penetration: bool,
+    ) -> Option<Option<ShapeCastHit>>;
 }
 
 /// Parry's `DefaultQueryDispatcher`: the tables of this module.
@@ -172,6 +195,32 @@ pub impl DefaultQueryDispatcherImpl of QueryDispatcher<DefaultQueryDispatcher> {
         self: @DefaultQueryDispatcher, pos12: Pose2, shape1: Shape, shape2: Shape, max_dist: Fixed,
     ) -> Option<ClosestPoints> {
         closest_points(pos12, shape1, shape2, max_dist)
+    }
+    #[inline(always)]
+    fn cast_shapes(
+        self: @DefaultQueryDispatcher,
+        pos12: Pose2,
+        local_vel12: Vec2,
+        shape1: Shape,
+        shape2: Shape,
+        options: ShapeCastOptions,
+    ) -> Option<Option<ShapeCastHit>> {
+        cast_shapes_local(pos12, local_vel12, shape1, shape2, options)
+    }
+    #[inline(always)]
+    fn cast_shapes_nonlinear(
+        self: @DefaultQueryDispatcher,
+        motion1: NonlinearRigidMotion,
+        shape1: Shape,
+        motion2: NonlinearRigidMotion,
+        shape2: Shape,
+        start_time: Fixed,
+        end_time: Fixed,
+        stop_at_penetration: bool,
+    ) -> Option<Option<ShapeCastHit>> {
+        cast_shapes_nonlinear(
+            motion1, shape1, motion2, shape2, start_time, end_time, stop_at_penetration,
+        )
     }
 }
 
@@ -208,5 +257,19 @@ mod tests {
         assert!(d.contact(pos12, hs, hs, ONE).is_none());
         assert!(d.closest_points(pos12, hs, hs, ONE).is_none());
         assert!(d.intersection_test(pos12, hs, hs).is_none());
+        let left = Vec2 { x: -ONE, y: ZERO };
+        assert_eq!(
+            d.cast_shapes(pos12, left, ball, cuboid, Default::default()),
+            crate::query::shape_cast::cast_shapes_local(
+                pos12, left, ball, cuboid, Default::default(),
+            ),
+        );
+        assert!(d.cast_shapes(pos12, left, hs, hs, Default::default()).is_none());
+        let still = crate::query::NonlinearRigidMotionTrait::identity();
+        assert!(d.cast_shapes_nonlinear(still, hs, still, ball, ZERO, ONE, true).is_none());
+        assert_eq!(
+            d.cast_shapes_nonlinear(still, ball, still, cuboid, ZERO, ONE, true),
+            crate::query::cast_shapes_nonlinear(still, ball, still, cuboid, ZERO, ONE, true),
+        );
     }
 }
