@@ -357,7 +357,7 @@ pub(crate) fn generate_cached(
     result
 }
 
-fn resolve(mut bodies: Span<SolverBody>, handle: Option<Handle>) -> u32 {
+pub(crate) fn resolve(mut bodies: Span<SolverBody>, handle: Option<Handle>) -> u32 {
     let Some(h) = handle else {
         return WORLD;
     };
@@ -370,7 +370,7 @@ fn resolve(mut bodies: Span<SolverBody>, handle: Option<Handle>) -> u32 {
     }
     core::panic_with_felt252(errors::BODY)
 }
-fn validate_mass(b: SolverBody) {
+pub(crate) fn validate_mass(b: SolverBody) {
     assert(b.im.x >= ZERO && b.im.y >= ZERO && b.ii >= ZERO, errors::NEGATIVE);
 }
 
@@ -467,7 +467,7 @@ pub(crate) fn midpoint(sc: SolverContact, dir: Vec2, com1: Vec2, com2: Vec2) -> 
 /// pose), else `R^T * dp`, equal to `inverse_transform_point(point)` because a non-world solver
 /// body is the original one (translation = centre of mass) and saves the subtraction.
 #[inline(always)]
-fn local_anchor(b: SolverBody, world: bool, point: Vec2, dp: Vec2) -> Vec2 {
+pub(crate) fn local_anchor(b: SolverBody, world: bool, point: Vec2, dp: Vec2) -> Vec2 {
     if world {
         point
     } else {

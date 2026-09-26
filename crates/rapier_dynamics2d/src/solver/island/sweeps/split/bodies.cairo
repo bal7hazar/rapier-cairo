@@ -5,9 +5,11 @@
 //! sweeps change nothing else). `WORLD` reads as the identity body and ignores writes.
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::nullable::{FromNullableResult, NullableTrait, match_nullable};
-use fixed::{Fixed, MAX};
-use glam::Vec2Trait;
+use fixed::wide::mul_add;
+use fixed::{Fixed, MAX, ZERO};
+use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
+use rapier_math::rot2::Rot2Trait;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use super::super::super::super::body::{SolverBody, SolverVel, WORLD};
 use super::super::super::super::body_store::{BodyStep, DenseBodiesTrait, errors};
@@ -68,21 +70,40 @@ pub(crate) impl SweepBodiesImpl of SweepBodiesTrait {
             if *steps.at(i).moving {
                 let mut v = self.vel(i);
                 // Sentinel guard is before length computation: disabled caps need no sqrt.
+                // BT3: an unclamped velocity is not written back (it is unchanged).
+                let mut clamped = false;
                 if max_lin != MAX {
                     let length = v.linear.length();
                     if length > max_lin {
                         v.linear = v.linear.mul_scalar(max_lin / length);
+                        clamped = true;
                     }
                 }
                 if v.angular > max_ang {
                     v.angular = max_ang;
+                    clamped = true;
                 }
                 if v.angular < -max_ang {
                     v.angular = -max_ang;
+                    clamped = true;
                 }
-                let rv = RigidBodyVelocity { linvel: v.linear, angvel: v.angular };
-                out.append(rv.integrate(dt, pose, Default::default()));
-                self.vels.insert(i.into(), NullableTrait::new(v));
+                // `RigidBodyVelocity::integrate` with a zero local centre of mass (BT3): its
+                // `(R - R') * local_com` terms are exact zeros, so each translation component
+                // is `mul_add(v, dt, t)`, the same floor of the same sum.
+                let rotation = pose.rotation.integrate(v.angular, dt);
+                let t = pose.translation;
+                out
+                    .append(
+                        Pose2 {
+                            translation: Vec2 {
+                                x: mul_add(v.linear.x, dt, t.x), y: mul_add(v.linear.y, dt, t.y),
+                            },
+                            rotation,
+                        },
+                    );
+                if clamped {
+                    self.vels.insert(i.into(), NullableTrait::new(v));
+                }
             } else {
                 out.append(pose);
             }
@@ -96,10 +117,12 @@ pub(crate) impl SweepBodiesImpl of SweepBodiesTrait {
         let mut i = 0;
         while i != n {
             let step = steps.at(i);
-            if *step.moving {
+            let damping = *step.damping;
+            // BT3: zero damping is an exact identity (`ONE / (ONE + dt * 0) == ONE`).
+            if *step.moving && (damping.linear_damping != ZERO || damping.angular_damping != ZERO) {
                 let v = self.vel(i);
                 let d = RigidBodyVelocity { linvel: v.linear, angvel: v.angular }
-                    .apply_damping(dt, *step.damping);
+                    .apply_damping(dt, damping);
                 self
                     .vels
                     .insert(

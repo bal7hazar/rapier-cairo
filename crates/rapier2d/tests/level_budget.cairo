@@ -89,37 +89,37 @@ fn gas_baseline() {
 }
 
 #[test]
-#[available_gas(l2_gas: 71511344)]
+#[available_gas(l2_gas: 63116022)]
 fn gas_load_level10() {
     probe(10, 0, 0);
 }
 
 #[test]
-#[available_gas(l2_gas: 128160589)]
+#[available_gas(l2_gas: 119583921)]
 fn gas_flight_level10() {
     probe(10, 0, FLIGHT);
 }
 
 #[test]
-#[available_gas(l2_gas: 424805570)]
+#[available_gas(l2_gas: 361143245)]
 fn gas_impact_level10() {
     probe(10, 0, IMPACT);
 }
 
 #[test]
-#[available_gas(l2_gas: 130833991)]
+#[available_gas(l2_gas: 114609892)]
 fn gas_load_level20() {
     probe(20, 0, 0);
 }
 
 #[test]
-#[available_gas(l2_gas: 203795873)]
+#[available_gas(l2_gas: 187390428)]
 fn gas_flight_level20() {
     probe(20, 0, FLIGHT);
 }
 
 #[test]
-#[available_gas(l2_gas: 541898819)]
+#[available_gas(l2_gas: 470407718)]
 fn gas_impact_level20() {
     probe(20, 0, IMPACT);
 }

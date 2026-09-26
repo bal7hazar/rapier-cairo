@@ -84,7 +84,7 @@
 //! (`gas_step_outlined_ball_ball`); a warm cuboid–cuboid pair 617 230 against 1 039 730 for
 //! [`contact_manifold`] (`gas_*_cuboid_cuboid_warm`, common setup).
 
-use fixed::Fixed;
+use fixed::{Fixed, ZERO};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::contact::{ContactManifold, ContactManifoldTrait};
 use crate::contact_generators::ball_ball::contact_manifold_ball_ball;
@@ -95,16 +95,18 @@ use crate::contact_generators::convex_ball::{
 use crate::contact_generators::cuboid_capsule::{
     contact_manifold_cuboid_capsule, contact_manifold_cuboid_capsule_shapes,
 };
-use crate::contact_generators::cuboid_cuboid::contact_manifold_cuboid_cuboid;
+use crate::contact_generators::cuboid_cuboid::{contact_manifold_cuboid_cuboid, cuboid_cuboid_fresh};
 use crate::contact_generators::cuboid_segment::{
     contact_manifold_cuboid_segment, contact_manifold_cuboid_segment_shapes,
 };
 use crate::contact_generators::halfspace_pfm::contact_manifold_halfspace_pfm;
 use crate::contact_generators::polygon_polygon::{
-    contact_manifold_polygon_cuboid, contact_manifold_polygon_polygon,
+    contact_manifold_polygon_cuboid, contact_manifold_polygon_polygon, polygon_cuboid_fresh,
+    polygon_polygon_fresh,
 };
 use crate::contact_generators::polygon_segment::{
     contact_manifold_polygon_capsule, contact_manifold_polygon_segment,
+    generate_fresh as polygon_segment_fresh,
 };
 use crate::manifold::ManifoldTrait;
 use crate::shape::Shape;
@@ -361,9 +363,13 @@ pub fn contact_manifold(
 ///
 /// The cuboid–cuboid, cuboid–capsule and cuboid–segment generators (both orders) start with
 /// `manifold.try_update_contacts(pos12)` and return when it succeeds. This function runs that
-/// check itself and calls the generator only when it fails (the generator repeats it;
-/// `try_update_contacts` leaves the manifold untouched when it fails), so a resting pair skips
-/// the generator's call, which Sierra gas charges its costliest path (SAT and clipping).
+/// check itself and calls the generator only when it fails (`try_update_contacts` leaves the
+/// manifold untouched when it fails), so a resting pair skips the generator's call, which Sierra
+/// gas charges its costliest path (SAT and clipping). Since BT3 the cuboid–cuboid and the
+/// non-reversed polygon arms call the generator's `*_fresh` entry, which does not repeat the
+/// check (a moving warm cuboid pair: 7 326 → 6 845 Cairo steps, `gas_step_*cuboid_cuboid_moved`;
+/// the level-10 impact tick's contact generation −3.7k steps); the capsule and segment arms keep
+/// their generator's own check (the segment one uses other thresholds).
 /// Results are bit-identical to [`contact_manifold`] on every pair; the only difference is that a
 /// capsule–cuboid or segment–cuboid pair whose fast path succeeds skips the generator's
 /// `pos12.inverse()`, whose only effect is a panic on an unrepresentable pose.
@@ -391,7 +397,7 @@ pub fn contact_manifold_step(
             Shape::Cuboid(cuboid1), Shape::Cuboid(cuboid2),
         ) => {
             if !manifold.try_update_contacts(pos12) {
-                contact_manifold_cuboid_cuboid(pos12, cuboid1, cuboid2, prediction, ref manifold);
+                cuboid_cuboid_fresh(pos12, cuboid1, cuboid2, prediction, ref manifold);
             }
             true
         },
@@ -471,9 +477,7 @@ pub fn contact_manifold_step(
             Shape::ConvexPolygon(a), Shape::ConvexPolygon(b),
         ) => {
             if !manifold.try_update_contacts(pos12) {
-                contact_manifold_polygon_polygon(
-                    pos12, a.unbox(), b.unbox(), prediction, ref manifold,
-                );
+                polygon_polygon_fresh(pos12, a.unbox(), b.unbox(), prediction, ref manifold);
             }
             true
         },
@@ -481,9 +485,7 @@ pub fn contact_manifold_step(
             Shape::ConvexPolygon(a), Shape::Cuboid(b),
         ) => {
             if !manifold.try_update_contacts(pos12) {
-                contact_manifold_polygon_cuboid(
-                    pos12, a.unbox(), b, prediction, false, ref manifold,
-                );
+                polygon_cuboid_fresh(pos12, a.unbox(), b, prediction, false, ref manifold);
             }
             true
         },
@@ -499,9 +501,7 @@ pub fn contact_manifold_step(
             Shape::ConvexPolygon(a), Shape::Segment(b),
         ) => {
             if !manifold.try_update_contacts(pos12) {
-                contact_manifold_polygon_segment(
-                    pos12, a.unbox(), b, prediction, false, ref manifold,
-                );
+                polygon_segment_fresh(pos12, a.unbox(), b, ZERO, prediction, false, ref manifold);
             }
             true
         },
@@ -517,8 +517,8 @@ pub fn contact_manifold_step(
             Shape::ConvexPolygon(a), Shape::Capsule(b),
         ) => {
             if !manifold.try_update_contacts(pos12) {
-                contact_manifold_polygon_capsule(
-                    pos12, a.unbox(), b, prediction, false, ref manifold,
+                polygon_segment_fresh(
+                    pos12, a.unbox(), b.segment, b.radius, prediction, false, ref manifold,
                 );
             }
             true

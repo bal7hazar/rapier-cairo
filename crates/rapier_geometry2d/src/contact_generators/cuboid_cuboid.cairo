@@ -28,6 +28,32 @@ pub fn contact_manifold_cuboid_cuboid(
     if manifold.try_update_contacts(pos12) {
         return;
     }
+    regenerate(pos12, cuboid1, cuboid2, prediction, ref manifold);
+}
+
+/// [`contact_manifold_cuboid_cuboid`] without its persistence check, for a caller that ran
+/// `try_update_contacts(pos12)` itself and saw it fail (it leaves the manifold untouched then):
+/// `dispatch::contact_manifold_step` (BT3, which called it twice).
+#[inline(never)]
+pub(crate) fn cuboid_cuboid_fresh(
+    pos12: Pose2,
+    cuboid1: Cuboid,
+    cuboid2: Cuboid,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) {
+    regenerate(pos12, cuboid1, cuboid2, prediction, ref manifold);
+}
+
+/// Two-way SAT then clipping: the body of both entries (inlined in each, no extra frame).
+#[inline(always)]
+fn regenerate(
+    pos12: Pose2,
+    cuboid1: Cuboid,
+    cuboid2: Cuboid,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) {
     let pos21 = pos12.inverse();
     let (sep1, axis1) = cuboid_cuboid_find_local_separating_normal_oneway(cuboid1, cuboid2, pos12);
     if sep1 > prediction {
