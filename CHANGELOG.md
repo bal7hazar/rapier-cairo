@@ -5,8 +5,10 @@ whether simulation results changed.
 
 ## Unreleased
 
-**Results:** the step is unchanged since `0.1.0-alpha.3` (every golden vector and scene test, and the contract class
-sizes, identical). `WorldState` unchanged (version 2).
+**Results:** the step is unchanged since `0.1.0-alpha.3` for the existing shapes: every golden vector and scene test
+gives the same results in the same Cairo steps (Sierra gas of existing probes ≤ +0.3 %, from the new `Shape` arms).
+`WorldState` unchanged (version 2; states holding only the old shapes serialize as before). Contract class sizes grew
+with the new shapes (the class-size path is closed for the MVP, `docs/research/class-size.md`).
 
 ### Breaking
 - `QueryFilter.flags` is a `QueryFilterFlags` (was a `u32`); the `EXCLUDE_*` / `ONLY_*` constants are typed
@@ -29,6 +31,10 @@ sizes, identical). `WorldState` unchanged (version 2).
 - Parity leftovers: `RigidBodyActivationTrait::default_*` thresholds, `Default` for `RigidBodyChanges` / `ActiveEvents`,
   `Into<RigidBodyPosition>` from `Pose2`, `RigidBodyColliders`, `ShapeIntersection`, parry's `intersection_test_*`
   entry points (#170).
+- Shapes: `Triangle` and round shapes (`RoundShape` over a cuboid, a triangle or a convex polygon) as new `Shape`
+  variants with every query and contact manifolds against every shape, `ColliderBuilder::{triangle, round_triangle,
+  round_cuboid, round_convex_hull, round_convex_polyline, convex_polyline}`, golden families from parry2d-f64; the
+  existing shapes' Cairo steps are unchanged (ADR 0001 entries 27–29) (#174).
 
 ## 0.1.0-alpha.3 — 2026-09-26
 

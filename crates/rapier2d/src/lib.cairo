@@ -40,6 +40,10 @@ pub mod prelude {
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
+    pub use rapier_geometry2d::shape::round_shape::{
+        RoundConvexPolygon, RoundCuboid, RoundShape, RoundShapeTrait, RoundTriangle,
+    };
+    pub use rapier_geometry2d::shape::triangle::{Triangle, TriangleTrait};
     pub use rapier_math::pose2::{Pose2, Pose2Trait};
     pub use rapier_math::rot2::{Rot2, Rot2Trait};
     pub use crate::dispatcher::DefaultDispatcher;
