@@ -10,9 +10,10 @@ pub fn user_changes_copied_body(
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in snapshot {
         if !collider.changes.is_empty() {
-            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched);
+            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched, ref fresh);
             dirty = true;
         }
     }
@@ -25,7 +26,7 @@ pub fn user_changes_copied_body(
             *body
         } else {
             bodies_dirty = true;
-            body_changes(*handle, *body, ref bodies, ref colliders, ref touched)
+            body_changes(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span())
         };
         // Mass changes must precede COM-based interpolation. Meter the computing arm
         // so ordinary dynamic/fixed bodies do not pay for trig or a body-set write.
@@ -77,9 +78,10 @@ pub fn user_changes_per_body(
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in snapshot {
         if !collider.changes.is_empty() {
-            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched);
+            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched, ref fresh);
             dirty = true;
         }
     }
@@ -98,7 +100,9 @@ pub fn user_changes_per_body(
             )
         } else {
             bodies_dirty = true;
-            let body = body_changes(*handle, *body, ref bodies, ref colliders, ref touched);
+            let body = body_changes(
+                *handle, *body, ref bodies, ref colliders, ref touched, fresh.span(),
+            );
             census.count(@body);
             (
                 body.body_type,
@@ -146,9 +150,10 @@ pub fn user_changes_second_walk(
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in snapshot {
         if !collider.changes.is_empty() {
-            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched);
+            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched, ref fresh);
             dirty = true;
         }
     }
@@ -168,7 +173,9 @@ pub fn user_changes_second_walk(
             )
         } else {
             bodies_dirty = true;
-            let body = body_changes(*handle, *body, ref bodies, ref colliders, ref touched);
+            let body = body_changes(
+                *handle, *body, ref bodies, ref colliders, ref touched, fresh.span(),
+            );
             census.count(@body);
             (
                 body.body_type,

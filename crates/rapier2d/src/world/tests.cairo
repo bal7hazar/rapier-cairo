@@ -8,7 +8,7 @@ use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::events::CollisionEvent;
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
-use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};
+use rapier_dynamics2d::rigid_body_set::{RigidBodyBuilderTrait, RigidBodySetTrait, RigidBodyTrait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 use rapier_testing::opaque;
@@ -420,4 +420,153 @@ fn gas_all_colliders() {
 fn gas_default() {
     let world: World = Default::default();
     let _ = opaque(world.gravity);
+}
+
+/// Six unit cuboids built `sleeping(true)` (3 columns of 2, spacing `1 + gap`, lowest at
+/// `y = 0.5 + gap` above a fixed ground whose top is `y = 0`, or no ground), an awake ball far
+/// away. Returns the world and the six block handles.
+fn insert_asleep_world(gap: Fixed, ground: bool) -> (World, Array<Handle>) {
+    let mut world: World = Default::default();
+    if ground {
+        let _ = world
+            .insert(
+                RigidBodyTrait::fixed(at(ZERO, ZERO)),
+                ColliderBuilderTrait::cuboid(FixedTrait::from_int(10), HALF).build(),
+            );
+    }
+    let step = ONE + gap;
+    let mut blocks = array![];
+    let mut i: u32 = 0;
+    while i != 6 {
+        let column: i32 = (i / 2).try_into().unwrap();
+        let row: i32 = (i % 2).try_into().unwrap();
+        let x = step * FixedTrait::from_int(column);
+        let y = ONE + gap + step * FixedTrait::from_int(row);
+        let body = RigidBodyBuilderTrait::dynamic()
+            .translation(Vec2 { x, y })
+            .sleeping(true)
+            .build();
+        let (h, _) = world.insert(body, ColliderBuilderTrait::cuboid(HALF, HALF).build());
+        blocks.append(h);
+        i += 1;
+    }
+    let pebble = RigidBodyTrait::dynamic(at(FixedTrait::from_int(-8), FixedTrait::from_int(5)));
+    let _ = world.insert(pebble, ColliderBuilderTrait::ball(Fixed { raw: 858993459 }).build());
+    (world, blocks)
+}
+
+fn asleep_blocks(ref world: World, blocks: Span<Handle>) -> u32 {
+    let mut n = 0;
+    for h in blocks {
+        if world.body(*h).unwrap().is_sleeping() {
+            n += 1;
+        }
+    }
+    n
+}
+
+/// BT2 addendum A, against upstream rapier2d-f64 0.35.3 (the same scene run in `tools/golden`,
+/// 2026-09-25): bodies inserted asleep stay asleep while nothing touches them (with or without
+/// the ground: a collider inserted since the last step wakes nobody), and a pile inserted asleep
+/// in contact wakes at its first step (the contacts start: upstream `strong_wake_sleeping_side`).
+/// Upstream after 1 and 10 steps: gap 0 → 0 of 6 blocks asleep; gap 0.5 → 6 of 6. A later
+/// friction change wakes nobody (no change flag, as upstream).
+fn insert_asleep_case(gap: Fixed, ground: bool, expected: u32, steps: u32) {
+    let (mut world, blocks) = insert_asleep_world(gap, ground);
+    let _ = world.step();
+    assert_eq!(asleep_blocks(ref world, blocks.span()), expected, "step 1");
+    let mut t = 1;
+    while t != steps {
+        let _ = world.step();
+        t += 1;
+    }
+    assert_eq!(asleep_blocks(ref world, blocks.span()), expected, "later step");
+    let co = *world.body(*blocks.at(0)).unwrap().colliders.at(0);
+    let mut collider = world.collider(co).unwrap();
+    collider.set_friction(Fixed { raw: 1288490189 });
+    assert!(world.set_collider(co, collider));
+    let _ = world.step();
+    assert_eq!(asleep_blocks(ref world, blocks.span()), expected, "friction change");
+}
+
+/// Apart: every block stays asleep (10 steps, as upstream's record).
+#[test]
+fn test_insert_asleep_apart_stays_asleep() {
+    insert_asleep_case(HALF, true, 6, 10);
+    insert_asleep_case(HALF, false, 6, 10);
+}
+
+/// In contact: the pile wakes at its first step (2 steps here: the step budget of a unit test).
+#[test]
+fn test_insert_asleep_pile_wakes() {
+    insert_asleep_case(ZERO, true, 0, 2);
+    insert_asleep_case(ZERO, false, 0, 2);
+}
+
+/// Addendum B: the cheap activation reads against a whole-body copy (steps are the measure,
+/// `--tracked-resource cairo-steps`): `probe(k)` reads one body of a 3-body world `k` ways.
+fn read_probe(kind: u8) {
+    let (mut world, a, _, _) = pair_world();
+    let h = opaque(a);
+    if kind == 1 {
+        let _ = opaque(world.body(h));
+    } else if kind == 2 {
+        let _ = opaque(world.body(h).unwrap().is_sleeping());
+    } else if kind == 3 {
+        let _ = opaque(world.is_sleeping(h));
+    } else if kind == 4 {
+        let _ = opaque(world.linvel(h));
+    } else if kind == 5 {
+        let _ = opaque(world.angvel(h));
+    }
+}
+
+#[test]
+fn gas_read_setup() {
+    read_probe(0);
+}
+
+#[test]
+fn gas_read_body() {
+    read_probe(1);
+}
+
+#[test]
+fn gas_read_body_is_sleeping() {
+    read_probe(2);
+}
+
+#[test]
+fn gas_read_is_sleeping() {
+    read_probe(3);
+}
+
+#[test]
+fn gas_read_linvel() {
+    read_probe(4);
+}
+
+#[test]
+fn gas_read_angvel() {
+    read_probe(5);
+}
+
+#[test]
+fn test_activation_reads() {
+    let (mut world, a, _, _) = pair_world();
+    let mut body = world.body(a).unwrap();
+    body.set_linvel(Vec2 { x: ONE, y: HALF });
+    body.set_angvel(HALF);
+    assert!(world.set_body(a, body));
+    assert_eq!(world.is_sleeping(a), Some(false));
+    assert_eq!(world.linvel(a), Some(Vec2 { x: ONE, y: HALF }));
+    assert_eq!(world.angvel(a), Some(HALF));
+    let mut body = world.body(a).unwrap();
+    body.sleep();
+    assert!(world.set_body(a, body));
+    assert_eq!(world.is_sleeping(a), Some(true));
+    let stale = Handle { index: a.index, generation: a.generation + 1 };
+    assert_eq!(world.is_sleeping(stale), None);
+    assert_eq!(world.linvel(stale), None);
+    assert_eq!(world.angvel(stale), None);
 }

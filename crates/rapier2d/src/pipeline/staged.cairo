@@ -20,7 +20,7 @@ use rapier_dynamics2d::solver::island::solve_island;
 use rapier_geometry2d::broad_phase::find_pairs;
 use crate::dispatcher::DefaultDispatcher;
 use super::{
-    active_joints, any_sleeping, body_infos, collision_inputs_sleeping, immovable, islands,
+    active_joints, any_sleeping, body_infos, collision_inputs_with_events, immovable, islands,
     joint_values, merge_pairs, moving, scatter_touching, solve_order, split_dormant,
     split_dormant_existing, user_changes, write_joints,
 };
@@ -48,12 +48,27 @@ pub fn detect_collisions_with_prediction(
     ref colliders: ColliderSet,
     ref narrow_phase: NarrowPhase,
 ) -> Array<CollisionEvent> {
+    detect_collisions_fresh(
+        prediction, ref bodies, ref colliders, ref narrow_phase, array![].span(),
+    )
+}
+
+/// [`detect_collisions_with_prediction`] with the colliders inserted since the last step
+/// (`user_changes::handle_user_changes_fresh`), whose proxies are not static on a sleeping parent.
+pub(crate) fn detect_collisions_fresh(
+    prediction: Fixed,
+    ref bodies: RigidBodySet,
+    ref colliders: ColliderSet,
+    ref narrow_phase: NarrowPhase,
+    fresh: Span<Handle>,
+) -> Array<CollisionEvent> {
     let snapshot = colliders.iter().span();
     let entries = bodies.iter().span();
     let (infos, _) = body_infos(entries);
-    let (proxies, scratch, sleeping) = collision_inputs_sleeping(
+    let (proxies, scratch, sleeping, _) = collision_inputs_with_events(
         snapshot, infos.span(), ref bodies, prediction,
     );
+    let proxies = super::sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries);
     let mut dormant = array![];
     if sleeping {
         let (active, asleep) = split_dormant_existing(narrow_phase.pairs.span(), entries, snapshot);

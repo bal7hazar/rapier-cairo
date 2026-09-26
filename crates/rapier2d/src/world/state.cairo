@@ -6,14 +6,18 @@
 //! (generation counter, capacity, free list and live entries: bodies with their activation, sleep
 //! state and change flags; colliders; joints with their accumulated impulses) and the
 //! narrow-phase pairs (manifolds with their warm-start impulses, event status, sensor
-//! `intersecting` bits). A persistent piece added to [`World`] later (island manager,
-//! broad-phase cache, CCD) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
+//! `intersecting` bits), and since version 2 the step's active set (BT2,
+//! `crate::pipeline::active_set`), saved invalid when a set was written since the step that
+//! filled it (the restored sets start unmodified). A persistent piece added to [`World`] later
+//! (island manager, CCD) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
 //!
 //! [`to_state`] leaves the world as is; [`into_state`] consumes it and moves the pair list
 //! instead of copying it (the end of a chunk).
 //!
-//! Guarantee: `from_state(to_state(w))` equals `w` field for field, so stepping it produces the
-//! same bits and events as stepping `w`, and the sets issue the same handles, removals included.
+//! Guarantee: `from_state(to_state(w))` equals `w` field for field (the sets' `modified` flags
+//! aside: they start cleared, and the active set is saved invalid when they were raised), so
+//! stepping it produces the same bits and events as stepping `w`, and the sets issue the same
+//! handles, removals included.
 //!
 //! Version policy: `version` is the first serialized felt; [`from_state`] rejects any other
 //! version than [`WORLD_STATE_VERSION`]. The layout is the `Serde` of [`WorldState`], i.e. the
@@ -27,10 +31,11 @@ use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::NarrowPhase;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
+use crate::pipeline::active_set::ActiveSet;
 use super::World;
 
 /// Layout version written by [`to_state`] and required by [`from_state`].
-pub const WORLD_STATE_VERSION: u32 = 1;
+pub const WORLD_STATE_VERSION: u32 = 2;
 
 /// Panic messages of the world state.
 pub mod errors {
@@ -51,6 +56,9 @@ pub struct WorldState {
     pub impulse_joints: ArenaState<ImpulseJoint>,
     /// Last step's contact and intersection pairs, ascending key.
     pub narrow_phase: NarrowPhase,
+    /// The step's active set (BT2, version 2), marked invalid when a set was written since the
+    /// step that filled it.
+    pub active_set: ActiveSet,
 }
 
 /// Saves `world`, which is left unchanged. Cost: one dict read per allocated and per free slot
@@ -66,6 +74,10 @@ pub fn to_state(ref world: World) -> WorldState {
         colliders: world.colliders.to_state(),
         impulse_joints: world.impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
+        active_set: saved_active_set(
+            world.active_set.as_snapshot().unbox().clone(),
+            world.bodies.is_modified() || world.colliders.is_modified(),
+        ),
     }
 }
 
@@ -80,7 +92,9 @@ pub fn into_state(world: World) -> WorldState {
         mut colliders,
         mut impulse_joints,
         narrow_phase,
+        active_set,
     } = world;
+    let modified = bodies.is_modified() || colliders.is_modified();
     WorldState {
         version: WORLD_STATE_VERSION,
         gravity,
@@ -89,7 +103,18 @@ pub fn into_state(world: World) -> WorldState {
         colliders: colliders.to_state(),
         impulse_joints: impulse_joints.to_state(),
         narrow_phase,
+        active_set: saved_active_set(active_set.unbox(), modified),
     }
+}
+
+/// The active set as saved: invalid when a set was written since the step that filled it (the
+/// restored sets start unmodified).
+fn saved_active_set(active_set: ActiveSet, modified: bool) -> ActiveSet {
+    let mut active_set = active_set;
+    if modified {
+        active_set.valid = false;
+    }
+    active_set
 }
 
 /// Rebuilds the world saved by [`to_state`]. Cost: one dict write per allocated slot of each set.
@@ -99,7 +124,14 @@ pub fn into_state(world: World) -> WorldState {
 /// set image is invalid.
 pub fn from_state(state: WorldState) -> World {
     let WorldState {
-        version, gravity, integration_parameters, bodies, colliders, impulse_joints, narrow_phase,
+        version,
+        gravity,
+        integration_parameters,
+        bodies,
+        colliders,
+        impulse_joints,
+        narrow_phase,
+        active_set,
     } = state;
     assert(version == WORLD_STATE_VERSION, errors::VERSION);
     World {
@@ -109,6 +141,7 @@ pub fn from_state(state: WorldState) -> World {
         colliders: ColliderSetTrait::from_state(colliders),
         impulse_joints: ImpulseJointSetTrait::from_state(impulse_joints),
         narrow_phase,
+        active_set: BoxTrait::new(active_set),
     }
 }
 
@@ -253,6 +286,7 @@ pub mod alternatives {
                 colliders: arena(compact.colliders, colliders),
                 impulse_joints: arena(compact.joints, joints),
                 narrow_phase: NarrowPhase { pairs },
+                active_set: Default::default(),
             },
         )
     }

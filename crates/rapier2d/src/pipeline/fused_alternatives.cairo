@@ -4,7 +4,7 @@
 use fixed::{Fixed, HALF};
 use rapier_core::Handle;
 use rapier_core::collider::{ColliderEnabled, ColliderTypeTrait};
-use rapier_core::integration_parameters::IntegrationParameters;
+use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::{RigidBodyDominanceTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
@@ -18,29 +18,36 @@ use rapier_geometry2d::broad_phase::BroadPhaseProxy;
 use rapier_geometry2d::shape::ShapeTrait;
 use crate::world::World;
 use super::{
-    BodyInfo, SleepCensusTrait, advance_to_final_positions, body_info, detect_collisions,
-    handle_user_changes, no_body_info, snapshot_collider, solve, update_islands,
+    BodyInfo, SleepCensusTrait, advance_to_final_positions, body_info, no_body_info,
+    snapshot_collider, solve,
 };
 
 /// The pre-OP `World::step`: the public stage functions one after the other, each walking the
 /// sets on its own (user changes, proxies, `pair_colliders`, position update).
 pub fn step_staged(ref world: World) -> Array<CollisionEvent> {
-    handle_user_changes(ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span());
+    let fresh = super::user_changes::handle_user_changes_fresh(
+        ref world.bodies, ref world.colliders, world.narrow_phase.pairs.span(),
+    );
     super::kinematic::interpolate_kinematic_velocities(
         ref world.bodies, world.integration_parameters,
     );
-    let events = detect_collisions(
-        world.integration_parameters, ref world.bodies, ref world.colliders, ref world.narrow_phase,
+    let events = super::staged::detect_collisions_fresh(
+        world.integration_parameters.prediction_distance(),
+        ref world.bodies,
+        ref world.colliders,
+        ref world.narrow_phase,
+        fresh.span(),
     );
     let entries = world.bodies.iter();
     let joints = world.impulse_joints.to_array();
-    let _ = update_islands(
+    let _ = super::sleeping::islands_after_insertions(
         ref world.bodies,
         world.narrow_phase.pairs.span(),
         array![].span(),
         joints.span(),
         entries.span(),
         SleepCensusTrait::taken(entries.span()),
+        fresh.span(),
     );
     solve(
         world.gravity,

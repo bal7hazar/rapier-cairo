@@ -23,8 +23,9 @@
 //!   sleep`: flag set, timer pinned, velocities zeroed, pose kept), before the solver runs, as
 //!   upstream's `update_islands` does.
 //!
-//! The union-find is skipped when nothing can change: no sleeping member and no eligible awake
-//! member, or no awake member at all ([`SleepCensus`], counted by the user-changes walk that has
+//! The union-find is skipped when nothing can change: no awake member, or no eligible awake
+//! member and no touching pair or enabled joint linking an awake member to a sleeping one (BT2:
+//! then no island is mixed; [`SleepCensus`], counted by the user-changes walk that has
 //! every body in hand: a walk of its own costs about 10k gas per body, the bodies being copied
 //! out of their span). The slow path is an `#[inline(never)]` call behind an
 //! `if` (shipped) rather than a one-iteration `while` (metered call, `alternatives::
@@ -83,7 +84,7 @@ use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTra
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::{Rot2, Rot2Trait};
-use super::ordering::{BODY_SLEEPING, body_status};
+use super::ordering::{BODY_AWAKE, BODY_SLEEPING, body_status, link_status};
 
 #[cfg(test)]
 pub(crate) mod alternatives;
@@ -169,13 +170,54 @@ pub fn update_islands(
     entries: Span<(Handle, RigidBody)>,
     census: SleepCensus,
 ) -> (Span<(Handle, RigidBody)>, bool, bool) {
-    // Nothing can change without an awake member, nor without a sleeping member or an eligible
-    // awake one.
-    if census.awake != 0 && (census.sleeping != 0 || census.eligible) {
+    // Nothing can change without an awake member, nor without an eligible awake member or a
+    // mixed island (BT2: an island with an awake and a sleeping member has a link between an
+    // awake and a sleeping member; dormant pairs never link an awake body).
+    if census.awake != 0
+        && (census.eligible
+            || (census.sleeping != 0 && links_awake_to_sleeping(pairs, joints, entries))) {
         update_islands_slow(ref bodies, pairs, dormant, joints, entries)
     } else {
         (entries, census.sleeping != 0, false)
     }
+}
+
+/// Whether a touching pair of `pairs` or an enabled joint of `joints` links an awake member to
+/// a sleeping one (their statuses in `entries`, ascending slot, possibly sparse: every body the
+/// links reference). Without such a link no island is mixed, so the wake-up rule has nothing to
+/// do (BT2: the union-find is skipped). Out of line: the fast path of [`update_islands`] stays
+/// loop-free.
+#[inline(never)]
+pub(crate) fn links_awake_to_sleeping(
+    pairs: Span<ContactPair>,
+    joints: Span<(Handle, ImpulseJoint)>,
+    entries: Span<(Handle, RigidBody)>,
+) -> bool {
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            let (s1, s2) = link_status(
+                entries, *pair.manifold.data.rigid_body1, *pair.manifold.data.rigid_body2,
+            );
+            if crosses(s1, s2) {
+                return true;
+            }
+        }
+    }
+    for (_, joint) in joints {
+        if *joint.data.enabled == JointEnabled::Enabled {
+            let (s1, s2) = link_status(entries, Some(*joint.body1), Some(*joint.body2));
+            if crosses(s1, s2) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// One side awake, the other asleep.
+#[inline(always)]
+fn crosses(s1: u8, s2: u8) -> bool {
+    (s1 == BODY_AWAKE && s2 == BODY_SLEEPING) || (s1 == BODY_SLEEPING && s2 == BODY_AWAKE)
 }
 
 /// [`update_islands`] once the fast checks passed: the union-find and the two walks.

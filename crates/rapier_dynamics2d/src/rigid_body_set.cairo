@@ -239,6 +239,8 @@ pub use builder_api::{
 #[derive(Destruct, Default)]
 pub struct RigidBodySet {
     bodies: Arena<RigidBody>,
+    /// Written since the last `clear_modified` (BT2: the step's active set trusts a clean set).
+    modified: bool,
 }
 
 /// Operations of [`RigidBodySet`]. Reads take `ref self` because arena reads mutate the dict log.
@@ -247,7 +249,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     /// An empty set.
     #[inline(always)]
     fn new() -> RigidBodySet {
-        RigidBodySet { bodies: ArenaTrait::new() }
+        RigidBodySet { bodies: ArenaTrait::new(), modified: false }
     }
 
     /// Empty set. Cairo arenas reserve no memory, so `capacity` is intentionally ignored.
@@ -263,6 +265,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
         let mut body = body;
         body.colliders = array![].span();
         body.changes = RigidBodyChangesTrait::all();
+        self.modified = true;
         self.bodies.insert(body)
     }
 
@@ -310,6 +313,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     /// Returns `false` and changes nothing when the handle does not resolve.
     #[inline(always)]
     fn set(ref self: RigidBodySet, handle: Handle, body: RigidBody) -> bool {
+        self.modified = true;
         self.bodies.set(handle, body)
     }
 
@@ -329,6 +333,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
         remove_attached_colliders: bool,
     ) -> Option<RigidBody> {
         let body = self.bodies.remove(handle)?;
+        self.modified = true;
         let mut attached = body.colliders;
         while let Some(co_handle) = attached.pop_front() {
             let co_handle = *co_handle;
@@ -341,6 +346,18 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
             }
         }
         Some(body)
+    }
+
+    /// A body was inserted, written, removed or (de)parented since `clear_modified` / creation.
+    #[inline(always)]
+    fn is_modified(self: @RigidBodySet) -> bool {
+        *self.modified
+    }
+
+    /// Clears the [`is_modified`](Self::is_modified) flag (the step does).
+    #[inline(always)]
+    fn clear_modified(ref self: RigidBodySet) {
+        self.modified = false;
     }
 
     /// Number of bodies.
@@ -396,7 +413,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     /// # Panics
     /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
     fn from_state(state: ArenaState<RigidBody>) -> RigidBodySet {
-        RigidBodySet { bodies: ArenaStateTrait::from_state(state) }
+        RigidBodySet { bodies: ArenaStateTrait::from_state(state), modified: false }
     }
 }
 
@@ -424,6 +441,7 @@ pub fn attach_collider(
     let mprops = collider.mass_properties().transform_by(pos_wrt_parent);
     body.mprops.local_mprops = body.mprops.local_mprops + mprops;
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
+    bodies.modified = true;
     let _ = bodies.bodies.set(handle, body);
     body.pos.position
 }
@@ -454,6 +472,7 @@ pub fn detach_collider(ref bodies: RigidBodySet, handle: Handle, co_handle: Hand
             }
             body.colliders = swapped.span();
             body.changes.insert(COLLIDERS);
+            bodies.modified = true;
             let _ = bodies.bodies.set(handle, body);
         }
     }

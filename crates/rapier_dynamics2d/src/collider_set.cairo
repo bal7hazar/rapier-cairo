@@ -19,6 +19,7 @@
 
 use fixed::{Fixed, HALF};
 use rapier_core::Handle;
+use rapier_core::collider::ColliderChangesTrait;
 use rapier_core::collider::changes::PARENT;
 use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
 use rapier_core::data::handle::INVALID_HANDLE;
@@ -34,6 +35,9 @@ use crate::rigid_body_set::{
 #[derive(Destruct, Default)]
 pub struct ColliderSet {
     colliders: Arena<Collider>,
+    /// A write (insert, set, remove, parent change) happened since the last
+    /// [`clear_modified`](ColliderSetTrait::clear_modified) (see `RigidBodySetTrait::is_modified`).
+    modified: bool,
 }
 
 /// Operations of [`ColliderSet`]. Reads take `ref self` because arena reads mutate the dict log.
@@ -42,7 +46,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// An empty set.
     #[inline(always)]
     fn new() -> ColliderSet {
-        ColliderSet { colliders: ArenaTrait::new() }
+        ColliderSet { colliders: ArenaTrait::new(), modified: false }
     }
 
     /// An empty set. Cairo arenas reserve no memory, so `capacity` is intentionally ignored.
@@ -62,6 +66,8 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     fn insert(ref self: ColliderSet, collider: Collider) -> Handle {
         let mut collider = collider;
         collider.parent = None;
+        collider.changes = ColliderChangesTrait::all();
+        self.modified = true;
         self.colliders.insert(collider)
     }
 
@@ -83,7 +89,9 @@ pub impl ColliderSetImpl of ColliderSetTrait {
             None => collider.pos.pose,
         };
         collider.parent = Some(ColliderParent { handle: parent, pos_wrt_parent });
+        collider.changes = ColliderChangesTrait::all();
         assert(bodies.contains(parent), crate::rigid_body_set::errors::BODY_NOT_FOUND);
+        self.modified = true;
         let handle = self.colliders.insert(collider);
         let body_pose = attach_collider(ref bodies, parent, handle, collider, pos_wrt_parent);
         collider.pos.pose = body_pose * pos_wrt_parent;
@@ -96,6 +104,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// exists.
     fn remove(ref self: ColliderSet, handle: Handle, ref bodies: RigidBodySet) -> Option<Collider> {
         let collider = self.colliders.remove(handle)?;
+        self.modified = true;
         if let Some(parent) = collider.parent {
             detach_collider(ref bodies, parent.handle, handle);
         }
@@ -113,6 +122,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// responsibility: change it through `insert_with_parent` / `remove` only.
     #[inline(always)]
     fn set(ref self: ColliderSet, handle: Handle, collider: Collider) -> bool {
+        self.modified = true;
         self.colliders.set(handle, collider)
     }
 
@@ -120,6 +130,20 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     #[inline(always)]
     fn contains(ref self: ColliderSet, handle: Handle) -> bool {
         self.colliders.contains(handle)
+    }
+
+    /// Whether a collider was inserted, written, removed or re-parented since the last
+    /// [`clear_modified`](Self::clear_modified), or since the set was created. A set rebuilt by
+    /// [`from_state`](Self::from_state) starts unmodified.
+    #[inline(always)]
+    fn is_modified(self: @ColliderSet) -> bool {
+        *self.modified
+    }
+
+    /// Clears the flag [`is_modified`](Self::is_modified) reads (the step does).
+    #[inline(always)]
+    fn clear_modified(ref self: ColliderSet) {
+        self.modified = false;
     }
 
     /// Number of colliders.
@@ -214,6 +238,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
                 },
                 None => { collider.parent = None; },
             }
+            self.modified = true;
             let _ = self.colliders.set(handle, collider);
         }
     }
@@ -262,7 +287,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// # Panics
     /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
     fn from_state(state: ArenaState<Collider>) -> ColliderSet {
-        ColliderSet { colliders: ArenaStateTrait::from_state(state) }
+        ColliderSet { colliders: ArenaStateTrait::from_state(state), modified: false }
     }
 }
 
@@ -383,6 +408,63 @@ mod tests {
             }
             assert!(bodies.remove(b, ref colliders, remove_attached).is_none());
         }
+    }
+
+    /// BT2: every write raises the `modified` flag of the set it touches (both sets for an
+    /// attach, a detach or a body removal); reads do not; `clear_modified` and `from_state` clear.
+    #[test]
+    fn test_modified_flags() {
+        let mut colliders = ColliderSetTrait::new();
+        let mut bodies = RigidBodySetTrait::new();
+        assert!(!colliders.is_modified() && !bodies.is_modified());
+        let b = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+        assert!(bodies.is_modified() && !colliders.is_modified());
+        bodies.clear_modified();
+        let h = colliders.insert_with_parent(cuboid_at(ONE, ZERO), b, ref bodies);
+        assert!(bodies.is_modified() && colliders.is_modified());
+        // (step, collider write?, body write?): 0 reads, 1 set, 2 body set, 3 collider remove,
+        // 4 body remove, 5 standalone insert, 6 set_parent.
+        let s = colliders.insert(cuboid_at(TWO, ZERO));
+        let mut step: u8 = 0;
+        while step != 7 {
+            bodies.clear_modified();
+            colliders.clear_modified();
+            let (co, body) = if step == 0 {
+                let _ = colliders.get(h);
+                let _ = bodies.get(b);
+                let _ = colliders.iter();
+                let _ = bodies.iter();
+                (false, false)
+            } else if step == 1 {
+                let _ = colliders.set(h, colliders.get(h).unwrap());
+                (true, false)
+            } else if step == 2 {
+                let _ = bodies.set(b, bodies.get(b).unwrap());
+                (false, true)
+            } else if step == 3 {
+                let _ = colliders.remove(h, ref bodies);
+                (true, true)
+            } else if step == 4 {
+                let _ = bodies.remove(b, ref colliders, true);
+                (false, true)
+            } else if step == 5 {
+                let _ = colliders.insert(cuboid_at(ZERO, ONE));
+                (true, false)
+            } else {
+                let b2 = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+                bodies.clear_modified();
+                colliders.set_parent(s, Some(b2), ref bodies);
+                (true, true)
+            };
+            assert_eq!(
+                (colliders.is_modified(), bodies.is_modified()), (co, body), "step {}", step,
+            );
+            step += 1;
+        }
+        let restored = ColliderSetTrait::from_state(colliders.to_state());
+        assert!(!restored.is_modified());
+        let restored = RigidBodySetTrait::from_state(bodies.to_state());
+        assert!(!restored.is_modified());
     }
 
     /// `with_capacity`, `invalid_handle`, `iter_enabled`, `get_unknown_gen`, `get_pair_mut`.

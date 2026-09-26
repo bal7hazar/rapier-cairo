@@ -39,7 +39,7 @@ pub fn collect_world(ref world: World, enabled: bool) -> Array<ContactForceEvent
 
 /// Whole-world metering at the original call site.
 pub fn step_world(ref world: World) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
@@ -104,7 +104,7 @@ pub fn step_world(ref world: World) -> (Array<CollisionEvent>, Array<ContactForc
 
 /// Outlined reduced-argument metering at the original call site.
 pub fn step_reduced(ref world: World) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
@@ -163,7 +163,7 @@ pub fn step_reduced(ref world: World) -> (Array<CollisionEvent>, Array<ContactFo
 
 /// Direct conditional without an explicit refund boundary.
 pub fn step_unwalleted(ref world: World) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
@@ -226,7 +226,7 @@ pub fn step_unwalleted(ref world: World) -> (Array<CollisionEvent>, Array<Contac
 
 /// Direct conditional with an explicit gas wallet.
 pub fn step_wallet(ref world: World) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
@@ -311,7 +311,7 @@ impl UnitOnly of UnitOutput<Array<CollisionEvent>, ()> {
 fn step_unit_internal<T, Forces, impl Output: UnitOutput<T, Forces>, +Drop<Forces>>(
     ref world: World,
 ) -> T {
-    let (snapshot, infos, entries, census) = user_changes_bodies_for_step(
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),

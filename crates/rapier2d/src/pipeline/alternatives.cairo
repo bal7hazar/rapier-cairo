@@ -369,9 +369,10 @@ pub fn handle_user_changes_propagate(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) {
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in colliders.iter() {
         if !collider.changes.is_empty() {
-            collider_changes(handle, collider, ref bodies, ref colliders, ref touched);
+            collider_changes(handle, collider, ref bodies, ref colliders, ref touched, ref fresh);
         }
     }
     bodies.propagate_modified_body_positions_to_colliders(ref colliders);
@@ -379,7 +380,8 @@ pub fn handle_user_changes_propagate(
         if !body.changes.is_empty() {
             let mut body = body;
             let changes = body.changes;
-            if changes.intersects(TOUCHING_CHANGES) {
+            if changes.intersects(TOUCHING_CHANGES)
+                && super::user_changes::has_known_collider(body.colliders, fresh.span()) {
                 body.wake_up(true);
                 touched.append_span(body.colliders);
             }
@@ -417,16 +419,19 @@ pub fn handle_user_changes_flagged(
 ) -> bool {
     let mut any = false;
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in colliders.iter() {
         if !collider.changes.is_empty() {
             any = true;
-            collider_changes(handle, collider, ref bodies, ref colliders, ref touched);
+            collider_changes(handle, collider, ref bodies, ref colliders, ref touched, ref fresh);
         }
     }
     for (handle, body) in bodies.iter() {
         if !body.changes.is_empty() {
             any = true;
-            let _ = body_changes(handle, body, ref bodies, ref colliders, ref touched);
+            let _ = body_changes(
+                handle, body, ref bodies, ref colliders, ref touched, fresh.span(),
+            );
         }
     }
     if !touched.is_empty() && !pairs.is_empty() {

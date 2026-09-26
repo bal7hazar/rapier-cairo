@@ -89,37 +89,37 @@ fn gas_baseline() {
 }
 
 #[test]
-#[available_gas(l2_gas: 69809929)]
+#[available_gas(l2_gas: 71511344)]
 fn gas_load_level10() {
     probe(10, 0, 0);
 }
 
 #[test]
-#[available_gas(l2_gas: 251057890)]
+#[available_gas(l2_gas: 128160589)]
 fn gas_flight_level10() {
     probe(10, 0, FLIGHT);
 }
 
 #[test]
-#[available_gas(l2_gas: 548433579)]
+#[available_gas(l2_gas: 424805570)]
 fn gas_impact_level10() {
     probe(10, 0, IMPACT);
 }
 
 #[test]
-#[available_gas(l2_gas: 127680587)]
+#[available_gas(l2_gas: 130833991)]
 fn gas_load_level20() {
     probe(20, 0, 0);
 }
 
 #[test]
-#[available_gas(l2_gas: 429894261)]
+#[available_gas(l2_gas: 203795873)]
 fn gas_flight_level20() {
     probe(20, 0, FLIGHT);
 }
 
 #[test]
-#[available_gas(l2_gas: 769184438)]
+#[available_gas(l2_gas: 541898819)]
 fn gas_impact_level20() {
     probe(20, 0, IMPACT);
 }
@@ -663,7 +663,9 @@ fn stage(blocks: u32, upto: u8, part: u8) {
 }
 
 /// Poseidon digest of the serialized world state after the impact window of level `blocks`:
-/// BT1's levers are bit-identical (the digests are those of the solver before BT1).
+/// BT1's levers are bit-identical (the digests are those of the solver before BT1). BT2 re-pinned
+/// them for `WorldState` version 2 (the active set is serialized); the version-1 layout of the
+/// same state still hashes to BT1's values.
 fn impact_digest(blocks: u32) -> felt252 {
     let world = run(blocks, 0, IMPACT);
     let mut out = array![];
@@ -673,13 +675,13 @@ fn impact_digest(blocks: u32) -> felt252 {
 
 #[test]
 fn test_impact_digest_level10() {
-    let digest = 2461782582709462485446536548234317870668566793754787276166295666873025636411;
+    let digest = 1985544622515358198263847469439284359808027788067515804168561424627924706414;
     assert_eq!(impact_digest(10), digest);
 }
 
 #[test]
 fn test_impact_digest_level20() {
-    let digest = 2536114172100514642348097745032330135272153081367581830010923825855114040884;
+    let digest = 472789490704743956326115600893800118381478821102367849164298489098502318457;
     assert_eq!(impact_digest(20), digest);
 }
 

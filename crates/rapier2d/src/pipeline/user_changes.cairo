@@ -16,13 +16,23 @@
 //! parent (strongly, in place: the body is in hand) and their contact partners of the previous
 //! step (`sleeping::wake_touched_partners`, upstream's modified-colliders pass in the narrow
 //! phase).
+//!
+//! Colliders inserted since the last step (BT2, upstream-exact): upstream's modified-colliders
+//! pass only wakes through a collider the narrow phase already indexes, which a collider inserted
+//! since the last step is not. Such a collider carries every change flag (the builder's
+//! `ColliderChanges::all()`, also raised by `ColliderSetTrait::insert*`): it wakes neither its
+//! parent nor anybody else, and a body whose colliders are all new is not woken by its own
+//! changes either (a body built `sleeping(true)` stays asleep). The stage returns these *fresh*
+//! colliders: during the step their proxy is not static even on a sleeping parent (upstream's
+//! broad phase pairs every modified collider), and a contact that starts on one strong-wakes the
+//! sleeping dynamic side (`sleeping::wake_started_contacts`, upstream `strong_wake_sleeping_side`).
 
 use fixed::{ONE, ZERO};
 use rapier_core::Handle;
-use rapier_core::collider::ColliderChangesTrait;
 use rapier_core::collider::changes::{
     ENABLED_OR_DISABLED, LOCAL_MASS_PROPERTIES as CO_LOCAL_MASS_PROPERTIES, PARENT, SHAPE,
 };
+use rapier_core::collider::{ColliderChanges, ColliderChangesTrait};
 use rapier_core::rigid_body::changes::{COLLIDERS, LOCAL_MASS_PROPERTIES, POSITION};
 use rapier_core::rigid_body::{RigidBodyChanges, RigidBodyChangesTrait};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
@@ -49,24 +59,62 @@ const TOUCHING_CHANGES: RigidBodyChanges = RigidBodyChanges { bits: 0xba };
 pub fn handle_user_changes(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) {
+    let _ = handle_user_changes_fresh(ref bodies, ref colliders, pairs);
+}
+
+/// [`handle_user_changes`] that returns the colliders inserted since the last step (see the
+/// module documentation), ascending slot.
+pub(crate) fn handle_user_changes_fresh(
+    ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
+) -> Array<Handle> {
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in colliders.iter() {
         if !collider.changes.is_empty() {
-            collider_changes(handle, collider, ref bodies, ref colliders, ref touched);
+            collider_changes(handle, collider, ref bodies, ref colliders, ref touched, ref fresh);
         }
     }
     for (handle, body) in bodies.iter() {
         if !body.changes.is_empty() {
-            let _ = body_changes(handle, body, ref bodies, ref colliders, ref touched);
+            let _ = body_changes(
+                handle, body, ref bodies, ref colliders, ref touched, fresh.span(),
+            );
         }
     }
     if !touched.is_empty() && !pairs.is_empty() {
         let _ = wake_touched_partners(touched.span(), pairs, ref bodies, ref colliders);
     }
+    fresh
+}
+
+/// Whether `changes` are those of a collider inserted since the last step (every flag raised).
+#[inline(always)]
+pub(crate) fn is_new(changes: ColliderChanges) -> bool {
+    changes == ColliderChangesTrait::all()
+}
+
+/// Whether `handle` is one of `fresh` (ascending slot, as the collider walk appends them):
+/// binary search on the slot.
+pub(crate) fn is_fresh(fresh: Span<Handle>, handle: Handle) -> bool {
+    let mut lo: u32 = 0;
+    let mut hi: u32 = fresh.len();
+    while lo != hi {
+        let mid = (lo + hi) / 2;
+        let h = *fresh.at(mid);
+        if h.index < handle.index {
+            lo = mid + 1;
+        } else if h.index > handle.index {
+            hi = mid;
+        } else {
+            return h == handle;
+        }
+    }
+    false
 }
 
 /// The user changes of one flagged collider, flags cleared; the collider is appended to
-/// `touched` (wake-up pass).
+/// `touched` (wake-up pass), or to `fresh` when it was inserted since the last step (it wakes
+/// nobody, see the module documentation).
 #[inline(never)]
 pub(crate) fn collider_changes(
     handle: Handle,
@@ -74,18 +122,24 @@ pub(crate) fn collider_changes(
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
     ref touched: Array<Handle>,
+    ref fresh: Array<Handle>,
 ) {
     let mut collider = collider;
     let changes = collider.changes;
+    let new = is_new(changes);
     if let Some(parent) = collider.parent {
         if let Some(mut body) = bodies.get(parent.handle) {
             if changes.contains(PARENT) {
                 collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
             }
-            // Upstream's modified-colliders pass wakes the parent up strongly.
-            let mut write = body.activation.sleeping
-                || body.activation.time_since_can_sleep != fixed::ZERO;
-            body.wake_up(true);
+            // Upstream's modified-colliders pass wakes the parent up strongly, through a
+            // collider the narrow phase already knows.
+            let mut write = false;
+            if !new {
+                write = body.activation.sleeping
+                    || body.activation.time_since_can_sleep != fixed::ZERO;
+                body.wake_up(true);
+            }
             if changes.intersects(SHAPE | CO_LOCAL_MASS_PROPERTIES | ENABLED_OR_DISABLED | PARENT) {
                 body.changes.insert(LOCAL_MASS_PROPERTIES);
                 write = true;
@@ -97,11 +151,16 @@ pub(crate) fn collider_changes(
     }
     collider.changes = ColliderChangesTrait::empty();
     let _ = colliders.set(handle, collider);
-    touched.append(handle);
+    if new {
+        fresh.append(handle);
+    } else {
+        touched.append(handle);
+    }
 }
 
-/// The user changes of one flagged body, flags cleared; its colliders are appended to `touched`
-/// when the change is one of [`TOUCHING_CHANGES`].
+/// The user changes of one flagged body, flags cleared; when the change is one of
+/// [`TOUCHING_CHANGES`] and a collider of the body is not in `fresh` (inserted since the last
+/// step), the body is woken up and its colliders are appended to `touched`.
 #[inline(never)]
 pub(crate) fn body_changes(
     handle: Handle,
@@ -109,6 +168,7 @@ pub(crate) fn body_changes(
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
     ref touched: Array<Handle>,
+    fresh: Span<Handle>,
 ) -> RigidBody {
     let mut body = body;
     let changes = body.changes;
@@ -119,8 +179,9 @@ pub(crate) fn body_changes(
     if changes.intersects(LOCAL_MASS_PROPERTIES | COLLIDERS) {
         recompute_mass_properties_from_colliders(ref body, ref colliders);
     }
-    if changes.intersects(TOUCHING_CHANGES) {
-        // Upstream flags the colliders, whose modified-colliders pass wakes the body strongly.
+    if changes.intersects(TOUCHING_CHANGES) && has_known_collider(body.colliders, fresh) {
+        // Upstream flags the colliders, whose modified-colliders pass wakes the body strongly
+        // through the colliders the narrow phase already knows.
         body.wake_up(true);
         touched.append_span(body.colliders);
     }
@@ -168,6 +229,20 @@ pub fn recompute_mass_properties_from_colliders(ref body: RigidBody, ref collide
     body.mprops.local_mprops = local;
     body.mprops.max_extent = max_extent(local.local_com, shapes.span());
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
+}
+
+/// Whether one of `colliders` is not in `fresh`.
+#[inline(always)]
+pub(crate) fn has_known_collider(colliders: Span<Handle>, fresh: Span<Handle>) -> bool {
+    if fresh.is_empty() {
+        return !colliders.is_empty();
+    }
+    for handle in colliders {
+        if !is_fresh(fresh, *handle) {
+            return true;
+        }
+    }
+    false
 }
 
 /// Sets the world pose of the colliders of `body` to `body.position * pos_wrt_parent`, without

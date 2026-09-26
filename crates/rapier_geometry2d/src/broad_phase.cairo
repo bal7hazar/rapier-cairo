@@ -171,6 +171,9 @@ mod ordering;
 pub mod pair;
 pub use pair::{ColliderPair, ColliderPairDefault, ColliderPairImpl, ColliderPairTrait};
 mod scale;
+/// BT2: pairs of the awake proxies against kept static ones.
+pub mod sparse;
+pub use sparse::find_pairs_sparse;
 #[cfg(test)]
 mod scale_benches;
 #[cfg(test)]

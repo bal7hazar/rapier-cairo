@@ -296,6 +296,11 @@ rapier_geometry2d::broad_phase::scale_tests::test_cell_size_follows_extent_and_c
 rapier_geometry2d::broad_phase::scale_tests::test_cell_size_ignores_outliers 837090
 rapier_geometry2d::broad_phase::scale_tests::test_median5_of_every_multiset 418802050
 rapier_geometry2d::broad_phase::scale_tests::test_scaled_worlds_have_identical_pairs_and_proportional_cells 103062020
+rapier_geometry2d::broad_phase::sparse::tests::gas_baseline 14120
+rapier_geometry2d::broad_phase::sparse::tests::gas_find_pairs_flight15 659960
+rapier_geometry2d::broad_phase::sparse::tests::gas_sparse_asleep15 220570
+rapier_geometry2d::broad_phase::sparse::tests::gas_sparse_flight15 394010
+rapier_geometry2d::broad_phase::sparse::tests::test_sparse_edge_cases 468760
 rapier_geometry2d::broad_phase::tests::test_empty_single_static_and_order 939700
 rapier_geometry2d::broad_phase::tests::test_golden_overlap_sets 171854940
 rapier_geometry2d::broad_phase::tests::test_grid_boundaries_extremes_and_duplicate_cells 24110220

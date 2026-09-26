@@ -335,6 +335,6 @@ fn test_version_mismatch_panics() {
     let mut world = build(Scene::Pendulum);
     let _ = world.step();
     let mut state = world.to_state();
-    state.version = 2;
+    state.version = WORLD_STATE_VERSION + 1;
     let _ = WorldTrait::from_state(state);
 }

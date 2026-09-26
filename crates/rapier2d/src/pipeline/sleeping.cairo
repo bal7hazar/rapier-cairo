@@ -43,9 +43,13 @@ use rapier_core::Handle;
 use rapier_core::rigid_body::RigidBodyType;
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
+use rapier_dynamics2d::joint::ImpulseJoint;
 use rapier_dynamics2d::narrow_phase::{ContactPair, ContactPairTrait, key_before};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
-use super::ordering::{dormant_of, link_status};
+use rapier_geometry2d::broad_phase::BroadPhaseProxy;
+use super::islands::{SleepCensus, update_islands, update_islands_slow};
+use super::ordering::{BODY_SLEEPING, body_status, dormant_of, link_status};
+use super::user_changes::is_fresh;
 
 /// Whether any enabled non-fixed body of `entries` sleeps.
 pub fn any_sleeping(entries: Span<(Handle, RigidBody)>) -> bool {
@@ -237,4 +241,111 @@ fn wake_parent(handle: Handle, ref bodies: RigidBodySet, ref colliders: Collider
         }
     }
     false
+}
+
+/// Upstream's contact-start wake rule (`strong_wake_sleeping_side`: a contact that starts
+/// strong-wakes whichever side is a sleeping dynamic body) for the pairs of the colliders
+/// inserted since the last step (`fresh`, see `pipeline::user_changes`): every touching pair of
+/// `pairs` (the step's narrow-phase output) with a collider of `fresh` is new, hence starting.
+/// Every other start already involves an awake body, whose island the island stage wakes. Returns
+/// `entries` with the woken bodies updated (the input span when nobody woke) and whether a body
+/// woke.
+pub fn wake_started_contacts(
+    pairs: Span<ContactPair>,
+    fresh: Span<Handle>,
+    ref bodies: RigidBodySet,
+    entries: Span<(Handle, RigidBody)>,
+) -> (Span<(Handle, RigidBody)>, bool) {
+    let mut woken = false;
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts == 0 {
+            continue;
+        }
+        if is_fresh(fresh, *pair.collider1) || is_fresh(fresh, *pair.collider2) {
+            let body1 = *pair.manifold.data.rigid_body1;
+            let body2 = *pair.manifold.data.rigid_body2;
+            // Only a sleeping side is read from the set (its type decides).
+            let (s1, s2) = link_status(entries, body1, body2);
+            if s1 == BODY_SLEEPING && wake_sleeping_dynamic(body1, ref bodies) {
+                woken = true;
+            }
+            if s2 == BODY_SLEEPING && wake_sleeping_dynamic(body2, ref bodies) {
+                woken = true;
+            }
+        }
+    }
+    if woken {
+        (bodies.iter().span(), true)
+    } else {
+        (entries, false)
+    }
+}
+
+/// `RigidBody::wake_up(true)` on `body` when it is a sleeping dynamic body.
+fn wake_sleeping_dynamic(body: Option<Handle>, ref bodies: RigidBodySet) -> bool {
+    if let Some(handle) = body {
+        if let Some(mut rb) = bodies.get(handle) {
+            if rb.body_type == RigidBodyType::Dynamic && rb.activation.sleeping {
+                rb.wake_up(true);
+                let _ = bodies.set(handle, rb);
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// The island stage of a step whose user changes met colliders inserted since the last step
+/// (`fresh`): upstream's contact-start wake-up first (`sleeping::wake_started_contacts`), then
+/// `islands::update_islands`, forced through its slow path when a body woke so that its island
+/// wakes with it.
+#[inline(never)]
+pub(crate) fn islands_after_insertions(
+    ref bodies: RigidBodySet,
+    pairs: Span<ContactPair>,
+    dormant: Span<ContactPair>,
+    joints: Span<(Handle, ImpulseJoint)>,
+    entries: Span<(Handle, RigidBody)>,
+    census: SleepCensus,
+    fresh: Span<Handle>,
+) -> (Span<(Handle, RigidBody)>, bool, bool) {
+    let (entries, started) = wake_started_contacts(pairs, fresh, ref bodies, entries);
+    if started {
+        let (entries, sleeping, _) = update_islands_slow(
+            ref bodies, pairs, dormant, joints, entries,
+        );
+        (entries, sleeping, true)
+    } else {
+        update_islands(ref bodies, pairs, dormant, joints, entries, census)
+    }
+}
+
+/// The proxies of the step with those of the `fresh` colliders (inserted since the last step)
+/// on a sleeping parent made non-static (upstream's broad phase pairs every modified collider);
+/// `proxies` itself when there is none (`any_sleeping`: some collider has a sleeping parent).
+/// `snapshot` and `entries`: the colliders and bodies after the user changes, ascending slot.
+pub(crate) fn unstatic_fresh(
+    proxies: Array<BroadPhaseProxy>,
+    fresh: Span<Handle>,
+    any_sleeping: bool,
+    snapshot: Span<(Handle, Collider)>,
+    entries: Span<(Handle, RigidBody)>,
+) -> Array<BroadPhaseProxy> {
+    if fresh.is_empty() || !any_sleeping {
+        return proxies;
+    }
+    let mut out = array![];
+    let mut colliders = snapshot;
+    for proxy in proxies.span() {
+        let (_, collider) = colliders.pop_front().unwrap();
+        let mut proxy = *proxy;
+        if proxy.is_static && is_fresh(fresh, proxy.collider) {
+            let parent = collider.parent();
+            if parent.is_some() && body_status(entries, parent.unwrap()) == BODY_SLEEPING {
+                proxy.is_static = false;
+            }
+        }
+        out.append(proxy);
+    }
+    out
 }
