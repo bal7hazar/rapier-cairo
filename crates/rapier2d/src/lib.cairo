@@ -19,9 +19,19 @@ pub mod prelude {
     pub use rapier_dynamics2d::collider::builder::{ColliderBuilder, ColliderBuilderTrait};
     pub use rapier_dynamics2d::collider::{Collider, ColliderTrait};
     pub use rapier_dynamics2d::joint::{
-        FixedJointBuilderTrait, GenericJointTrait, ImpulseJoint, ImpulseJointSet,
-        ImpulseJointSetTrait, LIN_AXES, PrismaticJointBuilderTrait, RevoluteJointBuilderTrait,
-        RopeJointBuilder, RopeJointBuilderTrait, SpringJointBuilder, SpringJointBuilderTrait,
+        FixedJoint, FixedJointBuilder, FixedJointBuilderIntoGeneric, FixedJointBuilderTrait,
+        FixedJointIntoGeneric, FixedJointTrait, GenericJoint, GenericJointBuilder,
+        GenericJointBuilderIntoGeneric, GenericJointBuilderTrait, GenericJointTrait, ImpulseJoint,
+        ImpulseJointSet, ImpulseJointSetTrait, ImpulseJointTrait, JointAxesMask, JointAxis,
+        JointAxisTrait, JointLimits, JointMotor, LIN_AXES, MotorModel, PinSlotJoint,
+        PinSlotJointBuilder, PinSlotJointBuilderIntoGeneric, PinSlotJointBuilderTrait,
+        PinSlotJointIntoGeneric, PinSlotJointTrait, PrismaticJoint, PrismaticJointBuilder,
+        PrismaticJointBuilderIntoGeneric, PrismaticJointBuilderTrait, PrismaticJointIntoGeneric,
+        PrismaticJointTrait, RevoluteJoint, RevoluteJointBuilder, RevoluteJointBuilderIntoGeneric,
+        RevoluteJointBuilderTrait, RevoluteJointIntoGeneric, RevoluteJointTrait, RopeJoint,
+        RopeJointBuilder, RopeJointBuilderIntoGeneric, RopeJointBuilderTrait, RopeJointIntoGeneric,
+        RopeJointTrait, SpringJoint, SpringJointBuilder, SpringJointBuilderIntoGeneric,
+        SpringJointBuilderTrait, SpringJointIntoGeneric, SpringJointTrait,
     };
     pub use rapier_dynamics2d::{
         ColliderSet, ColliderSetTrait, CollisionEvent, CollisionEventTrait, ContactForceEvent,
