@@ -686,3 +686,39 @@ fn gas_step_boxed_ball_ball() {
         pd(), ball(), ball(), PREDICTION, ref m,
     );
 }
+
+/// `pose_direct` moved by a quarter unit: the warm manifold's persistence check fails.
+fn pm() -> Pose2 {
+    opaque(moved(pose_direct(), 0x40000000, 0))
+}
+
+/// BT3: after a failed persistence check the step runs the generator without its own check
+/// (`cuboid_cuboid_fresh`); the fallback table (BT1's arm) repeats it. Same manifold.
+#[test]
+fn test_step_moved_cuboid_cuboid_matches_fallback() {
+    let mut a = warm_cuboid_cuboid();
+    let mut b = warm_cuboid_cuboid();
+    assert!(!crate::manifold::ManifoldTrait::try_update_contacts(ref a, pm()));
+    let mut a = warm_cuboid_cuboid();
+    assert!(contact_manifold_step(pm(), cuboid(), cuboid(), PREDICTION, ref a));
+    assert!(
+        super::alternatives::contact_manifold_step_fallback(
+            pm(), cuboid(), cuboid(), PREDICTION, ref b,
+        ),
+    );
+    assert_eq!(a, b);
+}
+
+#[test]
+fn gas_step_cuboid_cuboid_moved() {
+    let mut m = warm_cuboid_cuboid();
+    let _ = contact_manifold_step(pm(), cuboid(), cuboid(), PREDICTION, ref m);
+}
+
+#[test]
+fn gas_step_fallback_cuboid_cuboid_moved() {
+    let mut m = warm_cuboid_cuboid();
+    let _ = super::alternatives::contact_manifold_step_fallback(
+        pm(), cuboid(), cuboid(), PREDICTION, ref m,
+    );
+}

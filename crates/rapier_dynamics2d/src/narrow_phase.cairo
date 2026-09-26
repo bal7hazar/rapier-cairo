@@ -53,6 +53,13 @@
 //! 758 095 | 3 271 → 274 285 | 2 000, cuboid–half-space 527 065 | 4 544 → 412 405 | 3 398
 //! (`rapier2d::pipeline::narrow_benches`, which also ranks the losing candidates).
 //!
+//! BT3 (level-10 impact tick 28, exact Cairo steps of the stage, 111 732 → 101 195, results
+//! bit-identical): the pair pose (`Pose2::inv_mul`), the solver contacts' point transforms and
+//! the world normal are written out inline with exact wide sums (−2.2k of bookkeeping); the
+//! geometry side (early-out of non-touching half-space–cuboid pairs, one persistence check per
+//! dispatch) is documented in `rapier_geometry2d`. Moving the previous manifold's unboxing next
+//! to the dispatcher call changes nothing (the compiler copies the same values).
+//!
 //! Deviations from upstream: one manifold per pair (every supported shape is convex); no
 //! contact skin, no velocity-based speculative contacts (upstream also keeps a point beyond
 //! `prediction` when the bodies approach it within `dt`), no solver-contact modification hooks,
@@ -458,9 +465,8 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
             }
             break;
         }
-        let prev = found.unbox();
-        let status = *prev.event_status;
-        let had_contact = *prev.manifold.data.num_solver_contacts != 0;
+        let status = *found.unbox().event_status;
+        let had_contact = *found.unbox().manifold.data.num_solver_contacts != 0;
         if pair_filtered(co1, co2) {
             let mut event_status = status;
             if had_contact && events_on(co1, co2) {
@@ -475,7 +481,7 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
                 );
             continue;
         }
-        let mut manifold = *prev.manifold;
+        let mut manifold = *found.unbox().manifold;
         let supported = D::contact_manifold(
             pair_pose(co1, co2), co1.shape, co2.shape, prediction, ref manifold,
         );

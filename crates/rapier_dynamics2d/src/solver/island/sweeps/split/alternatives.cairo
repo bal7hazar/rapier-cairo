@@ -11,6 +11,20 @@
 //!   accesses);
 //! * the kernels gathering and scattering their two bodies unconditionally in the sweep loop:
 //!   370,598 → 363,781 once the scatter moved after the metered loop (both metered).
+//!
+//! Rejected BT3 candidates (same input, after BT3's kept levers up to the tangent shortcut):
+//!
+//! * skipping the `WORLD` endpoint's half of every `apply` (its weights are zero): 207,564 →
+//!   210,243 steps (the two side flags and the branch merges carrying both velocities cost more
+//!   than the three products they save on the few ground constraints);
+//! * the row helpers taking `Weights` / `Row` by value instead of by snapshot: identical steps
+//!   (`gas_relax_stack3` 9,856 both), the compiler copies the same values;
+//! * a floor rescale through the `felt252 -> u256` split (quotient in the high limb, same
+//!   overflow condition) instead of `fixed`'s `u128` conversion and `div_rem`: 3,044 against
+//!   2,724 steps for 64 chained `mul_add`s;
+//! * `generate_via_constraints` (below): BT1's generation through `contact::generate_cached`
+//!   and the constraint's split, `gas_generate_via_constraints_stack3` against
+//!   `gas_generate_stack3`.
 use super::*;
 use super::super::super::super::body::SolverBody;
 use super::super::super::super::contact::element::tangent;

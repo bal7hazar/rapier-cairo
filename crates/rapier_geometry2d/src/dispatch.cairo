@@ -363,9 +363,13 @@ pub fn contact_manifold(
 ///
 /// The cuboid–cuboid, cuboid–capsule and cuboid–segment generators (both orders) start with
 /// `manifold.try_update_contacts(pos12)` and return when it succeeds. This function runs that
-/// check itself and calls the generator only when it fails (the generator repeats it;
-/// `try_update_contacts` leaves the manifold untouched when it fails), so a resting pair skips
-/// the generator's call, which Sierra gas charges its costliest path (SAT and clipping).
+/// check itself and calls the generator only when it fails (`try_update_contacts` leaves the
+/// manifold untouched when it fails), so a resting pair skips the generator's call, which Sierra
+/// gas charges its costliest path (SAT and clipping). Since BT3 the cuboid–cuboid and the
+/// non-reversed polygon arms call the generator's `*_fresh` entry, which does not repeat the
+/// check (a moving warm cuboid pair: 7 326 → 6 845 Cairo steps, `gas_step_*cuboid_cuboid_moved`;
+/// the level-10 impact tick's contact generation −3.7k steps); the capsule and segment arms keep
+/// their generator's own check (the segment one uses other thresholds).
 /// Results are bit-identical to [`contact_manifold`] on every pair; the only difference is that a
 /// capsule–cuboid or segment–cuboid pair whose fast path succeeds skips the generator's
 /// `pos12.inverse()`, whose only effect is a panic on an unrepresentable pose.

@@ -1,10 +1,23 @@
 //! Frozen/hot contact sweeps (BT1). Generation's constraints are split once per step into a
 //! frame-constant span (`Frozen`: endpoints, weighted directions, row coefficients, anchors) and
-//! a small array of the values the sweeps change (`Hot`: impulses, rhs, cfm, accumulators), so a
-//! sweep rebuilds 14 felts per manifold instead of the whole constraint. Inert constraints are
-//! dropped. Bodies are a `SweepBodies` (velocities in the dictionary, poses in an array
-//! rebuilt once per substep). Same expressions, operand order, rounding and panics as `contact`'s
-//! sweeps.
+//! small arrays of the values the sweeps change (`Hot`: impulses, rhs, cfm; `Bank`: accumulators
+//! and cached separations), so a sweep rebuilds 10 felts per manifold instead of the whole
+//! constraint. Inert constraints are dropped. Bodies are a `SweepBodies` (velocities in the
+//! dictionary, poses in an array rebuilt once per substep). Same values, rounding and panics as
+//! `contact`'s sweeps.
+//!
+//! BT3 (exact Cairo steps of `solve_island` on the level-10 impact tick 28, 290 613 → 194 418;
+//! every result bit-identical, the impact digests pinned): generation straight into
+//! `Frozen` / `Hot` / `Bank` (`generation`, −8.5k, then its lean state −7.2k, the slot index
+//! −4.4k); fused exact wide sums (`jv_add`, `separation`, inlined `transform`), pre-negated
+//! second weights, unit warm start (−17.0k); skipped exact zeros: a zero impulse delta changes
+//! no velocity (−25.1k), a unit `cfm` needs no product (−2.0k), a zero friction limit makes the
+//! tangent row zero (−7.5k), zero rhs terms (−4.7k), zero warm-start impulses one by one
+//! (−2.0k), unchanged velocities are not written back (−2.0k); the next substep's update reuses
+//! the refresh's separations (−3.1k, and −1.6k once they moved to `Bank`); the writeback loop
+//! carries an id, not a constraint (−3.5k); the reusing update reads no pose, the restitution
+//! sweep is skipped without a negative seed, unclamped velocities are not rewritten (−3.4k);
+//! `bodies`: zero-com translations and zero damping (−4.4k). Rejected ones: `alternatives`.
 use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2_add, mul_add, wide_from, wide_mul};
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;

@@ -3,6 +3,12 @@
 //! Port of Parry's `contact_manifolds_halfspace_pfm`: ask the feature-map shape for the support
 //! feature toward `-normal`, then emit one contact for each feature vertex whose
 //! `dist_to_plane - border_radius <= prediction`. Convex polygons and compounds are deferred.
+//!
+//! BT3: a cuboid whose support distance is surely beyond the prediction leaves early with what
+//! the full path would leave (`cuboid_beyond`; exact, the full path decides every doubtful case).
+//! The ground's AABB overlaps every body, so most half-space pairs of a level are such pairs: a
+//! far pair costs 321 Cairo steps instead of 1 359 (`gas_halfspace_cuboid_far*`), the level-10
+//! impact tick's contact generation −4.8k.
 
 use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, wide_mul};
 use fixed::{Fixed, FixedTrait, ZERO};
@@ -347,8 +353,36 @@ mod alternatives {
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use crate::contact::{ContactManifold, ContactManifoldTrait};
     use crate::manifold::ManifoldTrait;
-    use crate::shape::{Capsule, HalfSpace, Segment, Shape};
+    use crate::shape::{Capsule, Cuboid, CuboidTrait, HalfSpace, Segment, Shape};
     use super::{finish_normals, generate_from_feature, halfspace_pfm_generic, segment_feature};
+
+    /// The half-space–cuboid path before BT3's `cuboid_beyond` early-out (loser on the level's
+    /// impact ticks: every non-touching ground pair built the support feature, transformed its
+    /// two vertices and matched an empty manifold; see `gas_halfspace_cuboid_far*`).
+    pub fn contact_manifold_halfspace_cuboid_full(
+        pos12: Pose2,
+        halfspace1: HalfSpace,
+        cuboid2: Cuboid,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+        flipped: bool,
+    ) {
+        let normal1_2 = pos12.inverse_transform_vector(halfspace1.normal);
+        let old = manifold;
+        manifold.clear();
+        generate_from_feature(
+            pos12,
+            halfspace1,
+            normal1_2,
+            cuboid2.support_feature(-normal1_2),
+            ZERO,
+            prediction,
+            ref manifold,
+            flipped,
+        );
+        finish_normals(pos12, halfspace1, normal1_2, ref manifold, flipped);
+        manifold.match_contacts(@old);
+    }
 
     pub fn contact_manifold_halfspace_pfm_generic(
         pos12: Pose2,
@@ -516,9 +550,64 @@ mod tests {
         }
     }
 
+    /// BT3's early-out against the full path, from a warm manifold (its stale points must
+    /// survive exactly), on both sides of the prediction boundary, rotated, flipped.
+    #[test]
+    fn test_cuboid_early_out_matches_full() {
+        let mut warm: ContactManifold = Default::default();
+        contact_manifold_halfspace_pfm(
+            pose(ZERO, HALF), H, Shape::Cuboid(C), HALF, ref warm, false,
+        );
+        // (y raw, rotated, flipped): the lowest vertex reaches the prediction (1/2) at y = 1.
+        // Far above; beyond the early-out margin (2^-16); within it (full path, no point); one
+        // ulp beyond; exactly at the prediction (a point); inside; penetrating.
+        let cases = array![
+            (0x500000000_i64, false, false), (0x500000000, true, true), (0x100010001, false, false),
+            (0x100010000, false, true), (0x100000001, true, false), (0x100000000, false, false),
+            (0xc0000000, true, true), (-0x10000, false, false),
+        ];
+        for (y, rotated, flipped) in cases {
+            let mut p = pose(ZERO, Fixed { raw: y });
+            if rotated {
+                p.rotation = R;
+            }
+            let mut a = warm;
+            let mut b = warm;
+            contact_manifold_halfspace_pfm(p, H, Shape::Cuboid(C), HALF, ref a, flipped);
+            alternatives::contact_manifold_halfspace_cuboid_full(p, H, C, HALF, ref b, flipped);
+            assert_eq!(a, b);
+        }
+    }
+
     #[test]
     fn gas_baseline() {
         let _ = opaque(IDENTITY);
+    }
+
+    /// A cuboid one unit above the prediction: the early-out, then the full path.
+    #[test]
+    fn gas_halfspace_cuboid_far() {
+        let mut m: ContactManifold = Default::default();
+        contact_manifold_halfspace_pfm(
+            opaque(pose(ZERO, FixedTrait::from_int(3))), H, Shape::Cuboid(C), HALF, ref m, false,
+        );
+    }
+
+    #[test]
+    fn gas_halfspace_cuboid_far_full() {
+        let mut m: ContactManifold = Default::default();
+        alternatives::contact_manifold_halfspace_cuboid_full(
+            opaque(pose(ZERO, FixedTrait::from_int(3))), H, C, HALF, ref m, false,
+        );
+    }
+
+    /// A touching cuboid through the full path (`gas_halfspace_cuboid_direct` is the winner).
+    #[test]
+    fn gas_halfspace_cuboid_touching_full() {
+        let mut m: ContactManifold = Default::default();
+        alternatives::contact_manifold_halfspace_cuboid_full(
+            opaque(IDENTITY), H, C, ZERO, ref m, false,
+        );
     }
 
     #[test]
