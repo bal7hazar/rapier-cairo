@@ -61,7 +61,10 @@
 //! world's active set; the next step, when no set was written since, walks only the awake bodies,
 //! their colliders and live pairs against the kept static proxies (same results, `active_set`).
 //!
-//! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
+//! CCD (work package CC2) runs in [`ccd::step_with_ccd`], around this step, not in [`step`]: a
+//! world stepped by [`step`] keeps the Cairo steps of a world without CCD.
+//!
+//! Deviations from upstream: [`step`] runs no CCD (see above); islands are rebuilt
 //! when an awake body can fall asleep or touches a sleeping one (upstream persists them, see
 //! `islands`); no user hooks; a body whose enabled state changes does not propagate it to its
 //! colliders (disable the colliders).
@@ -98,11 +101,14 @@ mod active_set_tests;
 pub(crate) mod alternatives;
 #[cfg(test)]
 mod benches;
+/// Continuous collision detection (CC2): `step_with_ccd` and the `CCDSolver`.
+pub mod ccd;
 
 /// `CollisionPipeline` and `PhysicsPipeline`: upstream's pipeline objects.
 pub mod facade;
 #[cfg(test)]
 pub(crate) mod fixtures;
+pub use ccd::{CCDSolver, CCDSolverTrait, step_with_ccd, step_with_ccd_and_force_events};
 pub mod force_events;
 use force_events::{CollisionOnly, StepOutput, WithForces};
 mod free_path;

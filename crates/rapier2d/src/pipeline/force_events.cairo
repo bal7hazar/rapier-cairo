@@ -17,6 +17,11 @@ pub(crate) trait StepOutput<T> {
         ref narrow: NarrowPhase,
         ref colliders: ColliderSet,
     ) -> T;
+    /// `output` with `events` appended to its collision events (CC2: the CCD pass's sensor
+    /// events).
+    fn with_events(output: T, events: Array<CollisionEvent>) -> T;
+    /// The outputs of two consecutive substeps, concatenated (CC2).
+    fn merge(first: T, second: T) -> T;
 }
 
 pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
@@ -33,6 +38,20 @@ pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
         }
         events
     }
+
+    fn with_events(
+        output: Array<CollisionEvent>, events: Array<CollisionEvent>,
+    ) -> Array<CollisionEvent> {
+        let mut output = output;
+        output.append_span(events.span());
+        output
+    }
+
+    fn merge(first: Array<CollisionEvent>, second: Array<CollisionEvent>) -> Array<CollisionEvent> {
+        let mut first = first;
+        first.append_span(second.span());
+        first
+    }
 }
 
 pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactForceEvent>)> {
@@ -46,6 +65,25 @@ pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactFo
     ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
         let forces = dispatch(enabled, dt, ref narrow, ref colliders);
         (events, forces)
+    }
+
+    fn with_events(
+        output: (Array<CollisionEvent>, Array<ContactForceEvent>), events: Array<CollisionEvent>,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        let (mut collisions, forces) = output;
+        collisions.append_span(events.span());
+        (collisions, forces)
+    }
+
+    fn merge(
+        first: (Array<CollisionEvent>, Array<ContactForceEvent>),
+        second: (Array<CollisionEvent>, Array<ContactForceEvent>),
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        let (mut collisions, mut forces) = first;
+        let (more_collisions, more_forces) = second;
+        collisions.append_span(more_collisions.span());
+        forces.append_span(more_forces.span());
+        (collisions, forces)
     }
 }
 

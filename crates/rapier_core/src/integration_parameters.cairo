@@ -1,9 +1,10 @@
 //! Simulation parameters (upstream `rapier::dynamics::IntegrationParameters`).
 //!
 //! Every upstream field that survives the plan's cuts is kept, with upstream's defaults. The CCD
-//! (`min_ccd_dt`, `max_ccd_substeps`), contact clustering / recycling and `warmstart_joints`
-//! fields are plain data for now: nothing in this port reads them yet, they exist so that the
-//! defaults match the golden fixtures field by field. The soft-body settings and the 3D-only
+//! fields (`min_ccd_dt`, `max_ccd_substeps`) are read by `rapier2d`'s `step_with_ccd` (CC2) only:
+//! `World::step` runs no CCD. The contact clustering / recycling and `warmstart_joints` fields
+//! are plain data for now: nothing in this port reads them yet, they exist so that the defaults
+//! match the golden fixtures field by field. The soft-body settings and the 3D-only
 //! `friction_model` are cut.
 //!
 //! The quantities the solver derives from the parameters are methods mirroring upstream names.
@@ -36,8 +37,8 @@ pub mod errors {
 pub struct IntegrationParameters {
     /// Timestep length in seconds (default `1 / 60`, i.e. raw `71582788`, rounded to nearest).
     pub dt: Fixed,
-    /// Minimum timestep when CCD subdivides a step (default `1 / 60 / 100`, raw `715828`).
-    /// Unused for now (CCD is out of scope).
+    /// Minimum timestep when CCD subdivides a step (default `1 / 60 / 100`, raw `715828`): a
+    /// remainder at or under it joins the substep (`rapier2d::pipeline::ccd`).
     pub min_ccd_dt: Fixed,
     /// Softness of contacts between two dynamic bodies (default 30 Hz, ζ = 10).
     pub contact_softness: SpringCoefficients,
@@ -65,7 +66,8 @@ pub struct IntegrationParameters {
     pub num_internal_pgs_iterations: u32,
     /// Stabilization iterations per solver iteration (default `1`).
     pub num_internal_stabilization_iterations: u32,
-    /// Maximum number of CCD substeps; `0` disables all CCD (default `1`). Unused for now.
+    /// Maximum number of CCD substeps; `0` disables all CCD (default `1`: the continuous pass
+    /// without splitting). Read by `rapier2d::pipeline::ccd::step_with_ccd`.
     pub max_ccd_substeps: u32,
     /// Merge manifolds sharing a normal into one cluster (default `true`, 3D only). Unused.
     pub contact_clustering: bool,

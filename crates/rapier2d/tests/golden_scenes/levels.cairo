@@ -48,7 +48,7 @@ pub fn level(blocks: u32) -> (Span<LevelBodyRaw>, Vec2Raw, (i64, i64)) {
     }
 }
 
-fn collider(desc: LevelBodyRaw) -> Collider {
+pub fn collider(desc: LevelBodyRaw) -> Collider {
     let builder = match desc.shape {
         PolygonContactShapeRaw::Polygon(polygon) => {
             let mut points = array![];

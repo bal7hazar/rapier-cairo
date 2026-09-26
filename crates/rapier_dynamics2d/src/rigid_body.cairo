@@ -18,15 +18,18 @@
 //!
 //! Every inverse mass and inertia goes through `rapier_math::inv` (`inv(0) = 0`), so a fixed
 //! body, an infinite mass and a locked axis are all the same code path. Deferred to later work
-//! packages: the body set and its change tracking (DD), CCD, the 3D-only gyroscopic terms and
+//! packages: the body set and its change tracking (DD), the 3D-only gyroscopic terms and
 //! everything that needs the angle of a rotation (`pose_errors`, `interpolate_velocity`).
 
+/// The continuous-collision component (CC2).
+pub mod ccd;
 pub mod forces;
 pub mod locked_axes;
 pub mod mass_props;
 pub mod position;
 pub mod velocity;
 
+pub use ccd::{RigidBodyCcd, RigidBodyCcdDefault, RigidBodyCcdImpl, RigidBodyCcdTrait};
 pub use forces::{
     RigidBodyForces, RigidBodyForcesDefault, RigidBodyForcesImpl, RigidBodyForcesTrait,
 };

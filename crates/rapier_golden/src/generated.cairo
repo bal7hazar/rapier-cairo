@@ -5,6 +5,7 @@
 
 pub mod aabb;
 pub mod aabb_overlap;
+pub mod ccd_scenes;
 pub mod clip2d;
 pub mod contact_manifolds;
 pub mod integration_parameters;

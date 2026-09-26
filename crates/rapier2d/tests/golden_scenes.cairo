@@ -22,7 +22,8 @@ use rapier_golden::types::{BodyKindRaw, SceneCase, SceneSampleRaw};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 
-mod builder;
+pub mod builder;
+mod ccd;
 mod coupled_joints;
 mod events;
 mod joint_controls;

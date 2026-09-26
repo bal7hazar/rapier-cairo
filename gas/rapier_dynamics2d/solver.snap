@@ -100,7 +100,7 @@ rapier_dynamics2d::solver::island::benches::gas_stage_setup5 1956380
 rapier_dynamics2d::solver::island::empty::tests::gas_all_inert 66250
 rapier_dynamics2d::solver::island::empty::tests::gas_baseline 14120
 rapier_dynamics2d::solver::island::empty::tests::gas_first_active 74810
-rapier_dynamics2d::solver::island::free_checks::test_free_body_matches_the_store_path 34628150
+rapier_dynamics2d::solver::island::free_checks::test_free_body_matches_the_store_path 34604750
 rapier_dynamics2d::solver::island::idle_benches::gas_baseline 14120
 rapier_dynamics2d::solver::island::idle_benches::gas_free1_entries 96502
 rapier_dynamics2d::solver::island::idle_benches::gas_free1_gather 196394

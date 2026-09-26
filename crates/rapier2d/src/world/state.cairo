@@ -8,8 +8,11 @@
 //! narrow-phase pairs (manifolds with their warm-start impulses, event status, sensor
 //! `intersecting` bits), and since version 2 the step's active set (BT2,
 //! `crate::pipeline::active_set`), saved invalid when a set was written since the step that
-//! filled it (the restored sets start unmodified). A persistent piece added to [`World`] later
-//! (island manager, CCD) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
+//! filled it (the restored sets start unmodified). Version 3 (CC2): a body's cold data holds its
+//! CCD state next to its user data (`RigidBodyColdExtra`, serialized as an `Option`); the CCD
+//! solver is owned by the caller of `step_with_ccd` and serializes its switch alone
+//! (`crate::pipeline::ccd::CCDSolver`). A persistent piece added to [`World`] later (island
+//! manager) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
 //!
 //! [`to_state`] leaves the world as is; [`into_state`] consumes it and moves the pair list
 //! instead of copying it (the end of a chunk).
@@ -35,7 +38,7 @@ use crate::pipeline::active_set::ActiveSet;
 use super::World;
 
 /// Layout version written by [`to_state`] and required by [`from_state`].
-pub const WORLD_STATE_VERSION: u32 = 2;
+pub const WORLD_STATE_VERSION: u32 = 3;
 
 /// Panic messages of the world state.
 pub mod errors {

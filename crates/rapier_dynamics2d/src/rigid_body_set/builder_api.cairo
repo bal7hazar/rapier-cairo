@@ -8,9 +8,10 @@ use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 use crate::rigid_body::{LockedAxes, RigidBodyMassPropsTrait, RigidBodyPositionTrait};
 use super::body_api::RigidBodyTrait;
+use super::ccd_api::RigidBodyCcdApiTrait;
 use super::{
-    RigidBody, cold_or_default, set_extra_additional_is_mass, set_extra_allow_fast_rotation,
-    set_extra_pgs_iterations, set_extra_solver_iterations,
+    ColdExtraSlotTrait, RigidBody, cold_or_default, set_extra_additional_is_mass,
+    set_extra_allow_fast_rotation, set_extra_pgs_iterations, set_extra_solver_iterations,
 };
 
 /// Upstream-named body builder. Unexposed builder options remain configurable on `build()`.
@@ -138,7 +139,9 @@ pub impl RigidBodyBuilderImpl of RigidBodyBuilderTrait {
     /// Initial user data.
     fn user_data(mut self: RigidBodyBuilder, data: u128) -> RigidBodyBuilder {
         let mut cold = cold_or_default(self.body.cold);
-        cold.user_data = data;
+        let mut extra = cold.extra.value();
+        extra.user_data = data;
+        cold.extra = ColdExtraSlotTrait::new(extra);
         self.body.cold = BoxTrait::new(Some(cold));
         self
     }
@@ -242,6 +245,20 @@ pub impl RigidBodyBuilderImpl of RigidBodyBuilderTrait {
         let mut cold = cold_or_default(self.body.cold);
         cold.solver_flags = set_extra_allow_fast_rotation(cold.solver_flags, allow);
         self.body.cold = BoxTrait::new(Some(cold));
+        self
+    }
+    /// Initial full-CCD switch (upstream `ccd_enabled`, see `RigidBodyCcdApiTrait::enable_ccd`).
+    fn ccd_enabled(mut self: RigidBodyBuilder, enabled: bool) -> RigidBodyBuilder {
+        self.body.enable_ccd(enabled);
+        self
+    }
+    /// Initial soft-CCD prediction distance (upstream `soft_ccd_prediction`).
+    /// #### Panics
+    /// * `'RigidBody: negative prediction'` for a negative distance.
+    fn soft_ccd_prediction(
+        mut self: RigidBodyBuilder, prediction_distance: Fixed,
+    ) -> RigidBodyBuilder {
+        self.body.set_soft_ccd_prediction(prediction_distance);
         self
     }
     /// 3D-only upstream switch, ignored in 2D.

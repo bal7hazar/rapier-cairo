@@ -236,6 +236,9 @@ OWNER_ALIASES.update({
     "Halfspace": ("HalfSpace",),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
     "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),
+    # CC2: the CCD members of `RigidBody` are `RigidBodyCcdApiTrait` (`rigid_body_set/ccd_api.cairo`:
+    # `body_api.cairo` is at the file budget).
+    "RigidBody": ("RigidBody", "RigidBodyCcdApi"),
     "RigidBodyColliders": ("RigidBodyColliders", "RigidBodySet"), "ColliderShape": ("Shape",),
     # QY1: Parry's free `query::` functions live in `rapier_geometry2d::query` (top level, and the
     # per-pair kernel files `query/{ball,cuboid,segment,halfspace,support_map}.cairo`), next to
@@ -757,16 +760,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
     # `query::nonlinear_shape_cast::{ccd_thickness, ccd_angular_thickness}(shape)`.
     **{("Shape", n): f"Free function `query::nonlinear_shape_cast::{n}(shape)` (Shape methods: orchestrator)." for n in (
         "ccd_thickness", "ccd_angular_thickness")},
-    # CC2 owns the CCD solver in the step and the body / builder CCD state.
-    **{("CCDSolver", n): "CCD solver in the step: lot CC2." for n in (
-        "CCDSolver", "find_first_impact", "invalidate_fixed_targets_cache", "new", "solve_continuous",
-        "update_ccd_active_flags")},
-    **{("RigidBodyCcd", n): "Body CCD state: lot CC2." for n in (
-        "RigidBodyCcd", "FAST_BODY_SAFETY_FACTOR", "Default", "is_moving_fast",
-        "is_moving_fast_with_next_position", "max_point_velocity")},
-    **{("RigidBody", n): "Body CCD state: lot CC2." for n in (
-        "enable_ccd", "is_ccd_active", "is_ccd_enabled", "set_soft_ccd_prediction", "soft_ccd_prediction")},
-    **{("RigidBodyBuilder", n): "Body CCD state: lot CC2." for n in ("ccd_enabled", "soft_ccd_prediction")},
 }
 
 
