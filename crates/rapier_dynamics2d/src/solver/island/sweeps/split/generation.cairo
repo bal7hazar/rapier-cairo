@@ -46,15 +46,26 @@ pub(crate) fn generate(
     let mut frozen = array![];
     let mut hot = array![];
     let mut bank = array![];
+    let mut bounce = false;
     let mut index = body_index(bodies);
     let mut id = 0;
     while let Some(m) = manifolds.pop_front() {
         split_manifold(
-            m, bodies, dt, inv_dt, ref soft, ref index, id, ref frozen, ref hot, ref bank,
+            m,
+            bodies,
+            dt,
+            inv_dt,
+            ref soft,
+            ref index,
+            id,
+            ref frozen,
+            ref hot,
+            ref bank,
+            ref bounce,
         );
         id += 1;
     }
-    (frozen, State { hot, bank })
+    (frozen, State { hot, bank, bounce })
 }
 
 /// `contact::SoftCache` without the parameters: the softness `(erp_inv_dt, cfm_factor)` of the
@@ -155,6 +166,7 @@ fn split_manifold(
     ref frozen: Array<Frozen>,
     ref hot: Array<Hot>,
     ref bank: Array<Bank>,
+    ref bounce: bool,
 ) {
     let count = *m.data.num_solver_contacts;
     let num_points = *m.num_points;
@@ -220,6 +232,7 @@ fn split_manifold(
                 b: fb,
             },
         );
+    bounce = bounce || fa.seed < ZERO || fb.seed < ZERO;
     hot.append(Hot { a: ha, b: hb });
     bank.append(Bank { a: ba, b: bb });
 }

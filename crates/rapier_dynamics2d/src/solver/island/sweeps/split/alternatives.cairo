@@ -113,6 +113,7 @@ fn push(ref frozen: Array<Frozen>, ref state: State, c: ContactConstraint) {
             );
         state.hot.append(Hot { a: hot_point(a), b: hot_point(b) });
         state.bank.append(Bank { a: bank_point(a), b: bank_point(b) });
+        state.bounce = state.bounce || a.restitution_seed < ZERO || b.restitution_seed < ZERO;
     }
 }
 
@@ -126,7 +127,7 @@ pub(crate) fn generate_via_constraints(
 ) -> (Array<Frozen>, State) {
     let mut cache = SoftCacheTrait::new(params, dt);
     let mut frozen = array![];
-    let mut state = State { hot: array![], bank: array![] };
+    let mut state = State { hot: array![], bank: array![], bounce: false };
     let mut id = 0;
     while let Some(m) = manifolds.pop_front() {
         let mut c = generate_cached(*m, bodies, dt, ref cache);

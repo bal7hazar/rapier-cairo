@@ -70,17 +70,22 @@ pub(crate) impl SweepBodiesImpl of SweepBodiesTrait {
             if *steps.at(i).moving {
                 let mut v = self.vel(i);
                 // Sentinel guard is before length computation: disabled caps need no sqrt.
+                // BT3: an unclamped velocity is not written back (it is unchanged).
+                let mut clamped = false;
                 if max_lin != MAX {
                     let length = v.linear.length();
                     if length > max_lin {
                         v.linear = v.linear.mul_scalar(max_lin / length);
+                        clamped = true;
                     }
                 }
                 if v.angular > max_ang {
                     v.angular = max_ang;
+                    clamped = true;
                 }
                 if v.angular < -max_ang {
                     v.angular = -max_ang;
+                    clamped = true;
                 }
                 // `RigidBodyVelocity::integrate` with a zero local centre of mass (BT3): its
                 // `(R - R') * local_com` terms are exact zeros, so each translation component
@@ -96,7 +101,9 @@ pub(crate) impl SweepBodiesImpl of SweepBodiesTrait {
                             rotation,
                         },
                     );
-                self.vels.insert(i.into(), NullableTrait::new(v));
+                if clamped {
+                    self.vels.insert(i.into(), NullableTrait::new(v));
+                }
             } else {
                 out.append(pose);
             }

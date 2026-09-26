@@ -103,11 +103,13 @@ pub(crate) struct Bank {
     pub b: BankPoint,
 }
 
-/// The sweeps' state, one `Hot` and one `Bank` per active constraint, in constraint order.
+/// The sweeps' state, one `Hot` and one `Bank` per active constraint, in constraint order;
+/// `bounce` is `false` when no point has a negative restitution seed (no bounce is possible).
 #[derive(Drop)]
 pub(crate) struct State {
     pub hot: Array<Hot>,
     pub bank: Array<Bank>,
+    pub bounce: bool,
 }
 
 /// Visit the active constraints in order: 0 update/warmstart, 1 bias, 2 rhs/relax, 3 relax,
@@ -139,7 +141,12 @@ pub(crate) fn contacts(
         },
         2 => banked(ref state, frozen, ref bodies, Refresh {}),
         3 => sweep(ref state.hot, frozen, ref bodies, Relax {}),
-        _ => banked(ref state, frozen, ref bodies, Restitution {}),
+        _ => {
+            // BT3: without a negative seed every constraint would leave the stage unchanged.
+            if state.bounce {
+                banked(ref state, frozen, ref bodies, Restitution {});
+            }
+        },
     }
 }
 
@@ -197,7 +204,7 @@ fn banked<K, +BankKernel<K>, +Copy<K>, +Drop<K>>(
         hot.append(h);
         bank.append(b);
     }
-    state = State { hot, bank };
+    state = State { hot, bank, bounce: state.bounce };
 }
 
 /// `apply` of `contact::cached`: weighted linear parts, inertia-weighted angular parts. Each
@@ -403,8 +410,12 @@ impl UpdateKernel of BankKernel<Update> {
         ref bodies: SweepBodies,
         poses: Span<Pose2>,
     ) {
-        let p1 = pose(poses, *f.i);
-        let p2 = pose(poses, *f.j);
+        // BT3: a reusing update reads no pose.
+        let (p1, p2) = if self.reuse {
+            (Default::default(), Default::default())
+        } else {
+            (pose(poses, *f.i), pose(poses, *f.j))
+        };
         let two = *f.count == 2;
         update_point(ref h.a, ref b.a, f.a, f, p1, p2, self);
         if two {
