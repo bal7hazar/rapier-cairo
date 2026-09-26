@@ -274,8 +274,9 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         ref world.narrow_phase,
         ref world.colliders,
     );
-    // BT2: with a sleeping body, the next step can skip the sleeping bodies (`active_set`).
-    let rebuild = sleeping && no_joints && !woken;
+    // BT2: with a sleeping body, the next step can skip the sleeping bodies (`active_set`); BT4:
+    // also after a wake-up (the next step clears the `SLEEP` flags it left).
+    let rebuild = sleeping && no_joints;
     if !dormant.is_empty() {
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
     }

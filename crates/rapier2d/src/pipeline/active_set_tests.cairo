@@ -33,6 +33,14 @@ fn at(x: Fixed, y: Fixed) -> Pose2 {
 /// block, a disabled body far away, and a pebble fired at the blocks from the left (it arrives
 /// after about ten steps; slower or higher shots miss, from `seed`).
 fn level(seed: u32) -> World {
+    level_with(seed, false)
+}
+
+/// [`level`], with a second group of blocks (BT4, mixed ticks) 10 m to the right of the first
+/// and the pebble fired from 2.5 m when `far`: the pebble wakes the first group through contact
+/// after both fell asleep and never reaches the second, so the steps after the impact have an
+/// awake structure and a sleeping one.
+fn level_with(seed: u32, far: bool) -> World {
     let mut state: u64 = seed.into();
     let mut world: World = Default::default();
     let _ = world
@@ -60,6 +68,13 @@ fn level(seed: u32) -> World {
             );
         k += 1;
     }
+    let mut k: u32 = 0;
+    while far && k != n {
+        let mut body = RigidBodyTrait::dynamic(at(f(42949672960 + 4294967296 * k.into()), HALF));
+        body.activation.time_until_sleep = f(143165577);
+        let _ = world.insert(body, ColliderBuilderTrait::cuboid(HALF, HALF).build());
+        k += 1;
+    }
     let _ = world
         .insert_collider(
             ColliderBuilderTrait::ball(HALF)
@@ -75,7 +90,12 @@ fn level(seed: u32) -> World {
     let speed: i64 = (8 + draw(ref state) % 6).into();
     let height: i64 = (1 + draw(ref state) % 3).into();
     let pebble = RigidBodyBuilderTrait::dynamic()
-        .translation(v(f(-42949672960), f(2147483648 * height)))
+        // With `far`, 2.5 m from the blocks: the shot lands after they fall asleep.
+        .translation(v(if far {
+            f(-10737418240)
+        } else {
+            f(-42949672960)
+        }, f(2147483648 * height)))
         .linvel(v(f(4294967296 * speed), f(2147483648)))
         .build();
     let pebble_collider = ColliderBuilderTrait::ball(f(1288490189))
@@ -118,8 +138,13 @@ fn change(ref a: World, ref b: World, t: u32, seed: u32) {
 /// Steps `shipped` (active set as maintained) and `reference` (invalidated before every step)
 /// `steps` times with the user changes of `seed`; returns how many steps took the active set.
 fn run_both(seed: u32, steps: u32, changes: bool) -> u32 {
-    let mut shipped = level(seed);
-    let mut reference = level(seed);
+    run_both_with(seed, steps, changes, false)
+}
+
+/// [`run_both`] on [`level_with`]`(seed, far)`.
+fn run_both_with(seed: u32, steps: u32, changes: bool, far: bool) -> u32 {
+    let mut shipped = level_with(seed, far);
+    let mut reference = level_with(seed, far);
     let mut sparse = 0;
     let mut t: u32 = 0;
     while t != steps {
@@ -170,6 +195,23 @@ fn test_active_set_is_taken_and_agrees() {
         taken += run_both(*seed, 16, false);
     }
     assert!(taken != 0, "the active set was never taken");
+}
+
+/// BT4, mixed ticks: the pebble wakes the first structure through contact while the second
+/// sleeps on; the steps after the wake-up take the active set (with the island stage when a
+/// woken body is still eligible) and agree with the whole step, user changes included.
+#[test]
+#[fuzzer(runs: 4, seed: 20260926)]
+fn fuzz_active_set_agrees_in_mixed_ticks(seed: u16) {
+    let _ = run_both_with(seed.into(), 13, true, true);
+}
+
+/// Without user changes: the impact and the ticks after it take the active set.
+#[test]
+fn test_active_set_is_taken_in_mixed_ticks() {
+    // Seed 0: asleep at step 4, the pebble lands at step 10 (the step budget of a unit test).
+    let taken = run_both_with(0, 15, false, true);
+    assert!(taken == 11, "the active set was taken {} times", taken);
 }
 
 /// A world restored from its state keeps its active set (`WorldState` version 2).
