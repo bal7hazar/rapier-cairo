@@ -26,8 +26,9 @@ pub use interaction_groups::{
     Group, GroupTrait, InteractionGroups, InteractionGroupsTrait, InteractionTestMode,
 };
 pub use rigid_body::{
-    RigidBodyActivation, RigidBodyActivationImpl, RigidBodyActivationTrait, RigidBodyChanges,
-    RigidBodyChangesImpl, RigidBodyChangesTrait, RigidBodyDamping, RigidBodyDampingImpl,
-    RigidBodyDampingTrait, RigidBodyDominance, RigidBodyDominanceImpl, RigidBodyDominanceTrait,
-    RigidBodyType, RigidBodyTypeImpl, RigidBodyTypeTrait, damping_factor,
+    AxesMask, AxesMaskDefault, AxesMaskImpl, AxesMaskTrait, BodyStatus, RigidBodyActivation,
+    RigidBodyActivationImpl, RigidBodyActivationTrait, RigidBodyChanges, RigidBodyChangesImpl,
+    RigidBodyChangesTrait, RigidBodyDamping, RigidBodyDampingImpl, RigidBodyDampingTrait,
+    RigidBodyDominance, RigidBodyDominanceImpl, RigidBodyDominanceTrait, RigidBodyType,
+    RigidBodyTypeImpl, RigidBodyTypeTrait, damping_factor,
 };
