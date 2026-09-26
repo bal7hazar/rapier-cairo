@@ -498,8 +498,95 @@ fn scratch_slot(
     slot - 1
 }
 
+/// [`with_referenced`] knowing where the missing bodies come from: a side of a touching pair of
+/// `pairs` that is not active is the parent of the pair's static collider, whose entry is in
+/// `statics` (the scratch entries of the static colliders of the pairs found), and every such
+/// parent is fixed or asleep, never in `awake`. So the parents of `statics` that a touching pair
+/// references are added, in ascending slot, without a lookup per pair side (BT4).
+fn with_static_parents(
+    awake: Span<(Handle, RigidBody)>,
+    pairs: Span<ContactPair>,
+    statics: Span<PairCollider>,
+    ref bodies: RigidBodySet,
+) -> Span<(Handle, RigidBody)> {
+    let mut touching = false;
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            touching = true;
+            break;
+        }
+    }
+    if !touching {
+        return awake;
+    }
+    let mut extra: Array<Handle> = array![];
+    for co in statics {
+        if let Some(h) = *co.body {
+            if !listed(extra.span(), h) && touched(pairs, h) {
+                let mut sorted = array![];
+                let mut placed = false;
+                for e in extra.span() {
+                    if !placed && e.index > @h.index {
+                        sorted.append(h);
+                        placed = true;
+                    }
+                    sorted.append(*e);
+                }
+                if !placed {
+                    sorted.append(h);
+                }
+                extra = sorted;
+            }
+        }
+    }
+    if extra.is_empty() {
+        return awake;
+    }
+    let mut out = array![];
+    let mut awake = awake;
+    for h in extra.span() {
+        while let Some(entry) = awake.get(0) {
+            let (a, _) = entry.unbox();
+            if a.index > h.index {
+                break;
+            }
+            out.append(*awake.pop_front().unwrap());
+        }
+        if let Some(body) = bodies.get(*h) {
+            out.append((*h, body));
+        }
+    }
+    out.append_span(awake);
+    out.span()
+}
+
+/// `h` is in `handles`.
+fn listed(handles: Span<Handle>, h: Handle) -> bool {
+    for e in handles {
+        if *e == h {
+            return true;
+        }
+    }
+    false
+}
+
+/// A touching pair of `pairs` references the body `h`.
+fn touched(pairs: Span<ContactPair>, h: Handle) -> bool {
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            let data = pair.manifold.data;
+            if *data.rigid_body1 == Some(h) || *data.rigid_body2 == Some(h) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// `awake` (ascending slot) with the bodies the touching pairs of `pairs` reference that it lacks,
-/// in ascending slot.
+/// in ascending slot: BT2's form, a lookup per touching pair side, kept as the alternative of
+/// [`with_static_parents`] (BT4: 26.9k more Cairo steps over level 20's impact window).
+#[cfg(test)]
 fn with_referenced(
     awake: Span<(Handle, RigidBody)>, pairs: Span<ContactPair>, ref bodies: RigidBodySet,
 ) -> Span<(Handle, RigidBody)> {
@@ -649,8 +736,15 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
                 ref world.colliders,
             );
     }
-    // The bodies the touching pairs reference join the active ones.
-    let entries = with_referenced(awake, world.narrow_phase.pairs.span(), ref world.bodies);
+    // The bodies the touching pairs reference join the active ones (BT4: those not active are
+    // parents of the static colliders the pairs found, at the tail of the scratch).
+    let n_d = active_colliders.len();
+    let entries = with_static_parents(
+        awake,
+        world.narrow_phase.pairs.span(),
+        scratch.span().slice(n_d, scratch.len() - n_d),
+        ref world.bodies,
+    );
     let active_pairs = world.narrow_phase.pairs.span();
     let islands = census.awake != 0
         && (census.eligible
