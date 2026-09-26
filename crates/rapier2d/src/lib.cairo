@@ -46,7 +46,12 @@ pub mod prelude {
     pub use crate::pipeline::facade::{
         CollisionPipeline, CollisionPipelineTrait, PhysicsPipeline, PhysicsPipelineTrait,
     };
-    pub use crate::queries::{QueryFilter, QueryFilterTrait};
+    pub use crate::queries::pipeline::{QueryPipeline, QueryPipelineTrait};
+    pub use crate::queries::{
+        EXCLUDE_DYNAMIC, EXCLUDE_FIXED, EXCLUDE_KINEMATIC, EXCLUDE_SENSORS, EXCLUDE_SOLIDS,
+        ONLY_DYNAMIC, ONLY_FIXED, ONLY_KINEMATIC, QueryFilter, QueryFilterFlags,
+        QueryFilterFlagsTrait, QueryFilterTrait,
+    };
     pub use crate::world::state::{WORLD_STATE_VERSION, WorldState};
     pub use crate::world::{PhysicsWorld, World, WorldTrait};
 }
