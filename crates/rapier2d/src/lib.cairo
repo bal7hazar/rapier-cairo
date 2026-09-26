@@ -38,6 +38,10 @@ pub mod prelude {
         ContactForceEventTrait, ContactPair, ContactPairTrait, OneWayPlatform, RigidBody,
         RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait, RigidBodyTrait,
     };
+    pub use rapier_geometry2d::query::{
+        NonlinearRigidMotion, NonlinearRigidMotionTrait, ShapeCastHit, ShapeCastHitTrait,
+        ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
+    };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
     pub use rapier_geometry2d::shape::round_shape::{

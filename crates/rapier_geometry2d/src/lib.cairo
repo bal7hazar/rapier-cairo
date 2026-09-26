@@ -31,7 +31,12 @@ pub use feature_id::{SubShapeId, UnpackedFeatureId};
 pub use mass::MassPropertiesTrait;
 pub use point::{PointProjection, PointQuery, PointQueryWithLocation, SegmentPointLocation};
 pub use query::intersection::{ShapeIntersection, ShapeIntersectionTrait};
-pub use query::{ClosestPoints, Contact};
+pub use query::sweep::{SweepToiStatus, sweep_time_of_impact};
+pub use query::{
+    ClosestPoints, Contact, NonlinearRigidMotion, NonlinearRigidMotionTrait, ShapeCastHit,
+    ShapeCastHitTrait, ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus, cast_shapes,
+    cast_shapes_nonlinear,
+};
 pub use ray::RayCast;
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub use shape::polygonal_feature_map::PolygonalFeatureMap;

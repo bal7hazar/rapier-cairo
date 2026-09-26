@@ -43,6 +43,9 @@ it and where the evidence lives.
 | 27 | Round shapes (`RoundCuboid`, `RoundTriangle`, `RoundConvexPolygon`) | queries and manifolds through GJK / EPA on the dilated support map (projected points up to 7e-5 off the exact point) | exact analytic kernels on the core shape with the border radius added (contacts: PFM–PFM with the radii in the prediction and offsets, as upstream); golden bands 4096 raw on distances / rays, 2^19 raw on projected points | no GJK / EPA in the port | SH1 #174 |
 | 28 | Clockwise triangles in contact generation | the support face of a clockwise triangle yields inward normals | the triangle is reoriented counter-clockwise for contacts (queries keep the stored order) | upstream defect on clockwise input | SH1 #174 |
 | 29 | Dispatch AABB of a rotated `RoundConvexPolygon` | tight | conservative (the local box cached in the shape payload, rotated); the tight one stays available as `RoundConvexPolygonTrait::compute_aabb` | one cached box instead of a vertex walk per step | SH1 #174 |
+| 30 | Shape casts between support maps | GJK-based ray cast on the Minkowski difference | exact Minkowski-difference ray cast (analytic per pair); TOI ≤ 4 raw of parry on analytic pairs, ≤ 256 raw on GJK pairs (golden `shape_casts`); on 4 exactly touching pairs upstream's EPA reports no hit, the port hits at t = 0 | no GJK / EPA in the port | CC1 #180 |
+| 31 | Swept TOI distance (`proxy_distance`) | GJK distance between the TOI proxies | exact closest-feature distance driving upstream's separation functions and root finder; fraction ≤ 2^17 raw (golden `sweep_toi`) | no GJK in the port | CC1 #180 |
+| 32 | Nonlinear shape casts | f64 tolerances, unbounded outer loop | tolerances 5120 / 512 ulp (f32-sized), outer loop capped at 32 iterations (`OutOfIterations`), `nlerp` keeps q1 on a half turn; TOI ≤ 2^18 raw (golden `nonlinear_shape_casts`) | Q32.32 cost and determinism | CC1 #180 |
 
 ## Consequences
 
