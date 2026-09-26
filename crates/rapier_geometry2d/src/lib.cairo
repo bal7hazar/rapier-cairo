@@ -30,6 +30,7 @@ pub use dispatch::{contact_manifold, intersection_test};
 pub use feature_id::{SubShapeId, UnpackedFeatureId};
 pub use mass::MassPropertiesTrait;
 pub use point::{PointProjection, PointQuery, PointQueryWithLocation, SegmentPointLocation};
+pub use query::intersection::{ShapeIntersection, ShapeIntersectionTrait};
 pub use query::{ClosestPoints, Contact};
 pub use ray::RayCast;
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};

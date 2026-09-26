@@ -17,10 +17,10 @@ pub use events::{CollisionEvent, CollisionEventTrait, ContactForceEvent, Contact
 pub use narrow_phase::{
     ContactDispatcher, ContactPair, ContactPairTrait, NarrowPhase, NarrowPhaseTrait,
 };
-pub use rigid_body::RigidBodyAdditionalMassProps;
+pub use rigid_body::{Pose2IntoRigidBodyPosition, RigidBodyAdditionalMassProps};
 pub use rigid_body_set::{
-    BodyPair, RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait,
-    RigidBodyTrait,
+    BodyPair, RigidBody, RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodyColliders, RigidBodySet,
+    RigidBodySetTrait, RigidBodyTrait,
 };
 pub use solver::body_store::{
     SolverBodyIndexMap, SolverBodyIndexMapTrait, SolverBodyStore, SolverBodyStoreTrait,
