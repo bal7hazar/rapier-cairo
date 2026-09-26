@@ -3,6 +3,27 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## Unreleased
+
+**Results:** the step is unchanged since `0.1.0-alpha.3` (every golden vector and scene test, and the contract class
+sizes, identical). `WorldState` unchanged (version 2).
+
+### Breaking
+- `QueryFilter.flags` is a `QueryFilterFlags` (was a `u32`); the `EXCLUDE_*` / `ONLY_*` constants are typed
+  `QueryFilterFlags`, and `QueryFilterTrait::from_flags` takes one (#163).
+
+### Added
+- Parry's shape-pair queries for the closed shape set: `rapier_geometry2d::query::{distance, closest_points, contact,
+  intersection_test}`, `PointQuery` / `RayCast` / `PointQueryWithLocation` impls, `Aabb` point and ray queries,
+  manifold utilities; a parry defect fixed in `contact_support_map_halfspace` (ADR 0001 entry 26) (#152, #155).
+- Joint API: typed joints (`FixedJoint`, `RevoluteJoint`, `PrismaticJoint`, `PinSlotJoint`, `RopeJoint`,
+  `SpringJoint`) as views over `GenericJoint`, accessors / setters / builders, `ImpulseJointSet` queries,
+  `WorldTrait::{impulse_joints, impulse_joints_with, set_impulse_joint, set_impulse_joint_bodies}` (#157, #158).
+- Shape helpers: `Aabb` members, `BoundingSphere` / `BoundingVolume`, `SupportMap`, `PolygonalFeatureMap`, feature-id
+  helpers, per-shape bounding volumes, `MassProperties` members (#160, #161).
+- World scene queries: `intersect_shape`, `project_point_and_get_feature`, `intersect_aabb_conservative`,
+  `QueryPipeline` / `with_filter`, `QueryFilterFlags`, `QueryFilter::exclude_solids` (#163).
+
 ## 0.1.0-alpha.3 — 2026-09-26
 
 **Results:** bit-identical to `0.1.0-alpha.2` on every golden vector and scene test (the level impact windows are
