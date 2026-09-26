@@ -260,6 +260,12 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("PhysicsWorld", "step_with_events"): ("step_with_force_events",),
     ("PhysicsWorld", "PhysicsWorld"): ("World",), ("ColliderShape", "ColliderShape"): ("Shape",),
     ("ColliderHandle", "ColliderHandle"): ("Handle",), ("ColliderHandle", "from_raw_parts"): ("new",),
+    ("ImpulseJointHandle", "ImpulseJointHandle"): ("Handle",),
+    ("ImpulseJointHandle", "from_raw_parts"): ("new",),
+    # JA1: joints are values, so upstream's `*_mut` accessors are the copy-out reads (write back
+    # with `set`, or `World::set_impulse_joint` for the wake-up flag).
+    ("ImpulseJointSet", "get_mut"): ("get",), ("ImpulseJointSet", "iter_mut"): ("iter",),
+    ("ImpulseJointSet", "get_unknown_gen_mut"): ("get_unknown_gen",),
     ("ColliderPosition", "From<T>"): ("From<Pose2>",),
     # QY1: the exact intersection kernels of `dispatch/intersection.cairo` with upstream's
     # signatures (`(center12, b1, b2)`, `(pos12, c1, c2)`); the other `intersection_test_*` differ.

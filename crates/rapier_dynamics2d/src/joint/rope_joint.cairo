@@ -1,9 +1,9 @@
 //! Rope joint builder (upstream `RopeJointBuilder`): no locked axis, coupled linear axes and a
 //! `[0, max_dist]` limit on the first one, i.e. a maximum anchor distance. Setters copy exactly.
-use fixed::{Fixed, ZERO};
+use fixed::{Fixed, MAX, ZERO};
 use glam::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
-use super::{GenericJoint, GenericJointTrait, LIN_AXES, MotorModel};
+use super::{GenericJoint, GenericJointTrait, JointMotor, LIN_AXES, MotorModel};
 
 /// Rope joint builder; build returns the shared GenericJoint representation.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -82,6 +82,138 @@ pub impl RopeJointBuilderImpl of RopeJointBuilderTrait {
     }
     /// Return the joint; all copies are exact.
     fn build(self: RopeJointBuilder) -> GenericJoint {
+        self.data
+    }
+}
+
+
+/// A joint that keeps the two anchors within a maximum distance (upstream `RopeJoint`): a
+/// `GenericJoint` with coupled linear axes and a `[0, max_dist]` limit on the first one.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RopeJoint {
+    pub data: GenericJoint,
+}
+#[generate_trait]
+pub impl RopeJointImpl of RopeJointTrait {
+    /// A rope of maximum anchor distance `max_dist` (upstream `RopeJoint::new`; the value is
+    /// copied without validation).
+    fn new(max_dist: Fixed) -> RopeJoint {
+        let mut data = GenericJoint { coupled_axes: LIN_AXES, ..Default::default() };
+        data.set_limits(0, [ZERO, max_dist]);
+        RopeJoint { data }
+    }
+    /// The underlying generic joint (upstream `data`).
+    #[inline(always)]
+    fn data(self: RopeJoint) -> GenericJoint {
+        self.data
+    }
+    /// Whether the two attached bodies collide (upstream `contacts_enabled`).
+    #[inline(always)]
+    fn contacts_enabled(self: RopeJoint) -> bool {
+        self.data.contacts_enabled
+    }
+    /// Sets whether the two attached bodies collide (upstream `set_contacts_enabled`).
+    #[inline(always)]
+    fn set_contacts_enabled(ref self: RopeJoint, enabled: bool) {
+        self.data.contacts_enabled = enabled;
+    }
+    /// The anchor of the joint in the first body (upstream `local_anchor1`).
+    #[inline(always)]
+    fn local_anchor1(self: RopeJoint) -> Vec2 {
+        self.data.local_frame1.translation
+    }
+    /// Sets the anchor of the joint in the first body (upstream `set_local_anchor1`); exact copy.
+    #[inline(always)]
+    fn set_local_anchor1(ref self: RopeJoint, anchor: Vec2) {
+        self.data.local_frame1.translation = anchor;
+    }
+    /// The anchor of the joint in the second body (upstream `local_anchor2`).
+    #[inline(always)]
+    fn local_anchor2(self: RopeJoint) -> Vec2 {
+        self.data.local_frame2.translation
+    }
+    /// Sets the anchor of the joint in the second body (upstream `set_local_anchor2`); exact copy.
+    #[inline(always)]
+    fn set_local_anchor2(ref self: RopeJoint, anchor: Vec2) {
+        self.data.local_frame2.translation = anchor;
+    }
+    /// The constraint softness (upstream `softness`).
+    #[inline(always)]
+    fn softness(self: RopeJoint) -> SpringCoefficients {
+        self.data.softness
+    }
+    /// Sets the constraint softness (upstream `set_softness`); exact copy.
+    #[inline(always)]
+    fn set_softness(ref self: RopeJoint, softness: SpringCoefficients) {
+        self.data.softness = softness;
+    }
+    /// The motor of `axis` (upstream `motor`, which takes the axis: the coupled distance motor
+    /// is on `0`), `None` while it is not enabled.
+    #[inline(always)]
+    fn motor(self: RopeJoint, axis: u8) -> Option<JointMotor> {
+        self.data.motor(axis)
+    }
+    /// The maximum distance between the anchors (upstream `max_distance`); `MAX` when no limit
+    /// is set.
+    fn max_distance(self: RopeJoint) -> Fixed {
+        match self.data.limits(0) {
+            Some(limits) => limits.max,
+            None => MAX,
+        }
+    }
+    /// Sets the maximum distance between the anchors: limit `[0, max_dist]` (upstream
+    /// `set_max_distance`); exact copy.
+    #[inline(always)]
+    fn set_max_distance(ref self: RopeJoint, max_dist: Fixed) {
+        self.data.set_limits(0, [ZERO, max_dist]);
+    }
+    /// Sets the motor model of the coupled distance axis without enabling the motor (upstream
+    /// `set_motor_model`).
+    #[inline(always)]
+    fn set_motor_model(ref self: RopeJoint, model: MotorModel) {
+        self.data.set_motor_model(0, model);
+    }
+    /// Enables the velocity motor of the coupled distance axis (upstream `set_motor_velocity`);
+    /// exact copies, the target position is kept and the stiffness cleared.
+    #[inline(always)]
+    fn set_motor_velocity(ref self: RopeJoint, target_vel: Fixed, factor: Fixed) {
+        self.data.set_motor_velocity(0, target_vel, factor);
+    }
+    /// Enables the position motor of the coupled distance axis (upstream `set_motor_position`);
+    /// exact copies, the target velocity is cleared.
+    #[inline(always)]
+    fn set_motor_position(
+        ref self: RopeJoint, target_pos: Fixed, stiffness: Fixed, damping: Fixed,
+    ) {
+        self.data.set_motor_position(0, target_pos, stiffness, damping);
+    }
+    /// Enables the motor of the coupled distance axis (upstream `set_motor`); exact copies.
+    #[inline(always)]
+    fn set_motor(
+        ref self: RopeJoint, target_pos: Fixed, target_vel: Fixed, stiffness: Fixed, damping: Fixed,
+    ) {
+        self.data.set_motor(0, target_pos, target_vel, stiffness, damping);
+    }
+    /// Sets the force cap of the coupled distance motor without enabling it (upstream
+    /// `set_motor_max_force`); exact copy.
+    #[inline(always)]
+    fn set_motor_max_force(ref self: RopeJoint, max_force: Fixed) {
+        self.data.set_motor_max_force(0, max_force);
+    }
+}
+
+/// Upstream `From<RopeJoint> for GenericJoint`.
+pub impl RopeJointIntoGeneric of Into<RopeJoint, GenericJoint> {
+    #[inline(always)]
+    fn into(self: RopeJoint) -> GenericJoint {
+        self.data
+    }
+}
+
+/// Upstream `From<RopeJointBuilder> for GenericJoint`.
+pub impl RopeJointBuilderIntoGeneric of Into<RopeJointBuilder, GenericJoint> {
+    #[inline(always)]
+    fn into(self: RopeJointBuilder) -> GenericJoint {
         self.data
     }
 }

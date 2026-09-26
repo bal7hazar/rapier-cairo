@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 343 | 0 | 474 | 394 | 1211 | 42.0% |
+| dynamics | 528 | 0 | 289 | 394 | 1211 | 64.6% |
 | geometry | 193 | 0 | 112 | 20 | 325 | 63.3% |
 | parry::bounding_volume | 9 | 0 | 83 | 30 | 122 | 9.8% |
 | parry::mass_properties | 13 | 0 | 10 | 7 | 30 | 56.5% |
 | parry::query | 106 | 0 | 206 | 112 | 424 | 34.0% |
 | parry::shape | 45 | 0 | 240 | 136 | 421 | 15.8% |
-| pipeline | 55 | 0 | 35 | 68 | 158 | 61.1% |
-| **total** | **764** | **0** | **1207** | **767** | **2738** | **38.8%** |
+| pipeline | 57 | 0 | 33 | 68 | 158 | 63.3% |
+| **total** | **951** | **0** | **1020** | **767** | **2738** | **48.2%** |
 
-Cairo-only public items not matched to upstream: **1054**.
+Cairo-only public items not matched to upstream: **1074**.
 
 ## Aabb
 
@@ -1089,21 +1089,21 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `local_frame1` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `local_frame2` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `set_local_frame1` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `set_local_frame2` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `set_softness` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| method `softness` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| type `FixedJoint` | dynamics | missing | Not found on Cairo candidate(s): FixedJoint, FixedJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `local_frame1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `local_frame2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `set_local_frame1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `set_local_frame2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `set_softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| type `FixedJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
 
 ## FixedJointBuilder
 
@@ -1152,47 +1152,47 @@ Cairo-only public items not matched to upstream: **1054**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| impl `From<FixedJoint>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| impl `From<FixedJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/fixed_joint.rs` |
-| impl `From<GenericJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| impl `From<PinSlotJoint>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| impl `From<PinSlotJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| impl `From<PrismaticJoint>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| impl `From<PrismaticJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| impl `From<RevoluteJoint>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| impl `From<RevoluteJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| impl `From<RopeJoint>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| impl `From<RopeJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| impl `From<SpringJoint>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| impl `From<SpringJointBuilder>` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `complete_ang_frame` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `flip` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `is_enabled` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `limits` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `local_axis1` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `local_axis2` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `lock_axes` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `motor` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `motor_model` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_enabled` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| impl `From<FixedJoint>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| impl `From<FixedJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/fixed_joint.rs` |
+| impl `From<GenericJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| impl `From<PinSlotJoint>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| impl `From<PinSlotJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| impl `From<PrismaticJoint>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| impl `From<PrismaticJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| impl `From<RevoluteJoint>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| impl `From<RevoluteJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| impl `From<RopeJoint>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| impl `From<RopeJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| impl `From<SpringJoint>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| impl `From<SpringJointBuilder>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `complete_ang_frame` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `flip` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `is_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `lock_axes` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_local_axis1` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_local_axis2` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_local_frame1` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_local_frame2` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_local_frame1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_local_frame2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `set_softness` | dynamics | missing | Not found on Cairo candidate(s): GenericJoint, GenericJointTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `set_softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | type `GenericJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## GenericJointBuilder
@@ -1205,11 +1205,11 @@ Cairo-only public items not matched to upstream: **1054**.
 | method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `local_axis1` | dynamics | missing | Not found on Cairo candidate(s): GenericJointBuilder, GenericJointBuilderTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `local_axis2` | dynamics | missing | Not found on Cairo candidate(s): GenericJointBuilder, GenericJointBuilderTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `local_frame1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `local_frame2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `locked_axes` | dynamics | missing | Not found on Cairo candidate(s): GenericJointBuilder, GenericJointBuilderTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `locked_axes` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
@@ -1333,42 +1333,42 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `body1` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJoint, ImpulseJointTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs` |
-| method `body2` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJoint, ImpulseJointTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs` |
+| method `body1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs` |
+| method `body2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs` |
 | type `ImpulseJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs` |
 
 ## ImpulseJointHandle
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `from_raw_parts` | dynamics | missing | Not found on Cairo candidate(s): Handle, HandleTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs` |
+| method `from_raw_parts` | dynamics | ported | Mapped to Handle.new | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs` |
 | method `into_raw_parts` | dynamics | ported | Mapped to Handle.into_raw_parts | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs` |
 | method `invalid` | dynamics | ported | Mapped to Handle.invalid | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs` |
-| type `ImpulseJointHandle` | dynamics | missing | Not found on Cairo candidate(s): Handle, HandleTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs` |
+| type `ImpulseJointHandle` | dynamics | ported | Mapped to Handle.Handle | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs` |
 
 ## ImpulseJointSet
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `attached_enabled_joints` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `attached_joints` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `contains` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `attached_enabled_joints` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `attached_joints` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `contains` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `get` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `get_mut` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `get_unknown_gen` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `get_unknown_gen_mut` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `get_mut` | dynamics | ported | Mapped to ImpulseJointSet.get | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `get_unknown_gen` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `get_unknown_gen_mut` | dynamics | ported | Mapped to ImpulseJointSet.get_unknown_gen | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `insert` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `is_empty` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `iter` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `iter_mut` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `is_empty` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `iter` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `iter_mut` | dynamics | ported | Mapped to ImpulseJointSet.iter | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `joint_graph` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `joints_between` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `joints_between` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `len` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `map_attached_joints_mut` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `remove` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `remove_joints_attached_to_rigid_body` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `set_bodies` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `remove_joints_attached_to_rigid_body` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `set_bodies` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | type `ImpulseJointSet` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 
 ## IntegrationParameters
@@ -1474,15 +1474,15 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): JointAxesMask, JointAxesMaskTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| impl `From<JointAxis>` | dynamics | missing | Not found on Cairo candidate(s): JointAxesMask, JointAxesMaskTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| impl `From<JointAxis>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | type `JointAxesMask` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## JointAxis
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `JointAxis` | dynamics | missing | Not found on Cairo candidate(s): JointAxis, JointAxisTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| type `JointAxis` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## JointConstraint
 
@@ -1578,7 +1578,7 @@ Cairo-only public items not matched to upstream: **1054**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| impl `From<[T; N]>` | dynamics | missing | Not found on Cairo candidate(s): JointLimits, JointLimitsTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| impl `From<[T; N]>` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | type `JointLimits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## JointMotor
@@ -2059,8 +2059,8 @@ Cairo-only public items not matched to upstream: **1054**.
 | method `contact_pairs_with` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
 | method `cut_soft_body` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
 | method `debug_render` | pipeline | excluded | debug render | `rapier/src/pipeline/physics_world.rs` |
-| method `impulse_joints` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `impulse_joints_with` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `impulse_joints` | pipeline | ported | Mapped to World.impulse_joints | `rapier/src/pipeline/physics_world.rs` |
+| method `impulse_joints_with` | pipeline | ported | Mapped to World.impulse_joints_with | `rapier/src/pipeline/physics_world.rs` |
 | method `insert` | pipeline | ported | Mapped to World.insert | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_body` | pipeline | ported | Mapped to World.insert_body | `rapier/src/pipeline/physics_world.rs` |
 | method `insert_collider` | pipeline | ported | Mapped to World.insert_collider | `rapier/src/pipeline/physics_world.rs` |
@@ -2121,49 +2121,49 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `data` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `limits` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_axis1` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_axis2` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `motor` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_limits` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_local_axis1` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_local_axis2` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_motor` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_motor_max_force` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_motor_model` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_motor_position` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_motor_velocity` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_softness` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `softness` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| type `PinSlotJoint` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJoint, PinSlotJointTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_motor_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| type `PinSlotJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
 
 ## PinSlotJointBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `build` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `limits` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_axis1` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `local_axis2` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `motor_max_force` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `motor_model` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `motor_position` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `motor_velocity` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `set_motor` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| method `softness` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
-| type `PinSlotJointBuilder` | dynamics | missing | Not found on Cairo candidate(s): PinSlotJointBuilder, PinSlotJointBuilderTrait. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `build` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `motor_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
+| type `PinSlotJointBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/pin_slot_joint.rs` |
 
 ## PointProjection
 
@@ -2275,29 +2275,29 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `data` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `limits` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `local_axis1` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `local_axis2` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `motor` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_limits` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_local_axis1` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_local_axis2` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_motor` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_motor_max_force` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_motor_model` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_motor_position` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_motor_velocity` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `set_softness` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `softness` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| type `PrismaticJoint` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJoint, PrismaticJointTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_motor_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `set_softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| type `PrismaticJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
 
 ## PrismaticJointBuilder
 
@@ -2308,8 +2308,8 @@ Cairo-only public items not matched to upstream: **1054**.
 | method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
 | method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
 | method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `local_axis1` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJointBuilder, PrismaticJointBuilderTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
-| method `local_axis2` | dynamics | missing | Not found on Cairo candidate(s): PrismaticJointBuilder, PrismaticJointBuilderTrait. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `local_axis1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
+| method `local_axis2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
 | method `motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
 | method `motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
 | method `motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/prismatic_joint.rs` |
@@ -2455,26 +2455,26 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `angle` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `data` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `limits` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `motor` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_limits` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_motor` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_motor_max_force` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_motor_model` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_motor_position` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_motor_velocity` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `set_softness` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| method `softness` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
-| type `RevoluteJoint` | dynamics | missing | Not found on Cairo candidate(s): RevoluteJoint, RevoluteJointTrait. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `angle` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_limits` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_motor_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `set_softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
+| type `RevoluteJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/revolute_joint.rs` |
 
 ## RevoluteJointBuilder
 
@@ -2833,25 +2833,25 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `data` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `max_distance` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `motor` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_max_distance` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_motor` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_motor_max_force` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_motor_model` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_motor_position` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_motor_velocity` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `set_softness` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| method `softness` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
-| type `RopeJoint` | dynamics | missing | Not found on Cairo candidate(s): RopeJoint, RopeJointTrait. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `max_distance` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_max_distance` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_motor_max_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_motor_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_motor_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_motor_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `set_softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
+| type `RopeJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/rope_joint.rs` |
 
 ## RopeJointBuilder
 
@@ -3914,16 +3914,16 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `data` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `set_contacts_enabled` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `set_local_anchor1` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `set_local_anchor2` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| method `set_spring_model` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
-| type `SpringJoint` | dynamics | missing | Not found on Cairo candidate(s): SpringJoint, SpringJointTrait. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `set_contacts_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `set_local_anchor1` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `set_local_anchor2` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| method `set_spring_model` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
+| type `SpringJoint` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/spring_joint.rs` |
 
 ## SpringJointBuilder
 
@@ -4638,12 +4638,12 @@ Cairo-only public items not matched to upstream: **1054**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 250 | standard | QP queries |
-| [Joint API completion](#wp-joint-api-completion) | 239 | standard | JL/RJ |
+| [Query completion](#wp-query-completion) | 233 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 210 | standard | shape interface |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 171 | mechanical | AP triage |
 | [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 100 | standard | geometry |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 87 | hard | QP queries |
+| [Joint API completion](#wp-joint-api-completion) | 69 | standard | JL/RJ |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 40 | standard | SE sensors |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
@@ -4653,7 +4653,7 @@ Cairo-only public items not matched to upstream: **1054**.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 250 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 233 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4735,93 +4735,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 250 public items.
 - **ContactWithTwistFriction** method `writeback_impulses` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 170 more
-
-### WP: Joint API completion
-
-Tier: standard. Depends/context: JL/RJ. Estimate: 239 public items.
-
-- **AngularLimitParams** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **AngularLimitParams** type `AngularLimitParams` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **AnyJointConstraintMut** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs`)
-- **AnyJointConstraintMut** type `AnyJointConstraintMut` (`rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs`)
-- **FixedJoint** impl `Default` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `local_anchor1` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `local_anchor2` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `local_frame1` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `local_frame2` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `new` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `set_local_anchor1` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `set_local_anchor2` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `set_local_frame1` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `set_local_frame2` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `set_softness` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** method `softness` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **FixedJoint** type `FixedJoint` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **GenericJoint** impl `From<FixedJoint>` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **GenericJoint** impl `From<FixedJointBuilder>` (`rapier/src/dynamics/joint/fixed_joint.rs`)
-- **GenericJoint** impl `From<GenericJointBuilder>` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** impl `From<PinSlotJoint>` (`rapier/src/dynamics/joint/pin_slot_joint.rs`)
-- **GenericJoint** impl `From<PinSlotJointBuilder>` (`rapier/src/dynamics/joint/pin_slot_joint.rs`)
-- **GenericJoint** impl `From<PrismaticJoint>` (`rapier/src/dynamics/joint/prismatic_joint.rs`)
-- **GenericJoint** impl `From<PrismaticJointBuilder>` (`rapier/src/dynamics/joint/prismatic_joint.rs`)
-- **GenericJoint** impl `From<RevoluteJoint>` (`rapier/src/dynamics/joint/revolute_joint.rs`)
-- **GenericJoint** impl `From<RevoluteJointBuilder>` (`rapier/src/dynamics/joint/revolute_joint.rs`)
-- **GenericJoint** impl `From<RopeJoint>` (`rapier/src/dynamics/joint/rope_joint.rs`)
-- **GenericJoint** impl `From<RopeJointBuilder>` (`rapier/src/dynamics/joint/rope_joint.rs`)
-- **GenericJoint** impl `From<SpringJoint>` (`rapier/src/dynamics/joint/spring_joint.rs`)
-- **GenericJoint** impl `From<SpringJointBuilder>` (`rapier/src/dynamics/joint/spring_joint.rs`)
-- **GenericJoint** method `complete_ang_frame` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `flip` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `is_enabled` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `limits` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `local_anchor1` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `local_anchor2` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `local_axis1` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `local_axis2` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `lock_axes` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `motor` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `motor_model` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `new` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_enabled` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_local_anchor1` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_local_anchor2` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_local_axis1` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_local_axis2` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_local_frame1` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_local_frame2` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJoint** method `set_softness` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJointBuilder** method `local_axis1` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJointBuilder** method `local_axis2` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJointBuilder** method `locked_axes` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJointConstraint** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `lock_axes` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `remove_bias_from_rhs` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `solve` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** type `GenericJointConstraint` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraintBuilder** type `GenericJointConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **ImpulseJoint** method `body1` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs`)
-- **ImpulseJoint** method `body2` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint.rs`)
-- **ImpulseJointHandle** method `from_raw_parts` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs`)
-- **ImpulseJointHandle** type `ImpulseJointHandle` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_handle.rs`)
-- **ImpulseJointSet** method `attached_enabled_joints` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `attached_joints` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `contains` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `get_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `get_unknown_gen` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `get_unknown_gen_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `is_empty` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `iter` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `iter_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `joints_between` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `remove_joints_attached_to_rigid_body` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `set_bodies` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- ... 159 more
+- ... 153 more
 
 ### WP: Additional 2D shapes
 
@@ -5166,6 +5080,80 @@ Tier: hard. Depends/context: QP queries. Estimate: 87 public items.
 - **parry::query** function `cast_shapes_nonlinear_support_map_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs`)
 - **parry::query** function `cast_shapes_shape_composite_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
 - ... 7 more
+
+### WP: Joint API completion
+
+Tier: standard. Depends/context: JL/RJ. Estimate: 69 public items.
+
+- **AngularLimitParams** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **AngularLimitParams** type `AngularLimitParams` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **AnyJointConstraintMut** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs`)
+- **AnyJointConstraintMut** type `AnyJointConstraintMut` (`rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs`)
+- **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
+- **GenericJointConstraint** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraint** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraint** method `lock_axes` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraint** method `remove_bias_from_rhs` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraint** method `solve` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraint** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraint** type `GenericJointConstraint` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
+- **GenericJointConstraintBuilder** type `GenericJointConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
+- **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
+- **JointConstraint** method `remove_bias_from_rhs` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **JointConstraint** method `solve_generic` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **JointConstraint** method `update` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **JointConstraint** method `warmstart_generic` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **JointConstraintBuilder** method `generate` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
+- **JointConstraintBuilder** method `update` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
+- **JointConstraintBuilder** method `update_warmstart_seeds` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
+- **JointConstraintBuilder** type `JointConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `finalize_constraints` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `finalize_generic_constraints` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `limit_angular` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `limit_angular_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `limit_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `limit_linear` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `limit_linear_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `limit_linear_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `lock_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `lock_jacobians_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `lock_linear_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `motor_angular` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `motor_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `motor_linear` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `motor_linear_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintHelper** method `motor_linear_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointConstraintHelper** method `recentered_angle` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
+- **JointConstraintsSet** method `iter_constraints_mut` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
+- **JointConstraintsSet** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
+- **JointConstraintsSet** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
+- **JointConstraintsSet** type `JointConstraintsSet` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
+- **JointGenericExternalConstraintBuilder** method `generate` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointGenericExternalConstraintBuilder** method `update` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointGenericExternalConstraintBuilder** type `JointGenericExternalConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointGenericInternalConstraintBuilder** method `generate` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointGenericInternalConstraintBuilder** method `num_constraints` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointGenericInternalConstraintBuilder** method `update` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointGenericInternalConstraintBuilder** type `JointGenericInternalConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointSolverBody** method `fill_jacobians` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **JointSolverBody** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **JointSolverBody** type `JointSolverBody` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **LinkOrBodyRef** type `LinkOrBodyRef` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
+- **MassProperties** impl `AddAssign<MassProperties>` (`parry/src/mass_properties/mass_properties.rs`)
+- **MassProperties** impl `SubAssign<MassProperties>` (`parry/src/mass_properties/mass_properties.rs`)
+- **MassProperties** method `reconstruct_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
+- **MassProperties** method `reconstruct_inverse_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
+- **MassProperties** method `with_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
+- **MassProperties** method `with_principal_inertia_frame` (`parry/src/mass_properties/mass_properties.rs`)
+- **MassProperties** method `world_inv_inertia` (`parry/src/mass_properties/mass_properties.rs`)
+- **MotorParameters** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **MotorParameters** type `MotorParameters` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **PersistentIslands** method `apply_impulse_joint_event` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `link_joint` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **PersistentIslands** method `unlink_joint` (`rapier/src/dynamics/island_manager/persistent.rs`)
+- **WritebackId** type `WritebackId` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
+- **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
 
 ### WP: Sensors and intersection events
 
@@ -5541,6 +5529,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Builder** const `ONE_WAY_ANGLE` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
 - **Builder** method `into` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
 - **BuilderApi** method `into` (`crates/rapier_dynamics2d/src/rigid_body_set/builder_api.cairo`)
+- **Builders** method `into` (`crates/rapier_dynamics2d/src/joint/builders.cairo`)
 - **Capsule** method `cast_local_ray_and_get_normal_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
@@ -5548,8 +5537,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Capsule** method `contains_local_point_capsule` (`crates/rapier_geometry2d/src/point/capsule.cairo`)
 - **Capsule** method `distance_to_local_point_capsule` (`crates/rapier_geometry2d/src/point/capsule.cairo`)
 - **Capsule** method `local_support_point` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- **Capsule** method `local_support_point_toward` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- ... 854 more
+- ... 874 more
 
 ## Embedded Rust inventory
 

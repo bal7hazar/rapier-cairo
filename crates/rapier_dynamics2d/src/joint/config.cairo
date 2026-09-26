@@ -1,9 +1,214 @@
 //! Upstream limit/motor configuration. Setters copy exactly; validation occurs in the solver.
-use fixed::{Fixed, ZERO};
-use super::{GenericJoint, JointAxesMask, JointMotor, MotorModel, errors};
+use fixed::{Fixed, MAX, MIN, ONE, ZERO};
+use glam::Vec2;
+use rapier_core::integration_parameters::spring::SpringCoefficients;
+use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::rot2::{Rot2, Rot2Trait};
+use super::{
+    FixedJoint, GenericJoint, JointAxesMask, JointAxesMaskTrait, JointEnabled, JointLimits,
+    JointMotor, LOCKED_FIXED_AXES, LOCKED_PRISMATIC_AXES, LOCKED_REVOLUTE_AXES, MotorModel,
+    PrismaticJoint, RevoluteJoint, RopeJoint, errors,
+};
 
 #[generate_trait]
 pub impl GenericJointImpl of GenericJointTrait {
+    /// Upstream `GenericJoint::new`: the default joint with `locked_axes` locked. Mask 0..7
+    /// required (Joint: invalid mask otherwise).
+    fn new(locked_axes: JointAxesMask) -> GenericJoint {
+        let mut joint: GenericJoint = Default::default();
+        joint.lock_axes(locked_axes);
+        joint
+    }
+    /// Adds `axes` to the locked axes (upstream `lock_axes`, a bitwise or). Masks 0..7 required
+    /// (Joint: invalid mask otherwise).
+    fn lock_axes(ref self: GenericJoint, axes: JointAxesMask) {
+        assert(self.locked_axes.bits <= 7, errors::MASK);
+        assert(axes.bits <= 7, errors::MASK);
+        self.locked_axes.bits = self.locked_axes.bits | axes.bits;
+    }
+    /// Upstream `GenericJoint::complete_ang_frame`, 2D: the rotation whose first column is
+    /// `axis`. Unlike upstream (which takes the columns as they are) the axis must be a unit
+    /// vector, since every frame of a joint is a unit rotation (Joint: nonunit axis otherwise).
+    fn complete_ang_frame(axis: Vec2) -> Rot2 {
+        let rotation = Rot2 { re: axis.x, im: axis.y };
+        assert(rotation.is_unit(), errors::UNIT);
+        rotation
+    }
+    /// Whether the joint is enabled (upstream `is_enabled`): neither disabled by hand nor by an
+    /// attached body.
+    #[inline(always)]
+    fn is_enabled(self: GenericJoint) -> bool {
+        self.enabled == JointEnabled::Enabled
+    }
+    /// Upstream `set_enabled`: `false` disables an enabled joint (or one disabled by its bodies),
+    /// `true` re-enables a joint that was disabled by hand only; a joint disabled by an attached
+    /// body stays so until the body is enabled again.
+    fn set_enabled(ref self: GenericJoint, enabled: bool) {
+        self.enabled = match self.enabled {
+            JointEnabled::Disabled => if enabled {
+                JointEnabled::Enabled
+            } else {
+                JointEnabled::Disabled
+            },
+            other => if enabled {
+                other
+            } else {
+                JointEnabled::Disabled
+            },
+        };
+    }
+    /// Sets the frame of the joint in the first body (upstream `set_local_frame1`); exact copy.
+    #[inline(always)]
+    fn set_local_frame1(ref self: GenericJoint, local_frame: Pose2) {
+        self.local_frame1 = local_frame;
+    }
+    /// Sets the frame of the joint in the second body (upstream `set_local_frame2`); exact copy.
+    #[inline(always)]
+    fn set_local_frame2(ref self: GenericJoint, local_frame: Pose2) {
+        self.local_frame2 = local_frame;
+    }
+    /// Upstream `local_axis1`: `local_frame1 * X`. As in upstream 0.35 (`Pose * Vec2` is
+    /// `transform_point`) the translation of the frame is part of the result: read
+    /// `local_frame1.rotation.rotate(X)` for the bare axis.
+    fn local_axis1(self: GenericJoint) -> Vec2 {
+        self.local_frame1.transform_point(Vec2 { x: ONE, y: ZERO })
+    }
+    /// Upstream `set_local_axis1`: the rotation of the first frame that maps X to `axis`
+    /// ([`complete_ang_frame`](Self::complete_ang_frame); a nonunit `axis` panics).
+    fn set_local_axis1(ref self: GenericJoint, local_axis: Vec2) {
+        self.local_frame1.rotation = Self::complete_ang_frame(local_axis);
+    }
+    /// Upstream `local_axis2`, see [`local_axis1`](Self::local_axis1).
+    fn local_axis2(self: GenericJoint) -> Vec2 {
+        self.local_frame2.transform_point(Vec2 { x: ONE, y: ZERO })
+    }
+    /// Upstream `set_local_axis2`, see [`set_local_axis1`](Self::set_local_axis1).
+    fn set_local_axis2(ref self: GenericJoint, local_axis: Vec2) {
+        self.local_frame2.rotation = Self::complete_ang_frame(local_axis);
+    }
+    /// The anchor of the joint in the first body (upstream `local_anchor1`).
+    #[inline(always)]
+    fn local_anchor1(self: GenericJoint) -> Vec2 {
+        self.local_frame1.translation
+    }
+    /// Sets the anchor of the joint in the first body (upstream `set_local_anchor1`).
+    #[inline(always)]
+    fn set_local_anchor1(ref self: GenericJoint, anchor: Vec2) {
+        self.local_frame1.translation = anchor;
+    }
+    /// The anchor of the joint in the second body (upstream `local_anchor2`).
+    #[inline(always)]
+    fn local_anchor2(self: GenericJoint) -> Vec2 {
+        self.local_frame2.translation
+    }
+    /// Sets the anchor of the joint in the second body (upstream `set_local_anchor2`).
+    #[inline(always)]
+    fn set_local_anchor2(ref self: GenericJoint, anchor: Vec2) {
+        self.local_frame2.translation = anchor;
+    }
+    /// Whether the two attached bodies collide (upstream `contacts_enabled`).
+    #[inline(always)]
+    fn contacts_enabled(self: GenericJoint) -> bool {
+        self.contacts_enabled
+    }
+    /// Upstream `set_contacts_enabled`.
+    #[inline(always)]
+    fn set_contacts_enabled(ref self: GenericJoint, enabled: bool) {
+        self.contacts_enabled = enabled;
+    }
+    /// Sets the constraint softness (upstream `set_softness`); exact copy.
+    #[inline(always)]
+    fn set_softness(ref self: GenericJoint, softness: SpringCoefficients) {
+        self.softness = softness;
+    }
+    /// The limits of `axis` (0=X, 1=Y, 2=AngX), `None` when the axis has no limit enabled
+    /// (upstream `limits`). Invalid axis/mask panics with Joint: invalid axis / mask.
+    fn limits(self: GenericJoint, axis: u8) -> Option<JointLimits> {
+        if !self.limit_axes.contains_axis(axis) {
+            return None;
+        }
+        let [x, y, w] = self.limits;
+        Some(match axis {
+            0 => x,
+            1 => y,
+            _ => w,
+        })
+    }
+    /// The motor of `axis` (0=X, 1=Y, 2=AngX), `None` when the axis has no motor enabled
+    /// (upstream `motor`). Invalid axis/mask panics with Joint: invalid axis / mask.
+    fn motor(self: GenericJoint, axis: u8) -> Option<JointMotor> {
+        if !self.motor_axes.contains_axis(axis) {
+            return None;
+        }
+        Some(read_motor(self, axis))
+    }
+    /// The motor model of `axis`, `None` when the axis has no motor enabled (upstream
+    /// `motor_model`).
+    fn motor_model(self: GenericJoint, axis: u8) -> Option<MotorModel> {
+        Some(self.motor(axis)?.model)
+    }
+    /// The typed view of a revolute joint, `None` unless the locked axes are exactly
+    /// `LOCKED_REVOLUTE_AXES` (upstream `as_revolute`, by value: write a change back with
+    /// `joint = view.into()`).
+    fn as_revolute(self: GenericJoint) -> Option<RevoluteJoint> {
+        if self.locked_axes == LOCKED_REVOLUTE_AXES {
+            Some(RevoluteJoint { data: self })
+        } else {
+            None
+        }
+    }
+    /// The typed view of a fixed joint, `None` unless the locked axes are exactly
+    /// `LOCKED_FIXED_AXES` (upstream `as_fixed`).
+    fn as_fixed(self: GenericJoint) -> Option<FixedJoint> {
+        if self.locked_axes == LOCKED_FIXED_AXES {
+            Some(FixedJoint { data: self })
+        } else {
+            None
+        }
+    }
+    /// The typed view of a prismatic joint, `None` unless the locked axes are exactly
+    /// `LOCKED_PRISMATIC_AXES` (upstream `as_prismatic`).
+    fn as_prismatic(self: GenericJoint) -> Option<PrismaticJoint> {
+        if self.locked_axes == LOCKED_PRISMATIC_AXES {
+            Some(PrismaticJoint { data: self })
+        } else {
+            None
+        }
+    }
+    /// The typed view of a rope joint, `None` unless no axis is locked (upstream `as_rope`).
+    fn as_rope(self: GenericJoint) -> Option<RopeJoint> {
+        if self.locked_axes.bits == 0 {
+            Some(RopeJoint { data: self })
+        } else {
+            None
+        }
+    }
+    /// Upstream `flip`: swaps the two frames and mirrors what is expressed in them: the limits
+    /// of the axes that are not coupled become `[-max, -min]`, the motor target velocity and
+    /// position are negated. The extrema exchange (`-MIN` is `MAX` and `-MAX` is `MIN`), so
+    /// the unbounded limits (`MIN`, `MAX`) stay unbounded, as upstream's `±f32::MAX`.
+    fn flip(ref self: GenericJoint) {
+        let frame1 = self.local_frame1;
+        self.local_frame1 = self.local_frame2;
+        self.local_frame2 = frame1;
+        let coupled = self.coupled_axes;
+        let [mut x, mut y, mut w] = self.limits;
+        if !coupled.contains_axis(0) {
+            flip_limits(ref x);
+        }
+        if !coupled.contains_axis(1) {
+            flip_limits(ref y);
+        }
+        if !coupled.contains_axis(2) {
+            flip_limits(ref w);
+        }
+        self.limits = [x, y, w];
+        let [mut mx, mut my, mut mw] = self.motors;
+        flip_motor(ref mx);
+        flip_motor(ref my);
+        flip_motor(ref mw);
+        self.motors = [mx, my, mw];
+    }
     /// Store `[min, max]` and enable limits on axis 0=X, 1=Y, 2=AngX; preserve its impulse.
     /// All Fixed values are copied exactly (even unordered limits); invalid axis/mask panics
     /// with Joint: invalid axis / Joint: invalid mask.
@@ -78,6 +283,26 @@ pub impl GenericJointImpl of GenericJointTrait {
     }
 }
 
+/// `-value`, except that the extrema exchange (`MIN` <-> `MAX`): Q32.32 is asymmetric, upstream's
+/// unbounded `±f32::MAX` are symmetric.
+fn mirror(value: Fixed) -> Fixed {
+    if value == MIN {
+        MAX
+    } else if value == MAX {
+        MIN
+    } else {
+        -value
+    }
+}
+fn flip_limits(ref limits: JointLimits) {
+    let min = limits.min;
+    limits.min = mirror(limits.max);
+    limits.max = mirror(min);
+}
+fn flip_motor(ref motor: JointMotor) {
+    motor.target_vel = mirror(motor.target_vel);
+    motor.target_pos = mirror(motor.target_pos);
+}
 fn enable(ref mask: JointAxesMask, axis: u8) {
     assert(mask.bits <= 7, errors::MASK);
     let bit: u8 = match axis {
@@ -110,7 +335,6 @@ fn write_motor(ref joint: GenericJoint, axis: u8, motor: JointMotor) {
 #[cfg(test)]
 mod alternatives {
     use super::*;
-    use super::super::JointAxesMaskTrait;
     pub fn enable_arithmetic(ref mask: JointAxesMask, axis: u8) {
         if !mask.contains_axis(axis) {
             mask.bits += match axis {
@@ -127,7 +351,6 @@ mod tests {
     use fixed::{HALF, MAX, MIN, ONE};
     use rapier_testing::opaque;
     use super::*;
-    use super::super::JointAxesMaskTrait;
 
     #[test]
     fn test_setters_preserve_other_axes_and_impulses() {

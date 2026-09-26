@@ -2,7 +2,7 @@
 use fixed::{Fixed, ZERO};
 use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
 use rapier_core::data::handle::Handle;
-use super::GenericJoint;
+use super::{GenericJoint, GenericJointTrait};
 /// Joint plus signed impulses indexed by LinX, LinY, AngX.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct ImpulseJoint {
@@ -10,6 +10,19 @@ pub struct ImpulseJoint {
     pub body2: Handle,
     pub data: GenericJoint,
     pub impulses: [Fixed; 3],
+}
+#[generate_trait]
+pub impl ImpulseJointImpl of ImpulseJointTrait {
+    /// The first attached body (upstream `body1`).
+    #[inline(always)]
+    fn body1(self: ImpulseJoint) -> Handle {
+        self.body1
+    }
+    /// The second attached body (upstream `body2`).
+    #[inline(always)]
+    fn body2(self: ImpulseJoint) -> Handle {
+        self.body2
+    }
 }
 /// Arena-backed joints. Removal invalidates old handles even when slots are reused.
 #[derive(Destruct, Default)]
@@ -29,9 +42,102 @@ pub impl ImpulseJointSetImpl of ImpulseJointSetTrait {
     ) -> Handle {
         self.joints.insert(ImpulseJoint { body1, body2, data, impulses: [ZERO, ZERO, ZERO] })
     }
-    /// Copy joint or None for absent/stale handle; exact.
+    /// Copy joint or None for absent/stale handle; exact. Also stands for upstream's `get_mut`
+    /// (joints are values: write the change back with [`set`](Self::set)).
     fn get(ref self: ImpulseJointSet, handle: Handle) -> Option<ImpulseJoint> {
         self.joints.get(handle)
+    }
+    /// Whether `handle` is a live joint (upstream `contains`); false for an absent or stale handle.
+    #[inline(always)]
+    fn contains(ref self: ImpulseJointSet, handle: Handle) -> bool {
+        self.joints.contains(handle)
+    }
+    /// Whether the set holds no joint (upstream `is_empty`).
+    #[inline(always)]
+    fn is_empty(self: @ImpulseJointSet) -> bool {
+        self.joints.is_empty()
+    }
+    /// Every `(handle, joint)` in ascending slot index (upstream `iter`, and `iter_mut`: write a
+    /// change back with [`set`](Self::set)). Upstream walks its joint graph in insertion order
+    /// (swap-removal reorders it): the order here is the arena's, never dictionary order.
+    #[inline(always)]
+    fn iter(ref self: ImpulseJointSet) -> Array<(Handle, ImpulseJoint)> {
+        self.joints.to_array()
+    }
+    /// The joint in slot `index` whatever its generation, with its live handle (upstream
+    /// `get_unknown_gen`, and `get_unknown_gen_mut`); `None` for an empty slot. O(len).
+    fn get_unknown_gen(ref self: ImpulseJointSet, index: u32) -> Option<(ImpulseJoint, Handle)> {
+        for (handle, joint) in self.joints.to_array() {
+            if handle.index == index {
+                return Some((joint, handle));
+            }
+        }
+        None
+    }
+    /// The joints attached to `body` as `(body1, body2, joint handle, joint)` (upstream
+    /// `attached_joints`), in ascending slot index. O(len).
+    fn attached_joints(
+        ref self: ImpulseJointSet, body: Handle,
+    ) -> Array<(Handle, Handle, Handle, ImpulseJoint)> {
+        let mut out = array![];
+        for (handle, joint) in self.joints.to_array() {
+            if joint.body1 == body || joint.body2 == body {
+                out.append((joint.body1, joint.body2, handle, joint));
+            }
+        }
+        out
+    }
+    /// The enabled joints attached to `body` (upstream `attached_enabled_joints`), as
+    /// [`attached_joints`](Self::attached_joints).
+    fn attached_enabled_joints(
+        ref self: ImpulseJointSet, body: Handle,
+    ) -> Array<(Handle, Handle, Handle, ImpulseJoint)> {
+        let mut out = array![];
+        for (handle, joint) in self.joints.to_array() {
+            if (joint.body1 == body || joint.body2 == body) && joint.data.is_enabled() {
+                out.append((joint.body1, joint.body2, handle, joint));
+            }
+        }
+        out
+    }
+    /// The joints between `body1` and `body2`, in either order, as `(handle, joint)` (upstream
+    /// `joints_between`), in ascending slot index. O(len).
+    fn joints_between(
+        ref self: ImpulseJointSet, body1: Handle, body2: Handle,
+    ) -> Array<(Handle, ImpulseJoint)> {
+        let mut out = array![];
+        for (handle, joint) in self.joints.to_array() {
+            if (joint.body1 == body1 && joint.body2 == body2)
+                || (joint.body1 == body2 && joint.body2 == body1) {
+                out.append((handle, joint));
+            }
+        }
+        out
+    }
+    /// Removes every joint attached to `body` and returns their handles, in ascending slot index
+    /// (upstream `remove_joints_attached_to_rigid_body`). No body is woken up: the set does not
+    /// own the bodies (`World::remove_body` does it). O(len).
+    fn remove_joints_attached_to_rigid_body(
+        ref self: ImpulseJointSet, body: Handle,
+    ) -> Array<Handle> {
+        let mut removed = array![];
+        for (handle, joint) in self.joints.to_array() {
+            if joint.body1 == body || joint.body2 == body {
+                let _ = self.joints.remove(handle);
+                removed.append(handle);
+            }
+        }
+        removed
+    }
+    /// Attaches the joint behind `handle` to two other bodies (upstream `set_bodies`); returns the
+    /// updated joint, `None` for an absent or stale handle. The handle stays valid. No body is
+    /// woken up (`World::set_impulse_joint_bodies` does).
+    fn set_bodies(
+        ref self: ImpulseJointSet, handle: Handle, body1: Handle, body2: Handle,
+    ) -> Option<ImpulseJoint> {
+        let joint = ImpulseJoint { body1, body2, ..self.joints.get(handle)? };
+        let _ = self.joints.set(handle, joint);
+        Some(joint)
     }
     /// Replace joint, returning false for absent/stale handles; exact.
     fn set(ref self: ImpulseJointSet, handle: Handle, joint: ImpulseJoint) -> bool {
