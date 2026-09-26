@@ -31,10 +31,18 @@ pub const LOCAL_MASS_PROPERTIES: RigidBodyChanges = RigidBodyChanges { bits: 0x4
 pub const ENABLED_OR_DISABLED: RigidBodyChanges = RigidBodyChanges { bits: 0x80 };
 
 /// Flags describing how a rigid-body has been modified by the user. Default: none.
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct RigidBodyChanges {
     /// Raw mask, bit `i` is the flag `1 << i`.
     pub bits: u32,
+}
+
+/// Upstream `impl Default`: no flag set.
+pub impl RigidBodyChangesDefault of Default<RigidBodyChanges> {
+    #[inline(always)]
+    fn default() -> RigidBodyChanges {
+        RigidBodyChanges { bits: 0 }
+    }
 }
 
 /// Wraps a raw mask (upstream `from_bits_retain`).

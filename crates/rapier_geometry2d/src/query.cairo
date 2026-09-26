@@ -40,6 +40,7 @@ pub mod ball;
 pub mod cuboid;
 pub mod dispatcher;
 pub mod halfspace;
+pub mod intersection;
 pub mod segment;
 pub mod support_map;
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};

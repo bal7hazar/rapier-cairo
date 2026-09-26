@@ -13,8 +13,8 @@ use crate::collider::ColliderBuilderTrait;
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
 use crate::rigid_body::{LockedAxesTrait, ROTATION_LOCKED};
 use super::{
-    RigidBody, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait, RigidBodyTrait,
-    cold_or_default, extra_additional_is_mass, recompute_body_mass_properties,
+    RigidBody, RigidBodyBuilderTrait, RigidBodyColliders, RigidBodySet, RigidBodySetTrait,
+    RigidBodyTrait, cold_or_default, extra_additional_is_mass, recompute_body_mass_properties,
 };
 
 fn at(x: Fixed, y: Fixed) -> Pose2 {
@@ -129,6 +129,18 @@ fn test_setters_flags_and_additional_mass_recompute() {
     body.set_additional_mass(TWO, true);
     recompute_body_mass_properties(ref body, ref colliders);
     assert_eq!(body.mass(), TWO);
+}
+
+#[test]
+fn test_colliders_component_is_the_body_collider_list() {
+    // `RigidBodyColliders` (upstream's component) is the type of `RigidBody::colliders`.
+    let mut bodies = RigidBodySetTrait::new();
+    let mut colliders: ColliderSet = ColliderSetTrait::new();
+    let handle = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
+    let attached = colliders
+        .insert_with_parent(ColliderBuilderTrait::ball(ONE).build(), handle, ref bodies);
+    let list: RigidBodyColliders = bodies.get(handle).unwrap().colliders;
+    assert_eq!(list, array![attached].span());
 }
 
 #[test]

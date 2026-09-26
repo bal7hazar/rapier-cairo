@@ -14,6 +14,7 @@ rapier_dynamics2d::rigid_body_set::tests::gas_state_setup 328242
 rapier_dynamics2d::rigid_body_set::tests::gas_to_state 474702
 rapier_dynamics2d::rigid_body_set::tests::gas_wake_up 43625
 rapier_dynamics2d::rigid_body_set::tests::test_builder_round_trip 262209
+rapier_dynamics2d::rigid_body_set::tests::test_colliders_component_is_the_body_collider_list 313687
 rapier_dynamics2d::rigid_body_set::tests::test_set_compatibility_accessors_are_value_copies 415074
 rapier_dynamics2d::rigid_body_set::tests::test_set_lifecycle 362406
 rapier_dynamics2d::rigid_body_set::tests::test_setters_flags_and_additional_mass_recompute 238553

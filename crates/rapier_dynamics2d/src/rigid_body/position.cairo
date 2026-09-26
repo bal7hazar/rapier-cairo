@@ -34,6 +34,15 @@ pub impl RigidBodyPositionDefault of Default<RigidBodyPosition> {
     }
 }
 
+/// Upstream `From<T: Into<Pose>>`: a pose is the only type that converts to one; both poses
+/// become it ([`RigidBodyPositionTrait::from_position`]).
+pub impl Pose2IntoRigidBodyPosition of Into<Pose2, RigidBodyPosition> {
+    #[inline(always)]
+    fn into(self: Pose2) -> RigidBodyPosition {
+        RigidBodyPosition { position: self, next_position: self }
+    }
+}
+
 /// Pose updates of [`RigidBodyPosition`].
 #[generate_trait]
 pub impl RigidBodyPositionImpl of RigidBodyPositionTrait {
@@ -194,6 +203,14 @@ mod tests {
     fn close(a: Vec2, b: Vec2, ulps: i64) {
         assert!(a.x.abs_diff_eq(b.x, Fixed { raw: ulps }), "x {:?} vs {:?}", a.x, b.x);
         assert!(a.y.abs_diff_eq(b.y, Fixed { raw: ulps }), "y {:?} vs {:?}", a.y, b.y);
+    }
+
+    #[test]
+    fn test_from_pose_is_from_position() {
+        let converted: RigidBodyPosition = POSE.into();
+        assert_eq!(converted, RigidBodyPositionTrait::from_position(POSE));
+        assert_eq!(converted.position, converted.next_position);
+        assert_eq!(converted.position, POSE);
     }
 
     #[test]

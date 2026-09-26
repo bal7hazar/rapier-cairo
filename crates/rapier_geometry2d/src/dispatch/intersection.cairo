@@ -114,7 +114,7 @@ pub fn ball_ball(center12: Vec2, ball1: Ball, ball2: Ball) -> bool {
 /// (Parry `intersection_test_point_query_ball`: solid projection inside or within the radius).
 /// `None` never happens: every shape supports point queries; the `Option` mirrors the table.
 #[inline(always)]
-fn point_query_ball(shape: Shape, center: Vec2, radius: Fixed) -> Option<bool> {
+pub fn point_query_ball(shape: Shape, center: Vec2, radius: Fixed) -> Option<bool> {
     Some(
         match shape {
             Shape::Ball(b) => is_norm2_le(center.x, center.y, b.radius + radius),
@@ -289,7 +289,7 @@ pub fn segment_segment(pos12: Pose2, segment1: Segment, segment2: Segment, radiu
 /// Half-space–convex (shape in the half-space frame at `pos12`): the deepest point of the shape
 /// along `-n` satisfies `n . p <= 0` (Parry `intersection_test_halfspace_support_map`). `None`
 /// for a half-space.
-fn halfspace_convex(pos12: Pose2, halfspace: HalfSpace, shape: Shape) -> Option<bool> {
+pub fn halfspace_convex(pos12: Pose2, halfspace: HalfSpace, shape: Shape) -> Option<bool> {
     let n = halfspace.normal;
     match shape {
         Shape::Ball(b) => Some(point_halfspace(halfspace, pos12.translation, b.radius)),

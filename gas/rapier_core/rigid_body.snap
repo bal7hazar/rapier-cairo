@@ -19,6 +19,7 @@ rapier_core::rigid_body::activation::tests::test_angular_gate_without_colliders 
 rapier_core::rigid_body::activation::tests::test_can_sleep_early_agrees 2921530
 rapier_core::rigid_body::activation::tests::test_constructors 17540
 rapier_core::rigid_body::activation::tests::test_default_constants 16720
+rapier_core::rigid_body::activation::tests::test_default_threshold_accessors 13620
 rapier_core::rigid_body::activation::tests::test_eligible_at_exactly_the_delay 13620
 rapier_core::rigid_body::activation::tests::test_fixed_body_always_sleeps 13620
 rapier_core::rigid_body::activation::tests::test_half_divrem_candidate_agrees 211270

@@ -82,6 +82,26 @@ pub impl RigidBodyActivationDefault of Default<RigidBodyActivation> {
 /// Constructors, state transitions and the per-step timer of [`RigidBodyActivation`].
 #[generate_trait]
 pub impl RigidBodyActivationImpl of RigidBodyActivationTrait {
+    /// The default linear velocity below which a body can be put to sleep: `0.05` length units
+    /// per second, rounded to nearest.
+    #[inline(always)]
+    fn default_normalized_linear_threshold() -> Fixed {
+        DEFAULT_NORMALIZED_LINEAR_THRESHOLD
+    }
+
+    /// The default angular velocity below which a body can be put to sleep: `0.5` rad/s.
+    #[inline(always)]
+    fn default_angular_threshold() -> Fixed {
+        DEFAULT_ANGULAR_THRESHOLD
+    }
+
+    /// The default time a body must stay below both thresholds before falling asleep: half a
+    /// second.
+    #[inline(always)]
+    fn default_time_until_sleep() -> Fixed {
+        DEFAULT_TIME_UNTIL_SLEEP
+    }
+
     /// An active body with the default thresholds and a reset timer.
     #[inline(always)]
     fn active() -> RigidBodyActivation {
@@ -347,6 +367,27 @@ mod tests {
         assert_eq!(DEFAULT_TIME_UNTIL_SLEEP, HALF);
         // (pi / 2)^2 is the floored Fixed product.
         assert_eq!(SQ_FRAC_PI_2, FRAC_PI_2 * FRAC_PI_2);
+    }
+
+    #[test]
+    fn test_default_threshold_accessors() {
+        // Upstream's `default_*` associated functions are the constants, and the default body
+        // is built from them.
+        let active = RigidBodyActivationTrait::active();
+        assert_eq!(
+            RigidBodyActivationTrait::default_normalized_linear_threshold(),
+            DEFAULT_NORMALIZED_LINEAR_THRESHOLD,
+        );
+        assert_eq!(
+            RigidBodyActivationTrait::default_angular_threshold(), DEFAULT_ANGULAR_THRESHOLD,
+        );
+        assert_eq!(RigidBodyActivationTrait::default_time_until_sleep(), DEFAULT_TIME_UNTIL_SLEEP);
+        assert_eq!(
+            active.normalized_linear_threshold,
+            RigidBodyActivationTrait::default_normalized_linear_threshold(),
+        );
+        assert_eq!(active.angular_threshold, RigidBodyActivationTrait::default_angular_threshold());
+        assert_eq!(active.time_until_sleep, RigidBodyActivationTrait::default_time_until_sleep());
     }
 
     #[test]

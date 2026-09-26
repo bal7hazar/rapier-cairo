@@ -39,7 +39,8 @@ pub use mass_props::{
     RigidBodyMassPropsImpl, RigidBodyMassPropsTrait,
 };
 pub use position::{
-    RigidBodyPosition, RigidBodyPositionDefault, RigidBodyPositionImpl, RigidBodyPositionTrait,
+    Pose2IntoRigidBodyPosition, RigidBodyPosition, RigidBodyPositionDefault, RigidBodyPositionImpl,
+    RigidBodyPositionTrait,
 };
 pub use velocity::{
     RigidBodyVelocity, RigidBodyVelocityAdd, RigidBodyVelocityImpl, RigidBodyVelocitySub,
