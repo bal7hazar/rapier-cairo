@@ -17,12 +17,12 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
 | dynamics | 534 | 0 | 192 | 466 | 1192 | 73.6% |
 | geometry | 193 | 0 | 106 | 18 | 317 | 64.5% |
-| parry::bounding_volume | 73 | 0 | 16 | 30 | 119 | 82.0% |
+| parry::bounding_volume | 73 | 0 | 16 | 8 | 97 | 82.0% |
 | parry::mass_properties | 16 | 0 | 3 | 7 | 26 | 84.2% |
-| parry::query | 120 | 0 | 186 | 118 | 424 | 39.2% |
-| parry::shape | 101 | 0 | 164 | 119 | 384 | 38.1% |
+| parry::query | 120 | 0 | 180 | 118 | 418 | 40.0% |
+| parry::shape | 101 | 0 | 160 | 119 | 380 | 38.7% |
 | pipeline | 73 | 0 | 16 | 69 | 158 | 82.0% |
-| **total** | **1110** | **0** | **730** | **827** | **2667** | **60.3%** |
+| **total** | **1110** | **0** | **720** | **805** | **2635** | **60.7%** |
 
 Cairo-only public items not matched to upstream: **1128**.
 
@@ -2180,15 +2180,6 @@ Cairo-only public items not matched to upstream: **1128**.
 | method `project_point_and_get_location_with_max_dist` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | trait `PointQueryWithLocation` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 
-## Polygon
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `aabb` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-| method `new` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-| method `vertices` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-| type `Polygon` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-
 ## PolygonalFeature
 
 | Item | Module | Status | Detail | Source |
@@ -3066,33 +3057,6 @@ Cairo-only public items not matched to upstream: **1128**.
 | method `voxels` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `voxels_from_points` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | type `SharedShape` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-
-## SimdAabb
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| impl `From<[T; N]>` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| impl `Serialize` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `cast_local_ray` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `center` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `contains` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `contains_local_point` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `dilate_by_factor` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `distance_to_local_point` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `distance_to_origin` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `extract` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `half_extents` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `intersects` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `intersects_permutations` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `loosen` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `new_invalid` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `radius` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `replace` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `scaled` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `splat` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `to_merged_aabb` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `transform_by` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| type `SimdAabb` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
 
 ## SimdRay
 
@@ -4405,10 +4369,8 @@ Cairo-only public items not matched to upstream: **1128**.
 | function `cast_shapes_heightfield_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_heightfield_shape.rs` |
 | function `cast_shapes_nonlinear` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast.rs` |
 | function `cast_shapes_nonlinear_composite_shape_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
-| function `cast_shapes_nonlinear_halfspace_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
 | function `cast_shapes_nonlinear_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
 | function `cast_shapes_nonlinear_shape_voxels` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs` |
-| function `cast_shapes_nonlinear_support_map_halfspace` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
 | function `cast_shapes_nonlinear_support_map_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
 | function `cast_shapes_nonlinear_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs` |
 | function `cast_shapes_shape_composite_shape` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
@@ -4450,8 +4412,6 @@ Cairo-only public items not matched to upstream: **1128**.
 | function `contact_manifold_capsule_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_capsule_capsule.rs` |
 | function `contact_manifold_convex_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
 | function `contact_manifold_convex_ball_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
-| function `contact_manifold_cuboid_capsule` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
-| function `contact_manifold_cuboid_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
 | function `contact_manifold_cuboid_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
 | function `contact_manifold_cuboid_cuboid_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
 | function `contact_manifold_cuboid_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs` |
@@ -4482,7 +4442,6 @@ Cairo-only public items not matched to upstream: **1128**.
 | function `contact_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/contact/contact_support_map_support_map.rs` |
 | function `cuboid_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_cuboid.rs` |
 | function `cuboid_support_map_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_support_map.rs` |
-| function `detect_proximity_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_polygon_polygon.rs` |
 | function `directional_distance` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
 | function `distance` | parry::query | ported | Mapped to Query.distance | `parry/src/query/distance/distance.rs` |
 | function `distance_ball_ball` | parry::query | ported | Mapped to Ball.distance_ball_ball | `parry/src/query/distance/distance_ball_ball.rs` |
@@ -4498,7 +4457,6 @@ Cairo-only public items not matched to upstream: **1128**.
 | function `evaluate` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `find_min_separation` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `force_fixed_axis` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
-| function `generate_contacts_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs` |
 | function `intersection_test` | parry::query | ported | Mapped to Query.intersection_test, Intersection.intersection_test | `parry/src/query/intersection_test/intersection_test.rs` |
 | function `intersection_test_aabb_segment` | parry::query | ported | Mapped to Intersection.intersection_test_aabb_segment | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
 | function `intersection_test_aabb_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait. | `parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs` |
@@ -4567,22 +4525,22 @@ Cairo-only public items not matched to upstream: **1128**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 209 | standard | QP queries |
+| [Query completion](#wp-query-completion) | 206 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 193 | standard | shape interface |
-| [CCD and shape casts](#wp-ccd-and-shape-casts) | 86 | hard | QP queries |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 62 | mechanical | AP triage |
+| [CCD and shape casts](#wp-ccd-and-shape-casts) | 84 | hard | QP queries |
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 59 | mechanical | AP triage |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 17 | standard | SE sensors |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 16 | standard | SE sensors |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 | [Collider API completion](#wp-collider-api-completion) | 12 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
-| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 2 | standard | geometry |
+| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 1 | standard | geometry |
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 209 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 206 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4664,7 +4622,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 209 public items.
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 129 more
+- ... 126 more
 
 ### WP: Additional 2D shapes
 
@@ -4754,7 +4712,7 @@ Tier: standard. Depends/context: shape interface. Estimate: 193 public items.
 
 ### WP: CCD and shape casts
 
-Tier: hard. Depends/context: QP queries. Estimate: 86 public items.
+Tier: hard. Depends/context: QP queries. Estimate: 84 public items.
 
 - **CCDSolver** method `find_first_impact` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
 - **CCDSolver** method `invalidate_fixed_targets_cache` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
@@ -4830,80 +4788,13 @@ Tier: hard. Depends/context: QP queries. Estimate: 86 public items.
 - **parry::query** function `cast_shapes_heightfield_shape` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
 - **parry::query** function `cast_shapes_nonlinear` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast.rs`)
 - **parry::query** function `cast_shapes_nonlinear_composite_shape_shape` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
-- **parry::query** function `cast_shapes_nonlinear_halfspace_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
 - **parry::query** function `cast_shapes_nonlinear_shape_composite_shape` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
-- **parry::query** function `cast_shapes_nonlinear_support_map_halfspace` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
 - **parry::query** function `cast_shapes_nonlinear_support_map_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs`)
 - **parry::query** function `cast_shapes_shape_composite_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
 - **parry::query** function `cast_shapes_shape_heightfield` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
-- ... 6 more
-
-### WP: API polish and miscellaneous parity
-
-Tier: mechanical. Depends/context: AP triage. Estimate: 62 public items.
-
-- **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShape** trait `CompositeShape` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShapeRef** type `CompositeShapeRef` (`parry/src/shape/composite_shape.rs`)
-- **InteractionGraph** impl `Default` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `index_interaction` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interaction_pair` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interaction_pair_mut` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_between` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with_endpoints` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with_mut` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `new` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `raw_graph` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionsWithMut** type `InteractionsWithMut` (`rapier/src/geometry/interaction_graph.rs`)
-- **Polygon** method `new` (`parry/src/shape/polygon.rs`)
-- **Polygon** method `vertices` (`parry/src/shape/polygon.rs`)
-- **Polygon** type `Polygon` (`parry/src/shape/polygon.rs`)
-- **Shape** method `as_composite_shape` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
-- **Shape** method `clone_dyn` (`parry/src/shape/shape.rs`)
-- **Shape** method `scale_dyn` (`parry/src/shape/shape.rs`)
-- **Shape** trait `Shape` (`parry/src/shape/shape.rs`)
-- **SolverBodies** method `clear` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `copy_from` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `get_pose` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `get_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `len` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `resize` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `set_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** type `SolverBodies` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** impl `Default` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** method `inverse_transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** method `pose` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** type `SolverPose` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPoseRepr** method `identity` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverTransform** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverTransform** type `SolverTransform` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** impl `AddAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** impl `Sub` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** impl `SubAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_mut_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_vector_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_vector_slice_mut` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVelRepr** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **TemporaryInteractionIndex** type `TemporaryInteractionIndex` (`rapier/src/geometry/interaction_graph.rs`)
-- **TypedCompositeShape** method `map_typed_part_at` (`parry/src/shape/composite_shape.rs`)
-- **TypedCompositeShape** method `map_untyped_part_at` (`parry/src/shape/composite_shape.rs`)
-- **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
-- **TypedShape** impl `Debug` (`parry/src/shape/shape.rs`)
-- **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
-- **dynamics** function `reset_buffer` (`rapier/src/dynamics/solver/mod.rs`)
-- **dynamics** function `reset_buffer_reusing` (`rapier/src/dynamics/solver/mod.rs`)
+- **parry::query** function `cast_shapes_support_map_halfspace` (`parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs`)
+- **parry::query** function `cast_shapes_support_map_support_map` (`parry/src/query/shape_cast/shape_cast_support_map_support_map.rs`)
+- ... 4 more
 
 ### WP: Joint API completion
 
@@ -4970,6 +4861,70 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 61 public items.
 - **PersistentIslands** method `unlink_joint` (`rapier/src/dynamics/island_manager/persistent.rs`)
 - **WritebackId** type `WritebackId` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
+
+### WP: API polish and miscellaneous parity
+
+Tier: mechanical. Depends/context: AP triage. Estimate: 59 public items.
+
+- **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
+- **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShape** trait `CompositeShape` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShapeRef** type `CompositeShapeRef` (`parry/src/shape/composite_shape.rs`)
+- **InteractionGraph** impl `Default` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `index_interaction` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interaction_pair` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interaction_pair_mut` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_between` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_with` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_with_endpoints` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_with_mut` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `new` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `raw_graph` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionsWithMut** type `InteractionsWithMut` (`rapier/src/geometry/interaction_graph.rs`)
+- **Shape** method `as_composite_shape` (`parry/src/shape/shape.rs`)
+- **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
+- **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
+- **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
+- **Shape** method `clone_dyn` (`parry/src/shape/shape.rs`)
+- **Shape** method `scale_dyn` (`parry/src/shape/shape.rs`)
+- **Shape** trait `Shape` (`parry/src/shape/shape.rs`)
+- **SolverBodies** method `clear` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `copy_from` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `get_pose` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `get_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `len` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `resize` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `set_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** type `SolverBodies` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** impl `Default` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** method `inverse_transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** method `pose` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** type `SolverPose` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPoseRepr** method `identity` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverTransform** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverTransform** type `SolverTransform` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** impl `AddAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** impl `Sub` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** impl `SubAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_mut_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_vector_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_vector_slice_mut` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVelRepr** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **TemporaryInteractionIndex** type `TemporaryInteractionIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **TypedCompositeShape** method `map_typed_part_at` (`parry/src/shape/composite_shape.rs`)
+- **TypedCompositeShape** method `map_untyped_part_at` (`parry/src/shape/composite_shape.rs`)
+- **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
+- **TypedShape** impl `Debug` (`parry/src/shape/shape.rs`)
+- **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
+- **dynamics** function `reset_buffer` (`rapier/src/dynamics/solver/mod.rs`)
+- **dynamics** function `reset_buffer_reusing` (`rapier/src/dynamics/solver/mod.rs`)
 
 ### WP: Pipeline and world facade
 
@@ -5053,7 +5008,7 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 
 ### WP: Sensors and intersection events
 
-Tier: standard. Depends/context: SE sensors. Estimate: 17 public items.
+Tier: standard. Depends/context: SE sensors. Estimate: 16 public items.
 
 - **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
 - **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
@@ -5066,7 +5021,6 @@ Tier: standard. Depends/context: SE sensors. Estimate: 17 public items.
 - **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
 - **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
 - **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
-- **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
 - **parry::query** function `intersection_test_aabb_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
 - **parry::query** function `intersection_test_composite_shape_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
 - **parry::query** function `intersection_test_cuboid_triangle` (`parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs`)
@@ -5120,9 +5074,8 @@ Tier: mechanical. Depends/context: KD/SL. Estimate: 6 public items.
 
 ### WP: Mass, AABB, and shape helpers
 
-Tier: standard. Depends/context: geometry. Estimate: 2 public items.
+Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 
-- **Polygon** method `aabb` (`parry/src/shape/polygon.rs`)
 - **parry::bounding_volume** function `local_aabb` (`parry/src/bounding_volume/aabb_support_map.rs`)
 
 ## Cairo public items without upstream match
@@ -13904,34 +13857,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "source": "parry/src/query/point/point_query.rs"
   },
   {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "aabb",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "new",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "vertices",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
-    "kind": "type",
-    "module": "parry::shape",
-    "name": "Polygon",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
     "kind": "impl",
     "module": "parry::shape",
     "name": "Default",
@@ -18046,160 +17971,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "SharedShape",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "impl",
-    "module": "parry::bounding_volume",
-    "name": "From<[T; N]>",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "impl",
-    "module": "parry::bounding_volume",
-    "name": "Serialize",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "cast_local_ray",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "center",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "contains",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "contains_local_point",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "dilate_by_factor",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "distance_to_local_point",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "distance_to_origin",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "extract",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "half_extents",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "intersects",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "intersects_permutations",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "loosen",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "new_invalid",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "radius",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "replace",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "scaled",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "splat",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "to_merged_aabb",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "transform_by",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "type",
-    "module": "parry::bounding_volume",
-    "name": "SimdAabb",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
   },
   {
     "kind": "method",
@@ -23013,13 +22784,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "cast_shapes_nonlinear_halfspace_support_map",
-    "owner": "parry::query",
-    "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "cast_shapes_nonlinear_shape_composite_shape",
     "owner": "parry::query",
     "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs"
@@ -23030,13 +22794,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "cast_shapes_nonlinear_shape_voxels",
     "owner": "parry::query",
     "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "cast_shapes_nonlinear_support_map_halfspace",
-    "owner": "parry::query",
-    "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs"
   },
   {
     "kind": "function",
@@ -23328,20 +23085,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "contact_manifold_cuboid_capsule",
-    "owner": "parry::query",
-    "source": "parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "contact_manifold_cuboid_capsule_shapes",
-    "owner": "parry::query",
-    "source": "parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "contact_manifold_cuboid_cuboid",
     "owner": "parry::query",
     "source": "parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs"
@@ -23552,13 +23295,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "detect_proximity_polygon_polygon",
-    "owner": "parry::query",
-    "source": "parry/src/query/intersection_test/intersection_test_polygon_polygon.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "directional_distance",
     "owner": "parry::query",
     "source": "parry/src/query/gjk/gjk.rs"
@@ -23660,13 +23396,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "force_fixed_axis",
     "owner": "parry::query",
     "source": "parry/src/query/sweep_toi/separation.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "generate_contacts_polygon_polygon",
-    "owner": "parry::query",
-    "source": "parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs"
   },
   {
     "kind": "function",

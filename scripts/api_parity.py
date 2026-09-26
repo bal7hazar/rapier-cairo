@@ -405,10 +405,31 @@ def module_for(crate: str, rel: str) -> str:
     return "parry::" + parts[0]
 
 
+def module_tree(src: Path) -> set[Path]:
+    """The source files reachable from `src/lib.rs` through `mod name;` declarations: a file nobody declares (Parry's
+    `shape/polygon.rs`) is dead code and not part of the API."""
+    decl = re.compile(r"(?m)^\s*(?:#\[[^\]]*\]\s*)*(?:pub(?:\([^)]*\))?\s+)?mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*;")
+    seen: set[Path] = set()
+    todo = [src / "lib.rs"]
+    while todo:
+        path = todo.pop()
+        if path in seen or not path.is_file():
+            continue
+        seen.add(path)
+        here = path.parent if path.name in ("lib.rs", "mod.rs") else path.parent / path.stem
+        for m in decl.finditer(mask_comments(path.read_text())):
+            for child in (here / f"{m.group(1)}.rs", here / m.group(1) / "mod.rs"):
+                if child.is_file():
+                    todo.append(child)
+                    break
+    return seen
+
+
 def rust_files(root: Path, dirs: tuple[str, ...]) -> list[tuple[str, Path]]:
     src = root / "src"
     if not src.is_dir():
         raise SystemExit(f"missing source directory: {src}")
+    reachable = module_tree(src)
     paths = []
     for d in dirs:
         base = src / d
@@ -416,7 +437,7 @@ def rust_files(root: Path, dirs: tuple[str, ...]) -> list[tuple[str, Path]]:
             paths.append(base)
         elif base.is_dir():
             paths.extend(base.rglob("*.rs"))
-    return [(str(p.relative_to(src)), p) for p in sorted(paths)]
+    return [(str(p.relative_to(src)), p) for p in sorted(paths) if p in reachable]
 
 
 def add_rust_decl_items(items: set[Item], text: str, raw: str, rel: str, module: str, crate: str,
