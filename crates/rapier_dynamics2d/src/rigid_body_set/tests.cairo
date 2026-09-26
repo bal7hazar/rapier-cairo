@@ -13,8 +13,9 @@ use crate::collider::ColliderBuilderTrait;
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
 use crate::rigid_body::{LockedAxesTrait, ROTATION_LOCKED};
 use super::{
-    RigidBody, RigidBodyBuilderTrait, RigidBodyColliders, RigidBodySet, RigidBodySetTrait,
-    RigidBodyTrait, cold_or_default, extra_additional_is_mass, recompute_body_mass_properties,
+    ColdExtraSlotTrait, RigidBody, RigidBodyBuilderTrait, RigidBodyColliders, RigidBodySet,
+    RigidBodySetTrait, RigidBodyTrait, cold_or_default, extra_additional_is_mass,
+    recompute_body_mass_properties,
 };
 
 fn at(x: Fixed, y: Fixed) -> Pose2 {
@@ -105,7 +106,7 @@ fn test_builder_round_trip() {
     assert_eq!(body.dominance_group(), -3);
     assert!(!body.is_enabled());
     let cold = cold_or_default(body.cold);
-    assert_eq!(cold.user_data, 99);
+    assert_eq!(cold.extra.value().user_data, 99);
     assert_eq!(body.additional_solver_iterations(), 7);
     assert_eq!(body.additional_pgs_iterations(), 5);
     assert!(body.locked_axes().contains(ROTATION_LOCKED));

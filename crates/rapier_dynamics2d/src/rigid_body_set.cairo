@@ -21,6 +21,7 @@
 //!   body: the step wakes its island (`rapier2d::pipeline::islands`). Write the fields directly
 //!   to change a body without waking it.
 
+use core::nullable::{FromNullableResult, match_nullable};
 use core::num::traits::DivRem;
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
@@ -39,6 +40,7 @@ use rapier_geometry2d::shape::ShapeTrait;
 use rapier_math::pose2::Pose2;
 use crate::collider::{Collider, ColliderTrait};
 use crate::collider_set::{ColliderSet, ColliderSetTrait};
+use crate::rigid_body::ccd::RigidBodyCcd;
 use crate::rigid_body::{
     RigidBodyForces, RigidBodyMassProps, RigidBodyMassPropsTrait, RigidBodyPosition,
     RigidBodyVelocity,
@@ -84,13 +86,107 @@ pub struct RigidBodyCold {
     pub additional_local_mprops: MassProperties,
     /// Packed as solver iterations | pgs iterations | flags.
     pub solver_flags: u128,
+    /// The user data and the CCD state (CC2), null until one of them is set: the cold value keeps
+    /// the width it had with the user data alone, so building the default one costs the same.
+    pub extra: ColdExtraSlot,
+}
+
+/// The rarest body data: upstream's `user_data` and the continuous-collision component.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RigidBodyColdExtra {
     pub user_data: u128,
+    /// Continuous-collision state (CC2, upstream `RigidBody::ccd`).
+    pub ccd: RigidBodyCcd,
+}
+
+pub impl RigidBodyColdExtraDefault of Default<RigidBodyColdExtra> {
+    #[inline(always)]
+    fn default() -> RigidBodyColdExtra {
+        RigidBodyColdExtra { user_data: 0, ccd: Default::default() }
+    }
+}
+
+/// [`RigidBodyColdExtra`] behind a nullable pointer (null: every field at its default).
+#[derive(Copy, Drop)]
+pub struct ColdExtraSlot {
+    pub inner: Nullable<RigidBodyColdExtra>,
+}
+
+#[generate_trait]
+pub impl ColdExtraSlotImpl of ColdExtraSlotTrait {
+    /// The slot holding `extra`.
+    #[inline(always)]
+    fn new(extra: RigidBodyColdExtra) -> ColdExtraSlot {
+        ColdExtraSlot { inner: NullableTrait::new(extra) }
+    }
+
+    /// The stored value, `None` for a null slot.
+    #[inline(always)]
+    fn get(self: ColdExtraSlot) -> Option<RigidBodyColdExtra> {
+        match match_nullable(self.inner) {
+            FromNullableResult::Null => None,
+            FromNullableResult::NotNull(value) => Some(value.unbox()),
+        }
+    }
+
+    /// The stored value, the default one for a null slot.
+    #[inline(always)]
+    fn value(self: ColdExtraSlot) -> RigidBodyColdExtra {
+        match match_nullable(self.inner) {
+            FromNullableResult::Null => Default::default(),
+            FromNullableResult::NotNull(value) => value.unbox(),
+        }
+    }
+}
+
+/// A null slot.
+pub impl ColdExtraSlotDefault of Default<ColdExtraSlot> {
+    #[inline(always)]
+    fn default() -> ColdExtraSlot {
+        ColdExtraSlot { inner: Default::default() }
+    }
+}
+
+/// Serialized as `Option<RigidBodyColdExtra>` (`None` for a null slot).
+pub impl ColdExtraSlotSerde of Serde<ColdExtraSlot> {
+    fn serialize(self: @ColdExtraSlot, ref output: Array<felt252>) {
+        (*self).get().serialize(ref output);
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<ColdExtraSlot> {
+        let value: Option<RigidBodyColdExtra> = Serde::deserialize(ref serialized)?;
+        Some(
+            match value {
+                Some(extra) => ColdExtraSlotTrait::new(extra),
+                None => Default::default(),
+            },
+        )
+    }
+}
+
+/// Equality of the stored values (a null slot differs from a slot holding the defaults).
+pub impl ColdExtraSlotPartialEq of PartialEq<ColdExtraSlot> {
+    fn eq(lhs: @ColdExtraSlot, rhs: @ColdExtraSlot) -> bool {
+        (*lhs).get() == (*rhs).get()
+    }
+
+    fn ne(lhs: @ColdExtraSlot, rhs: @ColdExtraSlot) -> bool {
+        !Self::eq(lhs, rhs)
+    }
+}
+
+pub impl ColdExtraSlotDebug of core::fmt::Debug<ColdExtraSlot> {
+    fn fmt(self: @ColdExtraSlot, ref f: core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+        core::fmt::Debug::fmt(@(*self).get(), ref f)
+    }
 }
 
 pub impl RigidBodyColdDefault of Default<RigidBodyCold> {
     #[inline(always)]
     fn default() -> RigidBodyCold {
-        RigidBodyCold { additional_local_mprops: Default::default(), solver_flags: 0, user_data: 0 }
+        RigidBodyCold {
+            additional_local_mprops: Default::default(), solver_flags: 0, extra: Default::default(),
+        }
     }
 }
 
@@ -236,11 +332,14 @@ pub impl RigidBodyDefault of Default<RigidBody> {
 /// Constructors, getters and setters of [`RigidBody`] (upstream names).
 pub mod body_api;
 pub mod builder_api;
+/// The CCD members of [`RigidBody`] (upstream `enable_ccd`, `is_ccd_active`, …), CC2.
+pub mod ccd_api;
 pub use body_api::{RigidBodyImpl, RigidBodyTrait};
 pub use builder_api::{
     RigidBodyBuilder, RigidBodyBuilderDefault, RigidBodyBuilderImpl, RigidBodyBuilderTrait,
     RigidBodyFromBuilder,
 };
+pub use ccd_api::{RigidBodyCcdApiImpl, RigidBodyCcdApiTrait};
 
 /// Component reads of a stored body (BT4, `RigidBodySetTrait::get_field`): the activation's
 /// `sleeping` flag.
@@ -272,6 +371,14 @@ pub impl BodyPose of ArenaField<RigidBody, Pose2> {
     #[inline(always)]
     fn read(value: RigidBody) -> Pose2 {
         value.pos.position
+    }
+}
+
+/// The type of a stored body (CC2: the fixed targets of the CCD pass).
+pub impl BodyType of ArenaField<RigidBody, RigidBodyType> {
+    #[inline(always)]
+    fn read(value: RigidBody) -> RigidBodyType {
+        value.body_type
     }
 }
 
