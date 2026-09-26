@@ -4,10 +4,12 @@
 //! The persistent state is exactly `docs/PLAN.md` D9: the body and collider sets (poses,
 //! velocities, mass properties, change flags), the impulse joints (with their accumulated
 //! impulses) and the narrow-phase pairs (manifolds carrying the warm-start impulses and the event
-//! status; sensor pairs with their `intersecting` state). Everything else [`WorldTrait::step`]
-//! needs (broad-phase proxies and pairs, solver bodies, constraints) is rebuilt every step and
-//! dropped with it. [`WorldTrait::to_state`] / [`WorldTrait::from_state`] save and restore it
-//! (`state`, versioned).
+//! status; sensor pairs with their `intersecting` state), plus (BT2, D7 / D9 amended) the
+//! step's active set (`crate::pipeline::active_set`: the awake bodies, the static broad-phase
+//! proxies and the positions of the live pairs, so that a step walks the awake bodies only).
+//! Everything else [`WorldTrait::step`] needs (the other broad-phase proxies and pairs, solver
+//! bodies, constraints) is rebuilt every step and dropped with it. [`WorldTrait::to_state`] /
+//! [`WorldTrait::from_state`] save and restore it (`state`, versioned).
 //!
 //! Mutations go through the sets' own setters, which raise the change flags the next step reads
 //! (`RigidBodyTrait::set_position`, `ColliderTrait::set_shape`, …): read a copy with
@@ -23,8 +25,9 @@
 //! The island manager's view is derived from the bodies' sleep state:
 //! [`WorldTrait::active_bodies`] / [`WorldTrait::num_active_bodies`] (no per-step bookkeeping).
 //!
-//! Deviations from upstream: no persistent island manager (islands are rebuilt every step),
-//! broad-phase state, CCD solver, multibody or soft body sets, query pipeline (the scene queries
+//! Deviations from upstream: no persistent island manager (islands are rebuilt when an awake
+//! body can fall asleep or touches a sleeping one), no broad-phase tree (the active set keeps the
+//! static proxies), no CCD solver, multibody or soft body sets, query pipeline (the scene queries
 //! scan the collider set, `crate::queries`), hooks or event handler (events are returned by
 //! `step` and `step_with_force_events`, the counterpart of `step_with_events`), thread pool or
 //! quarantine (Q32.32 state cannot become non-finite: an overflow panics). Sets are read by
@@ -45,6 +48,7 @@ use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTra
 use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::point::PointProjection;
 use rapier_geometry2d::ray::{Ray, RayIntersection};
+use crate::pipeline::active_set::ActiveSet;
 use crate::queries::QueryFilter;
 
 /// Versioned save / restore ([`WorldTrait::to_state`], [`WorldTrait::from_state`]).
@@ -64,6 +68,10 @@ pub struct World {
     /// Last step's contact pairs (ascending collider slot), with their warm-start impulses, and
     /// its sensor intersection pairs.
     pub narrow_phase: NarrowPhase,
+    /// What the next step needs to skip the sleeping bodies (BT2, `pipeline::active_set`),
+    /// maintained by the step: only trusted while neither set was written since. Boxed: the
+    /// world is passed by reference, one cell instead of the whole set.
+    pub active_set: Box<ActiveSet>,
 }
 
 /// Upstream's name of the world.
@@ -93,6 +101,7 @@ pub impl WorldImpl of WorldTrait {
             colliders: ColliderSetTrait::new(),
             impulse_joints: ImpulseJointSetTrait::new(),
             narrow_phase: NarrowPhaseTrait::new(),
+            active_set: BoxTrait::new(Default::default()),
         }
     }
 
@@ -264,6 +273,34 @@ pub impl WorldImpl of WorldTrait {
     #[inline(always)]
     fn body(ref self: World, handle: Handle) -> Option<RigidBody> {
         self.bodies.get(handle)
+    }
+
+    /// Whether the body behind `handle` sleeps (upstream `RigidBody::is_sleeping` through
+    /// `bodies.get`); `None` when the handle does not resolve. Reads the body out of the set
+    /// without returning it (BT2 addendum B).
+    fn is_sleeping(ref self: World, handle: Handle) -> Option<bool> {
+        match self.bodies.get(handle) {
+            Some(body) => Some(body.activation.sleeping),
+            None => None,
+        }
+    }
+
+    /// The linear velocity of the body behind `handle` (upstream `RigidBody::linvel`); `None`
+    /// when the handle does not resolve.
+    fn linvel(ref self: World, handle: Handle) -> Option<Vec2> {
+        match self.bodies.get(handle) {
+            Some(body) => Some(body.vels.linvel),
+            None => None,
+        }
+    }
+
+    /// The angular velocity of the body behind `handle` (upstream `RigidBody::angvel`); `None`
+    /// when the handle does not resolve.
+    fn angvel(ref self: World, handle: Handle) -> Option<Fixed> {
+        match self.bodies.get(handle) {
+            Some(body) => Some(body.vels.angvel),
+            None => None,
+        }
     }
 
     /// Overwrites the body behind `handle` (upstream `bodies.get_mut`); `false` when the

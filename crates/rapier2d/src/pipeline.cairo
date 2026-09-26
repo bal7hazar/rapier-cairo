@@ -57,11 +57,14 @@
 //! contact pairs (`narrow_phase`), with no solver contact: they only take part in the dormant
 //! split, which keeps a sleeping body's sensor pairs (and their events) unchanged.
 //!
-//! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
-//! every step (upstream persists them, see `islands`); no user hooks,
-//! a body whose enabled state changes does not propagate it
-//! to its colliders (disable the colliders).
+//! Active set (work package BT2, [`active_set`]): a step that leaves a sleeping body fills the
+//! world's active set; the next step, when no set was written since, walks only the awake bodies,
+//! their colliders and live pairs against the kept static proxies (same results, `active_set`).
 //!
+//! Deviations from upstream: one step = one CCD substep (CCD is deferred); islands are rebuilt
+//! when an awake body can fall asleep or touches a sleeping one (upstream persists them, see
+//! `islands`); no user hooks; a body whose enabled state changes does not propagate it to its
+//! colliders (disable the colliders).
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
@@ -87,6 +90,9 @@ use rapier_geometry2d::shape::ShapeTrait;
 use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
 
+pub mod active_set;
+#[cfg(test)]
+mod active_set_tests;
 #[cfg(test)]
 pub(crate) mod alternatives;
 #[cfg(test)]
@@ -157,8 +163,11 @@ pub fn step_with_force_events(
 }
 
 fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T {
+    if active_set::usable(ref world) {
+        return active_set::sparse_step::<T, Output>(ref world);
+    }
     let no_joints = world.impulse_joints.len() == 0;
-    let (snapshot, mut infos, entries, census) = user_changes_bodies_for_step(
+    let (snapshot, mut infos, entries, census, fresh) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
@@ -171,6 +180,11 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         let (proxies, sleeping, force_events) = collision_proxies_from_entries_with_events(
             snapshot, entries, ref world.bodies, prediction,
         );
+        let proxies = if fresh.is_empty() {
+            proxies
+        } else {
+            sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries)
+        };
         let pairs = find_pairs(proxies.span());
         if !sleeping && pairs.is_empty() {
             solve_and_advance_free(
@@ -197,6 +211,11 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
             snapshot, infos, ref world.bodies, prediction,
         );
+        let proxies = if fresh.is_empty() {
+            proxies
+        } else {
+            sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries)
+        };
         (scratch, sleeping, force_events, find_pairs(proxies.span()))
     };
     let mut dormant = array![];
@@ -209,14 +228,26 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         DefaultDispatcher,
     >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
     let joint_entries = world.impulse_joints.to_array();
-    let (entries, sleeping, woken) = update_islands(
-        ref world.bodies,
-        world.narrow_phase.pairs.span(),
-        dormant.span(),
-        joint_entries.span(),
-        entries,
-        census,
-    );
+    let (entries, sleeping, woken) = if fresh.is_empty() {
+        update_islands(
+            ref world.bodies,
+            world.narrow_phase.pairs.span(),
+            dormant.span(),
+            joint_entries.span(),
+            entries,
+            census,
+        )
+    } else {
+        sleeping::islands_after_insertions(
+            ref world.bodies,
+            world.narrow_phase.pairs.span(),
+            dormant.span(),
+            joint_entries.span(),
+            entries,
+            census,
+            fresh,
+        )
+    };
     if woken && !dormant.is_empty() {
         // The dormant pairs of the woken bodies join the solver input of this step.
         let (revived, asleep) = split_dormant(dormant.span(), entries);
@@ -243,8 +274,16 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         ref world.narrow_phase,
         ref world.colliders,
     );
+    // BT2: with a sleeping body, the next step can skip the sleeping bodies (`active_set`).
+    let rebuild = sleeping && no_joints && !woken;
     if !dormant.is_empty() {
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
+    }
+    // Behind a one-iteration `while`: only the steps that refresh the set pay for it (AGENTS §7).
+    let mut pending = rebuild || active_set::is_valid(@world);
+    while pending {
+        active_set::refresh(ref world, rebuild);
+        pending = false;
     }
     output
 }
@@ -315,7 +354,10 @@ pub fn user_changes_snapshot(
 pub fn user_changes_bodies(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
-    user_changes_bodies_for_step(ref bodies, ref colliders, pairs, None, true)
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
+        ref bodies, ref colliders, pairs, None, true,
+    );
+    (snapshot, infos, entries, census)
 }
 
 fn user_changes_bodies_for_step(
@@ -324,13 +366,16 @@ fn user_changes_bodies_for_step(
     pairs: Span<ContactPair>,
     dt: Option<Fixed>,
     build_infos: bool,
-) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
+) -> (
+    Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus, Span<Handle>,
+) {
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     let mut touched = array![];
+    let mut fresh = array![];
     for (handle, collider) in snapshot {
         if !collider.changes.is_empty() {
-            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched);
+            collider_changes(*handle, *collider, ref bodies, ref colliders, ref touched, ref fresh);
             dirty = true;
         }
     }
@@ -350,7 +395,9 @@ fn user_changes_bodies_for_step(
             )
         } else {
             bodies_dirty = true;
-            let body = body_changes(*handle, *body, ref bodies, ref colliders, ref touched);
+            let body = body_changes(
+                *handle, *body, ref bodies, ref colliders, ref touched, fresh.span(),
+            );
             census.count(@body);
             (
                 body.body_type,
@@ -389,7 +436,7 @@ fn user_changes_bodies_for_step(
     if dirty || bodies_dirty {
         snapshot = colliders.iter().span();
     }
-    (snapshot, infos.span(), entries, census)
+    (snapshot, infos.span(), entries, census, fresh.span())
 }
 
 /// The broad-phase proxies (as `ColliderSetTrait::broad_phase_proxies`, plus SL: a sleeping
@@ -743,43 +790,4 @@ pub(crate) fn write_joints(
 }
 
 #[cfg(test)]
-mod joint_glue_probes {
-    use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
-    use rapier_testing::opaque;
-    use super::*;
-    #[inline(always)]
-    fn probe(stage: u8) {
-        let mut set = ImpulseJointSetTrait::new();
-        let mut i = 0;
-        while i != 3 {
-            let _ = set
-                .insert(
-                    opaque(Handle { index: i, generation: 1 }),
-                    opaque(Handle { index: i + 1, generation: 1 }),
-                    opaque(RevoluteJointBuilderTrait::new().build()),
-                );
-            i += 1;
-        }
-        let entries = set.to_array();
-        if stage != 0 {
-            let values = joint_values(opaque(entries.span()));
-            if stage == 2 {
-                write_joints(opaque(entries.span()), opaque(values.span()), ref set);
-            }
-            let _ = opaque(values.span());
-        }
-        let _ = opaque(set.len());
-    }
-    #[test]
-    fn gas_baseline() {
-        probe(0);
-    }
-    #[test]
-    fn gas_joint_values3() {
-        probe(1);
-    }
-    #[test]
-    fn gas_write_joints3() {
-        probe(2);
-    }
-}
+mod joint_glue_probes;
