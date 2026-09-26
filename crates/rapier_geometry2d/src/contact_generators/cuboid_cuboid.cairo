@@ -28,7 +28,7 @@ pub fn contact_manifold_cuboid_cuboid(
     if manifold.try_update_contacts(pos12) {
         return;
     }
-    cuboid_cuboid_fresh(pos12, cuboid1, cuboid2, prediction, ref manifold);
+    regenerate(pos12, cuboid1, cuboid2, prediction, ref manifold);
 }
 
 /// [`contact_manifold_cuboid_cuboid`] without its persistence check, for a caller that ran
@@ -36,6 +36,18 @@ pub fn contact_manifold_cuboid_cuboid(
 /// `dispatch::contact_manifold_step` (BT3, which called it twice).
 #[inline(never)]
 pub(crate) fn cuboid_cuboid_fresh(
+    pos12: Pose2,
+    cuboid1: Cuboid,
+    cuboid2: Cuboid,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) {
+    regenerate(pos12, cuboid1, cuboid2, prediction, ref manifold);
+}
+
+/// Two-way SAT then clipping: the body of both entries (inlined in each, no extra frame).
+#[inline(always)]
+fn regenerate(
     pos12: Pose2,
     cuboid1: Cuboid,
     cuboid2: Cuboid,
