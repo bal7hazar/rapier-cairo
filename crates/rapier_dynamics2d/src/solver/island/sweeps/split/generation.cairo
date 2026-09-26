@@ -1,106 +1,200 @@
 //! Direct generation of the split constraints (BT3): each manifold goes straight to its
 //! `Frozen` / `Hot` pair, without the intermediate `ContactConstraint` and its two elements
 //! (`contact::generate_cached` then `push`, kept as `alternatives::generate_via_constraints`).
-//! Same checks in the same order, same kernels (`midpoint`, `coefficients`, `local_anchor`),
+//! Same checks in the same order, same operations on the same operands (`contact::midpoint`,
+//! `element::coefficients` and `contact::local_anchor` written out on the scalars they read),
 //! same values: the constraint-set path stays the reference of the split tests.
+//!
+//! What the loop carries is kept small (Cairo steps are mostly copies here): endpoints resolve
+//! through a slot index instead of scanning the bodies, a body contributes only the scalars
+//! generation reads (not four `SolverBody` copies), the manifold is read through its snapshot,
+//! and the softness cache holds the two spring configurations instead of the whole
+//! `IntegrationParameters`.
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::num::traits::DivRem;
-use fixed::{Fixed, ZERO};
+use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, dot4, mul_sub, wide_from, wide_mul};
+use fixed::{Fixed, HALF, ZERO};
 use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
-use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, NEW_CONTACT_BIT};
-use super::super::super::super::body::{SolverBody, WORLD, read, velocity};
-use super::super::super::super::contact::element::{coefficients, jv, tangent};
-use super::super::super::super::contact::{
-    SoftCache, SoftCacheTrait, errors, local_anchor, midpoint, validate_mass,
-};
+use rapier_core::integration_parameters::spring::{SpringCoefficients, SpringCoefficientsTrait};
+use rapier_geometry2d::contact::{ContactManifold, NEW_CONTACT_BIT, SolverContact, TrackedContact};
+use rapier_math::math_ext::inv;
+use rapier_math::rot2::{Rot2, Rot2Trait};
+use super::super::super::super::body::{SolverBody, SolverVel, WORLD};
+use super::super::super::super::contact::element::{jv, tangent};
+use super::super::super::super::contact::errors;
 use super::{Frozen, FrozenPoint, Hot, HotPoint, Row, Weights};
 
 /// `ContactConstraintsSetTrait::generate` then the split of every active constraint, in one
-/// pass, with the step's constants computed once (`contact::SoftCache`): same constraints,
-/// checks and panics as `contact::generate_cached`.
+/// pass, with the step's constants computed once: same constraints, checks and panics as
+/// `contact::generate_cached` with its `contact::SoftCache`.
 pub(crate) fn generate(
     mut manifolds: Span<ContactManifold>,
     bodies: Span<SolverBody>,
     params: IntegrationParameters,
     dt: Fixed,
 ) -> (Array<Frozen>, Array<Hot>) {
-    let mut cache = SoftCacheTrait::new(params, dt);
+    let inv_dt = inv(dt);
+    let mut soft = Soft {
+        dynamic: params.contact_softness,
+        fixed: params.static_contact_softness,
+        dt,
+        dynamic_pair: None,
+        fixed_pair: None,
+    };
     let mut frozen = array![];
     let mut hot = array![];
     let mut index = body_index(bodies);
     let mut id = 0;
     while let Some(m) = manifolds.pop_front() {
-        split_manifold(*m, bodies, dt, ref cache, ref index, id, ref frozen, ref hot);
+        split_manifold(m, bodies, dt, inv_dt, ref soft, ref index, id, ref frozen, ref hot);
         id += 1;
     }
     (frozen, hot)
 }
 
+/// `contact::SoftCache` without the parameters: the softness `(erp_inv_dt, cfm_factor)` of the
+/// dynamic and of the static contacts, computed at first use.
+#[derive(Copy, Drop)]
+struct Soft {
+    dynamic: SpringCoefficients,
+    fixed: SpringCoefficients,
+    dt: Fixed,
+    dynamic_pair: Option<(Fixed, Fixed)>,
+    fixed_pair: Option<(Fixed, Fixed)>,
+}
+
+#[generate_trait]
+impl SoftImpl of SoftTrait {
+    /// `SoftCache::get`: `static_contact_softness` (a world endpoint) or `contact_softness`.
+    #[inline(always)]
+    fn get(ref self: Soft, world: bool) -> (Fixed, Fixed) {
+        if world {
+            if let Some(pair) = self.fixed_pair {
+                return pair;
+            }
+            let c = self.fixed.coefficients(self.dt);
+            self.fixed_pair = Some((c.erp_inv_dt, c.cfm_factor));
+            (c.erp_inv_dt, c.cfm_factor)
+        } else {
+            if let Some(pair) = self.dynamic_pair {
+                return pair;
+            }
+            let c = self.dynamic.coefficients(self.dt);
+            self.dynamic_pair = Some((c.erp_inv_dt, c.cfm_factor));
+            (c.erp_inv_dt, c.cfm_factor)
+        }
+    }
+}
+
+/// What generation reads from a solver endpoint: the constraint's body (`WORLD`: zero masses,
+/// identity rotation, zero velocity) and the original body's centre of mass.
+#[derive(Copy, Drop)]
+struct End {
+    im: Vec2,
+    ii: Fixed,
+    rotation: Rot2,
+    vel: SolverVel,
+    com: Vec2,
+    world: bool,
+}
+
+/// The endpoint of dense id `raw` (`WORLD` for none), `WORLD` as the solver body when
+/// `dominated`. Checks the original body's masses first (`contact::validate_mass`).
+#[inline(always)]
+fn end(bodies: Span<SolverBody>, raw: u32, dominated: bool) -> End {
+    if raw == WORLD {
+        return End {
+            im: Default::default(),
+            ii: ZERO,
+            rotation: Default::default(),
+            vel: Default::default(),
+            com: Default::default(),
+            world: true,
+        };
+    }
+    let b = bodies.at(raw);
+    let im = *b.im;
+    let ii = *b.ii;
+    assert(im.x >= ZERO && im.y >= ZERO && ii >= ZERO, errors::NEGATIVE);
+    let com = *b.position.translation;
+    if dominated {
+        return End {
+            im: Default::default(),
+            ii: ZERO,
+            rotation: Default::default(),
+            vel: Default::default(),
+            com,
+            world: true,
+        };
+    }
+    End {
+        im,
+        ii,
+        rotation: *b.position.rotation,
+        vel: SolverVel { linear: *b.linvel, angular: *b.angvel },
+        com,
+        world: false,
+    }
+}
+
 /// `generate_cached` + `push` for one manifold: appends nothing for an inactive one.
 #[inline(always)]
 fn split_manifold(
-    m: ContactManifold,
+    m: @ContactManifold,
     bodies: Span<SolverBody>,
     dt: Fixed,
-    ref cache: SoftCache,
+    inv_dt: Fixed,
+    ref soft: Soft,
     ref index: Felt252Dict<u32>,
     manifold_id: u32,
     ref frozen: Array<Frozen>,
     ref hot: Array<Hot>,
 ) {
-    let count = m.data.num_solver_contacts;
-    assert(m.num_points <= 2 && count <= m.num_points, errors::COUNT);
-    let (_, enabled) = DivRem::div_rem(m.data.solver_flags.bits, 2);
+    let count = *m.data.num_solver_contacts;
+    let num_points = *m.num_points;
+    assert(num_points <= 2 && count <= num_points, errors::COUNT);
+    let (_, enabled) = DivRem::div_rem(*m.data.solver_flags.bits, 2);
     if count == 0 || enabled == 0 {
         return;
     }
-    assert(dt >= ZERO && m.data.friction >= ZERO && m.data.restitution >= ZERO, errors::NEGATIVE);
-    let raw1 = resolve(ref index, bodies, m.data.rigid_body1);
-    let raw2 = resolve(ref index, bodies, m.data.rigid_body2);
+    let (friction, restitution) = (*m.data.friction, *m.data.restitution);
+    assert(dt >= ZERO && friction >= ZERO && restitution >= ZERO, errors::NEGATIVE);
+    let raw1 = resolve(ref index, bodies, *m.data.rigid_body1);
+    let raw2 = resolve(ref index, bodies, *m.data.rigid_body2);
     assert(raw1 == WORLD || raw2 == WORLD || raw1 != raw2, errors::SAME_BODY);
-    let original1 = read(bodies, raw1);
-    let original2 = read(bodies, raw2);
-    validate_mass(original1);
-    validate_mass(original2);
-    let i = if m.data.relative_dominance > 0 {
+    let dominance = *m.data.relative_dominance;
+    let e1 = end(bodies, raw1, dominance > 0);
+    let e2 = end(bodies, raw2, dominance < 0);
+    let i = if e1.world {
         WORLD
     } else {
         raw1
     };
-    let j = if m.data.relative_dominance < 0 {
+    let j = if e2.world {
         WORLD
     } else {
         raw2
     };
-    let b1 = if i == raw1 {
-        original1
-    } else {
-        Default::default()
-    };
-    let b2 = if j == raw2 {
-        original2
-    } else {
-        Default::default()
-    };
-    let soft = cache.get(i == WORLD || j == WORLD);
-    let dir = -m.data.normal;
+    let (erp_inv_dt, soft_cfm) = soft.get(e1.world || e2.world);
+    let dir = -*m.data.normal;
     let t = tangent(dir);
-    let [sc0, sc1] = m.data.solver_contacts;
-    let ends = Ends {
-        b1, b2, com1: original1.position.translation, com2: original2.position.translation,
-    };
-    let (fa, ha, cid0) = split_point(sc0, m, dir, t, ends, i == WORLD, j == WORLD);
+    let im_sum = e1.im + e2.im;
+    let [sc0, sc1] = *m.data.solver_contacts;
+    let [p0, p1] = *m.points;
+    let (fa, ha, cid0) = split_point(sc0, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2);
     let (fb, hb) = if count == 2 {
-        let (fb, hb, cid1) = split_point(sc1, m, dir, t, ends, i == WORLD, j == WORLD);
+        let (fb, hb, cid1) = split_point(
+            sc1, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2,
+        );
         assert(cid1 != cid0, errors::CONTACT_ID);
         (fb, hb)
     } else {
         (Default::default(), Default::default())
     };
     // Floored products first, then negated (the negation of `dir * im2` exactly).
-    let (wn2, wt2) = (dir * b2.im, t * b2.im);
+    let (wn2, wt2) = (dir * e2.im, t * e2.im);
     frozen
         .append(
             Frozen {
@@ -108,14 +202,14 @@ fn split_manifold(
                 j,
                 dir,
                 t,
-                wn: Weights { first: dir * b1.im, neg_second: -wn2 },
-                wt: Weights { first: t * b1.im, neg_second: -wt2 },
-                limit: m.data.friction,
+                wn: Weights { first: dir * e1.im, neg_second: -wn2 },
+                wt: Weights { first: t * e1.im, neg_second: -wt2 },
+                limit: friction,
                 count,
                 manifold_id,
-                inv_dt: cache.inv_dt,
-                erp_inv_dt: soft.erp_inv_dt,
-                soft_cfm: soft.cfm_factor,
+                inv_dt,
+                erp_inv_dt,
+                soft_cfm,
                 a: fa,
                 b: fb,
             },
@@ -147,26 +241,59 @@ fn resolve(ref index: Felt252Dict<u32>, bodies: Span<SolverBody>, handle: Option
     id - 1
 }
 
-/// The solver bodies of a constraint (`WORLD` reads as the default body) and the original
-/// centres of mass the frozen point is built from.
-#[derive(Copy, Drop)]
-struct Ends {
-    b1: SolverBody,
-    b2: SolverBody,
-    com1: Vec2,
-    com2: Vec2,
+/// `element::coefficients` on the scalars it reads (`im_sum = b1.im + b2.im`): lever-arm
+/// crosses, inertia-weighted crosses and the inverse projected mass (`inv`, zero for zero).
+#[inline(always)]
+fn coefficients(
+    dir: Vec2, a1: Vec2, a2: Vec2, im_sum: Vec2, ii1: Fixed, ii2: Fixed,
+) -> (Fixed, Fixed, Fixed, Fixed, Fixed) {
+    let g1 = mul_sub(a1.x, dir.y, a1.y, dir.x);
+    let g2 = mul_sub(a2.x, -dir.y, a2.y, -dir.x);
+    let ig1 = ii1 * g1;
+    let ig2 = ii2 * g2;
+    let mass_dir = im_sum * dir;
+    let k = dot4(dir.x, mass_dir.x, dir.y, mass_dir.y, g1, ig1, g2, ig2);
+    (g1, g2, ig1, ig2, inv(k))
+}
+
+/// `contact::midpoint`: the first witness slid along the normal until the pair is exactly
+/// `sc.dist` apart, both witnesses meeting halfway; one floor per component.
+#[inline(always)]
+fn midpoint(sc: SolverContact, dir: Vec2, com1: Vec2, com2: Vec2) -> Vec2 {
+    let wp1 = com1 + sc.anchor1;
+    let wp2 = com2 + sc.anchor2;
+    let d = wp1 - wp2;
+    let shift = dot2(d.x, dir.x, d.y, dir.y) - sc.dist;
+    let s = wp1 + wp2;
+    Vec2 {
+        x: wide_from(s.x).sub(wide_mul(dir.x, shift)).mul(HALF).narrow(),
+        y: wide_from(s.y).sub(wide_mul(dir.y, shift)).mul(HALF).narrow(),
+    }
+}
+
+/// `contact::local_anchor`: the world point for a world endpoint, else `R^T * dp`.
+#[inline(always)]
+fn local_anchor(e: End, point: Vec2, dp: Vec2) -> Vec2 {
+    if e.world {
+        point
+    } else {
+        e.rotation.inverse_rotate(dp)
+    }
 }
 
 /// `generate_element` then `frozen_point` / `hot_point`; also returns the tracked point id.
 #[inline(always)]
 fn split_point(
-    sc: rapier_geometry2d::contact::SolverContact,
-    m: ContactManifold,
+    sc: SolverContact,
+    num_points: u8,
+    p0: TrackedContact,
+    p1: TrackedContact,
+    restitution: Fixed,
     dir: Vec2,
     t: Vec2,
-    e: Ends,
-    world1: bool,
-    world2: bool,
+    im_sum: Vec2,
+    e1: End,
+    e2: End,
 ) -> (FrozenPoint, HotPoint, u8) {
     let is_new = sc.contact_id >= NEW_CONTACT_BIT;
     let cid = if is_new {
@@ -174,31 +301,32 @@ fn split_point(
     } else {
         sc.contact_id
     };
-    assert(cid < m.num_points.into(), errors::CONTACT_ID);
-    let data = m.point(cid.try_into().unwrap()).data;
+    assert(cid < num_points.into(), errors::CONTACT_ID);
     let (ni, ti) = if is_new {
         (ZERO, ZERO)
+    } else if cid == 0 {
+        (p0.data.warmstart_impulse, p0.data.warmstart_tangent_impulse)
     } else {
-        (data.warmstart_impulse, data.warmstart_tangent_impulse)
+        (p1.data.warmstart_impulse, p1.data.warmstart_tangent_impulse)
     };
     assert(ni >= ZERO, errors::NEGATIVE);
-    let point = midpoint(sc, dir, e.com1, e.com2);
-    let dp1 = point - e.com1;
-    let dp2 = point - e.com2;
-    let (g1, g2, ig1, ig2, r) = coefficients(dir, dp1, dp2, e.b1, e.b2);
+    let point = midpoint(sc, dir, e1.com, e2.com);
+    let dp1 = point - e1.com;
+    let dp2 = point - e2.com;
+    let (g1, g2, ig1, ig2, r) = coefficients(dir, dp1, dp2, im_sum, e1.ii, e2.ii);
     let seed = if is_new {
-        m.data.restitution * jv(dir, g1, g2, velocity(e.b1), velocity(e.b2))
+        restitution * jv(dir, g1, g2, e1.vel, e2.vel)
     } else {
         ZERO
     };
-    let (tg1, tg2, tig1, tig2, tr) = coefficients(t, dp1, dp2, e.b1, e.b2);
+    let (tg1, tg2, tig1, tig2, tr) = coefficients(t, dp1, dp2, im_sum, e1.ii, e2.ii);
     let cid: u8 = cid.try_into().unwrap();
     (
         FrozenPoint {
             n: Row { g1, g2, ig1, ig2, r },
             t: Row { g1: tg1, g2: tg2, ig1: tig1, ig2: tig2, r: tr },
-            local_p1: local_anchor(e.b1, world1, point, dp1),
-            local_p2: local_anchor(e.b2, world2, point, dp2),
+            local_p1: local_anchor(e1, point, dp1),
+            local_p2: local_anchor(e2, point, dp2),
             dist: sc.dist,
             t_rhs_wo_bias: ZERO,
             seed,
