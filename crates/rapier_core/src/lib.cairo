@@ -15,7 +15,7 @@ pub use collider::{
     ColliderMaterialImpl, ColliderMaterialTrait, ColliderType, ColliderTypeImpl, ColliderTypeTrait,
     CollisionEventFlags, CollisionEventFlagsImpl, CollisionEventFlagsTrait,
 };
-pub use data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
+pub use data::arena::{Arena, ArenaField, ArenaFieldTrait, ArenaState, ArenaStateTrait, ArenaTrait};
 pub use data::handle::{Handle, HandleTrait, INVALID_HANDLE};
 pub use data::union_find::{UnionFind, UnionFindTrait};
 pub use integration_parameters::{
