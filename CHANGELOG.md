@@ -3,6 +3,15 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## Unreleased
+
+**Results:** the step is unchanged since `0.1.0-alpha.4` (same results, same Cairo steps). `WorldState` unchanged (v2).
+
+### Added
+- `AabbTrait::{aligned_intersections, intersects_moving_aabb}`, `MotorModelTrait::combine_coefficients`,
+  `NarrowPhaseTrait::{intersection_pair_unknown_gen, intersection_pairs_with_unknown_gen}` (#178); `MotorModelTrait` in
+  the prelude.
+
 ## 0.1.0-alpha.4 — 2026-09-26
 
 **Results:** the step is unchanged since `0.1.0-alpha.3` for the existing shapes: every golden vector and scene test
