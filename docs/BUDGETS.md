@@ -45,6 +45,13 @@ velocity threshold for 20 ticks) fires within 1–4 ticks of the engine where ei
   +10 %. L10 impact tick 811,866 → 475,498 steps: narrow phase 111.7k (generation 78.9k, bookkeeping 32.8k),
   `solve_island` 290.6k (generation ≈ 47k + ≈ 54k per substep), glue 51.5k, other stages ≈ 21.6k. Per point per
   substep ≈ 4.2k → 2.6k steps.
+- **BT2 #143** (persistent active set; results bit-identical, `WorldState` v2): exact Cairo steps, all-asleep engine step
+  L10 / L20 36,141 / 64,511 → 1,000 / 1,000 (a sleeping body costs 0 steps per tick; 108k Sierra gas); flight tick
+  incl. the probe's despawn scan 60,230 / 100,848 → 16,489 / 20,426 (an awake flying body ≈ 11.2k steps per tick with
+  its live pair against the ground); impact windows −0.09 % / −0.47 %; load windows +4.2 % / +5.1 %; P3 `steps_step_*`
+  +0.8 % to +3.7 % (≈ 85 steps per step from the sets' `modified` field → BT4). Activation reads: `World::body` 269
+  steps, `is_sleeping` / `linvel` / `angvel` 146 / 150 / 146 (an arena read copies the whole body: BT4's field
+  accessor).
 
 ## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
 
