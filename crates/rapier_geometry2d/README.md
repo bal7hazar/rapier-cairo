@@ -10,7 +10,7 @@ Most users depend on `rapier2d`.
 
 ## Stability
 
-`0.1.0-alpha.2` is an **alpha**: no API or numeric stability. Every alpha is validated against golden vectors
+`0.1.0-alpha.3` is an **alpha**: no API or numeric stability. Every alpha is validated against golden vectors
 recorded from rapier2d-f64 0.35.3 / parry2d-f64 0.30.2 within documented tolerance bands, and
 the deliberate divergences from upstream are listed in
 [`docs/adr/0001-upstream-divergences.md`](https://github.com/bal7hazar/rapier-cairo/blob/main/docs/adr/0001-upstream-divergences.md).

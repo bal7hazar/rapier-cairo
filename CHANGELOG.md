@@ -3,6 +3,27 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## 0.1.0-alpha.3 — 2026-09-26
+
+**Results:** bit-identical to `0.1.0-alpha.2` on every golden vector and scene test (the level impact windows are
+pinned by state digests). **`WorldState` is unchanged (version 2)**: states saved with alpha.2 load as they are.
+
+### Performance (Cairo steps)
+- Narrow phase, constraint generation and per-substep solve: −18.8 % / −16.3 % on the level-10 / level-20 impact
+  windows, −12 % to −13 % on the load windows, −5.5 % to −15.1 % on the contact benchmark scenes (#146).
+- Pipeline glue, mixed ticks and arena reads: −2.8 % / −9.0 % more on the level-10 / level-20 impact windows, −1.2 % to
+  −3.8 % on every benchmark scene (recovering alpha.2's +1–3 %); `WorldTrait::{is_sleeping, linvel, angvel}` 146 → 88
+  steps per read (#151). The level-10 impact tick is ≈ 360k steps (812k before alpha.2's BT1).
+
+### Added
+- `rapier_core`: `ArenaField`, `ArenaFieldTrait::get_field` (read one component of an entry without copying it),
+  `ArenaStateTrait::{is_modified, clear_modified, mark_modified, set_untracked}` (#151, #153).
+- `rapier_dynamics2d`: `RigidBodySetTrait::{get_field, set_internal, mark_modified}` with the field selectors
+  `BodySleeping`, `BodyLinvel`, `BodyAngvel`, `BodyPose`; `ColliderSetTrait::{set_internal, mark_modified}` (#151).
+- `rapier_dynamics2d::solver::island::solve_island_input` with `SolverInput`, `SolvedIsland`, `ManifoldImpulses`,
+  `PointImpulses`: the entry point the pipeline now uses (no `DenseBodies` round trip); `solve_island` is unchanged
+  (#151).
+
 ## 0.1.0-alpha.2 — 2026-09-26
 
 **Results:** bit-identical to `0.1.0-alpha.1` on every golden vector and scene test (the level impact windows are
