@@ -83,7 +83,7 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
         return;
     }
-    let (frozen, mut hot) = split::generation::generate(
+    let (frozen, mut state) = split::generation::generate(
         manifolds.span(), initial.span(), params, dt,
     );
     let builders = prepare_joints(joint_set.span(), initial.span(), steps);
@@ -104,18 +104,18 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         } else {
             0
         };
-        split::contacts(ref hot, frozen, ref sb, params, update);
+        split::contacts(ref state, frozen, ref sb, params, update);
         let mut i = 0;
         while i != params.num_internal_pgs_iterations {
             joints(ref rows, ref sb, true, params.warmstart_joints && i == 0);
-            split::contacts(ref hot, frozen, ref sb, params, 1);
+            split::contacts(ref state, frozen, ref sb, params, 1);
             i += 1;
         }
         sb.integrate(steps, dt, max_lin, max_ang);
         let mut i = 0;
         while i != params.num_internal_stabilization_iterations {
             joints(ref rows, ref sb, false, false);
-            split::contacts(ref hot, frozen, ref sb, params, if i == 0 {
+            split::contacts(ref state, frozen, ref sb, params, if i == 0 {
                 2
             } else {
                 3
@@ -124,8 +124,8 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
         }
         substep += 1;
     }
-    split::contacts(ref hot, frozen, ref sb, params, 4);
-    split::writeback(frozen, hot.span(), ref manifolds);
+    split::contacts(ref state, frozen, ref sb, params, 4);
+    split::writeback(frozen, @state, ref manifolds);
     sweeps::write_joints(rows.span(), ref joint_set);
     sb.damp(steps, params.dt);
     sb.finish(ref bodies);

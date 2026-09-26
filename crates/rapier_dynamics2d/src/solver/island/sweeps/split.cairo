@@ -66,9 +66,7 @@ pub(crate) struct Frozen {
     pub b: FrozenPoint,
 }
 
-/// What the sweeps change for one contact point. `dist` / `t_dist` cache the separations the
-/// last refresh computed from the current poses (BT3): the next substep's update reads them
-/// instead of recomputing them from the same poses.
+/// What every sweep reads or changes for one contact point (the rows).
 #[derive(Copy, Drop, Debug, PartialEq, Default)]
 pub(crate) struct HotPoint {
     pub impulse: Fixed,
@@ -76,24 +74,47 @@ pub(crate) struct HotPoint {
     pub cfm: Fixed,
     pub t_impulse: Fixed,
     pub t_rhs: Fixed,
-    pub acc: Fixed,
-    pub t_acc: Fixed,
-    pub dist: Fixed,
-    pub t_dist: Fixed,
 }
 
-/// What the sweeps change for one active constraint.
+/// The rows of one active constraint.
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub(crate) struct Hot {
     pub a: HotPoint,
     pub b: HotPoint,
 }
 
+/// What only the update, refresh, restitution and writeback stages read or change for one
+/// contact point (BT3: kept out of `Hot`, which the biased and relaxation sweeps copy three
+/// times per constraint): the banked impulses of the completed substeps and the separations
+/// the last refresh computed from the current poses, which the next substep's update reuses
+/// instead of recomputing them from the same poses.
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
+pub(crate) struct BankPoint {
+    pub acc: Fixed,
+    pub t_acc: Fixed,
+    pub dist: Fixed,
+    pub t_dist: Fixed,
+}
+
+/// The banked values of one active constraint.
+#[derive(Copy, Drop, Debug, PartialEq)]
+pub(crate) struct Bank {
+    pub a: BankPoint,
+    pub b: BankPoint,
+}
+
+/// The sweeps' state, one `Hot` and one `Bank` per active constraint, in constraint order.
+#[derive(Drop)]
+pub(crate) struct State {
+    pub hot: Array<Hot>,
+    pub bank: Array<Bank>,
+}
+
 /// Visit the active constraints in order: 0 update/warmstart, 1 bias, 2 rhs/relax, 3 relax,
 /// 5 update/warmstart reusing the separations of the last stage 2 (valid when no pose changed
 /// since), else bounce (the stages of `contact::contacts`).
 pub(crate) fn contacts(
-    ref hot: Array<Hot>,
+    ref state: State,
     frozen: Span<Frozen>,
     ref bodies: SweepBodies,
     p: IntegrationParameters,
@@ -107,24 +128,30 @@ pub(crate) fn contacts(
             let k = Update {
                 warm, unit: warm == ONE, neg_cap: -p.max_corrective_velocity(), reuse: stage == 5,
             };
-            sweep(ref hot, frozen, ref bodies, k)
+            banked(ref state, frozen, ref bodies, k)
         },
         1 => {
             if p.friction_in_bias_pass {
-                sweep(ref hot, frozen, ref bodies, Relax {});
+                sweep(ref state.hot, frozen, ref bodies, Relax {});
             } else {
-                sweep(ref hot, frozen, ref bodies, Biased {});
+                sweep(ref state.hot, frozen, ref bodies, Biased {});
             }
         },
-        2 => sweep(ref hot, frozen, ref bodies, Refresh {}),
-        3 => sweep(ref hot, frozen, ref bodies, Relax {}),
-        _ => sweep(ref hot, frozen, ref bodies, Restitution {}),
+        2 => banked(ref state, frozen, ref bodies, Refresh {}),
+        3 => sweep(ref state.hot, frozen, ref bodies, Relax {}),
+        _ => banked(ref state, frozen, ref bodies, Restitution {}),
     }
 }
 
 /// One stage on one constraint; gathers and scatters its two bodies only when it changes them.
 trait Kernel<K> {
     fn apply(self: K, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>);
+}
+/// A stage that also reads or changes the constraint's `Bank`.
+trait BankKernel<K> {
+    fn apply(
+        self: K, ref h: Hot, ref b: Bank, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>,
+    );
 }
 
 #[derive(Copy, Drop)]
@@ -155,6 +182,22 @@ fn sweep<K, +Kernel<K>, +Copy<K>, +Drop<K>>(
         out.append(h);
     }
     hot = out;
+}
+
+fn banked<K, +BankKernel<K>, +Copy<K>, +Drop<K>>(
+    ref state: State, mut frozen: Span<Frozen>, ref bodies: SweepBodies, k: K,
+) {
+    let poses = bodies.poses.span();
+    let mut hot = array![];
+    let mut bank = array![];
+    while let Some(f) = frozen.pop_front() {
+        let mut h = state.hot.pop_front().unwrap();
+        let mut b = state.bank.pop_front().unwrap();
+        k.apply(ref h, ref b, f, ref bodies, poses);
+        hot.append(h);
+        bank.append(b);
+    }
+    state = State { hot, bank };
 }
 
 /// `apply` of `contact::cached`: weighted linear parts, inertia-weighted angular parts. Each
@@ -291,9 +334,11 @@ fn separation(a: Vec2, b: Vec2, dir: Vec2, t: Vec2, dist: Fixed) -> (Fixed, Fixe
 /// A warm-start coefficient of exactly one (the default) skips its two products (`x * ONE ==
 /// x` exactly, BT3).
 #[inline(always)]
-fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, k: Update) {
+fn update_point(
+    ref h: HotPoint, ref b: BankPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, k: Update,
+) {
     let (dist, t_dist) = if k.reuse {
-        (h.dist, h.t_dist)
+        (b.dist, b.t_dist)
     } else {
         separation(transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist)
     };
@@ -320,8 +365,8 @@ fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pos
     } else {
         *c.soft_cfm
     };
-    h.acc += h.impulse;
-    h.t_acc += h.t_impulse;
+    b.acc += h.impulse;
+    b.t_acc += h.t_impulse;
     if !k.unit {
         h.impulse = h.impulse * k.warm;
         h.t_impulse = h.t_impulse * k.warm;
@@ -330,12 +375,14 @@ fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pos
 }
 /// `refresh_unbiased` then `strip`.
 #[inline(always)]
-fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2) {
+fn refresh_point(
+    ref h: HotPoint, ref b: BankPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2,
+) {
     let (dist, t_dist) = separation(
         transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist,
     );
-    h.dist = dist;
-    h.t_dist = t_dist;
+    b.dist = dist;
+    b.t_dist = t_dist;
     // `max(0, dist) * inv_dt`, zero without the product for `dist <= 0` (BT3).
     h.rhs = if dist > ZERO {
         dist * *c.inv_dt
@@ -346,15 +393,22 @@ fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Po
     h.t_rhs = *f.t_rhs_wo_bias;
 }
 
-impl UpdateKernel of Kernel<Update> {
+impl UpdateKernel of BankKernel<Update> {
     #[inline(always)]
-    fn apply(self: Update, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>) {
+    fn apply(
+        self: Update,
+        ref h: Hot,
+        ref b: Bank,
+        f: @Frozen,
+        ref bodies: SweepBodies,
+        poses: Span<Pose2>,
+    ) {
         let p1 = pose(poses, *f.i);
         let p2 = pose(poses, *f.j);
         let two = *f.count == 2;
-        update_point(ref h.a, f.a, f, p1, p2, self);
+        update_point(ref h.a, ref b.a, f.a, f, p1, p2, self);
         if two {
-            update_point(ref h.b, f.b, f, p1, p2, self);
+            update_point(ref h.b, ref b.b, f.b, f, p1, p2, self);
         }
         // `cached::warmstart_sparse`: zero impulses are an exact no-op.
         if h.a.impulse == ZERO
@@ -431,14 +485,21 @@ fn solve_both(ref h: Hot, f: @Frozen, ref bodies: SweepBodies) {
         bodies.set_vels(*f.i, v1, *f.j, v2);
     }
 }
-impl RefreshKernel of Kernel<Refresh> {
+impl RefreshKernel of BankKernel<Refresh> {
     #[inline(always)]
-    fn apply(self: Refresh, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>) {
+    fn apply(
+        self: Refresh,
+        ref h: Hot,
+        ref b: Bank,
+        f: @Frozen,
+        ref bodies: SweepBodies,
+        poses: Span<Pose2>,
+    ) {
         let p1 = pose(poses, *f.i);
         let p2 = pose(poses, *f.j);
-        refresh_point(ref h.a, f.a, f, p1, p2);
+        refresh_point(ref h.a, ref b.a, f.a, f, p1, p2);
         if *f.count == 2 {
-            refresh_point(ref h.b, f.b, f, p1, p2);
+            refresh_point(ref h.b, ref b.b, f.b, f, p1, p2);
         }
         solve_both(ref h, f, ref bodies);
     }
@@ -452,18 +513,29 @@ impl RelaxKernel of Kernel<Relax> {
 /// `bounce`: rhs and cfm are not restored, nothing reads them after the final sweep.
 #[inline(always)]
 fn bounce(
-    ref h: HotPoint, f: @FrozenPoint, dir: Vec2, w: @Weights, ref v1: SolverVel, ref v2: SolverVel,
+    ref h: HotPoint,
+    b: BankPoint,
+    f: @FrozenPoint,
+    dir: Vec2,
+    w: @Weights,
+    ref v1: SolverVel,
+    ref v2: SolverVel,
 ) {
-    if *f.seed < ZERO && h.acc + h.impulse > ZERO {
+    if *f.seed < ZERO && b.acc + h.impulse > ZERO {
         h.rhs = *f.seed;
         h.cfm = ONE;
         let _ = solve_normal(ref h, dir, f.n, w, ref v1, ref v2);
     }
 }
-impl RestitutionKernel of Kernel<Restitution> {
+impl RestitutionKernel of BankKernel<Restitution> {
     #[inline(always)]
     fn apply(
-        self: Restitution, ref h: Hot, f: @Frozen, ref bodies: SweepBodies, poses: Span<Pose2>,
+        self: Restitution,
+        ref h: Hot,
+        ref b: Bank,
+        f: @Frozen,
+        ref bodies: SweepBodies,
+        poses: Span<Pose2>,
     ) {
         let two = *f.count == 2;
         if *f.a.seed >= ZERO && (!two || *f.b.seed >= ZERO) {
@@ -472,16 +544,16 @@ impl RestitutionKernel of Kernel<Restitution> {
         let mut v1 = bodies.vel(*f.i);
         let mut v2 = bodies.vel(*f.j);
         let dir = *f.dir;
-        bounce(ref h.a, f.a, dir, f.wn, ref v1, ref v2);
+        bounce(ref h.a, b.a, f.a, dir, f.wn, ref v1, ref v2);
         if two {
-            bounce(ref h.b, f.b, dir, f.wn, ref v1, ref v2);
+            bounce(ref h.b, b.b, f.b, dir, f.wn, ref v1, ref v2);
         }
         bodies.set_vels(*f.i, v1, *f.j, v2);
     }
 }
 
 #[inline(always)]
-fn write_point(h: HotPoint, f: @FrozenPoint, ref m: ContactManifold) {
+fn write_point(h: HotPoint, b: BankPoint, f: @FrozenPoint, ref m: ContactManifold) {
     let [mut p0, mut p1] = m.points;
     let first = *f.contact_id == 0;
     let mut p = if first {
@@ -489,8 +561,8 @@ fn write_point(h: HotPoint, f: @FrozenPoint, ref m: ContactManifold) {
     } else {
         p1
     };
-    p.data.impulse = h.acc + h.impulse;
-    p.data.tangent_impulse = h.t_acc + h.t_impulse;
+    p.data.impulse = b.acc + h.impulse;
+    p.data.tangent_impulse = b.t_acc + h.t_impulse;
     p.data.warmstart_impulse = h.impulse;
     p.data.warmstart_tangent_impulse = h.t_impulse;
     if first {
@@ -504,8 +576,10 @@ fn write_point(h: HotPoint, f: @FrozenPoint, ref m: ContactManifold) {
 /// `ContactConstraintsSetTrait::writeback_impulses` from the split state: one ordered rebuild
 /// of `manifolds`, the active constraints in ascending manifold id.
 pub(crate) fn writeback(
-    mut frozen: Span<Frozen>, mut hot: Span<Hot>, ref manifolds: Array<ContactManifold>,
+    mut frozen: Span<Frozen>, state: @State, ref manifolds: Array<ContactManifold>,
 ) {
+    let mut hot = state.hot.span();
+    let mut bank = state.bank.span();
     let mut out = array![];
     let mut id = 0;
     // BT3: the loop carries the next constraint's manifold id, not the constraint (an
@@ -515,9 +589,10 @@ pub(crate) fn writeback(
         if id == next {
             let f = frozen.pop_front().unwrap();
             let h = *hot.pop_front().unwrap();
-            write_point(h.a, f.a, ref m);
+            let b = *bank.pop_front().unwrap();
+            write_point(h.a, b.a, f.a, ref m);
             if *f.count == 2 {
-                write_point(h.b, f.b, ref m);
+                write_point(h.b, b.b, f.b, ref m);
             }
             next = next_id(frozen);
         }

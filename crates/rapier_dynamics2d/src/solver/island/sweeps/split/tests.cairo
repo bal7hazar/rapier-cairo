@@ -65,7 +65,7 @@ fn check(vx: i16, vy: i16, spin: i16, warm: u8) {
     let mut cs = ContactConstraintsSetTrait::generate(ms.span(), bs.span(), p, dt);
     let directions = cached::prepare(cs.constraints.span());
     let mut dense: DenseBodies = DenseBodiesTrait::new(bs.span());
-    let (frozen, mut hot) = generate(ms.span(), bs.span(), p, dt);
+    let (frozen, mut state) = generate(ms.span(), bs.span(), p, dt);
     let mut sb: SweepBodies = DenseBodiesTrait::new(bs.span());
     let (max_lin, max_ang) = (p.max_linear_velocity(), Fixed { raw: 3373259426 } * p.inv_dt());
     add_forces(ref dense, steps.span());
@@ -83,7 +83,7 @@ fn check(vx: i16, vy: i16, spin: i16, warm: u8) {
             stage
         };
         reference(ref cs, ref dense, ms.span(), p, reference_stage, directions.span());
-        contacts(ref hot, frozen.span(), ref sb, p, stage);
+        contacts(ref state, frozen.span(), ref sb, p, stage);
         let mut i = 0;
         while i != 3 {
             assert_eq!(sb.get(i), dense.get(i));
@@ -95,7 +95,7 @@ fn check(vx: i16, vy: i16, spin: i16, warm: u8) {
     let mut expected = ms.clone();
     cs.writeback_impulses(ref expected);
     let mut actual = ms;
-    writeback(frozen.span(), hot.span(), ref actual);
+    writeback(frozen.span(), @state, ref actual);
     assert_eq!(actual, expected);
     let mut out: DenseBodies = DenseBodiesTrait::new(bs.span());
     sb.finish(ref out);
@@ -129,22 +129,22 @@ fn fuzz_split_matches_constraint_set_sweeps(vx: i16, vy: i16, spin: i16, warm: u
 /// constraints, `alternatives::generate_via_constraints`), or generation then one stage.
 fn probe(stage: u8) {
     let (bs, _, ms, p) = scene(opaque(0), opaque(-2000), opaque(900), opaque(3));
-    let (frozen, mut hot) = if stage == 8 {
+    let (frozen, mut state) = if stage == 8 {
         alternatives::generate_via_constraints(ms.span(), bs.span(), p, p.substep_dt())
     } else {
         generate(ms.span(), bs.span(), p, p.substep_dt())
     };
     let mut sb: SweepBodies = DenseBodiesTrait::new(bs.span());
     if stage < 5 {
-        contacts(ref hot, frozen.span(), ref sb, p, stage);
+        contacts(ref state, frozen.span(), ref sb, p, stage);
     } else if stage == 7 {
-        alternatives::biased_metered(ref hot, frozen.span(), ref sb);
+        alternatives::biased_metered(ref state, frozen.span(), ref sb);
     } else if stage == 6 {
         let mut ms = ms;
-        writeback(frozen.span(), hot.span(), ref ms);
+        writeback(frozen.span(), @state, ref ms);
         let _ = opaque(ms.span());
     }
-    let _ = opaque((hot.span(), sb.get(opaque(1))));
+    let _ = opaque((state.hot.span(), state.bank.span(), sb.get(opaque(1))));
 }
 
 #[test]

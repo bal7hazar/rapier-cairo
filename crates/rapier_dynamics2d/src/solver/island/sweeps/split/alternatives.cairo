@@ -45,8 +45,8 @@ impl MeteredBiasedKernel of Kernel<MeteredBiased> {
 }
 
 /// The biased sweep with the metered kernel; same results as `contacts(.., 1)`.
-pub(crate) fn biased_metered(ref hot: Array<Hot>, frozen: Span<Frozen>, ref bodies: SweepBodies) {
-    sweep(ref hot, frozen, ref bodies, MeteredBiased {});
+pub(crate) fn biased_metered(ref state: State, frozen: Span<Frozen>, ref bodies: SweepBodies) {
+    sweep(ref state.hot, frozen, ref bodies, MeteredBiased {});
 }
 
 #[inline(always)]
@@ -65,6 +65,15 @@ fn frozen_point(e: ContactConstraintElement) -> FrozenPoint {
     }
 }
 #[inline(always)]
+fn bank_point(e: ContactConstraintElement) -> BankPoint {
+    BankPoint {
+        acc: e.normal_part.impulse_accumulator,
+        t_acc: e.tangent_part.impulse_accumulator,
+        dist: ZERO,
+        t_dist: ZERO,
+    }
+}
+#[inline(always)]
 fn hot_point(e: ContactConstraintElement) -> HotPoint {
     HotPoint {
         impulse: e.normal_part.impulse,
@@ -72,17 +81,13 @@ fn hot_point(e: ContactConstraintElement) -> HotPoint {
         cfm: e.normal_part.cfm_factor,
         t_impulse: e.tangent_part.impulse,
         t_rhs: e.tangent_part.rhs,
-        acc: e.normal_part.impulse_accumulator,
-        t_acc: e.tangent_part.impulse_accumulator,
-        dist: ZERO,
-        t_dist: ZERO,
     }
 }
 
 /// Append the split of `c` when it is active; caches `dir * im` for both rows, as
 /// `cached::prepare` does (products floor).
 #[inline(always)]
-fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
+fn push(ref frozen: Array<Frozen>, ref state: State, c: ContactConstraint) {
     if c.num_elements != 0 {
         let t = tangent(c.dir1);
         let [a, b] = c.elements;
@@ -106,7 +111,8 @@ fn push(ref frozen: Array<Frozen>, ref hot: Array<Hot>, c: ContactConstraint) {
                     b: frozen_point(b),
                 },
             );
-        hot.append(Hot { a: hot_point(a), b: hot_point(b) });
+        state.hot.append(Hot { a: hot_point(a), b: hot_point(b) });
+        state.bank.append(Bank { a: bank_point(a), b: bank_point(b) });
     }
 }
 
@@ -117,16 +123,16 @@ pub(crate) fn generate_via_constraints(
     bodies: Span<SolverBody>,
     params: IntegrationParameters,
     dt: Fixed,
-) -> (Array<Frozen>, Array<Hot>) {
+) -> (Array<Frozen>, State) {
     let mut cache = SoftCacheTrait::new(params, dt);
     let mut frozen = array![];
-    let mut hot = array![];
+    let mut state = State { hot: array![], bank: array![] };
     let mut id = 0;
     while let Some(m) = manifolds.pop_front() {
         let mut c = generate_cached(*m, bodies, dt, ref cache);
         c.manifold_id = id;
-        push(ref frozen, ref hot, c);
+        push(ref frozen, ref state, c);
         id += 1;
     }
-    (frozen, hot)
+    (frozen, state)
 }

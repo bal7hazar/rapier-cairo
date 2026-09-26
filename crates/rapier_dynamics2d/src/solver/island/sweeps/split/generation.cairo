@@ -24,7 +24,7 @@ use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::super::super::super::body::{SolverBody, SolverVel, WORLD};
 use super::super::super::super::contact::element::{jv, tangent};
 use super::super::super::super::contact::errors;
-use super::{Frozen, FrozenPoint, Hot, HotPoint, Row, Weights};
+use super::{Bank, BankPoint, Frozen, FrozenPoint, Hot, HotPoint, Row, State, Weights};
 
 /// `ContactConstraintsSetTrait::generate` then the split of every active constraint, in one
 /// pass, with the step's constants computed once: same constraints, checks and panics as
@@ -34,7 +34,7 @@ pub(crate) fn generate(
     bodies: Span<SolverBody>,
     params: IntegrationParameters,
     dt: Fixed,
-) -> (Array<Frozen>, Array<Hot>) {
+) -> (Array<Frozen>, State) {
     let inv_dt = inv(dt);
     let mut soft = Soft {
         dynamic: params.contact_softness,
@@ -45,13 +45,16 @@ pub(crate) fn generate(
     };
     let mut frozen = array![];
     let mut hot = array![];
+    let mut bank = array![];
     let mut index = body_index(bodies);
     let mut id = 0;
     while let Some(m) = manifolds.pop_front() {
-        split_manifold(m, bodies, dt, inv_dt, ref soft, ref index, id, ref frozen, ref hot);
+        split_manifold(
+            m, bodies, dt, inv_dt, ref soft, ref index, id, ref frozen, ref hot, ref bank,
+        );
         id += 1;
     }
-    (frozen, hot)
+    (frozen, State { hot, bank })
 }
 
 /// `contact::SoftCache` without the parameters: the softness `(erp_inv_dt, cfm_factor)` of the
@@ -151,6 +154,7 @@ fn split_manifold(
     manifold_id: u32,
     ref frozen: Array<Frozen>,
     ref hot: Array<Hot>,
+    ref bank: Array<Bank>,
 ) {
     let count = *m.data.num_solver_contacts;
     let num_points = *m.num_points;
@@ -183,15 +187,17 @@ fn split_manifold(
     let im_sum = e1.im + e2.im;
     let [sc0, sc1] = *m.data.solver_contacts;
     let [p0, p1] = *m.points;
-    let (fa, ha, cid0) = split_point(sc0, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2);
-    let (fb, hb) = if count == 2 {
-        let (fb, hb, cid1) = split_point(
+    let (fa, ha, ba, cid0) = split_point(
+        sc0, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2,
+    );
+    let (fb, hb, bb) = if count == 2 {
+        let (fb, hb, bb, cid1) = split_point(
             sc1, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2,
         );
         assert(cid1 != cid0, errors::CONTACT_ID);
-        (fb, hb)
+        (fb, hb, bb)
     } else {
-        (Default::default(), Default::default())
+        (Default::default(), Default::default(), Default::default())
     };
     // Floored products first, then negated (the negation of `dir * im2` exactly).
     let (wn2, wt2) = (dir * e2.im, t * e2.im);
@@ -215,6 +221,7 @@ fn split_manifold(
             },
         );
     hot.append(Hot { a: ha, b: hb });
+    bank.append(Bank { a: ba, b: bb });
 }
 
 /// Dense id + 1 of each body, by handle slot (BT3: `contact::resolve` scans the bodies for
@@ -294,7 +301,7 @@ fn split_point(
     im_sum: Vec2,
     e1: End,
     e2: End,
-) -> (FrozenPoint, HotPoint, u8) {
+) -> (FrozenPoint, HotPoint, BankPoint, u8) {
     let is_new = sc.contact_id >= NEW_CONTACT_BIT;
     let cid = if is_new {
         sc.contact_id - NEW_CONTACT_BIT
@@ -332,17 +339,8 @@ fn split_point(
             seed,
             contact_id: cid,
         },
-        HotPoint {
-            impulse: ni,
-            rhs: ZERO,
-            cfm: ZERO,
-            t_impulse: ti,
-            t_rhs: ZERO,
-            acc: -ni,
-            t_acc: -ti,
-            dist: ZERO,
-            t_dist: ZERO,
-        },
+        HotPoint { impulse: ni, rhs: ZERO, cfm: ZERO, t_impulse: ti, t_rhs: ZERO },
+        BankPoint { acc: -ni, t_acc: -ti, dist: ZERO, t_dist: ZERO },
         cid,
     )
 }
