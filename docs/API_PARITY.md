@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 522 | 0 | 288 | 382 | 1192 | 64.4% |
-| geometry | 193 | 0 | 109 | 15 | 317 | 63.9% |
+| dynamics | 526 | 0 | 201 | 465 | 1192 | 72.4% |
+| geometry | 193 | 0 | 106 | 18 | 317 | 64.5% |
 | parry::bounding_volume | 73 | 0 | 16 | 30 | 119 | 82.0% |
 | parry::mass_properties | 16 | 0 | 3 | 7 | 26 | 84.2% |
-| parry::query | 107 | 0 | 205 | 112 | 424 | 34.3% |
-| parry::shape | 79 | 0 | 188 | 117 | 384 | 29.6% |
+| parry::query | 107 | 0 | 204 | 113 | 424 | 34.4% |
+| parry::shape | 101 | 0 | 164 | 119 | 384 | 38.1% |
 | pipeline | 72 | 0 | 17 | 69 | 158 | 80.9% |
-| **total** | **1062** | **0** | **873** | **732** | **2667** | **54.9%** |
+| **total** | **1088** | **0** | **758** | **821** | **2667** | **58.9%** |
 
-Cairo-only public items not matched to upstream: **1098**.
+Cairo-only public items not matched to upstream: **1122**.
 
 ## Aabb
 
@@ -111,8 +111,8 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): AxesMask, AxesMaskTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `AxesMask` | dynamics | missing | Not found on Cairo candidate(s): AxesMask, AxesMaskTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `AxesMask` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## AxisMask
 
@@ -126,7 +126,7 @@ Cairo-only public items not matched to upstream: **1098**.
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_ball.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_ball.rs` |
-| impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/shape/shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_ball.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_ball.rs` |
 | method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_ball.rs` |
@@ -139,14 +139,14 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `block_index` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `clear_values` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `diagonal_index` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `for_each_block_of_row` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `from_pairs` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `make_dirichlet` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `mul` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `num_rows` | dynamics | missing | Not found on Cairo candidate(s): BlockMatrix, BlockMatrixTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `block_index` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `clear_values` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `diagonal_index` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `for_each_block_of_row` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `from_pairs` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `make_dirichlet` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `mul` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `num_rows` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
 
 ## BodyPair
 
@@ -159,7 +159,7 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `BodyStatus` | dynamics | missing | Not found on Cairo candidate(s): BodyStatus, BodyStatusTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `BodyStatus` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## BoundingSphere
 
@@ -237,10 +237,10 @@ Cairo-only public items not matched to upstream: **1098**.
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_capsule.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_capsule.rs` |
-| impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_capsule.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_capsule.rs` |
-| method `canonical_transform` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
+| method `canonical_transform` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `center` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `half_height` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `height` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
@@ -249,10 +249,10 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `new_x` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `new_y` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
-| method `rotation_wrt_y` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
+| method `rotation_wrt_y` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
 | method `transform_by` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
-| method `transform_wrt_y` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
+| method `transform_wrt_y` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | type `Capsule` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## ChannelEventCollector
@@ -665,8 +665,8 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): ConjugateGradient, ConjugateGradientTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
-| method `update_preconditioner` | dynamics | missing | Not found on Cairo candidate(s): ConjugateGradient, ConjugateGradientTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
+| method `update_preconditioner` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs` |
 
 ## ConstantOrigin
 
@@ -865,17 +865,17 @@ Cairo-only public items not matched to upstream: **1098**.
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_support_map.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_support_map.rs` |
-| impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
 | method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
-| method `from_convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
+| method `from_convex_hull` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_polyline` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_polyline_unmodified` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
 | method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
 | method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
 | method `normals` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
-| method `offsetted` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
+| method `offsetted` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `points` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
 | method `support_feature_id_toward` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
@@ -917,7 +917,7 @@ Cairo-only public items not matched to upstream: **1098**.
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_cuboid.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_cuboid.rs` |
-| impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_cuboid.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_cuboid.rs` |
 | method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
@@ -928,7 +928,7 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `support_face` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `support_feature` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `vertex_feature_id` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
-| method `vid` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/cuboid.rs` |
+| method `vid` | parry::shape | excluded | dim3-only | `parry/src/shape/cuboid.rs` |
 | type `Cuboid` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## DebugColor
@@ -999,13 +999,13 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `into_shared_shape` | parry::shape | missing | Not found on Cairo candidate(s): DeserializableTypedShape, DeserializableTypedShapeTrait. | `parry/src/shape/shape.rs` |
+| method `into_shared_shape` | parry::shape | excluded | serde/rkyv/bytemuck | `parry/src/shape/shape.rs` |
 
 ## DeserializableWorkspaceData
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `into_contact_manifold_workspace` | parry::query | missing | Not found on Cairo candidate(s): DeserializableWorkspaceData, DeserializableWorkspaceDataTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| method `into_contact_manifold_workspace` | parry::query | excluded | serde/rkyv/bytemuck | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
 
 ## DilatedShape
 
@@ -1243,7 +1243,7 @@ Cairo-only public items not matched to upstream: **1098**.
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_halfspace.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_halfspace.rs` |
-| impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/shape/shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_halfspace.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_halfspace.rs` |
 | method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_halfspace.rs` |
@@ -1368,7 +1368,7 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `max_corrective_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/integration_parameters.rs` |
 | method `max_linear_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/integration_parameters.rs` |
 | method `prediction_distance` | dynamics | ported | Same public name. | `rapier/src/dynamics/integration_parameters.rs` |
-| method `set_dt` | dynamics | missing | Not found on Cairo candidate(s): IntegrationParameters, IntegrationParametersTrait. | `rapier/src/dynamics/integration_parameters.rs` |
+| method `set_dt` | dynamics | ported | Same public name. | `rapier/src/dynamics/integration_parameters.rs` |
 | method `set_inv_dt` | dynamics | ported | Same public name. | `rapier/src/dynamics/integration_parameters.rs` |
 | type `IntegrationParameters` | dynamics | ported | Same public name. | `rapier/src/dynamics/integration_parameters.rs` |
 
@@ -1395,8 +1395,8 @@ Cairo-only public items not matched to upstream: **1098**.
 |---|---|---|---|---|
 | impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_groups.rs` |
 | method `all` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_groups.rs` |
-| method `clear_groups` | dynamics | missing | Not found on Cairo candidate(s): InteractionGroups, InteractionGroupsTrait. | `rapier/src/dynamics/solver/interaction_groups.rs` |
-| method `group_manifold_refs` | dynamics | missing | Not found on Cairo candidate(s): InteractionGroups, InteractionGroupsTrait. | `rapier/src/dynamics/solver/interaction_groups.rs` |
+| method `clear_groups` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/interaction_groups.rs` |
+| method `group_manifold_refs` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/interaction_groups.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/interaction_groups.rs` |
 | method `none` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_groups.rs` |
 | method `test` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_groups.rs` |
@@ -1633,14 +1633,14 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `convert` | geometry | missing | Not found on Cairo candidate(s): MeshConverter, MeshConverterTrait. | `rapier/src/geometry/mesh_converter.rs` |
-| type `MeshConverter` | geometry | missing | Not found on Cairo candidate(s): MeshConverter, MeshConverterTrait. | `rapier/src/geometry/mesh_converter.rs` |
+| method `convert` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/mesh_converter.rs` |
+| type `MeshConverter` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/mesh_converter.rs` |
 
 ## MeshConverterError
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `MeshConverterError` | geometry | missing | Not found on Cairo candidate(s): MeshConverterError, MeshConverterErrorTrait. | `rapier/src/geometry/mesh_converter.rs` |
+| type `MeshConverterError` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/mesh_converter.rs` |
 
 ## ModifiableContacts
 
@@ -1847,8 +1847,8 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `gradient_and_hessian` | dynamics | missing | Not found on Cairo candidate(s): NeoHookeanConstraint, NeoHookeanConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_neo_hookean.rs` |
-| method `rest_stiffness` | dynamics | missing | Not found on Cairo candidate(s): NeoHookeanConstraint, NeoHookeanConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_neo_hookean.rs` |
+| method `gradient_and_hessian` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_neo_hookean.rs` |
+| method `rest_stiffness` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_neo_hookean.rs` |
 
 ## NonlinearRigidMotion
 
@@ -2875,11 +2875,11 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `From<[T; N]>` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
+| impl `From<[T; N]>` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_segment.rs` |
 | impl `PointQueryWithLocation` | parry::query | ported | Same public name. | `parry/src/query/point/point_segment.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_support_map.rs` |
-| impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_support_map.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_segment.rs` |
 | method `canonical_split` | parry::query | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/query/split/split_segment.rs` |
@@ -2893,7 +2893,7 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `local_split_and_get_intersection` | parry::query | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/query/split/split_segment.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
-| method `point_at` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
+| method `point_at` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_direction` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
@@ -2912,7 +2912,7 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SegmentPseudoNormals` | parry::shape | missing | Not found on Cairo candidate(s): SegmentPseudoNormals, SegmentPseudoNormalsTrait. | `parry/src/shape/segment_pseudo_normals.rs` |
+| type `SegmentPseudoNormals` | parry::shape | ported | Same public name. | `parry/src/shape/segment_pseudo_normals.rs` |
 
 ## SeparationFunction
 
@@ -2929,18 +2929,18 @@ Cairo-only public items not matched to upstream: **1098**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | method `as_ball` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `as_ball_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_ball_mut` | parry::shape | ported | Mapped to Shape.as_ball | `parry/src/shape/shape.rs` |
 | method `as_capsule` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `as_capsule_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_capsule_mut` | parry::shape | ported | Mapped to Shape.as_capsule | `parry/src/shape/shape.rs` |
 | method `as_composite_shape` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_compound` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_compound_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_convex_polygon` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `as_convex_polygon_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_convex_polygon_mut` | parry::shape | ported | Mapped to Shape.as_convex_polygon | `parry/src/shape/shape.rs` |
 | method `as_cuboid` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `as_cuboid_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_cuboid_mut` | parry::shape | ported | Mapped to Shape.as_cuboid | `parry/src/shape/shape.rs` |
 | method `as_halfspace` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `as_halfspace_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_halfspace_mut` | parry::shape | ported | Mapped to Shape.as_halfspace | `parry/src/shape/shape.rs` |
 | method `as_heightfield` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_heightfield_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_polygonal_feature_map` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -2953,7 +2953,7 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `as_round_triangle` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_round_triangle_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_segment` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `as_segment_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_segment_mut` | parry::shape | ported | Mapped to Shape.as_segment | `parry/src/shape/shape.rs` |
 | method `as_shape` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_shape_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_support_map` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -2974,7 +2974,7 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `compute_local_bounding_sphere` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `compute_swept_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `feature_normal_at_point` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `is_convex` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `is_convex` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `mass_properties` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `scale_dyn` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `shape_type` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -3124,18 +3124,18 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `envelope_len` | dynamics | missing | Not found on Cairo candidate(s): SkylineCholesky, SkylineCholeskyTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
-| method `factorize` | dynamics | missing | Not found on Cairo candidate(s): SkylineCholesky, SkylineCholeskyTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): SkylineCholesky, SkylineCholeskyTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): SkylineCholesky, SkylineCholeskyTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
+| method `envelope_len` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
+| method `factorize` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
+| method `new` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs` |
 
 ## SoftAttachmentConstraint
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): SoftAttachmentConstraint, SoftAttachmentConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): SoftAttachmentConstraint, SoftAttachmentConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): SoftAttachmentConstraint, SoftAttachmentConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs` |
+| method `update` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs` |
+| method `warmstart` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs` |
 
 ## SoftBindingError
 
@@ -3470,46 +3470,46 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `len` | dynamics | missing | Not found on Cairo candidate(s): SoftColorRange, SoftColorRangeTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
+| method `len` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
 
 ## SoftConstraintsSet
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `assemble` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint_assembly.rs` |
-| method `assemble_attachments` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
-| method `assemble_clusters` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
-| method `assemble_contacts` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact_assembly/soft_contact_assembly.rs` |
-| method `gather_clusters` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
-| method `group_has_clusters` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
-| method `group_needs_prepare` | dynamics | excluded | EPA/GJK internals not exposed | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
-| method `init_solver_bodies` | dynamics | excluded | EPA/GJK internals not exposed | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_prepare.rs` |
-| method `is_empty` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
-| method `num_element_constraints` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `prepare_awake_body` | dynamics | excluded | EPA/GJK internals not exposed | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_prepare.rs` |
-| method `resweep_strained_constraints` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `scatter_clusters` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
-| method `solve_attachments` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `solve_color_constraint` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `solve_contact_chunk` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact_chunks.rs` |
-| method `solve_overlap_constraint` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `solve_shape_constraint` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `solve_volume_constraint` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `warmstart_overlap_constraint` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
-| method `writeback_bodies` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_writeback.rs` |
-| method `writeback_constraints` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_writeback.rs` |
-| method `writeback_contacts` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact_assembly/soft_contact_assembly_writeback.rs` |
-| method `writeback_particles` | dynamics | missing | Not found on Cairo candidate(s): SoftConstraintsSet, SoftConstraintsSetTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_writeback.rs` |
+| method `assemble` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint_assembly.rs` |
+| method `assemble_attachments` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
+| method `assemble_clusters` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
+| method `assemble_contacts` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact_assembly/soft_contact_assembly.rs` |
+| method `gather_clusters` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
+| method `group_has_clusters` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
+| method `group_needs_prepare` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
+| method `init_solver_bodies` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_prepare.rs` |
+| method `is_empty` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
+| method `new` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints_set.rs` |
+| method `num_element_constraints` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `prepare_awake_body` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_prepare.rs` |
+| method `resweep_strained_constraints` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `scatter_clusters` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_rigid_coupling.rs` |
+| method `solve_attachments` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `solve_color_constraint` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `solve_contact_chunk` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact_chunks.rs` |
+| method `solve_overlap_constraint` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `solve_shape_constraint` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `solve_volume_constraint` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `warmstart_overlap_constraint` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs` |
+| method `writeback_bodies` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_writeback.rs` |
+| method `writeback_constraints` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_writeback.rs` |
+| method `writeback_contacts` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact_assembly/soft_contact_assembly_writeback.rs` |
+| method `writeback_particles` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_writeback.rs` |
 
 ## SoftContact
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): SoftContact, SoftContactTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
-| method `tangent_basis` | dynamics | missing | Not found on Cairo candidate(s): SoftContact, SoftContactTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): SoftContact, SoftContactTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): SoftContact, SoftContactTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
+| method `tangent_basis` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
+| method `update` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
+| method `warmstart` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_contact.rs` |
 
 ## SoftContactImpulse
 
@@ -3565,31 +3565,31 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `assemble` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `compute_responses` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `group` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `is_empty` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `num_active` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `plan_responses` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `predict` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
-| method `writeback` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSet, SoftFemSetTrait. | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `assemble` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `compute_responses` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `group` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `is_empty` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `new` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `num_active` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `plan_responses` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `predict` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
+| method `writeback` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs` |
 
 ## SoftFemSystem
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `clear_columns` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `compute_columns` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `factorize_step_matrix` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `load_particle` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `num_particles` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `particle_block_from_columns` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `predict` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_assemble.rs` |
-| method `prepare` | dynamics | excluded | EPA/GJK internals not exposed | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_prepare.rs` |
-| method `response_from_columns` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `response_into` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
-| method `writeback` | dynamics | missing | Not found on Cairo candidate(s): SoftFemSystem, SoftFemSystemTrait. | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_assemble.rs` |
+| method `clear_columns` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `compute_columns` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `factorize_step_matrix` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `load_particle` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `num_particles` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `particle_block_from_columns` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `predict` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_assemble.rs` |
+| method `prepare` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_prepare.rs` |
+| method `response_from_columns` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `response_into` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_response.rs` |
+| method `writeback` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_assemble.rs` |
 
 ## SoftJointMove
 
@@ -3677,10 +3677,10 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `is_strained` | dynamics | missing | Not found on Cairo candidate(s): SoftScalarConstraint, SoftScalarConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): SoftScalarConstraint, SoftScalarConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): SoftScalarConstraint, SoftScalarConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): SoftScalarConstraint, SoftScalarConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
+| method `is_strained` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
+| method `update` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
+| method `warmstart` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_scalar_constraint.rs` |
 
 ## SoftSelfContacts
 
@@ -3692,9 +3692,9 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): SoftShapeConstraint, SoftShapeConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): SoftShapeConstraint, SoftShapeConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): SoftShapeConstraint, SoftShapeConstraintTrait. | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints.rs` |
+| method `solve` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints.rs` |
+| method `update` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints.rs` |
+| method `warmstart` | dynamics | excluded | soft bodies | `rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraints.rs` |
 
 ## SoftVertexCandidate
 
@@ -3741,17 +3741,17 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `assert_ids_in_range` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `assert_ids_in_range` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `clear` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `copy_from` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `gather_poses` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `gather_transforms` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `gather_vels` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `gather_poses` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `gather_transforms` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `gather_vels` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `get_pose` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `get_vel` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `len` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `resize` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `scatter_vels` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `scatter_vels` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `set_vel` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | type `SolverBodies` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 
@@ -3786,7 +3786,7 @@ Cairo-only public items not matched to upstream: **1098**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `gather` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `gather` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `inverse_transform_point` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `pose` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `transform_point` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
@@ -3802,7 +3802,7 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `gather` | dynamics | missing | Not found on Cairo candidate(s): SolverTransform, SolverTransformTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `gather` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `transform_point` | dynamics | missing | Not found on Cairo candidate(s): SolverTransform, SolverTransformTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | type `SolverTransform` | dynamics | missing | Not found on Cairo candidate(s): SolverTransform, SolverTransformTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 
@@ -3817,8 +3817,8 @@ Cairo-only public items not matched to upstream: **1098**.
 | method `as_slice` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `as_vector_slice` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `as_vector_slice_mut` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `gather` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `scatter` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `gather` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `scatter` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `zero` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
 | type `SolverVel` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/solver_body.rs` |
 
@@ -4146,8 +4146,8 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Debug` | parry::shape | missing | Not found on Cairo candidate(s): TypedShape, TypedShapeTrait. | `parry/src/shape/shape.rs` |
-| type `TypedShape` | parry::shape | missing | Not found on Cairo candidate(s): TypedShape, TypedShapeTrait. | `parry/src/shape/shape.rs` |
+| impl `Debug` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| type `TypedShape` | parry::shape | ported | Mapped to Shape.Shape | `parry/src/shape/shape.rs` |
 
 ## TypedWorkspaceData
 
@@ -4567,10 +4567,10 @@ Cairo-only public items not matched to upstream: **1098**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 220 | standard | QP queries |
+| [Query completion](#wp-query-completion) | 212 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 193 | standard | shape interface |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 168 | mechanical | AP triage |
-| [CCD and shape casts](#wp-ccd-and-shape-casts) | 87 | hard | QP queries |
+| [CCD and shape casts](#wp-ccd-and-shape-casts) | 86 | hard | QP queries |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 62 | mechanical | AP triage |
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
@@ -4582,7 +4582,7 @@ Cairo-only public items not matched to upstream: **1098**.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 220 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 212 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4664,7 +4664,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 220 public items.
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 140 more
+- ... 132 more
 
 ### WP: Additional 2D shapes
 
@@ -4752,95 +4752,9 @@ Tier: standard. Depends/context: shape interface. Estimate: 193 public items.
 - **Polyline** method `indices` (`parry/src/shape/polyline.rs`)
 - ... 113 more
 
-### WP: API polish and miscellaneous parity
-
-Tier: mechanical. Depends/context: AP triage. Estimate: 168 public items.
-
-- **AxesMask** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **AxesMask** type `AxesMask` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **Ball** impl `Shape` (`parry/src/shape/shape.rs`)
-- **BlockMatrix** method `block_index` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `clear_values` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `diagonal_index` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `for_each_block_of_row` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `from_pairs` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `make_dirichlet` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `mul` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BlockMatrix** method `num_rows` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **BodyStatus** type `BodyStatus` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **Capsule** impl `Shape` (`parry/src/shape/shape.rs`)
-- **Capsule** method `canonical_transform` (`parry/src/shape/capsule.rs`)
-- **Capsule** method `rotation_wrt_y` (`parry/src/shape/capsule.rs`)
-- **Capsule** method `transform_wrt_y` (`parry/src/shape/capsule.rs`)
-- **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShape** trait `CompositeShape` (`parry/src/shape/composite_shape.rs`)
-- **CompositeShapeRef** type `CompositeShapeRef` (`parry/src/shape/composite_shape.rs`)
-- **ConjugateGradient** method `solve` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **ConjugateGradient** method `update_preconditioner` (`rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs`)
-- **ConvexPolygon** impl `Shape` (`parry/src/shape/shape.rs`)
-- **ConvexPolygon** method `from_convex_hull` (`parry/src/shape/convex_polygon.rs`)
-- **ConvexPolygon** method `offsetted` (`parry/src/shape/convex_polygon.rs`)
-- **Cuboid** impl `Shape` (`parry/src/shape/shape.rs`)
-- **Cuboid** method `vid` (`parry/src/shape/cuboid.rs`)
-- **DeserializableTypedShape** method `into_shared_shape` (`parry/src/shape/shape.rs`)
-- **HalfSpace** impl `Shape` (`parry/src/shape/shape.rs`)
-- **IntegrationParameters** method `set_dt` (`rapier/src/dynamics/integration_parameters.rs`)
-- **InteractionGraph** impl `Default` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `index_interaction` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interaction_pair` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interaction_pair_mut` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_between` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with_endpoints` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with_mut` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `new` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `raw_graph` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGroups** method `clear_groups` (`rapier/src/dynamics/solver/interaction_groups.rs`)
-- **InteractionGroups** method `group_manifold_refs` (`rapier/src/dynamics/solver/interaction_groups.rs`)
-- **InteractionsWithMut** type `InteractionsWithMut` (`rapier/src/geometry/interaction_graph.rs`)
-- **MeshConverter** method `convert` (`rapier/src/geometry/mesh_converter.rs`)
-- **MeshConverter** type `MeshConverter` (`rapier/src/geometry/mesh_converter.rs`)
-- **MeshConverterError** type `MeshConverterError` (`rapier/src/geometry/mesh_converter.rs`)
-- **NeoHookeanConstraint** method `gradient_and_hessian` (`rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_neo_hookean.rs`)
-- **NeoHookeanConstraint** method `rest_stiffness` (`rapier/src/dynamics/solver/soft_constraint/soft_element_constraint/soft_neo_hookean.rs`)
-- **Polygon** method `new` (`parry/src/shape/polygon.rs`)
-- **Polygon** method `vertices` (`parry/src/shape/polygon.rs`)
-- **Polygon** type `Polygon` (`parry/src/shape/polygon.rs`)
-- **Segment** impl `From<[T; N]>` (`parry/src/shape/segment.rs`)
-- **Segment** impl `Shape` (`parry/src/shape/shape.rs`)
-- **Segment** method `point_at` (`parry/src/shape/segment.rs`)
-- **SegmentPseudoNormals** type `SegmentPseudoNormals` (`parry/src/shape/segment_pseudo_normals.rs`)
-- **Shape** method `as_ball_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_capsule_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_composite_shape` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_convex_polygon_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_cuboid_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_halfspace_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_segment_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
-- **Shape** method `clone_dyn` (`parry/src/shape/shape.rs`)
-- **Shape** method `is_convex` (`parry/src/shape/shape.rs`)
-- **Shape** method `scale_dyn` (`parry/src/shape/shape.rs`)
-- **Shape** trait `Shape` (`parry/src/shape/shape.rs`)
-- **SkylineCholesky** method `envelope_len` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- **SkylineCholesky** method `factorize` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- **SkylineCholesky** method `new` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- **SkylineCholesky** method `solve` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- **SoftAttachmentConstraint** method `solve` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
-- **SoftAttachmentConstraint** method `update` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
-- **SoftAttachmentConstraint** method `warmstart` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
-- ... 88 more
-
 ### WP: CCD and shape casts
 
-Tier: hard. Depends/context: QP queries. Estimate: 87 public items.
+Tier: hard. Depends/context: QP queries. Estimate: 86 public items.
 
 - **CCDSolver** method `find_first_impact` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
 - **CCDSolver** method `invalidate_fixed_targets_cache` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
@@ -4890,7 +4804,6 @@ Tier: hard. Depends/context: QP queries. Estimate: 87 public items.
 - **ShapeCastOptions** method `with_max_time_of_impact` (`parry/src/query/shape_cast/shape_cast.rs`)
 - **ShapeCastOptions** type `ShapeCastOptions` (`parry/src/query/shape_cast/shape_cast.rs`)
 - **ShapeCastStatus** type `ShapeCastStatus` (`parry/src/query/shape_cast/shape_cast.rs`)
-- **SoftConstraintsSet** method `resweep_strained_constraints` (`rapier/src/dynamics/solver/soft_constraint/soft_constraints_set/soft_constraint_solve.rs`)
 - **Sweep** method `constant` (`parry/src/query/sweep_toi/sweep.rs`)
 - **Sweep** method `final_transform` (`parry/src/query/sweep_toi/sweep.rs`)
 - **Sweep** method `from_poses` (`parry/src/query/sweep_toi/sweep.rs`)
@@ -4922,7 +4835,75 @@ Tier: hard. Depends/context: QP queries. Estimate: 87 public items.
 - **parry::query** function `cast_shapes_nonlinear_support_map_halfspace` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
 - **parry::query** function `cast_shapes_nonlinear_support_map_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs`)
 - **parry::query** function `cast_shapes_shape_composite_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
-- ... 7 more
+- **parry::query** function `cast_shapes_shape_heightfield` (`parry/src/query/shape_cast/shape_cast_heightfield_shape.rs`)
+- ... 6 more
+
+### WP: API polish and miscellaneous parity
+
+Tier: mechanical. Depends/context: AP triage. Estimate: 62 public items.
+
+- **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
+- **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShape** trait `CompositeShape` (`parry/src/shape/composite_shape.rs`)
+- **CompositeShapeRef** type `CompositeShapeRef` (`parry/src/shape/composite_shape.rs`)
+- **InteractionGraph** impl `Default` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `index_interaction` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interaction_pair` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interaction_pair_mut` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_between` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_with` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_with_endpoints` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `interactions_with_mut` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `new` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** method `raw_graph` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
+- **InteractionsWithMut** type `InteractionsWithMut` (`rapier/src/geometry/interaction_graph.rs`)
+- **Polygon** method `new` (`parry/src/shape/polygon.rs`)
+- **Polygon** method `vertices` (`parry/src/shape/polygon.rs`)
+- **Polygon** type `Polygon` (`parry/src/shape/polygon.rs`)
+- **Shape** method `as_composite_shape` (`parry/src/shape/shape.rs`)
+- **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
+- **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
+- **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
+- **Shape** method `clone_dyn` (`parry/src/shape/shape.rs`)
+- **Shape** method `scale_dyn` (`parry/src/shape/shape.rs`)
+- **Shape** trait `Shape` (`parry/src/shape/shape.rs`)
+- **SolverBodies** method `clear` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `copy_from` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `get_pose` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `get_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `len` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `resize` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** method `set_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverBodies** type `SolverBodies` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** impl `Default` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** method `inverse_transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** method `pose` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPose** type `SolverPose` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverPoseRepr** method `identity` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverTransform** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverTransform** type `SolverTransform` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** impl `AddAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** impl `Sub` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** impl `SubAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_mut_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_vector_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `as_vector_slice_mut` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVel** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **SolverVelRepr** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
+- **TemporaryInteractionIndex** type `TemporaryInteractionIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **TypedCompositeShape** method `map_typed_part_at` (`parry/src/shape/composite_shape.rs`)
+- **TypedCompositeShape** method `map_untyped_part_at` (`parry/src/shape/composite_shape.rs`)
+- **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
+- **TypedShape** impl `Debug` (`parry/src/shape/shape.rs`)
+- **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
+- **dynamics** function `reset_buffer` (`rapier/src/dynamics/solver/mod.rs`)
+- **dynamics** function `reset_buffer_reusing` (`rapier/src/dynamics/solver/mod.rs`)
 
 ### WP: Joint API completion
 
@@ -5323,6 +5304,19 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **ArenaTrait** trait `ArenaTrait` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArrayArena** type `ArrayArena` (`crates/rapier_core/src/data/arena/alternatives.cairo`)
 - **ArrayBodies** type `ArrayBodies` (`crates/rapier_dynamics2d/src/solver/body_store.cairo`)
+- **AxesMask** const `ALL` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** const `ANG_Z` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** const `LIN_X` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** const `LIN_Y` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `all` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `bits` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `contains` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `default` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `from_bits` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `intersection` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `is_empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
+- **AxesMask** method `union` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **Ball** method `cast_local_ray_and_get_normal_ball` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
 - **Ball** method `cast_local_ray_ball` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
 - **Ball** method `circle_coefficients` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
@@ -5358,20 +5352,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Bounded** method `serialize` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
 - **BoundedRow** type `BoundedRow` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
 - **BoundedRows** type `BoundedRows` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
-- **BoundedState** type `BoundedState` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
-- **BoundingVolume** const `EMPTY_POINT_CLOUD` (`crates/rapier_geometry2d/src/aabb/bounding_volume.cairo`)
-- **BoundingVolume** const `MARGIN_TOO_LARGE` (`crates/rapier_geometry2d/src/aabb/bounding_volume.cairo`)
-- **BoundingVolume** const `NEGATIVE_MARGIN` (`crates/rapier_geometry2d/src/aabb/bounding_volume.cairo`)
-- **BroadPhase** method `find_pairs` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
-- **BroadPhaseProxy** type `BroadPhaseProxy` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
-- **Builder** const `ONE_WAY_ANGLE` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
-- **Builder** method `into` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
-- **BuilderApi** method `into` (`crates/rapier_dynamics2d/src/rigid_body_set/builder_api.cairo`)
-- **Builders** method `into` (`crates/rapier_dynamics2d/src/joint/builders.cairo`)
-- **Capsule** method `cast_local_ray_and_get_normal_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
-- **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
-- **Capsule** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- ... 898 more
+- ... 922 more
 
 ## Embedded Rust inventory
 
