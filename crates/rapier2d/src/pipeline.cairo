@@ -82,8 +82,9 @@ use rapier_dynamics2d::narrow_phase::{
 };
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
-use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
-use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
+use rapier_dynamics2d::solver::island::{
+    FreeBodySolverTrait, SolvedIsland, SolvedIslandTrait, SolverInputTrait, solve_island_input,
+};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
 use rapier_geometry2d::shape::ShapeTrait;
@@ -131,8 +132,10 @@ mod solve_benches;
 mod tests;
 mod user_changes;
 pub use islands::{SleepCensus, SleepCensusTrait, update_islands};
-pub(crate) use ordering::{dormant_of, fixed_last_flag, link_status};
-pub use ordering::{scatter_touching, scatter_touching_split, solve_order, touching_manifolds};
+pub(crate) use ordering::{dormant_of, fixed_last_flag, joint_values, link_status, write_joints};
+pub use ordering::{
+    scatter_impulses, scatter_touching, scatter_touching_split, solve_order, touching_manifolds,
+};
 pub use sleeping::{
     any_sleeping, merge_pairs, release_removed_pairs, split_dormant, split_dormant_existing,
 };
@@ -274,8 +277,9 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         ref world.narrow_phase,
         ref world.colliders,
     );
-    // BT2: with a sleeping body, the next step can skip the sleeping bodies (`active_set`).
-    let rebuild = sleeping && no_joints && !woken;
+    // BT2: with a sleeping body, the next step can skip the sleeping bodies (`active_set`); BT4:
+    // also after a wake-up (the next step clears the `SLEEP` flags it left).
+    let rebuild = sleeping && no_joints;
     if !dormant.is_empty() {
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
     }
@@ -554,6 +558,8 @@ pub fn advance_with_snapshot(
             advance_body_with_snapshot(*handle, *body, ref bodies, ref colliders, snapshot, params);
         }
     }
+    bodies.mark_modified();
+    colliders.mark_modified();
 }
 
 /// The step moves `body`: enabled, not fixed, awake.
@@ -573,7 +579,8 @@ pub(crate) fn immovable(body: RigidBody) -> RigidBody {
 
 /// The position update of one moving body (`position ← next_position`, world mass properties,
 /// attached colliders moved) after its sleep timer (`islands::update_sleep_timer`, on the
-/// displacement of the step).
+/// displacement of the step). The writes are untracked (`set_internal`, BT4): the public callers
+/// raise the sets' `is_modified` flags once.
 #[inline(always)]
 pub(crate) fn advance_body_with_snapshot(
     handle: Handle,
@@ -588,12 +595,12 @@ pub(crate) fn advance_body_with_snapshot(
     body.pos.position = body.pos.next_position;
     islands::update_sleep_timer(ref body, previous, params);
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-    let _ = bodies.set(handle, body);
+    let _ = bodies.set_internal(handle, body);
     for co_handle in body.colliders {
         if let Some(mut collider) = snapshot_collider(snapshot, *co_handle, ref colliders) {
             if let Some(parent) = collider.parent {
                 collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
-                let _ = colliders.set(*co_handle, collider);
+                let _ = colliders.set_internal(*co_handle, collider);
             }
         }
     }
@@ -701,7 +708,7 @@ pub fn solve_and_advance_sleeping(
     }
     let n_first = first.len();
     first.append_span(last.span());
-    let mut manifolds = first;
+    let manifolds = first;
     let joint_entries = if sleeping {
         active_joints(joint_entries, entries).span()
     } else {
@@ -715,23 +722,27 @@ pub fn solve_and_advance_sleeping(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
-    let mut members = array![];
+    // BT4: the members gathered straight into the solver input (no `SolverBodyStore`, no copy
+    // of the entries), their flags kept for the write-back walk.
+    let mut input = SolverInputTrait::new();
+    let mut member_flags = array![];
     let mut has_free = false;
     if any {
-        for entry in entries {
-            let (handle, body) = entry;
-            if constrained.get((*handle).into()) {
+        let dt = params.substep_dt();
+        for (handle, body) in entries {
+            let member = constrained.get((*handle).into());
+            member_flags.append(member);
+            if member {
                 if sleeping && *body.activation.sleeping {
-                    members.append((*handle, immovable(*body)));
+                    input.push(*handle, immovable(*body), gravity, dt);
                 } else {
-                    members.append(*entry);
+                    input.push(*handle, *body, gravity, dt);
                 }
             } else if moving(body) {
                 has_free = true;
             }
         }
     }
-    let mut store = SolverBodyStoreTrait::from_entries(members.span(), gravity, params);
     // With no manifold and no joint, `solve_island` would only validate the parameters, which
     // `FreeBodySolverTrait::new` does with the same panics; with constraints it is only built
     // when a moving body is free.
@@ -740,24 +751,28 @@ pub fn solve_and_advance_sleeping(
     } else {
         Default::default()
     };
+    let mut solved: SolvedIsland = Default::default();
     if any {
-        solve_island(params, ref store, ref manifolds, ref joints);
+        solved = solve_island_input(params, input, manifolds.span(), ref joints);
         if !manifolds.is_empty() {
+            // BT4: the impulses go straight into the pairs (no solved manifold array).
             narrow_phase
                 .pairs =
-                    scatter_touching_split(
-                        narrow_phase.pairs.span(), manifolds.span(), flags.span(), n_first,
-                    );
+                    scatter_impulses(narrow_phase.pairs.span(), @solved, flags.span(), n_first);
         }
         write_joints(joint_entries, joints.span(), ref impulse_joints);
     }
     let mut dense: u32 = 0;
+    let mut member_flags = member_flags.span();
     for (handle, body) in entries {
-        let member = any && constrained.get((*handle).into());
+        let member = match member_flags.pop_front() {
+            Some(member) => *member,
+            None => false,
+        };
         if moving(body) {
             let body = if member {
                 let mut body = *body;
-                store.write_body(dense, ref body);
+                solved.write_body(dense, ref body);
                 body
             } else {
                 free.solve(*handle, *body)
@@ -768,25 +783,8 @@ pub fn solve_and_advance_sleeping(
             dense += 1;
         }
     }
-}
-
-pub(crate) fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
-    let mut out = array![];
-    for (_, joint) in entries {
-        out.append(*joint);
-    }
-    out
-}
-
-pub(crate) fn write_joints(
-    entries: Span<(Handle, ImpulseJoint)>,
-    solved: Span<ImpulseJoint>,
-    ref impulse_joints: ImpulseJointSet,
-) {
-    let mut solved = solved;
-    for (handle, _) in entries {
-        let _ = impulse_joints.set(*handle, *solved.pop_front().unwrap());
-    }
+    bodies.mark_modified();
+    colliders.mark_modified();
 }
 
 #[cfg(test)]

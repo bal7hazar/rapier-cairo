@@ -173,13 +173,13 @@ fn advance_free_unchecked(
     body.pos.position = body.pos.next_position;
     islands::update_sleep_timer(ref body, previous, params);
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-    let _ = bodies.set(handle, body);
+    let _ = bodies.set_internal(handle, body);
     if body.colliders.len() == 1 {
         let co_handle = *body.colliders.at(0);
         if let Some(mut collider) = snapshot_collider_free(snapshot, co_handle, ref colliders) {
             if let Some(parent) = collider.parent {
                 collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
-                let _ = colliders.set(co_handle, collider);
+                let _ = colliders.set_internal(co_handle, collider);
             }
         }
         return;
@@ -188,7 +188,7 @@ fn advance_free_unchecked(
         if let Some(mut collider) = snapshot_collider_free(snapshot, *co_handle, ref colliders) {
             if let Some(parent) = collider.parent {
                 collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
-                let _ = colliders.set(*co_handle, collider);
+                let _ = colliders.set_internal(*co_handle, collider);
             }
         }
     }
@@ -205,6 +205,9 @@ pub(crate) fn solve_and_advance_free(
     all_moving: bool,
 ) {
     let free = FreeBodySolverTrait::new(params, gravity);
+    // The write-backs below are untracked (BT4); this step ends without refreshing the active
+    // set, so the set is flagged once here.
+    bodies.mark_modified();
     if all_moving {
         for (handle, body) in entries {
             let body = free.solve(*handle, *body);

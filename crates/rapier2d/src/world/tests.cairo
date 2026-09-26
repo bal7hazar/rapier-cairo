@@ -518,6 +518,8 @@ fn read_probe(kind: u8) {
         let _ = opaque(world.linvel(h));
     } else if kind == 5 {
         let _ = opaque(world.angvel(h));
+    } else if kind == 6 {
+        let _ = opaque(Some(h.index == 7));
     }
 }
 
@@ -549,6 +551,11 @@ fn gas_read_linvel() {
 #[test]
 fn gas_read_angvel() {
     read_probe(5);
+}
+
+#[test]
+fn gas_read_overhead() {
+    read_probe(6);
 }
 
 #[test]

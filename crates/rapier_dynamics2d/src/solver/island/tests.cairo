@@ -322,3 +322,70 @@ fn test_joint_body_frames_shift_to_com_and_disabled_joint_is_inert() {
     assert_eq!(store.get(1), before);
     assert_eq!(*joints.at(1), disabled);
 }
+
+/// BT4: `solve_island_input` against the store driver `run` on the same input: the same bodies
+/// and joints, and the returned impulses written into the input manifolds give the manifolds
+/// `run` rebuilt. Rows `(stack size, joint, parameters)`: 0 default, 1 zero dt, 2 one substep
+/// with two stabilization sweeps, 3 inert contacts (joint-only stages).
+#[test]
+fn test_input_driver_matches_store_driver() {
+    let rows = array![
+        (1_u32, false, 0_u8), (2, true, 0), (3, false, 2), (2, true, 1), (2, true, 3),
+    ];
+    for (n, joint, k) in rows {
+        let (bs, steps, ms) = stack(n);
+        let mut p: IntegrationParameters = Default::default();
+        if k == 1 {
+            p.dt = ZERO;
+        } else if k == 2 {
+            p.num_solver_iterations = 1;
+            p.num_internal_stabilization_iterations = 2;
+        }
+        let mut input_ms = array![];
+        for m in ms.span() {
+            let mut m = *m;
+            if k == 3 {
+                m.data.solver_flags.bits = 0;
+            }
+            input_ms.append(m);
+        }
+        let revolute = ImpulseJoint {
+            body1: h(0),
+            body2: h(1),
+            data: RevoluteJointBuilderTrait::new()
+                .local_anchor1(v(ZERO, HALF))
+                .local_anchor2(v(ZERO, -HALF))
+                .build(),
+            impulses: [HALF, -HALF, ZERO],
+        };
+        let mut js = if joint {
+            array![revolute]
+        } else {
+            array![]
+        };
+        let mut js_input = if joint {
+            array![revolute]
+        } else {
+            array![]
+        };
+        let mut dict: DenseBodies = DenseBodiesTrait::new(bs.span());
+        let mut expected_ms = input_ms.clone();
+        run(p, ref dict, steps.span(), ref expected_ms, ref js);
+        let solved = solve_island_input(
+            p, SolverInput { bodies: bs, steps }, input_ms.span(), ref js_input,
+        );
+        assert!(js_input == js, "joints, row {}", n);
+        let mut i = 0;
+        while i != n {
+            assert!(*solved.bodies.at(i) == dict.get(i), "body {} of {}", i, n);
+            i += 1;
+        }
+        let mut id = 0;
+        for m in input_ms.span() {
+            let mut m = *m;
+            solved.write_impulses(id, ref m);
+            assert!(m == *expected_ms.at(id), "manifold {} of {}", id, n);
+            id += 1;
+        }
+    }
+}

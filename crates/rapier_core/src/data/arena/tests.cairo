@@ -5,7 +5,7 @@
 use rapier_testing::opaque;
 use crate::data::handle::{Handle, HandleTrait, INVALID_HANDLE};
 use super::alternatives::{ArrayArena, SplitArena};
-use super::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
+use super::{Arena, ArenaField, ArenaFieldTrait, ArenaState, ArenaStateTrait, ArenaTrait};
 
 /// Stand-in for a small engine component (eight scalars).
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -566,3 +566,67 @@ fn fuzz_candidates_equivalent(seed: u64) {
 
 #[cfg(test)]
 mod gas;
+
+/// The component `b` of an [`Item`] (BT4 `get_field`).
+impl ItemB of ArenaField<Item, u64> {
+    fn read(value: Item) -> u64 {
+        value.b
+    }
+}
+
+/// BT4: the modified bit rides in the generation field without changing handles, generations or
+/// the state image. Rows `(operation, modified after it)`, from a cleared arena of 3 items with
+/// slot 1 removed once: 0 read, 1 set, 2 failed set, 3 untracked set, 4 remove, 5 failed remove,
+/// 6 insert, 7 replace, 8 set_all, 9 mark_modified.
+#[test]
+fn test_modified_bit() {
+    let rows: Array<(u8, bool)> = array![
+        (0, false), (1, true), (2, false), (3, false), (4, true), (5, false), (6, true), (7, true),
+        (8, true), (9, true),
+    ];
+    for (op, expected) in rows {
+        let mut arena: Arena<Item> = filled(3);
+        assert!(arena.is_modified());
+        assert!(arena.remove(h(1, 0)).is_some());
+        arena.clear_modified();
+        assert!(!arena.is_modified());
+        assert_eq!(arena.generation(), 1);
+        if op == 0 {
+            assert_eq!(arena.get(h(0, 0)), Option::Some(item(0)));
+            assert_eq!(arena.get_field::<u64, ItemB>(h(2, 0)), Option::Some(21));
+            assert_eq!(arena.get_field::<u64, ItemB>(h(1, 0)), Option::None);
+            assert!(arena.contains(h(0, 0)) && !arena.contains(h(1, 0)));
+            let _ = arena.to_array();
+            let _ = arena.to_state();
+        } else if op == 1 {
+            assert!(arena.set(h(0, 0), item(5)));
+        } else if op == 2 {
+            assert!(!arena.set(h(1, 0), item(5)));
+        } else if op == 3 {
+            assert!(arena.set_untracked(h(0, 0), item(5)));
+            assert!(!arena.set_untracked(h(1, 0), item(5)));
+            assert_eq!(arena.get(h(0, 0)), Option::Some(item(5)));
+        } else if op == 4 {
+            assert!(arena.remove(h(0, 0)).is_some());
+            assert_eq!(arena.generation(), 2);
+        } else if op == 5 {
+            assert!(arena.remove(h(1, 0)).is_none());
+        } else if op == 6 {
+            // The freed slot is reused under the current generation.
+            assert_eq!(arena.insert(item(5)), h(1, 1));
+        } else if op == 7 {
+            assert!(arena.replace(h(2, 0), item(5)).is_some());
+        } else if op == 8 {
+            arena.set_all(array![item(1), item(2)].span());
+        } else {
+            arena.mark_modified();
+        }
+        assert_eq!(arena.is_modified(), expected, "op {}", op);
+        // The bit never leaks into generations nor into the state image.
+        let state = arena.to_state();
+        assert_eq!(state.generation, arena.generation());
+        let restored = ArenaStateTrait::from_state(state);
+        assert!(!restored.is_modified());
+        assert_eq!(restored.generation(), arena.generation());
+    }
+}

@@ -34,16 +34,24 @@
 //! * the set stays valid (with the new pair positions); the sets' flags are cleared.
 //!
 //! An all-asleep world therefore steps in a constant number of Cairo steps, and a flight tick
-//! costs its awake bodies and their candidate pairs. Equivalence against the whole step:
+//! costs its awake bodies and their candidate pairs.
+//!
+//! Mixed ticks (BT4: an awake structure next to a sleeping one): the set survives a wake-up and
+//! a fall asleep (it is filled again when a member still sleeps; the `SLEEP` flag a wake-up
+//! leaves is cleared by the next step as the user changes would), the static proxies outside the
+//! bounds of the active ones are left out of the broad phase, the active colliders take the head
+//! of the narrow-phase scratch without lookup, and the live pairs are written back into the
+//! list in one pass when they kept their keys. Equivalence against the whole step:
 //! `active_set_tests` (random worlds: sleep, contact wake-ups, user changes, removals, sensors).
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
 use rapier_core::Handle;
 use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
-use rapier_core::collider::{ActiveEventsTrait, ColliderEnabled, ColliderType};
+use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait, ColliderEnabled, ColliderType};
 use rapier_core::integration_parameters::IntegrationParametersTrait;
-use rapier_core::rigid_body::{RigidBodyDominanceTrait, RigidBodyType};
+use rapier_core::rigid_body::changes::SLEEP;
+use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
@@ -141,6 +149,24 @@ pub(crate) fn refresh(ref world: World, fill: bool) {
     }
 }
 
+/// [`refresh`]`(world, true)` with the bodies given (BT4: the island stage's entries, whose
+/// types, activation flags and change flags are those of the set) instead of read again.
+#[inline(never)]
+fn refill_with(ref world: World, entries: Span<(Handle, RigidBody)>) {
+    let prediction = world.integration_parameters.prediction_distance();
+    let snapshot = world.colliders.iter().span();
+    let force_events = any_force_events(snapshot);
+    world
+        .active_set =
+            BoxTrait::new(
+                rebuild(
+                    snapshot, entries, world.narrow_phase.pairs.span(), force_events, prediction,
+                ),
+            );
+    world.bodies.clear_modified();
+    world.colliders.clear_modified();
+}
+
 /// Whether the world's active set is marked valid.
 #[inline(always)]
 pub fn is_valid(world: @World) -> bool {
@@ -172,6 +198,11 @@ pub(crate) fn rebuild(
     let mut positions: Felt252Dict<u32> = Default::default();
     let mut sleeping: u32 = 0;
     for (handle, body) in entries {
+        // BT4: the only flag a step leaves is the `SLEEP` of a wake-up, on an awake body; the
+        // next step clears it (`sparse_step`). Any other pending change takes the whole path.
+        if !body.changes.is_empty() && (*body.activation.sleeping || *body.changes != SLEEP) {
+            return Default::default();
+        }
         if *body.body_type == RigidBodyType::Fixed {
             continue;
         }
@@ -198,6 +229,9 @@ pub(crate) fn rebuild(
     let mut live: Felt252Dict<bool> = Default::default();
     let margin = prediction * HALF;
     for (handle, collider) in snapshot {
+        if !collider.changes.is_empty() {
+            return Default::default();
+        }
         let mut active = false;
         if let Some(parent) = collider.parent() {
             let position = positions.get(parent.index.into());
@@ -257,6 +291,107 @@ fn merge_live(
     out.append_span(dormant);
     (out, positions)
 }
+
+/// The proxies of `statics` that overlap the bounds of the `dynamic` ones (closed intervals, as
+/// the broad phase): a static proxy outside them overlaps no dynamic proxy, so the sparse broad
+/// phase finds the same pairs, in the same order, on this sub-list (BT4: a sleeping structure
+/// away from the awake bodies is not tested against each of them). `statics` itself with fewer
+/// than two dynamic proxies, which the broad phase tests each static proxy against once anyway.
+fn near_statics(
+    statics: Span<BroadPhaseProxy>, dynamic: Span<BroadPhaseProxy>,
+) -> Span<BroadPhaseProxy> {
+    if dynamic.len() < 2 {
+        return statics;
+    }
+    let mut dynamic = dynamic;
+    let first = *dynamic.pop_front().unwrap().aabb;
+    let (mut min_x, mut min_y) = (first.mins.x.raw, first.mins.y.raw);
+    let (mut max_x, mut max_y) = (first.maxs.x.raw, first.maxs.y.raw);
+    for proxy in dynamic {
+        let aabb = *proxy.aabb;
+        if aabb.mins.x.raw < min_x {
+            min_x = aabb.mins.x.raw;
+        }
+        if aabb.mins.y.raw < min_y {
+            min_y = aabb.mins.y.raw;
+        }
+        if aabb.maxs.x.raw > max_x {
+            max_x = aabb.maxs.x.raw;
+        }
+        if aabb.maxs.y.raw > max_y {
+            max_y = aabb.maxs.y.raw;
+        }
+    }
+    let mut near = array![];
+    for proxy in statics {
+        let aabb = *proxy.aabb;
+        if aabb.mins.x.raw <= max_x
+            && min_x <= aabb.maxs.x.raw
+            && aabb.mins.y.raw <= max_y
+            && min_y <= aabb.maxs.y.raw {
+            near.append(*proxy);
+        }
+    }
+    near.span()
+}
+
+/// Whether `live` has the keys of the pairs of `pairs` at `positions` (ascending), in order, and
+/// whether it has their values too (BT4: the previous step's live pairs are read in place, not
+/// kept as a copy). The value comparison stops at the first difference or touching pair; a
+/// `false` second answer only costs a copy of the list.
+fn compare_live(
+    pairs: Span<ContactPair>, positions: Span<u32>, live: Span<ContactPair>,
+) -> (bool, bool) {
+    if live.len() != positions.len() {
+        return (false, false);
+    }
+    let mut live = live;
+    let mut unchanged = true;
+    for position in positions {
+        let now = live.pop_front().unwrap();
+        let before = pairs.at(*position);
+        if before.collider1 != now.collider1 || before.collider2 != now.collider2 {
+            return (false, false);
+        }
+        // A touching pair got new impulses from the solver: not worth comparing (a pair found
+        // equal is copied all the same).
+        if unchanged && (*now.manifold.data.num_solver_contacts != 0 || before != now) {
+            unchanged = false;
+        }
+    }
+    (true, unchanged)
+}
+
+/// `pairs` with the pair at `positions[k]` replaced by `live[k]` (same count, ascending
+/// positions): one copy of the list.
+fn write_live(
+    pairs: Span<ContactPair>, positions: Span<u32>, live: Span<ContactPair>,
+) -> Array<ContactPair> {
+    let mut out = array![];
+    let mut positions = positions;
+    let mut live = live;
+    let mut next = match positions.pop_front() {
+        Some(p) => *p,
+        None => NO_POSITION,
+    };
+    let mut k: u32 = 0;
+    for pair in pairs {
+        if k == next {
+            out.append(*live.pop_front().unwrap());
+            next = match positions.pop_front() {
+                Some(p) => *p,
+                None => NO_POSITION,
+            };
+        } else {
+            out.append(*pair);
+        }
+        k += 1;
+    }
+    out
+}
+
+/// Past every position of a pair list.
+const NO_POSITION: u32 = 0xffffffff;
 
 /// `pairs` split by `positions` (ascending): the pairs at those positions, and the others.
 fn split_at_positions(
@@ -338,8 +473,120 @@ fn static_pair_collider(handle: Handle, ref world: World) -> PairCollider {
     pair_collider(handle, @collider, body_type, world_com, dominance)
 }
 
+/// The scratch position of the proxy `index` of `find_pairs_sparse` (`statics ++ dynamic`): a
+/// dynamic proxy's is its position among the dynamic ones, a static one's is appended at its
+/// first use.
+#[inline(always)]
+fn scratch_slot(
+    index: u32,
+    statics: Span<BroadPhaseProxy>,
+    ref scratch: Array<PairCollider>,
+    ref at: Felt252Dict<u32>,
+    ref world: World,
+) -> u32 {
+    let n_s = statics.len();
+    if index >= n_s {
+        return index - n_s;
+    }
+    let key: felt252 = index.into();
+    let mut slot = at.get(key);
+    if slot == 0 {
+        scratch.append(static_pair_collider((*statics.at(index)).collider, ref world));
+        slot = scratch.len();
+        at.insert(key, slot);
+    }
+    slot - 1
+}
+
+/// [`with_referenced`] knowing where the missing bodies come from: a side of a touching pair of
+/// `pairs` that is not active is the parent of the pair's static collider, whose entry is in
+/// `statics` (the scratch entries of the static colliders of the pairs found), and every such
+/// parent is fixed or asleep, never in `awake`. So the parents of `statics` that a touching pair
+/// references are added, in ascending slot, without a lookup per pair side (BT4).
+fn with_static_parents(
+    awake: Span<(Handle, RigidBody)>,
+    pairs: Span<ContactPair>,
+    statics: Span<PairCollider>,
+    ref bodies: RigidBodySet,
+) -> Span<(Handle, RigidBody)> {
+    let mut touching = false;
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            touching = true;
+            break;
+        }
+    }
+    if !touching {
+        return awake;
+    }
+    let mut extra: Array<Handle> = array![];
+    for co in statics {
+        if let Some(h) = *co.body {
+            if !listed(extra.span(), h) && touched(pairs, h) {
+                let mut sorted = array![];
+                let mut placed = false;
+                for e in extra.span() {
+                    if !placed && e.index > @h.index {
+                        sorted.append(h);
+                        placed = true;
+                    }
+                    sorted.append(*e);
+                }
+                if !placed {
+                    sorted.append(h);
+                }
+                extra = sorted;
+            }
+        }
+    }
+    if extra.is_empty() {
+        return awake;
+    }
+    let mut out = array![];
+    let mut awake = awake;
+    for h in extra.span() {
+        while let Some(entry) = awake.get(0) {
+            let (a, _) = entry.unbox();
+            if a.index > h.index {
+                break;
+            }
+            out.append(*awake.pop_front().unwrap());
+        }
+        if let Some(body) = bodies.get(*h) {
+            out.append((*h, body));
+        }
+    }
+    out.append_span(awake);
+    out.span()
+}
+
+/// `h` is in `handles`.
+fn listed(handles: Span<Handle>, h: Handle) -> bool {
+    for e in handles {
+        if *e == h {
+            return true;
+        }
+    }
+    false
+}
+
+/// A touching pair of `pairs` references the body `h`.
+fn touched(pairs: Span<ContactPair>, h: Handle) -> bool {
+    for pair in pairs {
+        if *pair.manifold.data.num_solver_contacts != 0 {
+            let data = pair.manifold.data;
+            if *data.rigid_body1 == Some(h) || *data.rigid_body2 == Some(h) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// `awake` (ascending slot) with the bodies the touching pairs of `pairs` reference that it lacks,
-/// in ascending slot.
+/// in ascending slot: BT2's form, a lookup per touching pair side, kept as the alternative of
+/// [`with_static_parents`] (BT4: 26.9k more Cairo steps over level 20's impact window).
+#[cfg(test)]
 fn with_referenced(
     awake: Span<(Handle, RigidBody)>, pairs: Span<ContactPair>, ref bodies: RigidBodySet,
 ) -> Span<(Handle, RigidBody)> {
@@ -420,13 +667,21 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
     let mut awake = array![];
     let mut census: SleepCensus = SleepCensus { sleeping: set.sleeping, awake: 0, eligible: false };
     for handle in active_bodies {
-        let body = world.bodies.get(*handle).unwrap();
+        let mut body = world.bodies.get(*handle).unwrap();
+        if !body.changes.is_empty() {
+            // BT4: the `SLEEP` flag a wake-up of the last step left (`rebuild` admits no other),
+            // cleared as the whole step's user changes clear it.
+            body.changes = RigidBodyChangesTrait::empty();
+            let _ = world.bodies.set_internal(*handle, body);
+        }
         census.count(@body);
         awake.append((*handle, body));
     }
     let awake = awake.span();
     let mut dynamic = array![];
-    let mut dynamic_colliders = array![];
+    // The narrow-phase scratch starts with one entry per active collider (BT4: at the position of
+    // its proxy, no lookup); the static colliders of the pairs found follow.
+    let mut scratch = array![];
     for (handle, position) in active_colliders {
         let collider = world.colliders.get(*handle).unwrap();
         let (_, body) = awake.at(*position);
@@ -438,7 +693,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
                     is_static: false,
                 },
             );
-        dynamic_colliders
+        scratch
             .append(
                 pair_collider(
                     *handle,
@@ -449,6 +704,8 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
                 ),
             );
     }
+    // BT4: the static proxies away from every active one take no part in the pairs.
+    let statics = near_statics(statics, dynamic.span());
     let candidates = find_pairs_sparse(statics, dynamic.span());
     // The previous live pairs are the narrow phase's previous pairs; the others are dormant.
     let previous = world.narrow_phase.pairs;
@@ -456,35 +713,17 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
     for position in set.pairs.span() {
         previous_live.append(*previous.at(*position));
     }
-    world.narrow_phase.pairs = previous_live.clone();
+    let any_previous_live = !previous_live.is_empty();
+    world.narrow_phase.pairs = previous_live;
     let mut events = array![];
-    if !candidates.is_empty() || !previous_live.is_empty() {
-        let n_s = statics.len();
-        let dynamic_colliders = dynamic_colliders.span();
-        // One scratch entry per collider of the pairs found, in first-use order.
-        let mut scratch = array![];
+    if !candidates.is_empty() || any_previous_live {
+        // Static proxy index → its scratch position plus one, in first-use order.
         let mut at: Felt252Dict<u32> = Default::default();
         let mut pairs = array![];
         for (a, b) in candidates.span() {
-            let mut ends = array![];
-            for index in array![*a, *b].span() {
-                let key: felt252 = (*index).into();
-                let mut slot = at.get(key);
-                if slot == 0 {
-                    if *index < n_s {
-                        scratch
-                            .append(
-                                static_pair_collider((*statics.at(*index)).collider, ref world),
-                            );
-                    } else {
-                        scratch.append(*dynamic_colliders.at(*index - n_s));
-                    }
-                    slot = scratch.len();
-                    at.insert(key, slot);
-                }
-                ends.append(slot - 1);
-            }
-            pairs.append((*ends.at(0), *ends.at(1)));
+            let i = scratch_slot(*a, statics, ref scratch, ref at, ref world);
+            let j = scratch_slot(*b, statics, ref scratch, ref at, ref world);
+            pairs.append((i, j));
         }
         events =
             compute_contacts_from_scratch::<
@@ -497,14 +736,26 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
                 ref world.colliders,
             );
     }
-    // The bodies the touching pairs reference join the active ones.
-    let entries = with_referenced(awake, world.narrow_phase.pairs.span(), ref world.bodies);
+    // The bodies the touching pairs reference join the active ones (BT4: those not active are
+    // parents of the static colliders the pairs found, at the tail of the scratch).
+    let n_d = active_colliders.len();
+    let entries = with_static_parents(
+        awake,
+        world.narrow_phase.pairs.span(),
+        scratch.span().slice(n_d, scratch.len() - n_d),
+        ref world.bodies,
+    );
     let active_pairs = world.narrow_phase.pairs.span();
     let islands = census.awake != 0
         && (census.eligible
             || (census.sleeping != 0
                 && links_awake_to_sleeping(active_pairs, array![].span(), entries)));
     let mut still_valid = true;
+    // A member still sleeps after the island stage (then an invalidated set is filled again).
+    let mut refill = false;
+    // Every body after the island stage (the refill reads their type, flags and slots, which the
+    // solver and the position update leave alone).
+    let mut island_entries = array![].span();
     let mut dormant = array![];
     if islands {
         // The whole island stage and solver, on every body. The set stays valid when nobody woke
@@ -521,6 +772,8 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
             SleepCensusTrait::taken(all),
         );
         still_valid = !woken;
+        refill = sleeping;
+        island_entries = all;
         for handle in active_bodies {
             if still_valid && body_status(all, *handle) == BODY_SLEEPING {
                 still_valid = false;
@@ -567,14 +820,27 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
         if !dormant.is_empty() {
             world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), dormant.span());
         }
-    } else if world.narrow_phase.pairs == previous_live {
-        // The live pairs came out unchanged: the list stays as it was.
-        world.narrow_phase.pairs = previous;
+        if refill {
+            // BT4: a body woke up or fell asleep and another still sleeps: the set is filled
+            // again for the next step (as the whole step does).
+            refill_with(ref world, island_entries);
+            return output;
+        }
     } else {
-        let (_, rest) = split_at_positions(previous.span(), set.pairs.span());
-        let (merged, positions) = merge_live(world.narrow_phase.pairs.span(), rest.span());
-        world.narrow_phase.pairs = merged;
-        set.pairs = positions;
+        let live = world.narrow_phase.pairs.span();
+        let (same_keys, unchanged) = compare_live(previous.span(), set.pairs.span(), live);
+        if unchanged {
+            // The live pairs came out unchanged: the list stays as it was.
+            world.narrow_phase.pairs = previous;
+        } else if same_keys {
+            // BT4: the same pairs at the same positions, new values: one pass, no split.
+            world.narrow_phase.pairs = write_live(previous.span(), set.pairs.span(), live);
+        } else {
+            let (_, rest) = split_at_positions(previous.span(), set.pairs.span());
+            let (merged, positions) = merge_live(live, rest.span());
+            world.narrow_phase.pairs = merged;
+            set.pairs = positions;
+        }
     }
     set.valid = still_valid;
     world.active_set = BoxTrait::new(set);

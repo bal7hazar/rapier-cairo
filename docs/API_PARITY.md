@@ -24,7 +24,7 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | pipeline | 55 | 0 | 35 | 68 | 158 | 61.1% |
 | **total** | **660** | **0** | **1311** | **767** | **2738** | **33.5%** |
 
-Cairo-only public items not matched to upstream: **998**.
+Cairo-only public items not matched to upstream: **1019**.
 
 ## Aabb
 
@@ -5492,6 +5492,8 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Arena** method `set_all` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `to_array` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** type `Arena` (`crates/rapier_core/src/data/arena.cairo`)
+- **ArenaField** method `read` (`crates/rapier_core/src/data/arena.cairo`)
+- **ArenaField** trait `ArenaField` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArenaState** type `ArenaState` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArenaTrait** trait `ArenaTrait` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArrayArena** type `ArrayArena` (`crates/rapier_core/src/data/arena/alternatives.cairo`)
@@ -5554,9 +5556,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** const `COLLIDERS` (`crates/rapier_core/src/rigid_body/changes.cairo`)
 - **Changes** const `DOMINANCE` (`crates/rapier_core/src/rigid_body/changes.cairo`)
 - **Changes** const `ENABLED_OR_DISABLED` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `GROUPS` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `IN_MODIFIED_SET` (`crates/rapier_core/src/collider/changes.cairo`)
-- ... 798 more
+- ... 819 more
 
 ## Embedded Rust inventory
 

@@ -3,7 +3,7 @@
 use rapier_testing::opaque;
 use crate::data::handle::Handle;
 use super::super::alternatives::{ArrayArena, SplitArena};
-use super::super::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
+use super::super::{Arena, ArenaField, ArenaFieldTrait, ArenaState, ArenaStateTrait, ArenaTrait};
 use super::{Item, filled, item};
 
 // Gas probes. Every `gas_<candidate>_<op>_<n>` probe first builds an arena of `n` live
@@ -443,4 +443,38 @@ fn gas_dict_state_roundtrip_32() {
     let mut arena: Arena<Item> = filled(32);
     let restored = ArenaStateTrait::from_state(opaque(arena.to_state()));
     assert!(restored.len() == 32);
+}
+
+// BT4: component read, untracked write and the modified bit (subtract `gas_dict_fill_8`).
+
+/// The component `c` of an [`Item`].
+impl ItemC of ArenaField<Item, u64> {
+    #[inline(always)]
+    fn read(value: Item) -> u64 {
+        value.c
+    }
+}
+
+/// Compare with `gas_dict_get_8`: one `u64` copied out instead of the item.
+#[test]
+fn gas_dict_get_field_8() {
+    let mut arena: Arena<Item> = filled(8);
+    assert!(arena.get_field::<u64, ItemC>(opaque(PROBED)).is_some());
+}
+
+/// Compare with `gas_dict_set_8`.
+#[test]
+fn gas_dict_set_untracked_8() {
+    let mut arena: Arena<Item> = filled(8);
+    assert!(arena.set_untracked(opaque(PROBED), item(opaque(5))));
+}
+
+/// `is_modified`, `clear_modified`, `mark_modified`, `is_modified`.
+#[test]
+fn gas_dict_modified_8() {
+    let mut arena: Arena<Item> = filled(8);
+    assert!(opaque(arena.is_modified()));
+    arena.clear_modified();
+    arena.mark_modified();
+    assert!(opaque(arena.is_modified()));
 }

@@ -35,9 +35,6 @@ use crate::rigid_body_set::{
 #[derive(Destruct, Default)]
 pub struct ColliderSet {
     colliders: Arena<Collider>,
-    /// A write (insert, set, remove, parent change) happened since the last
-    /// [`clear_modified`](ColliderSetTrait::clear_modified) (see `RigidBodySetTrait::is_modified`).
-    modified: bool,
 }
 
 /// Operations of [`ColliderSet`]. Reads take `ref self` because arena reads mutate the dict log.
@@ -46,7 +43,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// An empty set.
     #[inline(always)]
     fn new() -> ColliderSet {
-        ColliderSet { colliders: ArenaTrait::new(), modified: false }
+        ColliderSet { colliders: ArenaTrait::new() }
     }
 
     /// An empty set. Cairo arenas reserve no memory, so `capacity` is intentionally ignored.
@@ -67,7 +64,6 @@ pub impl ColliderSetImpl of ColliderSetTrait {
         let mut collider = collider;
         collider.parent = None;
         collider.changes = ColliderChangesTrait::all();
-        self.modified = true;
         self.colliders.insert(collider)
     }
 
@@ -91,7 +87,6 @@ pub impl ColliderSetImpl of ColliderSetTrait {
         collider.parent = Some(ColliderParent { handle: parent, pos_wrt_parent });
         collider.changes = ColliderChangesTrait::all();
         assert(bodies.contains(parent), crate::rigid_body_set::errors::BODY_NOT_FOUND);
-        self.modified = true;
         let handle = self.colliders.insert(collider);
         let body_pose = attach_collider(ref bodies, parent, handle, collider, pos_wrt_parent);
         collider.pos.pose = body_pose * pos_wrt_parent;
@@ -104,7 +99,6 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// exists.
     fn remove(ref self: ColliderSet, handle: Handle, ref bodies: RigidBodySet) -> Option<Collider> {
         let collider = self.colliders.remove(handle)?;
-        self.modified = true;
         if let Some(parent) = collider.parent {
             detach_collider(ref bodies, parent.handle, handle);
         }
@@ -122,7 +116,6 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// responsibility: change it through `insert_with_parent` / `remove` only.
     #[inline(always)]
     fn set(ref self: ColliderSet, handle: Handle, collider: Collider) -> bool {
-        self.modified = true;
         self.colliders.set(handle, collider)
     }
 
@@ -137,13 +130,27 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// [`from_state`](Self::from_state) starts unmodified.
     #[inline(always)]
     fn is_modified(self: @ColliderSet) -> bool {
-        *self.modified
+        self.colliders.is_modified()
+    }
+
+    /// Raises the [`is_modified`](Self::is_modified) flag (a caller that wrote through
+    /// [`set_internal`](Self::set_internal)).
+    #[inline(always)]
+    fn mark_modified(ref self: ColliderSet) {
+        self.colliders.mark_modified();
+    }
+
+    /// [`set`](Self::set) without raising the [`is_modified`](Self::is_modified) flag (upstream
+    /// `get_mut_internal`): the step's own write-backs, which it tracks itself (BT4).
+    #[inline(always)]
+    fn set_internal(ref self: ColliderSet, handle: Handle, collider: Collider) -> bool {
+        self.colliders.set_untracked(handle, collider)
     }
 
     /// Clears the flag [`is_modified`](Self::is_modified) reads (the step does).
     #[inline(always)]
     fn clear_modified(ref self: ColliderSet) {
-        self.modified = false;
+        self.colliders.clear_modified();
     }
 
     /// Number of colliders.
@@ -238,7 +245,6 @@ pub impl ColliderSetImpl of ColliderSetTrait {
                 },
                 None => { collider.parent = None; },
             }
-            self.modified = true;
             let _ = self.colliders.set(handle, collider);
         }
     }
@@ -287,7 +293,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// # Panics
     /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
     fn from_state(state: ArenaState<Collider>) -> ColliderSet {
-        ColliderSet { colliders: ArenaStateTrait::from_state(state), modified: false }
+        ColliderSet { colliders: ArenaStateTrait::from_state(state) }
     }
 }
 

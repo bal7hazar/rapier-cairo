@@ -44,7 +44,10 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
 use rapier_dynamics2d::joint::{GenericJoint, ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, NarrowPhaseTrait};
-use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
+use rapier_dynamics2d::rigid_body_set::{
+    BodyAngvel, BodyLinvel, BodySleeping, RigidBody, RigidBodySet, RigidBodySetTrait,
+    RigidBodyTrait,
+};
 use rapier_geometry2d::aabb::Aabb;
 use rapier_geometry2d::point::PointProjection;
 use rapier_geometry2d::ray::{Ray, RayIntersection};
@@ -276,31 +279,25 @@ pub impl WorldImpl of WorldTrait {
     }
 
     /// Whether the body behind `handle` sleeps (upstream `RigidBody::is_sleeping` through
-    /// `bodies.get`); `None` when the handle does not resolve. Reads the body out of the set
-    /// without returning it (BT2 addendum B).
+    /// `bodies.get`); `None` when the handle does not resolve. Reads the flag alone out of the
+    /// set (BT4: `RigidBodySetTrait::get_field`, no copy of the body).
+    #[inline(always)]
     fn is_sleeping(ref self: World, handle: Handle) -> Option<bool> {
-        match self.bodies.get(handle) {
-            Some(body) => Some(body.activation.sleeping),
-            None => None,
-        }
+        self.bodies.get_field::<bool, BodySleeping>(handle)
     }
 
     /// The linear velocity of the body behind `handle` (upstream `RigidBody::linvel`); `None`
     /// when the handle does not resolve.
+    #[inline(always)]
     fn linvel(ref self: World, handle: Handle) -> Option<Vec2> {
-        match self.bodies.get(handle) {
-            Some(body) => Some(body.vels.linvel),
-            None => None,
-        }
+        self.bodies.get_field::<Vec2, BodyLinvel>(handle)
     }
 
     /// The angular velocity of the body behind `handle` (upstream `RigidBody::angvel`); `None`
     /// when the handle does not resolve.
+    #[inline(always)]
     fn angvel(ref self: World, handle: Handle) -> Option<Fixed> {
-        match self.bodies.get(handle) {
-            Some(body) => Some(body.vels.angvel),
-            None => None,
-        }
+        self.bodies.get_field::<Fixed, BodyAngvel>(handle)
     }
 
     /// Overwrites the body behind `handle` (upstream `bodies.get_mut`); `false` when the
