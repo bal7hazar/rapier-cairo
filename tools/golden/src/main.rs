@@ -7,6 +7,7 @@
 mod aabb;
 mod aabb_overlap;
 mod cairo;
+mod ccd_scenes;
 mod clip2d;
 mod intersection_tests;
 mod jsonfmt;
@@ -73,7 +74,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 22] = [
+        let families: [Family; 23] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -96,6 +97,7 @@ fn main() {
             ("shape_casts", shape_casts::shape_casts),
             ("nonlinear_shape_casts", shape_casts::nonlinear_shape_casts),
             ("sweep_toi", shape_casts::sweep_toi),
+            ("ccd_scenes", ccd_scenes::generate),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

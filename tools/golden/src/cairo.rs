@@ -12,6 +12,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
+mod ccd_scenes;
 mod leaf_families;
 mod levels;
 mod polygons;
@@ -694,6 +695,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("intersection_tests", sensors::intersection_tests(vectors)),
         ("sensor_trigger", sensors::sensor_trigger(vectors)),
         ("shape_queries", shape_queries::shape_queries(vectors)),
+        ("ccd_scenes", ccd_scenes::ccd_scenes(vectors)),
     ];
     files.extend(polygons::manifold_files(vectors));
     files.extend(scenes::generate(vectors));

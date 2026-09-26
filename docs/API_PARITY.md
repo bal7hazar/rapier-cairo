@@ -15,16 +15,16 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 535 | 0 | 191 | 466 | 1192 | 73.7% |
+| dynamics | 554 | 0 | 172 | 466 | 1192 | 76.3% |
 | geometry | 203 | 0 | 96 | 18 | 317 | 67.9% |
 | parry::bounding_volume | 79 | 0 | 10 | 30 | 119 | 88.8% |
 | parry::mass_properties | 17 | 0 | 2 | 7 | 26 | 89.5% |
 | parry::query | 178 | 0 | 128 | 118 | 424 | 58.2% |
 | parry::shape | 140 | 0 | 125 | 119 | 384 | 52.8% |
 | pipeline | 77 | 0 | 12 | 69 | 158 | 86.5% |
-| **total** | **1229** | **0** | **611** | **827** | **2667** | **66.8%** |
+| **total** | **1248** | **0** | **592** | **827** | **2667** | **67.8%** |
 
-Cairo-only public items not matched to upstream: **1265**.
+Cairo-only public items not matched to upstream: **1318**.
 
 ## Aabb
 
@@ -217,12 +217,12 @@ Cairo-only public items not matched to upstream: **1265**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `find_first_impact` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `invalidate_fixed_targets_cache` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `new` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `solve_continuous` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| method `update_ccd_active_flags` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
-| type `CCDSolver` | dynamics | missing | CCD solver in the step: lot CC2. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `find_first_impact` | dynamics | ported | Same public name. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `invalidate_fixed_targets_cache` | dynamics | ported | Same public name. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `solve_continuous` | dynamics | ported | Same public name. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| method `update_ccd_active_flags` | dynamics | ported | Same public name. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
+| type `CCDSolver` | dynamics | ported | Same public name. | `rapier/src/dynamics/ccd/ccd_solver.rs` |
 
 ## CanonicalVoxelShape
 
@@ -2498,11 +2498,11 @@ Cairo-only public items not matched to upstream: **1265**.
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `effective_active_set_offset` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `effective_dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enable_ccd` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `enable_ccd` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravitational_potential_energy` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_ccd_active` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
-| method `is_ccd_enabled` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_ccd_active` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
+| method `is_ccd_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_dynamic_or_kinematic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2554,12 +2554,12 @@ Cairo-only public items not matched to upstream: **1265**.
 | method `set_next_kinematic_translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `set_soft_ccd_prediction` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `set_soft_ccd_prediction` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `set_vels` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_body` | dynamics | excluded | soft bodies | `rapier/src/dynamics/rigid_body.rs` |
-| method `soft_ccd_prediction` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `soft_ccd_prediction` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `soft_cluster` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `user_force` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2607,7 +2607,7 @@ Cairo-only public items not matched to upstream: **1265**.
 | method `angvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `build` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `can_sleep` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `ccd_enabled` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `ccd_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2630,7 +2630,7 @@ Cairo-only public items not matched to upstream: **1265**.
 | method `restrict_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `sleeping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `soft_ccd_prediction` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body.rs` |
+| method `soft_ccd_prediction` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `translation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `user_data` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | type `RigidBodyBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2639,12 +2639,12 @@ Cairo-only public items not matched to upstream: **1265**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `FAST_BODY_SAFETY_FACTOR` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
-| impl `Default` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `is_moving_fast` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `is_moving_fast_with_next_position` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
-| method `max_point_velocity` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `RigidBodyCcd` | dynamics | missing | Body CCD state: lot CC2. | `rapier/src/dynamics/rigid_body_components.rs` |
+| const `FAST_BODY_SAFETY_FACTOR` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `is_moving_fast` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `is_moving_fast_with_next_position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| method `max_point_velocity` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `RigidBodyCcd` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyChanges
 
@@ -4573,7 +4573,7 @@ Cairo-only public items not matched to upstream: **1265**.
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
-| [CCD and shape casts](#wp-ccd-and-shape-casts) | 34 | hard | QP queries |
+| [CCD and shape casts](#wp-ccd-and-shape-casts) | 15 | hard | QP queries |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 | [Collider API completion](#wp-collider-api-completion) | 11 | mechanical | DB/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 10 | standard | SE sensors |
@@ -4967,29 +4967,10 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 
 ### WP: CCD and shape casts
 
-Tier: hard. Depends/context: QP queries. Estimate: 34 public items.
+Tier: hard. Depends/context: QP queries. Estimate: 15 public items.
 
-- **CCDSolver** method `find_first_impact` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `invalidate_fixed_targets_cache` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `new` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `solve_continuous` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** method `update_ccd_active_flags` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
-- **CCDSolver** type `CCDSolver` (`rapier/src/dynamics/ccd/ccd_solver.rs`)
 - **CompositeShapeRef** method `cast_shape` (`parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs`)
 - **CompositeShapeRef** method `cast_shape_nonlinear` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs`)
-- **RigidBody** method `enable_ccd` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_ccd_active` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `is_ccd_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `set_soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBody** method `soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `ccd_enabled` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyBuilder** method `soft_ccd_prediction` (`rapier/src/dynamics/rigid_body.rs`)
-- **RigidBodyCcd** const `FAST_BODY_SAFETY_FACTOR` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** method `is_moving_fast` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** method `is_moving_fast_with_next_position` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** method `max_point_velocity` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyCcd** type `RigidBodyCcd` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **Shape** method `ccd_angular_thickness` (`parry/src/shape/shape.rs`)
 - **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
 - **SweepCompositeFastShape** type `SweepCompositeFastShape` (`parry/src/query/sweep_toi/composite.rs`)
@@ -5132,6 +5113,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **ActiveSet** method `invalidate` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** method `is_valid` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** type `ActiveSet` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveView** type `ActiveView` (`crates/rapier2d/src/pipeline/ccd/targets.cairo`)
 - **Alternatives** const `BALL_BALL` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `BALL_CONVEX` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `CAPSULE_CAPSULE` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
@@ -5271,8 +5253,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Ball** method `local_support_point` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `local_support_point_toward` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `mass_properties` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- **Ball** method `project_local_point_and_get_feature_ball` (`crates/rapier_geometry2d/src/point/ball.cairo`)
-- ... 1065 more
+- ... 1118 more
 
 ## Embedded Rust inventory
 

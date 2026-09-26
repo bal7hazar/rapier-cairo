@@ -10,8 +10,10 @@
 //! Scenes (`rapier_golden::scenes`): `box_stack3` (resting contacts, warm start), `pendulum`
 //! (revolute joint impulses), `box_stack3` with removals and reinsertions, and `ball_drop_sleep`
 //! plus a standalone sensor slab around the resting ball (the ball falls asleep inside the sensor
-//! at step 66, `ball2` crosses the sensor and wakes it up at step 87).
+//! at step 66, `ball2` crosses the sensor and wakes it up at step 87). CC2 adds a CCD world stepped
+//! by `step_with_ccd`, its solver round-tripped with the world.
 
+use rapier2d::pipeline::ccd::{CCDSolver, CCDSolverTrait};
 use rapier2d::prelude::{
     ColliderBuilderTrait, CollisionEvent, CollisionEventTrait, Fixed, Handle, IntegrationParameters,
     RevoluteJointBuilderTrait, RigidBodyTrait, Vec2, World, WorldTrait,
@@ -21,7 +23,9 @@ use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
-use rapier_dynamics2d::rigid_body_set::RigidBodySetTrait;
+use rapier_dynamics2d::rigid_body_set::{
+    RigidBodyBuilderTrait, RigidBodyCcdApiTrait, RigidBodySetTrait,
+};
 use rapier_golden::scenes;
 use rapier_golden::types::{BodyKindRaw, PoseRaw, SceneCase, ShapeRaw, Vec2Raw};
 use rapier_math::pose2::Pose2;
@@ -337,4 +341,81 @@ fn test_version_mismatch_panics() {
     let mut state = world.to_state();
     state.version = WORLD_STATE_VERSION + 1;
     let _ = WorldTrait::from_state(state);
+}
+
+/// CC2: a CCD world (a bullet ball with user data thrown at a thin plank through a sensor, a
+/// dropping box in the automatic mode) stepped by `step_with_ccd`, chunked through the world state
+/// and the solver's `Serde`: the bodies' CCD state (in their cold data, version 3) and the
+/// solver's switch survive, the restored solver rebuilds its caches, and every step matches.
+fn run_ccd(k: u32, steps: u32) {
+    let build_ccd = || -> World {
+        let mut world = WorldTrait::new(
+            Vec2 { x: f(0), y: f(-42133629174) }, IntegrationParameters { ..Default::default() },
+        );
+        let _ = world
+            .insert_collider(
+                ColliderBuilderTrait::cuboid(f(ONE_RAW / 20), f(ONE_RAW)).build(), None,
+            );
+        let sensor = ColliderBuilderTrait::cuboid(f(ONE_RAW / 20), f(ONE_RAW))
+            .position(at(-ONE_RAW / 2, 0))
+            .sensor(true)
+            .active_events(COLLISION_EVENTS)
+            .build();
+        let _ = world.insert_collider(sensor, None);
+        let ball = RigidBodyBuilderTrait::dynamic()
+            .translation(Vec2 { x: f(-2 * ONE_RAW), y: f(0) })
+            .linvel(Vec2 { x: f(30 * ONE_RAW), y: f(0) })
+            .ccd_enabled(true)
+            .user_data(42)
+            .build();
+        let _ = world.insert(ball, ColliderBuilderTrait::ball(f(ONE_RAW / 10)).build());
+        let _ = world
+            .insert(
+                RigidBodyTrait::dynamic(at(2 * ONE_RAW, 3 * ONE_RAW)),
+                ColliderBuilderTrait::cuboid(f(ONE_RAW / 10), f(ONE_RAW / 10)).build(),
+            );
+        world
+    };
+    let mut reference = build_ccd();
+    let mut chunked = build_ccd();
+    let mut solver_ref: CCDSolver = CCDSolverTrait::new();
+    solver_ref.set_automatic(true);
+    let mut solver = solver_ref;
+    let mut sensor_events = 0;
+    let mut step = 0;
+    while step != steps {
+        let expected = reference.step_with_ccd(ref solver_ref);
+        let got = chunked.step_with_ccd(ref solver);
+        assert!(expected == got, "events differ at step {}", step);
+        for event in expected.span() {
+            if (*event).sensor() {
+                sensor_events += 1;
+            }
+        }
+        step += 1;
+        if step % k == 0 {
+            let restored = round_trip(ref chunked);
+            chunked = restored;
+            let mut felts = array![];
+            solver.serialize(ref felts);
+            let mut span = felts.span();
+            solver = Serde::deserialize(ref span).unwrap();
+        }
+        assert!(reference.to_state() == chunked.to_state(), "state differs after step {}", step);
+    }
+    let ball = chunked.body(h(0, 0)).unwrap();
+    assert!(ball.is_ccd_enabled());
+    // Stopped at the plank, after crossing the sensor within one step (`Started`, `Stopped`).
+    assert!(ball.pos.position.translation.x.raw < 0);
+    assert_eq!(sensor_events, 2);
+}
+
+#[test]
+fn test_chunked_ccd_k1() {
+    run_ccd(1, 12);
+}
+
+#[test]
+fn test_chunked_ccd_k5() {
+    run_ccd(5, 12);
 }

@@ -27,12 +27,13 @@
 //!
 //! Deviations from upstream: no persistent island manager (islands are rebuilt when an awake
 //! body can fall asleep or touches a sleeping one), no broad-phase tree (the active set keeps the
-//! static proxies), no CCD solver, multibody or soft body sets, query pipeline (the scene queries
-//! scan the collider set, `crate::queries`), hooks or event handler (events are returned by
-//! `step` and `step_with_force_events`, the counterpart of `step_with_events`), thread pool or
-//! quarantine (Q32.32 state cannot become non-finite: an overflow panics). Sets are read by
-//! copy: [`WorldTrait::rigid_bodies`] / [`WorldTrait::all_colliders`] also stand for upstream's
-//! `_mut` iterators (write changes back with `set_body` / `set_collider`).
+//! static proxies), no CCD solver (`step_with_ccd` takes one, `crate::pipeline::ccd`), multibody or
+//! soft body sets, query pipeline (the scene queries scan the collider set, `crate::queries`),
+//! hooks or event handler (events are returned by `step` and `step_with_force_events`, the
+//! counterpart of `step_with_events`), thread pool or quarantine (Q32.32 state cannot become
+//! non-finite: an overflow panics). Sets are read by copy: [`WorldTrait::rigid_bodies`] /
+//! [`WorldTrait::all_colliders`] also stand for upstream's `_mut` iterators (write changes back
+//! with `set_body` / `set_collider`).
 
 use fixed::{Fixed, ZERO};
 use glam::Vec2;
@@ -56,6 +57,7 @@ use rapier_geometry2d::ray::{Ray, RayIntersection};
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
 use crate::pipeline::active_set::ActiveSet;
+use crate::pipeline::ccd::CCDSolver;
 use crate::queries::{QueryFilter, QueryPipeline, QueryPipelineTrait};
 
 /// Versioned save / restore ([`WorldTrait::to_state`], [`WorldTrait::from_state`]).
@@ -461,6 +463,21 @@ pub impl WorldImpl of WorldTrait {
         ref self: World,
     ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
         crate::pipeline::step_with_force_events(ref self)
+    }
+
+    /// [`WorldTrait::step`] with continuous collision detection (upstream `PhysicsWorld::step`
+    /// with its `ccd_solver`): fast `ccd_enabled` bodies (every fast dynamic body when
+    /// `ccd_solver` is automatic) are stopped at their first impact. See
+    /// `crate::pipeline::ccd`. Panics as `step`.
+    fn step_with_ccd(ref self: World, ref ccd_solver: CCDSolver) -> Array<CollisionEvent> {
+        crate::pipeline::ccd::step_with_ccd(ref self, ref ccd_solver)
+    }
+
+    /// [`WorldTrait::step_with_ccd`] that also returns the contact-force events.
+    fn step_with_ccd_and_force_events(
+        ref self: World, ref ccd_solver: CCDSolver,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        crate::pipeline::ccd::step_with_ccd_and_force_events(ref self, ref ccd_solver)
     }
 
     /// The collider hit first by `ray` and its time of impact, strictly below `max_toi`

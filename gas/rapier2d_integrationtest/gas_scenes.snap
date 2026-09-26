@@ -3,6 +3,11 @@ rapier2d_integrationtest::gas_scenes::gas_baseline 14120
 rapier2d_integrationtest::gas_scenes::gas_setup_balls_halfspace1 3292646
 rapier2d_integrationtest::gas_scenes::gas_setup_balls_halfspace32 75513072
 rapier2d_integrationtest::gas_scenes::gas_setup_balls_halfspace8 19255598
+rapier2d_integrationtest::gas_scenes::gas_setup_ccd_auto_balls_halfspace8 20814438
+rapier2d_integrationtest::gas_scenes::gas_setup_ccd_auto_cuboid_stack5 17848670
+rapier2d_integrationtest::gas_scenes::gas_setup_ccd_auto_free_fall8 16489292
+rapier2d_integrationtest::gas_scenes::gas_setup_ccd_auto_mixed_pile8 30018525
+rapier2d_integrationtest::gas_scenes::gas_setup_ccd_auto_pendulum_chain3 34558713
 rapier2d_integrationtest::gas_scenes::gas_setup_cuboid_stack1 3646876
 rapier2d_integrationtest::gas_scenes::gas_setup_cuboid_stack10 33502195
 rapier2d_integrationtest::gas_scenes::gas_setup_cuboid_stack3 10242698
@@ -20,6 +25,11 @@ rapier2d_integrationtest::gas_scenes::gas_setup_wheel_motor 15138430
 rapier2d_integrationtest::gas_scenes::gas_step_balls_halfspace1 5448035
 rapier2d_integrationtest::gas_scenes::gas_step_balls_halfspace32 121549560
 rapier2d_integrationtest::gas_scenes::gas_step_balls_halfspace8 31092820
+rapier2d_integrationtest::gas_scenes::gas_step_ccd_auto_balls_halfspace8 33934540
+rapier2d_integrationtest::gas_scenes::gas_step_ccd_auto_cuboid_stack5 29204625
+rapier2d_integrationtest::gas_scenes::gas_step_ccd_auto_free_fall8 21211784
+rapier2d_integrationtest::gas_scenes::gas_step_ccd_auto_mixed_pile8 51082572
+rapier2d_integrationtest::gas_scenes::gas_step_ccd_auto_pendulum_chain3 44934637
 rapier2d_integrationtest::gas_scenes::gas_step_cuboid_stack1 6156815
 rapier2d_integrationtest::gas_scenes::gas_step_cuboid_stack10 54085700
 rapier2d_integrationtest::gas_scenes::gas_step_cuboid_stack3 16752535

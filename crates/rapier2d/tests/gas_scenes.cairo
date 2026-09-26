@@ -8,6 +8,7 @@
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam::Vec2;
+use rapier2d::pipeline::ccd::{CCDSolver, CCDSolverTrait};
 use rapier2d::world::{World, WorldTrait};
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
@@ -559,4 +560,71 @@ fn steps_step_rope() {
 #[test]
 fn steps_step_spring() {
     probe(opaque('spring'), opaque(1), WARMUP_PENDULUM, 1);
+}
+
+// CC2: upstream's automatic CCD (`step_with_ccd` with `set_automatic(true)`) on P3 scenes. The
+// setup twins take the warm-up with the same solver; `gas_step_ccd_auto_* - gas_setup_ccd_auto_*`
+// is one automatic-CCD step, to compare with `gas_step_* - gas_setup_*`.
+
+#[inline(never)]
+fn probe_auto(id: felt252, size: u32, steps: u32) {
+    let mut world = scene(id, size);
+    let mut solver: CCDSolver = CCDSolverTrait::new();
+    solver.set_automatic(true);
+    let mut k = 0;
+    while k != steps {
+        let _ = world.step_with_ccd(ref solver);
+        k += 1;
+    }
+    let _ = opaque(world.colliders.len());
+}
+
+#[test]
+fn gas_setup_ccd_auto_free_fall8() {
+    probe_auto(opaque('free'), opaque(8), WARMUP_FREE_FALL);
+}
+
+#[test]
+fn gas_step_ccd_auto_free_fall8() {
+    probe_auto(opaque('free'), opaque(8), WARMUP_FREE_FALL + 1);
+}
+
+#[test]
+fn gas_setup_ccd_auto_balls_halfspace8() {
+    probe_auto(opaque('balls'), opaque(8), WARMUP_CONTACTS);
+}
+
+#[test]
+fn gas_step_ccd_auto_balls_halfspace8() {
+    probe_auto(opaque('balls'), opaque(8), WARMUP_CONTACTS + 1);
+}
+
+#[test]
+fn gas_setup_ccd_auto_cuboid_stack5() {
+    probe_auto(opaque('stack'), opaque(5), WARMUP_CONTACTS);
+}
+
+#[test]
+fn gas_step_ccd_auto_cuboid_stack5() {
+    probe_auto(opaque('stack'), opaque(5), WARMUP_CONTACTS + 1);
+}
+
+#[test]
+fn gas_setup_ccd_auto_mixed_pile8() {
+    probe_auto(opaque('mixed'), opaque(8), WARMUP_CONTACTS);
+}
+
+#[test]
+fn gas_step_ccd_auto_mixed_pile8() {
+    probe_auto(opaque('mixed'), opaque(8), WARMUP_CONTACTS + 1);
+}
+
+#[test]
+fn gas_setup_ccd_auto_pendulum_chain3() {
+    probe_auto(opaque('pend'), opaque(3), WARMUP_PENDULUM);
+}
+
+#[test]
+fn gas_step_ccd_auto_pendulum_chain3() {
+    probe_auto(opaque('pend'), opaque(3), WARMUP_PENDULUM + 1);
 }
