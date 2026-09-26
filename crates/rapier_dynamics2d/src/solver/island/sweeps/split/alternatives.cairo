@@ -74,6 +74,8 @@ fn hot_point(e: ContactConstraintElement) -> HotPoint {
         t_rhs: e.tangent_part.rhs,
         acc: e.normal_part.impulse_accumulator,
         t_acc: e.tangent_part.impulse_accumulator,
+        dist: ZERO,
+        t_dist: ZERO,
     }
 }
 

@@ -205,7 +205,15 @@ fn split_point(
             contact_id: cid,
         },
         HotPoint {
-            impulse: ni, rhs: ZERO, cfm: ZERO, t_impulse: ti, t_rhs: ZERO, acc: -ni, t_acc: -ti,
+            impulse: ni,
+            rhs: ZERO,
+            cfm: ZERO,
+            t_impulse: ti,
+            t_rhs: ZERO,
+            acc: -ni,
+            t_acc: -ti,
+            dist: ZERO,
+            t_dist: ZERO,
         },
         cid,
     )

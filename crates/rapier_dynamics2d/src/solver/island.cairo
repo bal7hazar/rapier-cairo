@@ -98,7 +98,13 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     while substep != params.num_solver_iterations {
         sb.add_forces(steps);
         rows = rebuild_joints(ref sb, builders.span(), rows.span(), params, substep != 0);
-        split::contacts(ref hot, frozen, ref sb, params, 0);
+        // BT3: after the first substep, a refresh (stage 2) ran on the current poses.
+        let update = if substep != 0 && params.num_internal_stabilization_iterations != 0 {
+            5
+        } else {
+            0
+        };
+        split::contacts(ref hot, frozen, ref sb, params, update);
         let mut i = 0;
         while i != params.num_internal_pgs_iterations {
             joints(ref rows, ref sb, true, params.warmstart_joints && i == 0);

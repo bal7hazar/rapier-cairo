@@ -66,7 +66,9 @@ pub(crate) struct Frozen {
     pub b: FrozenPoint,
 }
 
-/// What the sweeps change for one contact point.
+/// What the sweeps change for one contact point. `dist` / `t_dist` cache the separations the
+/// last refresh computed from the current poses (BT3): the next substep's update reads them
+/// instead of recomputing them from the same poses.
 #[derive(Copy, Drop, Debug, PartialEq, Default)]
 pub(crate) struct HotPoint {
     pub impulse: Fixed,
@@ -76,6 +78,8 @@ pub(crate) struct HotPoint {
     pub t_rhs: Fixed,
     pub acc: Fixed,
     pub t_acc: Fixed,
+    pub dist: Fixed,
+    pub t_dist: Fixed,
 }
 
 /// What the sweeps change for one active constraint.
@@ -86,7 +90,8 @@ pub(crate) struct Hot {
 }
 
 /// Visit the active constraints in order: 0 update/warmstart, 1 bias, 2 rhs/relax, 3 relax,
-/// else bounce (the stages of `contact::contacts`).
+/// 5 update/warmstart reusing the separations of the last stage 2 (valid when no pose changed
+/// since), else bounce (the stages of `contact::contacts`).
 pub(crate) fn contacts(
     ref hot: Array<Hot>,
     frozen: Span<Frozen>,
@@ -95,10 +100,13 @@ pub(crate) fn contacts(
     stage: u8,
 ) {
     match stage {
-        0 => {
+        0 |
+        5 => {
             assert(p.warmstart_coefficient >= ZERO, errors::NEGATIVE);
             let warm = p.warmstart_coefficient;
-            let k = Update { warm, unit: warm == ONE, neg_cap: -p.max_corrective_velocity() };
+            let k = Update {
+                warm, unit: warm == ONE, neg_cap: -p.max_corrective_velocity(), reuse: stage == 5,
+            };
             sweep(ref hot, frozen, ref bodies, k)
         },
         1 => {
@@ -124,6 +132,8 @@ struct Update {
     warm: Fixed,
     unit: bool,
     neg_cap: Fixed,
+    /// Stage 5: the separations cached by the last refresh are those of the current poses.
+    reuse: bool,
 }
 #[derive(Copy, Drop)]
 struct Biased {}
@@ -263,24 +273,16 @@ fn separation(a: Vec2, b: Vec2, dir: Vec2, t: Vec2, dist: Fixed) -> (Fixed, Fixe
             .narrow(),
     )
 }
-/// `dist + dot(a - b, dir)`, as `separation`.
-#[inline(always)]
-fn normal_separation(a: Vec2, b: Vec2, dir: Vec2, dist: Fixed) -> Fixed {
-    wide_mul(a.x, dir.x)
-        .sub(wide_mul(b.x, dir.x))
-        .add(wide_mul(a.y, dir.y))
-        .sub(wide_mul(b.y, dir.y))
-        .add(wide_from(dist))
-        .narrow()
-}
 /// `update_element` on the hot values (the unbiased rhs is transient: refresh recomputes it).
 /// A warm-start coefficient of exactly one (the default) skips its two products (`x * ONE ==
 /// x` exactly, BT3).
 #[inline(always)]
 fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2, k: Update) {
-    let (dist, t_dist) = separation(
-        transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist,
-    );
+    let (dist, t_dist) = if k.reuse {
+        (h.dist, h.t_dist)
+    } else {
+        separation(transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist)
+    };
     let rhs_wo_bias = max(ZERO, dist) * *c.inv_dt;
     h.rhs = rhs_wo_bias + min(ZERO, max(k.neg_cap, dist * *c.erp_inv_dt));
     h.cfm = if dist > ZERO {
@@ -299,9 +301,11 @@ fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pos
 /// `refresh_unbiased` then `strip`.
 #[inline(always)]
 fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2) {
-    let dist = normal_separation(
-        transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *f.dist,
+    let (dist, t_dist) = separation(
+        transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist,
     );
+    h.dist = dist;
+    h.t_dist = t_dist;
     h.rhs = max(ZERO, dist) * *c.inv_dt;
     h.cfm = ONE;
     h.t_rhs = *f.t_rhs_wo_bias;

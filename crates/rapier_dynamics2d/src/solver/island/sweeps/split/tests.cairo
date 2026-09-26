@@ -70,12 +70,19 @@ fn check(vx: i16, vy: i16, spin: i16, warm: u8) {
     let (max_lin, max_ang) = (p.max_linear_velocity(), Fixed { raw: 3373259426 } * p.inv_dt());
     add_forces(ref dense, steps.span());
     sb.add_forces(steps.span());
-    for stage in array![0_u8, 1, 2, 3, 4] {
+    // Stage 5 (the next substep's update from the separations cached by stage 2) against the
+    // reference's recomputing update.
+    for stage in array![0_u8, 1, 2, 3, 5, 1, 4] {
         if stage == 2 {
             integrate(ref dense, steps.span(), dt, max_lin, max_ang);
             sb.integrate(steps.span(), dt, max_lin, max_ang);
         }
-        reference(ref cs, ref dense, ms.span(), p, stage, directions.span());
+        let reference_stage = if stage == 5 {
+            0
+        } else {
+            stage
+        };
+        reference(ref cs, ref dense, ms.span(), p, reference_stage, directions.span());
         contacts(ref hot, frozen.span(), ref sb, p, stage);
         let mut i = 0;
         while i != 3 {
