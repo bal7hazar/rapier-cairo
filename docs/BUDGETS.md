@@ -52,6 +52,12 @@ velocity threshold for 20 ticks) fires within 1–4 ticks of the engine where ei
   +0.8 % to +3.7 % (≈ 85 steps per step from the sets' `modified` field → BT4). Activation reads: `World::body` 269
   steps, `is_sleeping` / `linvel` / `angvel` 146 / 150 / 146 (an arena read copies the whole body: BT4's field
   accessor).
+- **BT3 #146** (narrow phase, constraint generation, per-substep solve; results bit-identical): exact Cairo steps,
+  impact windows L10 / L20 2,278,494 / 2,640,861 → 1,849,193 / 2,211,560 (−18.8 % / −16.3 %); load −12.3 % / −13.0 %;
+  flight −0.2 %; P3 contact scenes −5.5 % to −15.1 % gross (`cuboid_stack10` 511,800 → 434,585, `mixed_pile8`
+  475,224 → 415,434), free fall and joints identical. L10 impact tick 476,178 → 369,855: narrow phase 101.3k,
+  `solve_island` 194.4k (≈ 35.0k per substep), glue 52.2k. Per point per substep 2,202 → 1,473 steps; a non-touching
+  half-space–cuboid pair 1,359 → 321. Since G0 (before BT1) the L10 impact tick went 811,866 → 369,855 (−54 %).
 
 ## Current (2026-09-24 evening, after OS #68, OP #69, OI #73, BP #72, OJ #78, DO #80, BG #81)
 
