@@ -2,12 +2,14 @@
 //! aligned with a direction, for the shapes whose features are polygonal.
 //!
 //! Upstream fills an `&mut PolygonalFeature`; here the feature is returned. Implemented for
-//! `Segment`, `Cuboid` and `ConvexPolygon` (as upstream), and for the [`Shape`] view returned by
-//! `ShapeTrait::as_polygonal_feature_map`.
+//! `Segment`, `Cuboid`, `ConvexPolygon` and `Triangle` (as upstream), and for the [`Shape`] view
+//! returned by `ShapeTrait::as_polygonal_feature_map`.
 
 use glam::Vec2;
 use crate::polygonal_feature::PolygonalFeature;
-use crate::shape::{ConvexPolygon, ConvexPolygonTrait, Cuboid, CuboidTrait, Segment, Shape};
+use crate::shape::{
+    ConvexPolygon, ConvexPolygonTrait, Cuboid, CuboidTrait, Segment, Shape, Triangle, TriangleTrait,
+};
 
 pub mod errors {
     /// Ball, capsule and half-space have no polygonal feature map (upstream: not implemented).
@@ -51,16 +53,25 @@ pub impl ConvexPolygonPolygonalFeatureMap of PolygonalFeatureMap<ConvexPolygon> 
     }
 }
 
+/// `TriangleTrait::support_face` (vertex ids `i`, face ids `i`, upstream's triangle ids).
+pub impl TrianglePolygonalFeatureMap of PolygonalFeatureMap<Triangle> {
+    #[inline(always)]
+    fn local_support_feature(self: Triangle, dir: Vec2) -> PolygonalFeature {
+        TriangleTrait::support_face(self, dir)
+    }
+}
+
 /// Dispatch over the closed set.
 /// #### Panics
-/// * `'Shape: not a feature map'` for a ball, a capsule (use the segment returned by
-///   `as_polygonal_feature_map`) or a half-space.
+/// * `'Shape: not a feature map'` for a ball, a capsule or a round shape (use the inner shape
+///   returned by `as_polygonal_feature_map`) or a half-space.
 pub impl ShapePolygonalFeatureMap of PolygonalFeatureMap<Shape> {
     fn local_support_feature(self: Shape, dir: Vec2) -> PolygonalFeature {
         match self {
             Shape::Cuboid(s) => CuboidTrait::support_face(s, dir),
             Shape::Segment(s) => s.into(),
             Shape::ConvexPolygon(s) => ConvexPolygonTrait::support_feature(s.unbox(), dir),
+            Shape::Triangle(s) => TriangleTrait::support_face(s.unbox(), dir),
             _ => core::panic_with_felt252(errors::NOT_FEATURE_MAP),
         }
     }

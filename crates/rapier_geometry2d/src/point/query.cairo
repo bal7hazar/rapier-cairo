@@ -14,7 +14,9 @@
 //! * `*_with_max_dist` compare `|proj - pt|` with `max_dist` on the exact wide square
 //!   (`max_dist < 0` never answers), where upstream compares the rounded length.
 //! * `PointQueryWithLocation` carries its location type as a second generic parameter instead of
-//!   an associated type; the only implementor is [`Segment`] (`SegmentPointLocation`).
+//!   an associated type; the implementors are [`Segment`] (`SegmentPointLocation`) and
+//!   [`Triangle`] (`TrianglePointLocation`).
+//! * The round shapes' impl is generic over the inner shape (`super::round_shape`).
 
 use fixed::{Fixed, ZERO};
 use glam::Vec2;
@@ -25,10 +27,22 @@ use crate::aabb::{
     project_local_point_and_get_feature_aabb,
 };
 use crate::feature_id::FeatureId;
-use crate::shape::{Ball, Capsule, ConvexPolygon, Cuboid, HalfSpace, Segment, Shape};
+use crate::shape::{
+    Ball, Capsule, ConvexPolygon, Cuboid, HalfSpace, Segment, Shape, Triangle,
+    TrianglePointLocation,
+};
 use super::convex_polygon::{
     contains_local_point_convex_polygon, distance_to_local_point_convex_polygon,
     project_local_point_and_get_feature_convex_polygon, project_local_point_convex_polygon,
+};
+use super::round_shape::{
+    contains_local_point_round, distance_to_local_point_round,
+    project_local_point_and_get_feature_round, project_local_point_round,
+};
+use super::triangle::{
+    contains_local_point_triangle, distance_to_local_point_triangle,
+    project_local_point_and_get_feature_triangle, project_local_point_and_get_location_triangle,
+    project_local_point_triangle,
 };
 use super::{
     PointProjection, PointProjectionTrait, SegmentPointLocation, contains_local_point_ball,
@@ -280,6 +294,31 @@ pub impl ConvexPolygonPointQuery of PointQuery<ConvexPolygon> {
     }
 }
 
+pub impl TrianglePointQuery of PointQuery<Triangle> {
+    fn project_local_point(self: Triangle, pt: Vec2, solid: bool) -> PointProjection {
+        project_local_point_triangle(self, pt, solid)
+    }
+    fn project_local_point_and_get_feature(
+        self: Triangle, pt: Vec2,
+    ) -> (PointProjection, FeatureId) {
+        project_local_point_and_get_feature_triangle(self, pt)
+    }
+    fn distance_to_local_point(self: Triangle, pt: Vec2, solid: bool) -> Fixed {
+        distance_to_local_point_triangle(self, pt, solid)
+    }
+    fn contains_local_point(self: Triangle, pt: Vec2) -> bool {
+        contains_local_point_triangle(self, pt)
+    }
+}
+
+pub impl TrianglePointQueryWithLocation of PointQueryWithLocation<Triangle, TrianglePointLocation> {
+    fn project_local_point_and_get_location(
+        self: Triangle, pt: Vec2, solid: bool,
+    ) -> (PointProjection, TrianglePointLocation) {
+        project_local_point_and_get_location_triangle(self, pt, solid)
+    }
+}
+
 pub impl AabbPointQuery of PointQuery<Aabb> {
     fn project_local_point(self: Aabb, pt: Vec2, solid: bool) -> PointProjection {
         project_local_point_aabb(self, pt, solid)
@@ -307,6 +346,18 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             Shape::Segment(s) => project_local_point_segment(s, pt, solid),
             Shape::HalfSpace(s) => project_local_point_halfspace(s, pt, solid),
             Shape::ConvexPolygon(s) => project_local_point_convex_polygon(s.unbox(), pt, solid),
+            Shape::Triangle(s) => project_local_point_triangle(s.unbox(), pt, solid),
+            Shape::RoundCuboid(s) => project_local_point_round(
+                s.inner_shape, s.border_radius, pt, solid,
+            ),
+            Shape::RoundTriangle(s) => {
+                let s = s.unbox();
+                project_local_point_round(s.inner_shape, s.border_radius, pt, solid)
+            },
+            Shape::RoundConvexPolygon(s) => {
+                let s = s.unbox();
+                project_local_point_round(s.inner_shape, s.border_radius, pt, solid)
+            },
         }
     }
     #[inline(always)]
@@ -320,6 +371,18 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             Shape::ConvexPolygon(s) => project_local_point_and_get_feature_convex_polygon(
                 s.unbox(), pt,
             ),
+            Shape::Triangle(s) => project_local_point_and_get_feature_triangle(s.unbox(), pt),
+            Shape::RoundCuboid(s) => project_local_point_and_get_feature_round(
+                s.inner_shape, s.border_radius, pt,
+            ),
+            Shape::RoundTriangle(s) => {
+                let s = s.unbox();
+                project_local_point_and_get_feature_round(s.inner_shape, s.border_radius, pt)
+            },
+            Shape::RoundConvexPolygon(s) => {
+                let s = s.unbox();
+                project_local_point_and_get_feature_round(s.inner_shape, s.border_radius, pt)
+            },
         }
     }
     #[inline(always)]
@@ -331,6 +394,18 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             Shape::Segment(s) => distance_to_local_point_segment(s, pt, solid),
             Shape::HalfSpace(s) => distance_to_local_point_halfspace(s, pt, solid),
             Shape::ConvexPolygon(s) => distance_to_local_point_convex_polygon(s.unbox(), pt, solid),
+            Shape::Triangle(s) => distance_to_local_point_triangle(s.unbox(), pt, solid),
+            Shape::RoundCuboid(s) => distance_to_local_point_round(
+                s.inner_shape, s.border_radius, pt, solid,
+            ),
+            Shape::RoundTriangle(s) => {
+                let s = s.unbox();
+                distance_to_local_point_round(s.inner_shape, s.border_radius, pt, solid)
+            },
+            Shape::RoundConvexPolygon(s) => {
+                let s = s.unbox();
+                distance_to_local_point_round(s.inner_shape, s.border_radius, pt, solid)
+            },
         }
     }
     #[inline(always)]
@@ -342,7 +417,39 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             Shape::Segment(s) => contains_local_point_segment(s, pt),
             Shape::HalfSpace(s) => contains_local_point_halfspace(s, pt),
             Shape::ConvexPolygon(s) => contains_local_point_convex_polygon(s.unbox(), pt),
+            _ => contains_local_point_sh1(self, pt) != 0,
         }
+    }
+}
+
+/// The SH1 arms of `ShapePointQuery::contains_local_point`, metered (one-iteration loop): their
+/// projections are statically dearer than every old arm, which would otherwise pay their gas
+/// alignment. Answers `1` inside, `0` outside: a `bool` result would share its post-call block
+/// with the old arms' calls, moving their code layout.
+#[inline(never)]
+fn contains_local_point_sh1(shape: Shape, pt: Vec2) -> u8 {
+    let mut inside = false;
+    let mut pending = true;
+    while pending {
+        inside = match shape {
+            Shape::Triangle(s) => contains_local_point_triangle(s.unbox(), pt),
+            Shape::RoundCuboid(s) => contains_local_point_round(s.inner_shape, s.border_radius, pt),
+            Shape::RoundTriangle(s) => {
+                let s = s.unbox();
+                contains_local_point_round(s.inner_shape, s.border_radius, pt)
+            },
+            Shape::RoundConvexPolygon(s) => {
+                let s = s.unbox();
+                contains_local_point_round(s.inner_shape, s.border_radius, pt)
+            },
+            _ => false,
+        };
+        pending = false;
+    }
+    if inside {
+        1
+    } else {
+        0
     }
 }
 

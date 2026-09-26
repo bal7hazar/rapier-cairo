@@ -20,8 +20,9 @@
 //!   the `Face(0)` / `Face(1)` side are all read off exact `i128` quantities, never off a rounded
 //!   projection, so they never flip because the projected point landed 1 ulp away.
 //!
-//! Bounded convex polygons use analytic edge projection in `convex_polygon`.
-//! Deferred (see `docs/PLAN.md`): support-map projection (GJK/EPA) and triangles.
+//! Bounded convex polygons use analytic edge projection in `convex_polygon`, triangles upstream's
+//! Voronoi walk in `triangle` and the round shapes the inner projection pushed by the border
+//! radius in `round_shape` (closed form where upstream runs GJK).
 
 pub mod ball;
 pub mod capsule;
@@ -30,7 +31,9 @@ pub mod cuboid;
 pub mod halfspace;
 pub mod query;
 pub mod ratio;
+pub mod round_shape;
 pub mod segment;
+pub mod triangle;
 pub mod wide2;
 pub use ball::{
     contains_local_point_ball, distance_to_local_point_ball,
@@ -58,6 +61,11 @@ pub use segment::{
     contains_local_point_segment, distance_to_local_point_segment,
     project_local_point_and_get_feature_segment, project_local_point_and_get_location_segment,
     project_local_point_segment, segment_point_at,
+};
+pub use triangle::{
+    contains_local_point_triangle, distance_to_local_point_triangle,
+    project_local_point_and_get_feature_triangle, project_local_point_and_get_location_triangle,
+    project_local_point_triangle,
 };
 pub use wide2::{cross_wide, dot_wide};
 

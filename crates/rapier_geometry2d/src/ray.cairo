@@ -31,7 +31,9 @@ pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
 pub mod quotient;
+pub mod round_shape;
 pub mod segment;
+pub mod triangle;
 pub use ball::{cast_local_ray_and_get_normal_ball, cast_local_ray_ball};
 pub use capsule::{cast_local_ray_and_get_normal_capsule, cast_local_ray_capsule};
 pub use cast::RayCast;
@@ -139,6 +141,13 @@ pub fn cast_local_ray(
         Shape::ConvexPolygon(s) => convex_polygon::cast_local_ray_convex_polygon(
             s.unbox(), ray, max_time_of_impact, solid,
         ),
+        Shape::Triangle(s) => triangle::cast_local_ray_triangle(
+            s.unbox(), ray, max_time_of_impact, solid,
+        ),
+        _ => Some(
+            cast_local_ray_and_get_normal_rounded(shape, ray, max_time_of_impact, solid)?
+                .time_of_impact,
+        ),
     }
 }
 
@@ -166,6 +175,36 @@ pub fn cast_local_ray_and_get_normal(
         Shape::HalfSpace(s) => cast_local_ray_and_get_normal_halfspace(
             s, ray, max_time_of_impact, solid,
         ),
+        Shape::Triangle(s) => triangle::cast_local_ray_and_get_normal_triangle(
+            s.unbox(), ray, max_time_of_impact, solid,
+        ),
+        _ => cast_local_ray_and_get_normal_rounded(shape, ray, max_time_of_impact, solid),
+    }
+}
+
+/// The round-shape arms of the two inlined dispatchers, out of line (`None` for any other
+/// shape, which the dispatchers never pass).
+#[inline(never)]
+fn cast_local_ray_and_get_normal_rounded(
+    shape: Shape, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+) -> Option<RayIntersection> {
+    match shape {
+        Shape::RoundCuboid(s) => round_shape::cast_local_ray_and_get_normal_round_cuboid(
+            s.inner_shape, s.border_radius, ray, max_time_of_impact, solid,
+        ),
+        Shape::RoundTriangle(s) => {
+            let s = s.unbox();
+            round_shape::cast_local_ray_and_get_normal_round_triangle(
+                s.inner_shape, s.border_radius, ray, max_time_of_impact, solid,
+            )
+        },
+        Shape::RoundConvexPolygon(s) => {
+            let s = s.unbox();
+            round_shape::cast_local_ray_and_get_normal_round_convex_polygon(
+                s.inner_shape, s.border_radius, ray, max_time_of_impact, solid,
+            )
+        },
+        _ => None,
     }
 }
 

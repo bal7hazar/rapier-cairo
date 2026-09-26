@@ -17,7 +17,8 @@
 //! * `intersection_test_ball_point_query` and `intersection_test_point_query_ball` answer the
 //!   test only: no shape of the closed set has sub-shapes, so both `subshape` ids are `0` as
 //!   upstream's for a non-composite shape.
-//! * Triangles, composite shapes and their `intersection_test_*` are deferred (lots SH1 / SH2).
+//! * The cuboid–triangle tests (SH1) go through the exact support-map witness of
+//!   [`crate::dispatch::intersection_test`]; composite shapes are deferred (SH2).
 
 use core::panic_with_felt252;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -25,7 +26,7 @@ use rapier_math::rot2::Rot2Trait;
 use crate::aabb::{Aabb, AabbTrait};
 use crate::dispatch::intersection::{cuboid_capsule, halfspace_convex, point_query_ball};
 use crate::feature_id::SubShapeId;
-use crate::shape::{Ball, Capsule, Cuboid, CuboidTrait, HalfSpace, Segment, Shape};
+use crate::shape::{Ball, Capsule, Cuboid, CuboidTrait, HalfSpace, Segment, Shape, Triangle};
 use super::errors::NOT_SUPPORT_MAP;
 
 /// The result of an intersection test (Parry `ShapeIntersection`).
@@ -103,6 +104,36 @@ pub fn intersection_test_aabb_segment(aabb1: Aabb, segment2: Segment) -> bool {
     let cuboid1 = CuboidTrait::new(aabb1.half_extents());
     let pos12 = Pose2Trait::new(-aabb1.center(), Rot2Trait::IDENTITY);
     intersection_test_cuboid_segment(pos12, cuboid1, segment2)
+}
+
+/// Whether a cuboid and a triangle placed at `pos12` intersect (Parry
+/// `intersection_test_cuboid_triangle`; SAT there, the exact witness here).
+/// #### Panics
+/// * The overflow panics of the pose transform and of the wide products.
+pub fn intersection_test_cuboid_triangle(
+    pos12: Pose2, cuboid1: Cuboid, triangle2: Triangle,
+) -> bool {
+    crate::dispatch::intersection_test(pos12, Shape::Cuboid(cuboid1), triangle2.into()).unwrap()
+}
+
+/// [`intersection_test_cuboid_triangle`] with the shapes in the other order (Parry
+/// `intersection_test_triangle_cuboid`).
+/// #### Panics
+/// * See [`intersection_test_cuboid_triangle`].
+pub fn intersection_test_triangle_cuboid(
+    pos12: Pose2, triangle1: Triangle, cuboid2: Cuboid,
+) -> bool {
+    crate::dispatch::intersection_test(pos12, triangle1.into(), Shape::Cuboid(cuboid2)).unwrap()
+}
+
+/// Whether an AABB and a triangle, both in the same frame, intersect (Parry
+/// `intersection_test_aabb_triangle`).
+/// #### Panics
+/// * See [`intersection_test_cuboid_triangle`].
+pub fn intersection_test_aabb_triangle(aabb1: Aabb, triangle2: Triangle) -> bool {
+    let cuboid1 = CuboidTrait::new(aabb1.half_extents());
+    let pos12 = Pose2Trait::new(-aabb1.center(), Rot2Trait::IDENTITY);
+    intersection_test_cuboid_triangle(pos12, cuboid1, triangle2)
 }
 
 /// Whether a half-space and a support-map shape intersect: the deepest point of `other` along

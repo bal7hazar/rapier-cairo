@@ -181,6 +181,23 @@ pub impl MassPropertiesImpl of MassPropertiesTrait {
         Self::new(com, area * density, inertia * density)
     }
 
+    /// Properties of the triangle `a`, `b`, `c` (upstream `from_triangle`): mass `area *
+    /// density` at the centre `(a + b + c) / 3`, inertia `unit_angular_inertia * area * density`
+    /// (about `a`, as upstream). A zero area (exactly collinear vertices) gives zero mass and
+    /// inertia at the centre. Area and inertia floor once each (see `TriangleTrait`).
+    /// #### Panics
+    /// * `'Fixed: overflow'` when a product or a non-zero inverse leaves the scalar range.
+    fn from_triangle(density: Fixed, a: Vec2, b: Vec2, c: Vec2) -> MassProperties {
+        let triangle = crate::shape::triangle::Triangle { a, b, c };
+        let area = crate::shape::triangle::TriangleTrait::area(triangle);
+        let com = crate::shape::triangle::TriangleTrait::center(triangle);
+        if area == ZERO {
+            return Self::new(com, ZERO, ZERO);
+        }
+        let ipart = crate::shape::triangle::TriangleTrait::unit_angular_inertia(triangle);
+        Self::new(com, area * density, ipart * area * density)
+    }
+
     /// Zero mass properties: a segment has no area (and a half-space is infinite).
     #[inline(always)]
     fn from_segment() -> MassProperties {
