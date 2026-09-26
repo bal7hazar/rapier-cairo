@@ -17,26 +17,26 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
 | dynamics | 528 | 0 | 289 | 394 | 1211 | 64.6% |
 | geometry | 193 | 0 | 112 | 20 | 325 | 63.3% |
-| parry::bounding_volume | 9 | 0 | 83 | 30 | 122 | 9.8% |
-| parry::mass_properties | 13 | 0 | 10 | 7 | 30 | 56.5% |
+| parry::bounding_volume | 73 | 0 | 19 | 30 | 122 | 79.3% |
+| parry::mass_properties | 16 | 0 | 7 | 7 | 30 | 69.6% |
 | parry::query | 106 | 0 | 206 | 112 | 424 | 34.0% |
-| parry::shape | 45 | 0 | 240 | 136 | 421 | 15.8% |
+| parry::shape | 78 | 0 | 207 | 136 | 421 | 27.4% |
 | pipeline | 57 | 0 | 33 | 68 | 158 | 63.3% |
-| **total** | **951** | **0** | **1020** | **767** | **2738** | **48.2%** |
+| **total** | **1051** | **0** | **920** | **767** | **2738** | **53.3%** |
 
-Cairo-only public items not matched to upstream: **1074**.
+Cairo-only public items not matched to upstream: **1081**.
 
 ## Aabb
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | const `EDGES_VERTEX_IDS` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| const `FACES_VERTEX_IDS` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| const `FACES_VERTEX_IDS` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_aabb.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_aabb.rs` |
-| method `add_half_extents` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `add_half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `aligned_intersections` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `canonical_split` | parry::query | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/query/split/split_aabb.rs` |
 | method `center` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `clip_line` | parry::query | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/query/clip/clip_aabb_line.rs` |
@@ -47,30 +47,30 @@ Cairo-only public items not matched to upstream: **1074**.
 | method `clip_ray_parameters` | parry::query | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/query/clip/clip_aabb_line.rs` |
 | method `clip_segment` | parry::query | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/query/clip/clip_aabb_line.rs` |
 | method `contains_local_point` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `difference` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `difference_with_cut_sequence` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `difference` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
+| method `difference_with_cut_sequence` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `distance_to_origin` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | method `extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `from_half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `from_points` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `from_points_ref` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `from_points` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
+| method `from_points_ref` | parry::bounding_volume | ported | Mapped to Aabb.from_points | `parry/src/bounding_volume/aabb.rs` |
 | method `half_area` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `half_area_or_perimeter` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `half_area_or_perimeter` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `half_perimeter` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `intersection` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `half_perimeter` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
+| method `intersection` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `intersects_moving_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | method `intersects_spiral` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | method `new` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `new_invalid` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `new_invalid` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `project_on_axis` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | method `scaled` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `scaled_wrt_center` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `split_at_center` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `take_point` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `split_at_center` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
+| method `take_point` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `transform_by` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
-| method `translated` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `vertices` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
+| method `translated` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
+| method `vertices` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `volume` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | type `Aabb` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
@@ -130,10 +130,10 @@ Cairo-only public items not matched to upstream: **1074**.
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_ball.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_ball.rs` |
 | impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/shape/shape.rs` |
-| method `aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/bounding_volume/aabb_ball.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/bounding_volume/bounding_sphere_ball.rs` |
-| method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/bounding_volume/aabb_ball.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/bounding_volume/bounding_sphere_ball.rs` |
+| method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_ball.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_ball.rs` |
+| method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_ball.rs` |
+| method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_ball.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/ball.rs` |
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): Ball, BallTrait. | `parry/src/shape/ball.rs` |
 | type `Ball` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
@@ -170,27 +170,27 @@ Cairo-only public items not matched to upstream: **1074**.
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/query/point/point_bounding_sphere.rs` |
 | impl `RayCast` | parry::query | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/query/ray/ray_bounding_sphere.rs` |
-| method `center` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/bounding_volume/bounding_sphere.rs` |
-| method `new` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/bounding_volume/bounding_sphere.rs` |
-| method `radius` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/bounding_volume/bounding_sphere.rs` |
-| method `transform_by` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/bounding_volume/bounding_sphere.rs` |
-| method `translated` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/bounding_volume/bounding_sphere.rs` |
-| type `BoundingSphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingSphere, BoundingSphereTrait. | `parry/src/bounding_volume/bounding_sphere.rs` |
+| method `center` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere.rs` |
+| method `new` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere.rs` |
+| method `radius` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere.rs` |
+| method `transform_by` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere.rs` |
+| method `translated` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere.rs` |
+| type `BoundingSphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere.rs` |
 
 ## BoundingVolume
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `center` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `contains` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `intersects` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `loosen` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `loosened` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `merge` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `merged` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `tighten` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| method `tightened` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
-| trait `BoundingVolume` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `center` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `contains` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `intersects` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `loosen` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `loosened` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `merge` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `merged` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `tighten` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| method `tightened` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
+| trait `BoundingVolume` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_volume.rs` |
 
 ## BroadPhaseBvh
 
@@ -241,14 +241,14 @@ Cairo-only public items not matched to upstream: **1074**.
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_capsule.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_capsule.rs` |
 | impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/shape.rs` |
-| method `aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/bounding_volume/aabb_capsule.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/bounding_volume/bounding_sphere_capsule.rs` |
+| method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_capsule.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_capsule.rs` |
 | method `canonical_transform` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
 | method `center` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
-| method `half_height` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
+| method `half_height` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `height` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
-| method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/bounding_volume/aabb_capsule.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/bounding_volume/bounding_sphere_capsule.rs` |
+| method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_capsule.rs` |
+| method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_capsule.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `new_x` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `new_y` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
@@ -878,19 +878,19 @@ Cairo-only public items not matched to upstream: **1074**.
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_support_map.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_support_map.rs` |
 | impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/shape.rs` |
-| method `aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
-| method `feature_normal` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
+| method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
+| method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_polyline` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_polyline_unmodified` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
-| method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
+| method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
+| method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
 | method `normals` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `offsetted` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
 | method `points` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
-| method `support_feature_id_toward` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
+| method `support_feature_id_toward` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | type `ConvexPolygon` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 
 ## ConvexPolyhedron
@@ -930,15 +930,15 @@ Cairo-only public items not matched to upstream: **1074**.
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_cuboid.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_cuboid.rs` |
 | impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/shape.rs` |
-| method `aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/bounding_volume/aabb_cuboid.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/bounding_volume/bounding_sphere_cuboid.rs` |
+| method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_cuboid.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_cuboid.rs` |
 | method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
-| method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/bounding_volume/aabb_cuboid.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/bounding_volume/bounding_sphere_cuboid.rs` |
+| method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_cuboid.rs` |
+| method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_cuboid.rs` |
 | method `local_support_edge_segment` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/cuboid.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
-| method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/cuboid.rs` |
-| method `support_face` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/cuboid.rs` |
+| method `scaled` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
+| method `support_face` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `support_feature` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `vertex_feature_id` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `vid` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/cuboid.rs` |
@@ -1081,8 +1081,8 @@ Cairo-only public items not matched to upstream: **1074**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | method `unwrap_edge` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `unwrap_face` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `unwrap_vertex` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
+| method `unwrap_face` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
+| method `unwrap_vertex` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
 | type `FeatureId` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
 
 ## FixedJoint
@@ -1258,12 +1258,12 @@ Cairo-only public items not matched to upstream: **1074**.
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_halfspace.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_halfspace.rs` |
 | impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/shape/shape.rs` |
-| method `aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/bounding_volume/aabb_halfspace.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/bounding_volume/bounding_sphere_halfspace.rs` |
-| method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/bounding_volume/aabb_halfspace.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/bounding_volume/bounding_sphere_halfspace.rs` |
+| method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_halfspace.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_halfspace.rs` |
+| method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_halfspace.rs` |
+| method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_halfspace.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/half_space.rs` |
-| method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): HalfSpace, HalfSpaceTrait. | `parry/src/shape/half_space.rs` |
+| method `scaled` | parry::shape | ported | Same public name. | `parry/src/shape/half_space.rs` |
 | type `HalfSpace` | parry::shape | ported | Same public name. | `parry/src/shape/half_space.rs` |
 
 ## HeightField
@@ -1623,10 +1623,10 @@ Cairo-only public items not matched to upstream: **1074**.
 |---|---|---|---|---|
 | impl `AbsDiffEq` | parry::mass_properties | excluded | f32/f64 conversions and approx traits | `parry/src/mass_properties/mass_properties.rs` |
 | impl `Add<MassProperties>` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
-| impl `AddAssign<MassProperties>` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
+| impl `AddAssign<MassProperties>` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | impl `RelativeEq` | parry::mass_properties | excluded | f32/f64 conversions and approx traits | `parry/src/mass_properties/mass_properties.rs` |
 | impl `Sub<MassProperties>` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
-| impl `SubAssign<MassProperties>` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
+| impl `SubAssign<MassProperties>` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | method `from_ball` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_ball.rs` |
 | method `from_capsule` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_capsule.rs` |
 | method `from_compound` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties_compound.rs` |
@@ -1645,7 +1645,7 @@ Cairo-only public items not matched to upstream: **1074**.
 | method `with_inertia_matrix` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
 | method `with_principal_inertia_frame` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
 | method `world_com` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
-| method `world_inv_inertia` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
+| method `world_inv_inertia` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | type `MassProperties` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 
 ## MeshConverter
@@ -1922,17 +1922,17 @@ Cairo-only public items not matched to upstream: **1074**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `UNKNOWN` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| impl `From<FeatureId>` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `edge` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `face` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `is_edge` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `is_face` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `is_unknown` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `is_vertex` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `unpack` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| method `vertex` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
-| type `PackedFeatureId` | parry::shape | missing | Not found on Cairo candidate(s): PackedFeatureId, PackedFeatureIdTrait. | `parry/src/shape/feature_id.rs` |
+| const `UNKNOWN` | parry::shape | ported | Mapped to FeatureId.UNKNOWN | `parry/src/shape/feature_id.rs` |
+| impl `From<FeatureId>` | parry::shape | ported | Mapped to FeatureId.From<UnpackedFeatureId> | `parry/src/shape/feature_id.rs` |
+| method `edge` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
+| method `face` | parry::shape | ported | Mapped to FeatureId.face | `parry/src/shape/feature_id.rs` |
+| method `is_edge` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
+| method `is_face` | parry::shape | ported | Mapped to FeatureId.is_face | `parry/src/shape/feature_id.rs` |
+| method `is_unknown` | parry::shape | ported | Mapped to FeatureId.is_unknown | `parry/src/shape/feature_id.rs` |
+| method `is_vertex` | parry::shape | ported | Mapped to FeatureId.is_vertex | `parry/src/shape/feature_id.rs` |
+| method `unpack` | parry::shape | ported | Mapped to FeatureId.unpack | `parry/src/shape/feature_id.rs` |
+| method `vertex` | parry::shape | ported | Mapped to FeatureId.vertex | `parry/src/shape/feature_id.rs` |
+| type `PackedFeatureId` | parry::shape | ported | Mapped to FeatureId.FeatureId | `parry/src/shape/feature_id.rs` |
 
 ## PairContacts
 
@@ -2214,8 +2214,8 @@ Cairo-only public items not matched to upstream: **1074**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeature, PolygonalFeatureTrait. | `parry/src/shape/polygonal_feature2d.rs` |
-| impl `From<Segment>` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeature, PolygonalFeatureTrait. | `parry/src/shape/polygonal_feature2d.rs` |
+| impl `Default` | parry::shape | ported | Same public name. | `parry/src/shape/polygonal_feature2d.rs` |
+| impl `From<Segment>` | parry::shape | ported | Same public name. | `parry/src/shape/polygonal_feature2d.rs` |
 | method `contacts` | parry::shape | ported | Same public name. | `parry/src/shape/polygonal_feature2d.rs` |
 | method `face_face_contacts` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeature, PolygonalFeatureTrait. | `parry/src/shape/polygonal_feature2d.rs` |
 | method `face_vertex_contacts` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeature, PolygonalFeatureTrait. | `parry/src/shape/polygonal_feature2d.rs` |
@@ -2227,9 +2227,9 @@ Cairo-only public items not matched to upstream: **1074**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | method `is_convex_polyhedron` | parry::shape | excluded | dim3-only | `parry/src/shape/polygonal_feature_map.rs` |
-| method `local_support_feature` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeatureMap, PolygonalFeatureMapTrait. | `parry/src/shape/polygonal_feature_map.rs` |
-| method `local_support_feature_toward` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeatureMap, PolygonalFeatureMapTrait. | `parry/src/shape/polygonal_feature_map.rs` |
-| trait `PolygonalFeatureMap` | parry::shape | missing | Not found on Cairo candidate(s): PolygonalFeatureMap, PolygonalFeatureMapTrait. | `parry/src/shape/polygonal_feature_map.rs` |
+| method `local_support_feature` | parry::shape | ported | Same public name. | `parry/src/shape/polygonal_feature_map.rs` |
+| method `local_support_feature_toward` | parry::shape | ported | Same public name. | `parry/src/shape/polygonal_feature_map.rs` |
+| trait `PolygonalFeatureMap` | parry::shape | ported | Same public name. | `parry/src/shape/polygonal_feature_map.rs` |
 
 ## Polyline
 
@@ -2907,22 +2907,22 @@ Cairo-only public items not matched to upstream: **1074**.
 | impl `PointQueryWithLocation` | parry::query | ported | Same public name. | `parry/src/query/point/point_segment.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_support_map.rs` |
 | impl `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/shape.rs` |
-| method `aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/bounding_volume/aabb_support_map.rs` |
-| method `bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/bounding_volume/bounding_sphere_segment.rs` |
+| method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_support_map.rs` |
+| method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_segment.rs` |
 | method `canonical_split` | parry::query | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/query/split/split_segment.rs` |
 | method `direction` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `from_array` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
 | method `length` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
-| method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/bounding_volume/aabb_support_map.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/bounding_volume/bounding_sphere_segment.rs` |
+| method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_support_map.rs` |
+| method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_segment.rs` |
 | method `local_split` | parry::query | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/query/split/split_segment.rs` |
 | method `local_split_and_get_intersection` | parry::query | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/query/split/split_segment.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `planar_normal` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
 | method `point_at` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
-| method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
+| method `scaled` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_direction` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_planar_normal` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
@@ -2978,7 +2978,7 @@ Cairo-only public items not matched to upstream: **1074**.
 | method `as_halfspace_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_heightfield` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_heightfield_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_polygonal_feature_map` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_polygonal_feature_map` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_polyline` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_polyline_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_round_cone` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
@@ -2997,7 +2997,7 @@ Cairo-only public items not matched to upstream: **1074**.
 | method `as_segment_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_shape` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_shape_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_support_map` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_support_map` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_triangle` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_triangle_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shape.rs` |
@@ -3010,11 +3010,11 @@ Cairo-only public items not matched to upstream: **1074**.
 | method `clone_box` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `clone_dyn` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `compute_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `compute_bounding_sphere` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `compute_bounding_sphere` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `compute_local_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `compute_local_bounding_sphere` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `compute_swept_aabb` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `feature_normal_at_point` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `compute_local_bounding_sphere` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `compute_swept_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `feature_normal_at_point` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `is_convex` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `mass_properties` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `scale_dyn` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
@@ -3960,11 +3960,11 @@ Cairo-only public items not matched to upstream: **1074**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `local_support_point` | parry::shape | missing | Not found on Cairo candidate(s): SupportMap, SupportMapTrait. | `parry/src/shape/support_map.rs` |
+| method `local_support_point` | parry::shape | ported | Same public name. | `parry/src/shape/support_map.rs` |
 | method `local_support_point_toward` | parry::shape | ported | Same public name. | `parry/src/shape/support_map.rs` |
-| method `support_point` | parry::shape | missing | Not found on Cairo candidate(s): SupportMap, SupportMapTrait. | `parry/src/shape/support_map.rs` |
-| method `support_point_toward` | parry::shape | missing | Not found on Cairo candidate(s): SupportMap, SupportMapTrait. | `parry/src/shape/support_map.rs` |
-| trait `SupportMap` | parry::shape | missing | Not found on Cairo candidate(s): SupportMap, SupportMapTrait. | `parry/src/shape/support_map.rs` |
+| method `support_point` | parry::shape | ported | Same public name. | `parry/src/shape/support_map.rs` |
+| method `support_point_toward` | parry::shape | ported | Same public name. | `parry/src/shape/support_map.rs` |
+| trait `SupportMap` | parry::shape | ported | Same public name. | `parry/src/shape/support_map.rs` |
 
 ## Sweep
 
@@ -4442,16 +4442,16 @@ Cairo-only public items not matched to upstream: **1074**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| function `ball_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_ball.rs` |
-| function `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_support_map.rs` |
-| function `local_ball_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_ball.rs` |
-| function `local_point_cloud_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_utils.rs` |
-| function `local_point_cloud_aabb_ref` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_utils.rs` |
-| function `local_support_map_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_utils.rs` |
-| function `point_cloud_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_utils.rs` |
-| function `point_cloud_aabb_ref` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/aabb_utils.rs` |
-| function `point_cloud_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/bounding_sphere_utils.rs` |
-| function `point_cloud_bounding_sphere_with_center` | parry::bounding_volume | missing | Not found on Cairo candidate(s): parry::bounding_volume. | `parry/src/bounding_volume/bounding_sphere_utils.rs` |
+| function `ball_aabb` | parry::bounding_volume | ported | Mapped to BoundingVolume.ball_aabb | `parry/src/bounding_volume/aabb_ball.rs` |
+| function `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): BoundingVolume, BoundingVolumeTrait. | `parry/src/bounding_volume/aabb_support_map.rs` |
+| function `local_ball_aabb` | parry::bounding_volume | ported | Mapped to BoundingVolume.local_ball_aabb | `parry/src/bounding_volume/aabb_ball.rs` |
+| function `local_point_cloud_aabb` | parry::bounding_volume | ported | Mapped to BoundingVolume.local_point_cloud_aabb | `parry/src/bounding_volume/aabb_utils.rs` |
+| function `local_point_cloud_aabb_ref` | parry::bounding_volume | ported | Mapped to BoundingVolume.local_point_cloud_aabb | `parry/src/bounding_volume/aabb_utils.rs` |
+| function `local_support_map_aabb` | parry::bounding_volume | ported | Mapped to BoundingVolume.local_support_map_aabb | `parry/src/bounding_volume/aabb_utils.rs` |
+| function `point_cloud_aabb` | parry::bounding_volume | ported | Mapped to BoundingVolume.point_cloud_aabb | `parry/src/bounding_volume/aabb_utils.rs` |
+| function `point_cloud_aabb_ref` | parry::bounding_volume | ported | Mapped to BoundingVolume.point_cloud_aabb | `parry/src/bounding_volume/aabb_utils.rs` |
+| function `point_cloud_bounding_sphere` | parry::bounding_volume | ported | Mapped to BoundingVolume.point_cloud_bounding_sphere | `parry/src/bounding_volume/bounding_sphere_utils.rs` |
+| function `point_cloud_bounding_sphere_with_center` | parry::bounding_volume | ported | Mapped to BoundingVolume.point_cloud_bounding_sphere_with_center | `parry/src/bounding_volume/bounding_sphere_utils.rs` |
 
 ## parry::mass_properties
 
@@ -4639,17 +4639,17 @@ Cairo-only public items not matched to upstream: **1074**.
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
 | [Query completion](#wp-query-completion) | 233 | standard | QP queries |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 210 | standard | shape interface |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 171 | mechanical | AP triage |
-| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 100 | standard | geometry |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 207 | standard | shape interface |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 170 | mechanical | AP triage |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 87 | hard | QP queries |
-| [Joint API completion](#wp-joint-api-completion) | 69 | standard | JL/RJ |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 40 | standard | SE sensors |
+| [Joint API completion](#wp-joint-api-completion) | 66 | standard | JL/RJ |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 38 | standard | SE sensors |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
 | [Collider API completion](#wp-collider-api-completion) | 14 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 14 | mechanical | KD/SL |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
+| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 9 | standard | geometry |
 
 ### WP: Query completion
 
@@ -4739,7 +4739,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 233 public items.
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 210 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 207 public items.
 
 - **Aabb** method `scaled_wrt_center` (`parry/src/bounding_volume/aabb.rs`)
 - **Ball** method `scaled` (`parry/src/shape/ball.rs`)
@@ -4778,8 +4778,6 @@ Tier: standard. Depends/context: shape interface. Estimate: 210 public items.
 - **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
 - **ConvexPolygon** method `from_convex_polyline_unmodified` (`parry/src/shape/convex_polygon.rs`)
 - **ConvexPolygon** method `scaled` (`parry/src/shape/convex_polygon.rs`)
-- **Cuboid** method `scaled` (`parry/src/shape/cuboid.rs`)
-- **HalfSpace** method `scaled` (`parry/src/shape/half_space.rs`)
 - **HeightField** type `HeightField` (`rapier/src/geometry/mod.rs`)
 - **HeightFieldCellStatus** type `HeightFieldCellStatus` (`parry/src/shape/heightfield2.rs`)
 - **HeightFieldCompositeShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
@@ -4821,11 +4819,13 @@ Tier: standard. Depends/context: shape interface. Estimate: 210 public items.
 - **Polyline** method `aabb` (`parry/src/shape/polyline.rs`)
 - **Polyline** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_polyline.rs`)
 - **Polyline** method `bvh` (`parry/src/shape/polyline.rs`)
-- ... 130 more
+- **Polyline** method `extract_connected_components` (`parry/src/shape/polyline.rs`)
+- **Polyline** method `flags` (`parry/src/shape/polyline.rs`)
+- ... 127 more
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 171 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 170 public items.
 
 - **AxesMask** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **AxesMask** type `AxesMask` (`rapier/src/dynamics/rigid_body_components.rs`)
@@ -4842,7 +4842,6 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 171 public items.
 - **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
 - **Capsule** impl `Shape` (`parry/src/shape/shape.rs`)
 - **Capsule** method `canonical_transform` (`parry/src/shape/capsule.rs`)
-- **Capsule** method `half_height` (`parry/src/shape/capsule.rs`)
 - **Capsule** method `new_z` (`parry/src/shape/capsule.rs`)
 - **Capsule** method `rotation_wrt_y` (`parry/src/shape/capsule.rs`)
 - **Capsule** method `transform_wrt_y` (`parry/src/shape/capsule.rs`)
@@ -4907,93 +4906,8 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 171 public items.
 - **SkylineCholesky** method `factorize` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SkylineCholesky** method `new` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SkylineCholesky** method `solve` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
-- ... 91 more
-
-### WP: Mass, AABB, and shape helpers
-
-Tier: standard. Depends/context: geometry. Estimate: 100 public items.
-
-- **Aabb** const `EDGES_VERTEX_IDS` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** const `FACES_VERTEX_IDS` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `add_half_extents` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `bounding_sphere` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `difference` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `difference_with_cut_sequence` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `from_points` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `from_points_ref` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `half_area` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `half_area_or_perimeter` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `half_perimeter` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `new_invalid` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `split_at_center` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `take_point` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `translated` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `vertices` (`parry/src/bounding_volume/aabb.rs`)
-- **Ball** method `aabb` (`parry/src/bounding_volume/aabb_ball.rs`)
-- **Ball** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_ball.rs`)
-- **Ball** method `local_aabb` (`parry/src/bounding_volume/aabb_ball.rs`)
-- **Ball** method `local_bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_ball.rs`)
-- **BoundingSphere** method `center` (`parry/src/bounding_volume/bounding_sphere.rs`)
-- **BoundingSphere** method `new` (`parry/src/bounding_volume/bounding_sphere.rs`)
-- **BoundingSphere** method `radius` (`parry/src/bounding_volume/bounding_sphere.rs`)
-- **BoundingSphere** method `transform_by` (`parry/src/bounding_volume/bounding_sphere.rs`)
-- **BoundingSphere** method `translated` (`parry/src/bounding_volume/bounding_sphere.rs`)
-- **BoundingSphere** type `BoundingSphere` (`parry/src/bounding_volume/bounding_sphere.rs`)
-- **BoundingVolume** method `center` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `contains` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `loosen` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `loosened` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `merge` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `merged` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `tighten` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** method `tightened` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **BoundingVolume** trait `BoundingVolume` (`parry/src/bounding_volume/bounding_volume.rs`)
-- **Capsule** method `aabb` (`parry/src/bounding_volume/aabb_capsule.rs`)
-- **Capsule** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_capsule.rs`)
-- **Capsule** method `local_aabb` (`parry/src/bounding_volume/aabb_capsule.rs`)
-- **Capsule** method `local_bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_capsule.rs`)
-- **ConvexPolygon** method `aabb` (`parry/src/bounding_volume/aabb_convex_polygon.rs`)
-- **ConvexPolygon** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_convex_polygon.rs`)
-- **ConvexPolygon** method `feature_normal` (`parry/src/shape/convex_polygon.rs`)
-- **ConvexPolygon** method `local_aabb` (`parry/src/bounding_volume/aabb_convex_polygon.rs`)
-- **ConvexPolygon** method `local_bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_convex_polygon.rs`)
-- **ConvexPolygon** method `support_feature_id_toward` (`parry/src/shape/convex_polygon.rs`)
-- **Cuboid** method `aabb` (`parry/src/bounding_volume/aabb_cuboid.rs`)
-- **Cuboid** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_cuboid.rs`)
-- **Cuboid** method `local_aabb` (`parry/src/bounding_volume/aabb_cuboid.rs`)
-- **Cuboid** method `local_bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_cuboid.rs`)
-- **Cuboid** method `local_support_edge_segment` (`parry/src/shape/cuboid.rs`)
-- **Cuboid** method `support_face` (`parry/src/shape/cuboid.rs`)
-- **FeatureId** method `unwrap_edge` (`parry/src/shape/feature_id.rs`)
-- **FeatureId** method `unwrap_face` (`parry/src/shape/feature_id.rs`)
-- **FeatureId** method `unwrap_vertex` (`parry/src/shape/feature_id.rs`)
-- **HalfSpace** method `aabb` (`parry/src/bounding_volume/aabb_halfspace.rs`)
-- **HalfSpace** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_halfspace.rs`)
-- **HalfSpace** method `local_aabb` (`parry/src/bounding_volume/aabb_halfspace.rs`)
-- **HalfSpace** method `local_bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_halfspace.rs`)
-- **PackedFeatureId** const `UNKNOWN` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** impl `From<FeatureId>` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `edge` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `face` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `is_edge` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `is_face` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `is_unknown` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `is_vertex` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `unpack` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `vertex` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** type `PackedFeatureId` (`parry/src/shape/feature_id.rs`)
-- **Polygon** method `aabb` (`parry/src/shape/polygon.rs`)
-- **PolygonalFeature** impl `Default` (`parry/src/shape/polygonal_feature2d.rs`)
-- **PolygonalFeature** impl `From<Segment>` (`parry/src/shape/polygonal_feature2d.rs`)
-- **PolygonalFeatureMap** method `local_support_feature` (`parry/src/shape/polygonal_feature_map.rs`)
-- **PolygonalFeatureMap** method `local_support_feature_toward` (`parry/src/shape/polygonal_feature_map.rs`)
-- **PolygonalFeatureMap** trait `PolygonalFeatureMap` (`parry/src/shape/polygonal_feature_map.rs`)
-- **Segment** method `aabb` (`parry/src/bounding_volume/aabb_support_map.rs`)
-- **Segment** method `bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_segment.rs`)
-- **Segment** method `local_aabb` (`parry/src/bounding_volume/aabb_support_map.rs`)
-- **Segment** method `local_bounding_sphere` (`parry/src/bounding_volume/bounding_sphere_segment.rs`)
-- **Shape** method `as_polygonal_feature_map` (`parry/src/shape/shape.rs`)
-- ... 20 more
+- **SoftAttachmentConstraint** method `solve` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
+- ... 90 more
 
 ### WP: CCD and shape casts
 
@@ -5083,7 +4997,7 @@ Tier: hard. Depends/context: QP queries. Estimate: 87 public items.
 
 ### WP: Joint API completion
 
-Tier: standard. Depends/context: JL/RJ. Estimate: 69 public items.
+Tier: standard. Depends/context: JL/RJ. Estimate: 66 public items.
 
 - **AngularLimitParams** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
 - **AngularLimitParams** type `AngularLimitParams` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
@@ -5140,13 +5054,10 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 69 public items.
 - **JointSolverBody** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **JointSolverBody** type `JointSolverBody` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **LinkOrBodyRef** type `LinkOrBodyRef` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **MassProperties** impl `AddAssign<MassProperties>` (`parry/src/mass_properties/mass_properties.rs`)
-- **MassProperties** impl `SubAssign<MassProperties>` (`parry/src/mass_properties/mass_properties.rs`)
 - **MassProperties** method `reconstruct_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
 - **MassProperties** method `reconstruct_inverse_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
 - **MassProperties** method `with_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
 - **MassProperties** method `with_principal_inertia_frame` (`parry/src/mass_properties/mass_properties.rs`)
-- **MassProperties** method `world_inv_inertia` (`parry/src/mass_properties/mass_properties.rs`)
 - **MotorParameters** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **MotorParameters** type `MotorParameters` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **PersistentIslands** method `apply_impulse_joint_event` (`rapier/src/dynamics/island_manager/persistent.rs`)
@@ -5157,14 +5068,12 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 69 public items.
 
 ### WP: Sensors and intersection events
 
-Tier: standard. Depends/context: SE sensors. Estimate: 40 public items.
+Tier: standard. Depends/context: SE sensors. Estimate: 38 public items.
 
 - **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `intersection` (`parry/src/bounding_volume/aabb.rs`)
 - **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
 - **Aabb** method `intersects_spiral` (`parry/src/bounding_volume/aabb.rs`)
 - **ActiveEvents** impl `Default` (`rapier/src/pipeline/event_handler.rs`)
-- **BoundingVolume** method `intersects` (`parry/src/bounding_volume/bounding_volume.rs`)
 - **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
 - **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
 - **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
@@ -5334,6 +5243,20 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **KinematicCharacterController** method `move_shape` (`rapier/src/control/character_controller.rs`)
 - **KinematicCharacterController** method `solve_character_collision_impulses` (`rapier/src/control/character_controller.rs`)
 - **KinematicCharacterController** type `KinematicCharacterController` (`rapier/src/control/character_controller.rs`)
+
+### WP: Mass, AABB, and shape helpers
+
+Tier: standard. Depends/context: geometry. Estimate: 9 public items.
+
+- **Aabb** const `EDGES_VERTEX_IDS` (`parry/src/bounding_volume/aabb.rs`)
+- **Aabb** method `half_area` (`parry/src/bounding_volume/aabb.rs`)
+- **Cuboid** method `local_support_edge_segment` (`parry/src/shape/cuboid.rs`)
+- **FeatureId** method `unwrap_edge` (`parry/src/shape/feature_id.rs`)
+- **PackedFeatureId** method `edge` (`parry/src/shape/feature_id.rs`)
+- **PackedFeatureId** method `is_edge` (`parry/src/shape/feature_id.rs`)
+- **Polygon** method `aabb` (`parry/src/shape/polygon.rs`)
+- **SubShapeId** type `SubShapeId` (`parry/src/shape/feature_id.rs`)
+- **parry::bounding_volume** function `local_aabb` (`parry/src/bounding_volume/aabb_support_map.rs`)
 
 ## Cairo public items without upstream match
 
@@ -5524,6 +5447,9 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **BoundedRow** type `BoundedRow` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
 - **BoundedRows** type `BoundedRows` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
 - **BoundedState** type `BoundedState` (`crates/rapier_dynamics2d/src/solver/joint/bounded.cairo`)
+- **BoundingVolume** const `EMPTY_POINT_CLOUD` (`crates/rapier_geometry2d/src/aabb/bounding_volume.cairo`)
+- **BoundingVolume** const `MARGIN_TOO_LARGE` (`crates/rapier_geometry2d/src/aabb/bounding_volume.cairo`)
+- **BoundingVolume** const `NEGATIVE_MARGIN` (`crates/rapier_geometry2d/src/aabb/bounding_volume.cairo`)
 - **BroadPhase** method `find_pairs` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
 - **BroadPhaseProxy** type `BroadPhaseProxy` (`crates/rapier_geometry2d/src/broad_phase.cairo`)
 - **Builder** const `ONE_WAY_ANGLE` (`crates/rapier_dynamics2d/src/collider/builder.cairo`)
@@ -5534,10 +5460,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
 - **Capsule** method `compute_local_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- **Capsule** method `contains_local_point_capsule` (`crates/rapier_geometry2d/src/point/capsule.cairo`)
-- **Capsule** method `distance_to_local_point_capsule` (`crates/rapier_geometry2d/src/point/capsule.cairo`)
-- **Capsule** method `local_support_point` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- ... 874 more
+- ... 881 more
 
 ## Embedded Rust inventory
 

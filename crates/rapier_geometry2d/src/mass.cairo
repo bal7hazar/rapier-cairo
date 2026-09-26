@@ -10,10 +10,12 @@
 //! makes fixed bodies work without special cases.
 
 use core::num::traits::Zero;
+use core::ops::{AddAssign, SubAssign};
 use fixed::wide::{WideAdd, WideMul, WideNarrow, dot2, norm2, wide_mul};
 use fixed::{Fixed, PI, ZERO};
 use glam::vec2::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::rot2::Rot2;
 use rapier_math::{DEFAULT_EPSILON, inv};
 use crate::point::cross_wide;
 use crate::shape::{ConvexPolygon, ConvexPolygonTrait};
@@ -203,6 +205,13 @@ pub impl MassPropertiesImpl of MassPropertiesTrait {
         pose.transform_point(self.local_com)
     }
 
+    /// The inverse angular inertia in world space: in 2D the scalar `inv_principal_inertia`,
+    /// whatever the rotation (upstream 2D `world_inv_inertia`).
+    #[inline(always)]
+    fn world_inv_inertia(self: MassProperties, rot: Rot2) -> Fixed {
+        self.inv_principal_inertia
+    }
+
     /// The same properties expressed in the frame `pose` maps the local frame into: only the
     /// centre of mass moves (in 2D the inertia is a rotation-invariant scalar).
     #[inline(always)]
@@ -322,6 +331,20 @@ pub impl MassPropertiesSub of Sub<MassProperties> {
             inertia = ZERO;
         }
         MassProperties { local_com: com, inv_mass, inv_principal_inertia: inv(inertia) }
+    }
+}
+
+/// `self = self + rhs` (upstream `AddAssign`).
+pub impl MassPropertiesAddAssign of AddAssign<MassProperties, MassProperties> {
+    fn add_assign(ref self: MassProperties, rhs: MassProperties) {
+        self = self + rhs;
+    }
+}
+
+/// `self = self - rhs` (upstream `SubAssign`).
+pub impl MassPropertiesSubAssign of SubAssign<MassProperties, MassProperties> {
+    fn sub_assign(ref self: MassProperties, rhs: MassProperties) {
+        self = self - rhs;
     }
 }
 
@@ -680,5 +703,20 @@ mod tests {
     fn gas_set_mass() {
         let mut p = opaque(BODY);
         p.set_mass(opaque(i(4)), true);
+    }
+    #[test]
+    fn test_assign_ops_and_world_inv_inertia() {
+        let mut p = LEFT;
+        p += RIGHT;
+        assert_eq!(p, LEFT + RIGHT);
+        p -= RIGHT;
+        assert_eq!(p, LEFT + RIGHT - RIGHT);
+        let turned = Rot2 { re: ZERO, im: ONE };
+        assert_eq!(BODY.world_inv_inertia(turned), BODY.inv_principal_inertia);
+    }
+    #[test]
+    fn gas_add_assign() {
+        let mut p = opaque(LEFT);
+        p += opaque(RIGHT);
     }
 }

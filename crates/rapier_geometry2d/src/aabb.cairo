@@ -4,8 +4,10 @@
 //! `transform_by` uses Parry's absolute-rotation formula; the four-corner implementation is kept
 //! in the test-only alternatives for equivalence checks and gas ranking.
 
+pub mod bounding_volume;
+use bounding_volume::{BoundingSphere, local_point_cloud_aabb};
 use fixed::wide::{dot2, norm2};
-use fixed::{Fixed, FixedTrait, HALF, ZERO};
+use fixed::{Fixed, FixedTrait, HALF, MAX, ZERO};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -138,6 +140,138 @@ pub impl AabbImpl of AabbTrait {
         let a = self.mins * scale;
         let b = self.maxs * scale;
         Aabb { mins: a.min(b), maxs: a.max(b) }
+    }
+
+    /// Vertex indices (into [`AabbTrait::vertices`]) of the four faces: `+x`, `-x`, `+y`, `-y`.
+    const FACES_VERTEX_IDS: [(u32, u32); 4] = [(1, 2), (3, 0), (2, 3), (0, 1)];
+
+    /// The empty box `[MAX, -MAX]`: merging or `take_point` into it gives the other operand.
+    #[inline(always)]
+    fn new_invalid() -> Aabb {
+        let max = Vec2 { x: MAX, y: MAX };
+        Aabb { mins: max, maxs: -max }
+    }
+
+    /// Exact bounds of `pts` (upstream `from_points`; `Span` also stands for `from_points_ref`).
+    /// #### Panics
+    /// * `'Bounding: empty point cloud'` for no point.
+    fn from_points(pts: Span<Vec2>) -> Aabb {
+        local_point_cloud_aabb(pts)
+    }
+
+    /// `extent.x + extent.y`: the 2D surface-area-heuristic cost (upstream `half_perimeter`).
+    #[inline(always)]
+    fn half_perimeter(self: Aabb) -> Fixed {
+        let e = self.extents();
+        e.x + e.y
+    }
+
+    /// [`AabbTrait::half_perimeter`] in 2D.
+    #[inline(always)]
+    fn half_area_or_perimeter(self: Aabb) -> Fixed {
+        Self::half_perimeter(self)
+    }
+
+    /// Grows the box to contain `pt` (exact).
+    #[inline(always)]
+    fn take_point(ref self: Aabb, pt: Vec2) {
+        self.mins = self.mins.min(pt);
+        self.maxs = self.maxs.max(pt);
+    }
+
+    /// The box moved by `translation` (exact).
+    #[inline(always)]
+    fn translated(self: Aabb, translation: Vec2) -> Aabb {
+        Aabb { mins: self.mins + translation, maxs: self.maxs + translation }
+    }
+
+    /// The box grown by `half_extents` on each side of its axis (exact; negative components
+    /// shrink it).
+    #[inline(always)]
+    fn add_half_extents(self: Aabb, half_extents: Vec2) -> Aabb {
+        Aabb { mins: self.mins - half_extents, maxs: self.maxs + half_extents }
+    }
+
+    /// The sphere through the corners: centre [`AabbTrait::center`], radius `|maxs - mins| / 2`
+    /// (the floored diagonal, halved and floored).
+    fn bounding_sphere(self: Aabb) -> BoundingSphere {
+        let e = self.extents();
+        BoundingSphere { center: self.center(), radius: norm2(e.x, e.y) * HALF }
+    }
+
+    /// The overlap of both boxes, `None` when they are disjoint on an axis (touching boxes give
+    /// a flat box).
+    fn intersection(self: Aabb, other: Aabb) -> Option<Aabb> {
+        let result = Aabb { mins: self.mins.max(other.mins), maxs: self.maxs.min(other.maxs) };
+        if result.mins.x > result.maxs.x || result.mins.y > result.maxs.y {
+            None
+        } else {
+            Some(result)
+        }
+    }
+
+    /// The corners, counter-clockwise from `mins`: `(mins.x, mins.y)`, `(maxs.x, mins.y)`,
+    /// `maxs`, `(mins.x, maxs.y)`.
+    #[inline(always)]
+    fn vertices(self: Aabb) -> [Vec2; 4] {
+        [
+            self.mins, Vec2 { x: self.maxs.x, y: self.mins.y }, self.maxs,
+            Vec2 { x: self.mins.x, y: self.maxs.y },
+        ]
+    }
+
+    /// The four quadrants around [`AabbTrait::center`], counter-clockwise from the one at
+    /// `mins`.
+    fn split_at_center(self: Aabb) -> [Aabb; 4] {
+        let c = self.center();
+        [
+            Aabb { mins: self.mins, maxs: c },
+            Aabb { mins: Vec2 { x: c.x, y: self.mins.y }, maxs: Vec2 { x: self.maxs.x, y: c.y } },
+            Aabb { mins: c, maxs: self.maxs },
+            Aabb { mins: Vec2 { x: self.mins.x, y: c.y }, maxs: Vec2 { x: c.x, y: self.maxs.y } },
+        ]
+    }
+
+    /// `self` minus `rhs` as at most four disjoint boxes (upstream `difference`).
+    fn difference(self: Aabb, rhs: Aabb) -> Array<Aabb> {
+        let (pieces, _) = Self::difference_with_cut_sequence(self, rhs);
+        pieces
+    }
+
+    /// `self` minus `rhs` as at most four boxes, and the cuts that produced them: `(axis + 1,
+    /// rhs.mins[axis])` for a cut below, `(-(axis + 1), -rhs.maxs[axis])` above. `self` alone
+    /// (no cut) when the interiors do not overlap.
+    fn difference_with_cut_sequence(self: Aabb, rhs: Aabb) -> (Array<Aabb>, Array<(i8, Fixed)>) {
+        let mut pieces = array![];
+        let mut cuts = array![];
+        if self.mins.x >= rhs.maxs.x
+            || self.maxs.x <= rhs.mins.x
+            || self.mins.y >= rhs.maxs.y
+            || self.maxs.y <= rhs.mins.y {
+            pieces.append(self);
+            return (pieces, cuts);
+        }
+        let mut rest = self;
+        if rhs.mins.x > rest.mins.x {
+            pieces.append(Aabb { mins: rest.mins, maxs: Vec2 { x: rhs.mins.x, y: rest.maxs.y } });
+            rest.mins.x = rhs.mins.x;
+            cuts.append((1, rhs.mins.x));
+        }
+        if rhs.maxs.x < rest.maxs.x {
+            pieces.append(Aabb { mins: Vec2 { x: rhs.maxs.x, y: rest.mins.y }, maxs: rest.maxs });
+            rest.maxs.x = rhs.maxs.x;
+            cuts.append((-1, -rhs.maxs.x));
+        }
+        if rhs.mins.y > rest.mins.y {
+            pieces.append(Aabb { mins: rest.mins, maxs: Vec2 { x: rest.maxs.x, y: rhs.mins.y } });
+            rest.mins.y = rhs.mins.y;
+            cuts.append((2, rhs.mins.y));
+        }
+        if rhs.maxs.y < rest.maxs.y {
+            pieces.append(Aabb { mins: Vec2 { x: rest.mins.x, y: rhs.maxs.y }, maxs: rest.maxs });
+            cuts.append((-2, -rhs.maxs.y));
+        }
+        (pieces, cuts)
     }
 }
 
@@ -321,9 +455,18 @@ pub fn cast_local_ray_and_get_normal_aabb(
 
 #[cfg(test)]
 pub mod alternatives {
+    use fixed::wide::norm2;
     use glam::{Vec2, Vec2Trait};
     use rapier_math::pose2::{Pose2, Pose2Trait};
-    use super::Aabb;
+    use super::bounding_volume::BoundingSphere;
+    use super::{Aabb, AabbTrait};
+
+    /// `bounding_sphere` as the length of the floored half extents (one fewer rescale, but the
+    /// halving happens before the square root).
+    pub fn bounding_sphere_half_extents(aabb: Aabb) -> BoundingSphere {
+        let h = aabb.half_extents();
+        BoundingSphere { center: aabb.center(), radius: norm2(h.x, h.y) }
+    }
 
     /// Transforms all four corners and merges them. Same semantics as `transform_by`, but costlier.
     pub fn transform_by_corners(aabb: Aabb, pose: Pose2) -> Aabb {
@@ -334,6 +477,9 @@ pub mod alternatives {
         Aabb { mins: p0.min(p1).min(p2).min(p3), maxs: p0.max(p1).max(p2).max(p3) }
     }
 }
+
+#[cfg(test)]
+mod helper_tests;
 
 #[cfg(test)]
 mod tests {

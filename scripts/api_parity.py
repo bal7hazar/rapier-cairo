@@ -239,6 +239,10 @@ OWNER_ALIASES.update({
                      "ClosestPoints", "dispatch", "Intersection"),
     # Parry's `ContactManifold` persistence methods are the `ManifoldTrait` of `manifold.cairo`.
     "ContactManifold": ("ContactManifold", "Manifold"),
+    # MH1: the frozen `FeatureId` struct is Parry's packed `PackedFeatureId` (one `u32`); Parry's
+    # free `bounding_volume::` builders live in `aabb/bounding_volume.cairo`.
+    "PackedFeatureId": ("FeatureId",),
+    "parry::bounding_volume": ("BoundingVolume",),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -271,6 +275,14 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     # signatures (`(center12, b1, b2)`, `(pos12, c1, c2)`); the other `intersection_test_*` differ.
     ("parry::query", "intersection_test_ball_ball"): ("ball_ball",),
     ("parry::query", "intersection_test_cuboid_cuboid"): ("cuboid_cuboid",),
+    # MH1: the packed id type carries the frozen name `FeatureId`; upstream's `FeatureId` enum is
+    # `UnpackedFeatureId`. A `Span` is the by-reference form, so the `*_ref` point-cloud builders
+    # are the `Span` ones.
+    ("PackedFeatureId", "PackedFeatureId"): ("FeatureId",),
+    ("PackedFeatureId", "From<FeatureId>"): ("From<UnpackedFeatureId>",),
+    ("Aabb", "from_points_ref"): ("from_points",),
+    ("parry::bounding_volume", "local_point_cloud_aabb_ref"): ("local_point_cloud_aabb",),
+    ("parry::bounding_volume", "point_cloud_aabb_ref"): ("point_cloud_aabb",),
 }
 
 
