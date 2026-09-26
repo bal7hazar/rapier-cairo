@@ -20,15 +20,19 @@ pub mod query;
 pub mod ray;
 pub mod sat;
 pub mod shape;
+pub use aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait, BoundingVolume};
 pub use broad_phase::{ColliderPair, ColliderPairTrait};
 pub use closest_points::{
     closest_points_segment_segment, closest_points_segment_segment_with_locations,
 };
 
 pub use dispatch::{contact_manifold, intersection_test};
+pub use feature_id::{SubShapeId, UnpackedFeatureId};
 pub use mass::MassPropertiesTrait;
 pub use point::{PointProjection, PointQuery, PointQueryWithLocation, SegmentPointLocation};
 pub use query::{ClosestPoints, Contact};
 pub use ray::RayCast;
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
+pub use shape::polygonal_feature_map::PolygonalFeatureMap;
+pub use shape::support_map::SupportMap;
 pub use shape::{Shape, ShapeTrait, ShapeType};

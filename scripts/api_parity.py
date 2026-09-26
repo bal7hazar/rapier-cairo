@@ -452,10 +452,13 @@ def parse_rust_file(raw: str, rel: str, crate: str, items: set[Item]) -> None:
         body = text[opening + 1:end]
         if trait is None:
             owner = normalize_owner(self_type)
+            # A method or const behind `#[cfg(feature = "dim3")]` inside a shared impl is dim3-only too.
             for m in re.finditer(r"\bpub\s+(?:const\s+)?(?:unsafe\s+)?fn\s+([A-Za-z_][A-Za-z0-9_]*)", body):
-                items.add(Item(owner, "method", m.group(1), module, f"{crate}/src/{rel}"))
+                if not dim3_only(raw, opening + 1 + m.start(), rel):
+                    items.add(Item(owner, "method", m.group(1), module, f"{crate}/src/{rel}"))
             for m in re.finditer(r"\bpub\s+const\s+([A-Z][A-Z0-9_]*)\s*:", body):
-                items.add(Item(owner, "const", m.group(1), module, f"{crate}/src/{rel}"))
+                if not dim3_only(raw, opening + 1 + m.start(), rel):
+                    items.add(Item(owner, "const", m.group(1), module, f"{crate}/src/{rel}"))
         else:
             tracked = impl_name(trait, self_type)
             if tracked:
@@ -467,7 +470,8 @@ def parse_rust_file(raw: str, rel: str, crate: str, items: set[Item]) -> None:
         owner = m.group(1)
         body = text[opening + 1:end]
         for fn in re.finditer(r"(?m)^\s*fn\s+([A-Za-z_][A-Za-z0-9_]*)", body):
-            items.add(Item(owner, "method", fn.group(1), module, f"{crate}/src/{rel}"))
+            if not dim3_only(raw, opening + 1 + fn.start(1), rel):
+                items.add(Item(owner, "method", fn.group(1), module, f"{crate}/src/{rel}"))
 
 
 def parse_rust(rapier_root: Path, parry_root: Path) -> list[Item]:
@@ -555,7 +559,7 @@ def parse_cairo() -> list[Item]:
         traits = [(m, b, e) for m, b, e in blocks(text, trait_re) if not inside(m.start(), skip)]
         excluded = skip + [(b, e) for _, b, e in impls + traits]
 
-        for m in re.finditer(r"\bpub\s+(struct|enum|trait)\s+([A-Za-z_][A-Za-z0-9_]*)", text):
+        for m in re.finditer(r"\bpub\s+(struct|enum|trait|type)\s+([A-Za-z_][A-Za-z0-9_]*)", text):
             if not inside(m.start(), skip):
                 items.add(Item(m.group(2), "trait" if m.group(1) == "trait" else "type", m.group(2), source, source))
         for m, opening, end in traits:

@@ -15,22 +15,21 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | Module | Ported | Partial | Missing | Excluded | Items | Coverage |
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 528 | 0 | 289 | 394 | 1211 | 64.6% |
-| geometry | 193 | 0 | 112 | 20 | 325 | 63.3% |
-| parry::bounding_volume | 73 | 0 | 19 | 30 | 122 | 79.3% |
-| parry::mass_properties | 16 | 0 | 7 | 7 | 30 | 69.6% |
-| parry::query | 106 | 0 | 206 | 112 | 424 | 34.0% |
-| parry::shape | 78 | 0 | 207 | 136 | 421 | 27.4% |
+| dynamics | 522 | 0 | 288 | 382 | 1192 | 64.4% |
+| geometry | 193 | 0 | 109 | 15 | 317 | 63.9% |
+| parry::bounding_volume | 73 | 0 | 16 | 30 | 119 | 82.0% |
+| parry::mass_properties | 16 | 0 | 3 | 7 | 26 | 84.2% |
+| parry::query | 107 | 0 | 205 | 112 | 424 | 34.3% |
+| parry::shape | 79 | 0 | 188 | 117 | 384 | 29.6% |
 | pipeline | 57 | 0 | 33 | 68 | 158 | 63.3% |
-| **total** | **1051** | **0** | **920** | **767** | **2738** | **53.3%** |
+| **total** | **1047** | **0** | **889** | **731** | **2667** | **54.1%** |
 
-Cairo-only public items not matched to upstream: **1081**.
+Cairo-only public items not matched to upstream: **1088**.
 
 ## Aabb
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `EDGES_VERTEX_IDS` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | const `FACES_VERTEX_IDS` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_aabb.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_aabb.rs` |
@@ -54,13 +53,11 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `from_half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `from_points` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `from_points_ref` | parry::bounding_volume | ported | Mapped to Aabb.from_points | `parry/src/bounding_volume/aabb.rs` |
-| method `half_area` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | method `half_area_or_perimeter` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `half_extents` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `half_perimeter` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `intersection` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `intersects_moving_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
-| method `intersects_spiral` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
 | method `new` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `new_invalid` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb.rs` |
 | method `project_on_axis` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Aabb, AabbTrait. | `parry/src/bounding_volume/aabb.rs` |
@@ -252,7 +249,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `new_x` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
 | method `new_y` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
-| method `new_z` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
 | method `rotation_wrt_y` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): Capsule, CapsuleTrait. | `parry/src/shape/capsule.rs` |
 | method `transform_by` | parry::shape | ported | Same public name. | `parry/src/shape/capsule.rs` |
@@ -291,7 +287,7 @@ Cairo-only public items not matched to upstream: **1081**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ClippingPoints` | parry::query | missing | Not found on Cairo candidate(s): ClippingPoints, ClippingPointsTrait. | `parry/src/query/clip/clip_segment_segment.rs` |
+| type `ClippingPoints` | parry::query | ported | Same public name. | `parry/src/query/clip/clip_segment_segment.rs` |
 
 ## ClosestPoints
 
@@ -384,20 +380,16 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `capsule_from_endpoints` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `capsule_x` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `capsule_y` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `capsule_z` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
 | method `collision_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `compound` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `cone` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
 | method `contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_skin` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `converted_trimesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `convex_decomposition` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `convex_decomposition_with_params` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `convex_hull` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `convex_mesh` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `convex_polyline` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `cuboid` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `cylinder` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
 | method `default_density` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `default_friction` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `delta` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -407,7 +399,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `friction_combine_rule` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `halfspace` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `heightfield` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `heightfield_with_flags` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `mass` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `mass_properties` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `new` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -419,14 +410,11 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `restitution` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `restitution_combine_rule` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `rotation` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `round_cone` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
 | method `round_convex_decomposition` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `round_convex_decomposition_with_params` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `round_convex_hull` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `round_convex_mesh` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `round_convex_polyline` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `round_cuboid` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `round_cylinder` | geometry | excluded | dim3-only | `rapier/src/geometry/collider.rs` |
 | method `round_triangle` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `segment` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `sensor` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -935,7 +923,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_cuboid.rs` |
 | method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_cuboid.rs` |
-| method `local_support_edge_segment` | parry::shape | missing | Not found on Cairo candidate(s): Cuboid, CuboidTrait. | `parry/src/shape/cuboid.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `scaled` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
 | method `support_face` | parry::shape | ported | Same public name. | `parry/src/shape/cuboid.rs` |
@@ -1080,7 +1067,6 @@ Cairo-only public items not matched to upstream: **1081**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `unwrap_edge` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
 | method `unwrap_face` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
 | method `unwrap_vertex` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
 | type `FeatureId` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
@@ -1522,7 +1508,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `finalize_constraints` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
 | method `finalize_generic_constraints` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 | method `limit_angular` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `limit_angular_coupled` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
 | method `limit_angular_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 | method `limit_linear` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
 | method `limit_linear_coupled` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
@@ -1638,12 +1623,8 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `mass` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | method `new` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | method `principal_inertia` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
-| method `reconstruct_inertia_matrix` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
-| method `reconstruct_inverse_inertia_matrix` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
 | method `set_mass` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | method `transform_by` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
-| method `with_inertia_matrix` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
-| method `with_principal_inertia_frame` | parry::mass_properties | missing | Not found on Cairo candidate(s): MassProperties, RigidBodyMassProps, ColliderMassProps, MassPropertiesTrait, RigidBodyMassPropsTrait, ColliderMassPropsTrait. | `parry/src/mass_properties/mass_properties.rs` |
 | method `world_com` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | method `world_inv_inertia` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | type `MassProperties` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
@@ -1924,9 +1905,7 @@ Cairo-only public items not matched to upstream: **1081**.
 |---|---|---|---|---|
 | const `UNKNOWN` | parry::shape | ported | Mapped to FeatureId.UNKNOWN | `parry/src/shape/feature_id.rs` |
 | impl `From<FeatureId>` | parry::shape | ported | Mapped to FeatureId.From<UnpackedFeatureId> | `parry/src/shape/feature_id.rs` |
-| method `edge` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
 | method `face` | parry::shape | ported | Mapped to FeatureId.face | `parry/src/shape/feature_id.rs` |
-| method `is_edge` | parry::shape | missing | Not found on Cairo candidate(s): FeatureId, FeatureIdTrait. | `parry/src/shape/feature_id.rs` |
 | method `is_face` | parry::shape | ported | Mapped to FeatureId.is_face | `parry/src/shape/feature_id.rs` |
 | method `is_unknown` | parry::shape | ported | Mapped to FeatureId.is_unknown | `parry/src/shape/feature_id.rs` |
 | method `is_vertex` | parry::shape | ported | Mapped to FeatureId.is_vertex | `parry/src/shape/feature_id.rs` |
@@ -2509,7 +2488,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `additional_solver_iterations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `angular_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `angvel` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `angvel_with_gyroscopic_forces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `apply_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `apply_impulse_at_point` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `apply_torque_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2521,10 +2499,8 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `effective_active_set_offset` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `effective_dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `enable_ccd` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enable_gyroscopic_forces` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravitational_potential_energy` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gyroscopic_forces_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_ccd_active` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_ccd_enabled` | dynamics | missing | Not found on Cairo candidate(s): RigidBody, RigidBodyTrait. | `rapier/src/dynamics/rigid_body.rs` |
 | method `is_dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2635,11 +2611,9 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `dominance_group` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `dynamic` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `enabled_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `enabled_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `fixed` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `gravity_scale` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `gyroscopic_forces_enabled` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `kinematic_position_based` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `kinematic_velocity_based` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `linear_damping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2653,7 +2627,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `new_static` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `pose` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `position` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
-| method `restrict_rotations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `restrict_translations` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `rotation` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
 | method `sleeping` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body.rs` |
@@ -2920,12 +2893,10 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `local_split_and_get_intersection` | parry::query | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/query/split/split_segment.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
-| method `planar_normal` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
 | method `point_at` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
 | method `scaled` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_direction` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `scaled_normal` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
-| method `scaled_planar_normal` | parry::shape | missing | Not found on Cairo candidate(s): Segment, SegmentTrait. | `parry/src/shape/segment.rs` |
 | method `swap` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | method `transformed` | parry::shape | ported | Same public name. | `parry/src/shape/segment.rs` |
 | type `Segment` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
@@ -2964,16 +2935,10 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `as_composite_shape` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_compound` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_compound_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_cone` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
-| method `as_cone_mut` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
 | method `as_convex_polygon` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_convex_polygon_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_convex_polyhedron` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
-| method `as_convex_polyhedron_mut` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
 | method `as_cuboid` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_cuboid_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_cylinder` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
-| method `as_cylinder_mut` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
 | method `as_halfspace` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_halfspace_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_heightfield` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
@@ -2981,16 +2946,10 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `as_polygonal_feature_map` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_polyline` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_polyline_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_round_cone` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
-| method `as_round_cone_mut` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
 | method `as_round_convex_polygon` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_round_convex_polygon_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_round_convex_polyhedron` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
-| method `as_round_convex_polyhedron_mut` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
 | method `as_round_cuboid` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_round_cuboid_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_round_cylinder` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
-| method `as_round_cylinder_mut` | parry::shape | excluded | dim3-only | `parry/src/shape/shape.rs` |
 | method `as_round_triangle` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_round_triangle_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
 | method `as_segment` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -3079,31 +3038,23 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `capsule` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `capsule_x` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `capsule_y` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `capsule_z` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `compound` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `cone` | parry::shape | excluded | dim3-only | `parry/src/shape/shared_shape.rs` |
 | method `convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_mesh` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_polyline` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_polyline_unmodified` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `cuboid` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `cylinder` | parry::shape | excluded | dim3-only | `parry/src/shape/shared_shape.rs` |
 | method `halfspace` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `heightfield` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `heightfield_with_flags` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `make_mut` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `new` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `polyline` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_cone` | parry::shape | excluded | dim3-only | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_mesh` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_polyline` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `round_cuboid` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_cylinder` | parry::shape | excluded | dim3-only | `parry/src/shape/shared_shape.rs` |
 | method `round_triangle` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `segment` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `triangle` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
@@ -3223,7 +3174,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `connected_pieces` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/tearing/tearing_helpers.rs` |
 | method `crossing_elements` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/tearing/tearing.rs` |
 | method `detach_particle` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_motion.rs` |
-| method `dihedrals` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_accessors.rs` |
 | method `edge_contact_segments` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_contacts.rs` |
 | method `edges` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_accessors.rs` |
 | method `enable_cluster_shape_matching` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_cluster.rs` |
@@ -3304,11 +3254,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `cell_edges` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `cell_model` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `cells` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
-| method `cloth` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `cloth_anisotropic` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `cloth_tube` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `cuboid` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `dihedrals` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `disk` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
 | method `edge_tear_resistance` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `edges` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
@@ -3338,10 +3283,8 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `skin_collision` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `softness` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `solver` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
-| method `sphere` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
 | method `surface` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `surface_collider` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
-| method `surface_dihedrals` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `surface_edges` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `tear_force` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `tear_smoothing` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
@@ -3352,10 +3295,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `user_data` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `volume_factor` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | method `volume_preservation` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
-| method `volumetric` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `volumetric_skinned` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `volumetric_with` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs` |
-| method `wire` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs` |
 | type `SoftBodyBuilder` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder.rs` |
 
 ## SoftBodyCell
@@ -3948,7 +3887,7 @@ Cairo-only public items not matched to upstream: **1081**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SubShapeId` | parry::shape | missing | Not found on Cairo candidate(s): SubShapeId, SubShapeIdTrait. | `parry/src/shape/feature_id.rs` |
+| type `SubShapeId` | parry::shape | ported | Same public name. | `parry/src/shape/feature_id.rs` |
 
 ## SubshapePoses
 
@@ -4082,8 +4021,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `local_split` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
 | method `new` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `num_triangles` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
-| method `pseudo_normals` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
-| method `pseudo_normals_if_oriented` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `reverse` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `scaled` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `set_flags` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
@@ -4093,7 +4030,6 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `total_memory_size` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `transform_vertices` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `triangle` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
-| method `triangle_normal` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `triangle_normal_constraints` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `triangles` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `update_vertices` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
@@ -4155,23 +4091,16 @@ Cairo-only public items not matched to upstream: **1081**.
 | method `edges` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `edges_scaled_directions` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `extents_on_dir` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `feature_normal` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `from_array` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `is_affinely_dependent` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `is_affinely_dependent_eps` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `local_aabb` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/bounding_volume/aabb_triangle.rs` |
 | method `local_bounding_sphere` | parry::bounding_volume | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/bounding_volume/bounding_sphere_triangle.rs` |
 | method `local_support_edge_segment` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `new` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `normal` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `orientation` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `orientation2d` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `perimeter` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `reverse` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `robust_normal` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `robust_scaled_normal` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
-| method `scaled_normal` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `support_face` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `transformed` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
 | method `unit_angular_inertia` | parry::shape | missing | Not found on Cairo candidate(s): Triangle, TriangleTrait. | `parry/src/shape/triangle.rs` |
@@ -4638,22 +4567,22 @@ Cairo-only public items not matched to upstream: **1081**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 233 | standard | QP queries |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 207 | standard | shape interface |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 170 | mechanical | AP triage |
+| [Query completion](#wp-query-completion) | 232 | standard | QP queries |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 193 | standard | shape interface |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 168 | mechanical | AP triage |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 87 | hard | QP queries |
-| [Joint API completion](#wp-joint-api-completion) | 66 | standard | JL/RJ |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 38 | standard | SE sensors |
+| [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 37 | standard | SE sensors |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
-| [Collider API completion](#wp-collider-api-completion) | 14 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 14 | mechanical | KD/SL |
+| [Collider API completion](#wp-collider-api-completion) | 13 | mechanical | DB/EV |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
-| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 9 | standard | geometry |
+| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 2 | standard | geometry |
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 233 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 232 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4669,7 +4598,6 @@ Tier: standard. Depends/context: QP queries. Estimate: 233 public items.
 - **BoundingSphere** impl `RayCast` (`parry/src/query/ray/ray_bounding_sphere.rs`)
 - **BroadPhaseBvh** method `as_query_pipeline` (`rapier/src/pipeline/query_pipeline.rs`)
 - **BroadPhaseBvh** method `as_query_pipeline_mut` (`rapier/src/pipeline/query_pipeline.rs`)
-- **ClippingPoints** type `ClippingPoints` (`parry/src/query/clip/clip_segment_segment.rs`)
 - **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
 - **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
@@ -4735,11 +4663,12 @@ Tier: standard. Depends/context: QP queries. Estimate: 233 public items.
 - **ContactWithTwistFriction** method `writeback_impulses` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
 - **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- ... 153 more
+- **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
+- ... 152 more
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 207 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 193 public items.
 
 - **Aabb** method `scaled_wrt_center` (`parry/src/bounding_volume/aabb.rs`)
 - **Ball** method `scaled` (`parry/src/shape/ball.rs`)
@@ -4747,14 +4676,12 @@ Tier: standard. Depends/context: shape interface. Estimate: 207 public items.
 - **ColliderBuilder** method `compound` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `convex_polyline` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `heightfield` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `heightfield_with_flags` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `oriented_polyline` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `polyline` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `polyline_with_flags` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_convex_hull` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `round_convex_mesh` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_convex_polyline` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_cuboid` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_triangle` (`rapier/src/geometry/collider.rs`)
@@ -4821,11 +4748,13 @@ Tier: standard. Depends/context: shape interface. Estimate: 207 public items.
 - **Polyline** method `bvh` (`parry/src/shape/polyline.rs`)
 - **Polyline** method `extract_connected_components` (`parry/src/shape/polyline.rs`)
 - **Polyline** method `flags` (`parry/src/shape/polyline.rs`)
-- ... 127 more
+- **Polyline** method `flat_indices` (`parry/src/shape/polyline.rs`)
+- **Polyline** method `indices` (`parry/src/shape/polyline.rs`)
+- ... 113 more
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 170 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 168 public items.
 
 - **AxesMask** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
 - **AxesMask** type `AxesMask` (`rapier/src/dynamics/rigid_body_components.rs`)
@@ -4842,7 +4771,6 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 170 public items.
 - **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
 - **Capsule** impl `Shape` (`parry/src/shape/shape.rs`)
 - **Capsule** method `canonical_transform` (`parry/src/shape/capsule.rs`)
-- **Capsule** method `new_z` (`parry/src/shape/capsule.rs`)
 - **Capsule** method `rotation_wrt_y` (`parry/src/shape/capsule.rs`)
 - **Capsule** method `transform_wrt_y` (`parry/src/shape/capsule.rs`)
 - **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
@@ -4885,7 +4813,6 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 170 public items.
 - **Polygon** type `Polygon` (`parry/src/shape/polygon.rs`)
 - **Segment** impl `From<[T; N]>` (`parry/src/shape/segment.rs`)
 - **Segment** impl `Shape` (`parry/src/shape/shape.rs`)
-- **Segment** method `planar_normal` (`parry/src/shape/segment.rs`)
 - **Segment** method `point_at` (`parry/src/shape/segment.rs`)
 - **SegmentPseudoNormals** type `SegmentPseudoNormals` (`parry/src/shape/segment_pseudo_normals.rs`)
 - **Shape** method `as_ball_mut` (`parry/src/shape/shape.rs`)
@@ -4907,7 +4834,9 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 170 public items.
 - **SkylineCholesky** method `new` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SkylineCholesky** method `solve` (`rapier/src/dynamics/solver/soft_fem/soft_fem_skyline.rs`)
 - **SoftAttachmentConstraint** method `solve` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
-- ... 90 more
+- **SoftAttachmentConstraint** method `update` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
+- **SoftAttachmentConstraint** method `warmstart` (`rapier/src/dynamics/solver/soft_constraint/soft_attachment.rs`)
+- ... 88 more
 
 ### WP: CCD and shape casts
 
@@ -4997,7 +4926,7 @@ Tier: hard. Depends/context: QP queries. Estimate: 87 public items.
 
 ### WP: Joint API completion
 
-Tier: standard. Depends/context: JL/RJ. Estimate: 66 public items.
+Tier: standard. Depends/context: JL/RJ. Estimate: 61 public items.
 
 - **AngularLimitParams** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
 - **AngularLimitParams** type `AngularLimitParams` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
@@ -5025,7 +4954,6 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 66 public items.
 - **JointConstraintHelper** method `finalize_constraints` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
 - **JointConstraintHelper** method `finalize_generic_constraints` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
 - **JointConstraintHelper** method `limit_angular` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `limit_angular_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
 - **JointConstraintHelper** method `limit_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
 - **JointConstraintHelper** method `limit_linear` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
 - **JointConstraintHelper** method `limit_linear_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
@@ -5054,10 +4982,6 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 66 public items.
 - **JointSolverBody** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **JointSolverBody** type `JointSolverBody` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **LinkOrBodyRef** type `LinkOrBodyRef` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **MassProperties** method `reconstruct_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
-- **MassProperties** method `reconstruct_inverse_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
-- **MassProperties** method `with_inertia_matrix` (`parry/src/mass_properties/mass_properties.rs`)
-- **MassProperties** method `with_principal_inertia_frame` (`parry/src/mass_properties/mass_properties.rs`)
 - **MotorParameters** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **MotorParameters** type `MotorParameters` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **PersistentIslands** method `apply_impulse_joint_event` (`rapier/src/dynamics/island_manager/persistent.rs`)
@@ -5068,11 +4992,10 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 66 public items.
 
 ### WP: Sensors and intersection events
 
-Tier: standard. Depends/context: SE sensors. Estimate: 38 public items.
+Tier: standard. Depends/context: SE sensors. Estimate: 37 public items.
 
 - **Aabb** method `aligned_intersections` (`parry/src/bounding_volume/aabb.rs`)
 - **Aabb** method `intersects_moving_aabb` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `intersects_spiral` (`parry/src/bounding_volume/aabb.rs`)
 - **ActiveEvents** impl `Default` (`rapier/src/pipeline/event_handler.rs`)
 - **CompositeShapeRef** method `intersects_shape` (`parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs`)
 - **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
@@ -5189,25 +5112,6 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 
-### WP: Collider API completion
-
-Tier: mechanical. Depends/context: DB/EV. Estimate: 14 public items.
-
-- **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `convex_mesh` (`rapier/src/geometry/collider.rs`)
-- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
-- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
-- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
-- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
-- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **RigidBodyColliders** type `RigidBodyColliders` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
-
 ### WP: Rigid-body API completion
 
 Tier: mechanical. Depends/context: KD/SL. Estimate: 14 public items.
@@ -5226,6 +5130,24 @@ Tier: mechanical. Depends/context: KD/SL. Estimate: 14 public items.
 - **RigidBodySet** impl `Index<data::Index>` (`rapier/src/dynamics/rigid_body_set.rs`)
 - **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
 - **RigidBodyType** method `is_soft_frame` (`rapier/src/dynamics/rigid_body_components.rs`)
+
+### WP: Collider API completion
+
+Tier: mechanical. Depends/context: DB/EV. Estimate: 13 public items.
+
+- **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
+- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
+- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
+- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
+- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
+- **MotorModel** method `combine_coefficients` (`rapier/src/dynamics/joint/motor_model.rs`)
+- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **RigidBodyColliders** type `RigidBodyColliders` (`rapier/src/dynamics/rigid_body_components.rs`)
+- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
 
 ### WP: Character controller
 
@@ -5246,16 +5168,9 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 
 ### WP: Mass, AABB, and shape helpers
 
-Tier: standard. Depends/context: geometry. Estimate: 9 public items.
+Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 
-- **Aabb** const `EDGES_VERTEX_IDS` (`parry/src/bounding_volume/aabb.rs`)
-- **Aabb** method `half_area` (`parry/src/bounding_volume/aabb.rs`)
-- **Cuboid** method `local_support_edge_segment` (`parry/src/shape/cuboid.rs`)
-- **FeatureId** method `unwrap_edge` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `edge` (`parry/src/shape/feature_id.rs`)
-- **PackedFeatureId** method `is_edge` (`parry/src/shape/feature_id.rs`)
 - **Polygon** method `aabb` (`parry/src/shape/polygon.rs`)
-- **SubShapeId** type `SubShapeId` (`parry/src/shape/feature_id.rs`)
 - **parry::bounding_volume** function `local_aabb` (`parry/src/bounding_volume/aabb_support_map.rs`)
 
 ## Cairo public items without upstream match
@@ -5460,7 +5375,7 @@ Tier: standard. Depends/context: geometry. Estimate: 9 public items.
 - **Capsule** method `cast_local_ray_capsule` (`crates/rapier_geometry2d/src/ray/capsule.cairo`)
 - **Capsule** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
 - **Capsule** method `compute_local_aabb` (`crates/rapier_geometry2d/src/shape/capsule.cairo`)
-- ... 881 more
+- ... 888 more
 
 ## Embedded Rust inventory
 
@@ -5468,13 +5383,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
 
 <!-- api-parity-rust-inventory
 [
-  {
-    "kind": "const",
-    "module": "parry::bounding_volume",
-    "name": "EDGES_VERTEX_IDS",
-    "owner": "Aabb",
-    "source": "parry/src/bounding_volume/aabb.rs"
-  },
   {
     "kind": "const",
     "module": "parry::bounding_volume",
@@ -5639,13 +5547,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::bounding_volume",
-    "name": "half_area",
-    "owner": "Aabb",
-    "source": "parry/src/bounding_volume/aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
     "name": "half_area_or_perimeter",
     "owner": "Aabb",
     "source": "parry/src/bounding_volume/aabb.rs"
@@ -5675,13 +5576,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::bounding_volume",
     "name": "intersects_moving_aabb",
-    "owner": "Aabb",
-    "source": "parry/src/bounding_volume/aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "intersects_spiral",
     "owner": "Aabb",
     "source": "parry/src/bounding_volume/aabb.rs"
   },
@@ -6360,13 +6254,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "new_z",
-    "owner": "Capsule",
-    "source": "parry/src/shape/capsule.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "rotation_wrt_y",
     "owner": "Capsule",
     "source": "parry/src/shape/capsule.rs"
@@ -6969,13 +6856,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "geometry",
-    "name": "capsule_z",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
     "name": "collision_groups",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
@@ -6984,13 +6864,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "geometry",
     "name": "compound",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
-    "name": "cone",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
   },
@@ -7039,13 +6912,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "geometry",
-    "name": "convex_mesh",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
     "name": "convex_polyline",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
@@ -7054,13 +6920,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "geometry",
     "name": "cuboid",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
-    "name": "cylinder",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
   },
@@ -7124,13 +6983,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "geometry",
     "name": "heightfield",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
-    "name": "heightfield_with_flags",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
   },
@@ -7214,13 +7066,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "geometry",
-    "name": "round_cone",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
     "name": "round_convex_decomposition",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
@@ -7242,13 +7087,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "geometry",
-    "name": "round_convex_mesh",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
     "name": "round_convex_polyline",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
@@ -7257,13 +7095,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "geometry",
     "name": "round_cuboid",
-    "owner": "ColliderBuilder",
-    "source": "rapier/src/geometry/collider.rs"
-  },
-  {
-    "kind": "method",
-    "module": "geometry",
-    "name": "round_cylinder",
     "owner": "ColliderBuilder",
     "source": "rapier/src/geometry/collider.rs"
   },
@@ -9076,13 +8907,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "local_support_edge_segment",
-    "owner": "Cuboid",
-    "source": "parry/src/shape/cuboid.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "new",
     "owner": "Cuboid",
     "source": "parry/src/shape/cuboid.rs"
@@ -9457,13 +9281,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "PartialOrd",
     "owner": "FaceId",
     "source": "parry/src/query/epa/epa2.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "unwrap_edge",
-    "owner": "FeatureId",
-    "source": "parry/src/shape/feature_id.rs"
   },
   {
     "kind": "method",
@@ -11260,13 +11077,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "dynamics",
-    "name": "limit_angular_coupled",
-    "owner": "JointConstraintHelper",
-    "source": "rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
     "name": "limit_angular_generic",
     "owner": "JointConstraintHelper",
     "source": "rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs"
@@ -11687,20 +11497,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::mass_properties",
-    "name": "reconstruct_inertia_matrix",
-    "owner": "MassProperties",
-    "source": "parry/src/mass_properties/mass_properties.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::mass_properties",
-    "name": "reconstruct_inverse_inertia_matrix",
-    "owner": "MassProperties",
-    "source": "parry/src/mass_properties/mass_properties.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::mass_properties",
     "name": "set_mass",
     "owner": "MassProperties",
     "source": "parry/src/mass_properties/mass_properties.rs"
@@ -11709,20 +11505,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::mass_properties",
     "name": "transform_by",
-    "owner": "MassProperties",
-    "source": "parry/src/mass_properties/mass_properties.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::mass_properties",
-    "name": "with_inertia_matrix",
-    "owner": "MassProperties",
-    "source": "parry/src/mass_properties/mass_properties.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::mass_properties",
-    "name": "with_principal_inertia_frame",
     "owner": "MassProperties",
     "source": "parry/src/mass_properties/mass_properties.rs"
   },
@@ -12814,21 +12596,7 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "edge",
-    "owner": "PackedFeatureId",
-    "source": "parry/src/shape/feature_id.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "face",
-    "owner": "PackedFeatureId",
-    "source": "parry/src/shape/feature_id.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "is_edge",
     "owner": "PackedFeatureId",
     "source": "parry/src/shape/feature_id.rs"
   },
@@ -15544,13 +15312,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "dynamics",
-    "name": "angvel_with_gyroscopic_forces",
-    "owner": "RigidBody",
-    "source": "rapier/src/dynamics/rigid_body.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
     "name": "apply_impulse",
     "owner": "RigidBody",
     "source": "rapier/src/dynamics/rigid_body.rs"
@@ -15628,13 +15389,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "dynamics",
-    "name": "enable_gyroscopic_forces",
-    "owner": "RigidBody",
-    "source": "rapier/src/dynamics/rigid_body.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
     "name": "gravitational_potential_energy",
     "owner": "RigidBody",
     "source": "rapier/src/dynamics/rigid_body.rs"
@@ -15643,13 +15397,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "dynamics",
     "name": "gravity_scale",
-    "owner": "RigidBody",
-    "source": "rapier/src/dynamics/rigid_body.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "gyroscopic_forces_enabled",
     "owner": "RigidBody",
     "source": "rapier/src/dynamics/rigid_body.rs"
   },
@@ -16321,13 +16068,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "dynamics",
-    "name": "enabled_rotations",
-    "owner": "RigidBodyBuilder",
-    "source": "rapier/src/dynamics/rigid_body.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
     "name": "enabled_translations",
     "owner": "RigidBodyBuilder",
     "source": "rapier/src/dynamics/rigid_body.rs"
@@ -16343,13 +16083,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "dynamics",
     "name": "gravity_scale",
-    "owner": "RigidBodyBuilder",
-    "source": "rapier/src/dynamics/rigid_body.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "gyroscopic_forces_enabled",
     "owner": "RigidBodyBuilder",
     "source": "rapier/src/dynamics/rigid_body.rs"
   },
@@ -16441,13 +16174,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "dynamics",
     "name": "position",
-    "owner": "RigidBodyBuilder",
-    "source": "rapier/src/dynamics/rigid_body.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "restrict_rotations",
     "owner": "RigidBodyBuilder",
     "source": "rapier/src/dynamics/rigid_body.rs"
   },
@@ -17546,13 +17272,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "planar_normal",
-    "owner": "Segment",
-    "source": "parry/src/shape/segment.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "point_at",
     "owner": "Segment",
     "source": "parry/src/shape/segment.rs"
@@ -17575,13 +17294,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::shape",
     "name": "scaled_normal",
-    "owner": "Segment",
-    "source": "parry/src/shape/segment.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "scaled_planar_normal",
     "owner": "Segment",
     "source": "parry/src/shape/segment.rs"
   },
@@ -17714,20 +17426,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "as_cone",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_cone_mut",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "as_convex_polygon",
     "owner": "Shape",
     "source": "parry/src/shape/shape.rs"
@@ -17742,20 +17440,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "as_convex_polyhedron",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_convex_polyhedron_mut",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "as_cuboid",
     "owner": "Shape",
     "source": "parry/src/shape/shape.rs"
@@ -17764,20 +17448,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::shape",
     "name": "as_cuboid_mut",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_cylinder",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_cylinder_mut",
     "owner": "Shape",
     "source": "parry/src/shape/shape.rs"
   },
@@ -17833,20 +17503,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "as_round_cone",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_round_cone_mut",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "as_round_convex_polygon",
     "owner": "Shape",
     "source": "parry/src/shape/shape.rs"
@@ -17861,20 +17517,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "as_round_convex_polyhedron",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_round_convex_polyhedron_mut",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "as_round_cuboid",
     "owner": "Shape",
     "source": "parry/src/shape/shape.rs"
@@ -17883,20 +17525,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::shape",
     "name": "as_round_cuboid_mut",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_round_cylinder",
-    "owner": "Shape",
-    "source": "parry/src/shape/shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "as_round_cylinder_mut",
     "owner": "Shape",
     "source": "parry/src/shape/shape.rs"
   },
@@ -18274,21 +17902,7 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "capsule_z",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "compound",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "cone",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
   },
@@ -18316,13 +17930,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "convex_mesh",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "convex_polyline",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
@@ -18344,13 +17951,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "cylinder",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "halfspace",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
@@ -18359,13 +17959,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::shape",
     "name": "heightfield",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "heightfield_with_flags",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
   },
@@ -18393,13 +17986,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "round_cone",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "round_convex_decomposition",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
@@ -18421,13 +18007,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "round_convex_mesh",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "round_convex_polyline",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
@@ -18436,13 +18015,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::shape",
     "name": "round_cuboid",
-    "owner": "SharedShape",
-    "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "round_cylinder",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
   },
@@ -18928,13 +18500,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "detach_particle",
     "owner": "SoftBody",
     "source": "rapier/src/dynamics/soft_body/soft_body_motion.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "dihedrals",
-    "owner": "SoftBody",
-    "source": "rapier/src/dynamics/soft_body/soft_body_accessors.rs"
   },
   {
     "kind": "method",
@@ -19464,41 +19029,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "dynamics",
-    "name": "cloth",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "cloth_anisotropic",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "cloth_tube",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "cuboid",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "dihedrals",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
     "name": "disk",
     "owner": "SoftBodyBuilder",
     "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
@@ -19702,13 +19232,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "dynamics",
-    "name": "sphere",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
     "name": "surface",
     "owner": "SoftBodyBuilder",
     "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs"
@@ -19717,13 +19240,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "dynamics",
     "name": "surface_collider",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "surface_dihedrals",
     "owner": "SoftBodyBuilder",
     "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs"
   },
@@ -19794,34 +19310,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "dynamics",
     "name": "volume_preservation",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "volumetric",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "volumetric_skinned",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "volumetric_with",
-    "owner": "SoftBodyBuilder",
-    "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_shapes.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "wire",
     "owner": "SoftBodyBuilder",
     "source": "rapier/src/dynamics/soft_body/soft_body_builder/soft_body_builder_settings.rs"
   },
@@ -22145,20 +21633,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "pseudo_normals",
-    "owner": "TriMesh",
-    "source": "parry/src/shape/trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "pseudo_normals_if_oriented",
-    "owner": "TriMesh",
-    "source": "parry/src/shape/trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "reverse",
     "owner": "TriMesh",
     "source": "parry/src/shape/trimesh.rs"
@@ -22216,13 +21690,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "kind": "method",
     "module": "parry::shape",
     "name": "triangle",
-    "owner": "TriMesh",
-    "source": "parry/src/shape/trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "triangle_normal",
     "owner": "TriMesh",
     "source": "parry/src/shape/trimesh.rs"
   },
@@ -22446,28 +21913,7 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "feature_normal",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "from_array",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "is_affinely_dependent",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "is_affinely_dependent_eps",
     "owner": "Triangle",
     "source": "parry/src/shape/triangle.rs"
   },
@@ -22502,13 +21948,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "normal",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "orientation",
     "owner": "Triangle",
     "source": "parry/src/shape/triangle.rs"
@@ -22537,28 +21976,7 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::shape",
-    "name": "robust_normal",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "robust_scaled_normal",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
     "name": "scaled",
-    "owner": "Triangle",
-    "source": "parry/src/shape/triangle.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "scaled_normal",
     "owner": "Triangle",
     "source": "parry/src/shape/triangle.rs"
   },
