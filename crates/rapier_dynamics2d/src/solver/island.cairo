@@ -17,13 +17,15 @@ use rapier_geometry2d::contact::ContactManifold;
 use sweeps::array_joint::joints;
 #[cfg(test)]
 use sweeps::contact::contacts;
-use sweeps::split::{SweepBodies, SweepBodiesTrait};
+use sweeps::split::{BankPoint, Frozen, FrozenPoint, HotPoint, SweepBodies, SweepBodiesTrait};
 use sweeps::{prepare_joints, rebuild_joints, split};
 use crate::joint::ImpulseJoint;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use crate::rigid_body_set::RigidBody;
 use super::body::{SolverBody, WORLD};
-use super::body_store::{BodyStep, DenseBodiesTrait, SolverBodyStore, gather, writeback};
+use super::body_store::{
+    BodyStep, DenseBodies, DenseBodiesTrait, SolverBodyStore, gather, writeback,
+};
 #[cfg(test)]
 use super::contact::ContactConstraintsSetTrait;
 
@@ -48,6 +50,251 @@ pub fn solve_island(
     ref joint_set: Array<ImpulseJoint>,
 ) {
     run(params, ref store.bodies, store.steps, ref contact_set, ref joint_set);
+}
+
+/// The input of [`solve_island_input`]: one solver body and its frozen step data per entry, in
+/// entry order (BT4: gathered straight from the entries, no `SolverBodyStore`).
+#[derive(Drop)]
+pub struct SolverInput {
+    bodies: Array<SolverBody>,
+    steps: Array<BodyStep>,
+}
+
+/// The impulses a solve left in one contact point (the fields `solve_island` writes back into
+/// the manifold's point `contact_id`).
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
+pub struct PointImpulses {
+    pub contact_id: u8,
+    pub impulse: Fixed,
+    pub tangent_impulse: Fixed,
+    pub warmstart_impulse: Fixed,
+    pub warmstart_tangent_impulse: Fixed,
+}
+
+/// The impulses of one manifold: `count` points (0 when no constraint was generated for it:
+/// then `solve_island` leaves the manifold unchanged).
+#[derive(Copy, Drop, Debug, PartialEq, Default)]
+pub struct ManifoldImpulses {
+    pub count: u8,
+    pub a: PointImpulses,
+    pub b: PointImpulses,
+}
+
+/// What [`solve_island_input`] leaves: the solved bodies in input order and one
+/// [`ManifoldImpulses`] per input manifold (none when there was no contact constraint).
+#[derive(Drop)]
+pub struct SolvedIsland {
+    bodies: Span<SolverBody>,
+    steps: Span<BodyStep>,
+    impulses: Span<ManifoldImpulses>,
+}
+
+/// The result of a solve that did not run (no constraint): no body, no impulse.
+pub impl SolvedIslandDefault of Default<SolvedIsland> {
+    fn default() -> SolvedIsland {
+        SolvedIsland { bodies: array![].span(), steps: array![].span(), impulses: array![].span() }
+    }
+}
+
+#[generate_trait]
+pub impl SolverInputImpl of SolverInputTrait {
+    /// `SolverBodyStoreTrait::from_entries` without the store: the same gather, same panics.
+    fn gather(
+        entries: Span<(Handle, RigidBody)>, gravity: Vec2, params: IntegrationParameters,
+    ) -> SolverInput {
+        let dt = params.substep_dt();
+        let mut bodies = array![];
+        let mut steps = array![];
+        for (handle, rb) in entries {
+            let (body, step) = gather(*handle, *rb, gravity, dt);
+            bodies.append(body);
+            steps.append(step);
+        }
+        SolverInput { bodies, steps }
+    }
+}
+
+#[generate_trait]
+pub impl SolvedIslandImpl of SolvedIslandTrait {
+    /// `SolverBodyStoreTrait::write_body` of the input body `index` (a non-moving body is left
+    /// unchanged). Products floor.
+    fn write_body(self: @SolvedIsland, index: u32, ref rb: RigidBody) {
+        let step = *self.steps.at(index);
+        if step.moving {
+            writeback(*self.bodies.at(index), step, ref rb);
+        }
+    }
+
+    /// Writes the impulses of the input manifold `index` into `manifold` (its copy in the pair
+    /// list), as `solve_island` writes them into its manifold array. Nothing without impulses.
+    fn write_impulses(self: @SolvedIsland, index: u32, ref manifold: ContactManifold) {
+        if let Some(impulses) = self.impulses.get(index) {
+            let impulses = *impulses.unbox();
+            if impulses.count != 0 {
+                write_point(impulses.a, ref manifold);
+                if impulses.count == 2 {
+                    write_point(impulses.b, ref manifold);
+                }
+            }
+        }
+    }
+}
+
+/// `split::writeback`'s write of one point.
+#[inline(always)]
+fn write_point(p: PointImpulses, ref m: ContactManifold) {
+    let [mut p0, mut p1] = m.points;
+    if p.contact_id == 0 {
+        p0.data.impulse = p.impulse;
+        p0.data.tangent_impulse = p.tangent_impulse;
+        p0.data.warmstart_impulse = p.warmstart_impulse;
+        p0.data.warmstart_tangent_impulse = p.warmstart_tangent_impulse;
+    } else {
+        p1.data.impulse = p.impulse;
+        p1.data.tangent_impulse = p.tangent_impulse;
+        p1.data.warmstart_impulse = p.warmstart_impulse;
+        p1.data.warmstart_tangent_impulse = p.warmstart_tangent_impulse;
+    }
+    m.points = [p0, p1];
+}
+
+/// The impulses of one point from the sweeps' state (`split::write_point`'s values).
+#[inline(always)]
+fn point_impulses(h: HotPoint, b: BankPoint, f: @FrozenPoint) -> PointImpulses {
+    PointImpulses {
+        contact_id: *f.contact_id,
+        impulse: b.acc + h.impulse,
+        tangent_impulse: b.t_acc + h.t_impulse,
+        warmstart_impulse: h.impulse,
+        warmstart_tangent_impulse: h.t_impulse,
+    }
+}
+
+/// Collects the bodies `SweepBodiesTrait::finish` writes, in dense order (only `set_pair(i, b,
+/// WORLD, _)` with `i` ascending from 0 is used).
+#[derive(Drop)]
+struct Collected {
+    bodies: Array<SolverBody>,
+}
+
+impl CollectedDense of DenseBodiesTrait<Collected> {
+    fn new(bodies: Span<SolverBody>) -> Collected {
+        Collected { bodies: array![] }
+    }
+
+    fn len(self: @Collected) -> u32 {
+        self.bodies.len()
+    }
+    fn get(ref self: Collected, index: u32) -> SolverBody {
+        *self.bodies.at(index)
+    }
+    fn set_pair(ref self: Collected, i: u32, a: SolverBody, j: u32, b: SolverBody) {
+        self.bodies.append(a);
+    }
+}
+
+/// [`solve_island`] on gathered entries (BT4): the same stages, arithmetic and panics, with the
+/// bodies taken from `input` instead of a `SolverBodyStore` and the contact impulses returned per
+/// manifold instead of written into a manifold array (the pipeline writes them into its pairs).
+/// `manifolds` are the frozen contact set in solve order; `joint_set` as in `solve_island`.
+pub fn solve_island_input(
+    params: IntegrationParameters,
+    input: SolverInput,
+    manifolds: Span<ContactManifold>,
+    ref joint_set: Array<ImpulseJoint>,
+) -> SolvedIsland {
+    let SolverInput { bodies: initial, steps } = input;
+    let steps = steps.span();
+    let dt = params.substep_dt();
+    let max_lin = params.max_linear_velocity();
+    let max_corrective = params.max_corrective_velocity();
+    assert(params.dt >= ZERO && max_lin >= ZERO && max_corrective >= ZERO, errors::NEGATIVE);
+    if params.dt == ZERO {
+        return SolvedIsland { bodies: initial.span(), steps, impulses: array![].span() };
+    }
+    let max_ang = Fixed { raw: 3373259426 } * params.inv_dt();
+    let initial = initial.span();
+    let (frozen, mut state) = if manifolds.is_empty() {
+        (array![], split::State { hot: array![], bank: array![], bounce: false })
+    } else {
+        split::generation::generate(manifolds, initial, params, dt)
+    };
+    let builders = prepare_joints(joint_set.span(), initial, steps);
+    if frozen.is_empty() {
+        // No contact constraint: the joint-only stages on the dense store, as `solve_island`.
+        let mut bodies: DenseBodies = DenseBodiesTrait::new(initial);
+        empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
+        return SolvedIsland {
+            bodies: snapshot(ref bodies).span(), steps, impulses: array![].span(),
+        };
+    }
+    let frozen = frozen.span();
+    let mut sb: SweepBodies = DenseBodiesTrait::new(initial);
+    let mut rows = array![];
+    let mut substep = 0;
+    while substep != params.num_solver_iterations {
+        sb.add_forces(steps);
+        rows = rebuild_joints(ref sb, builders.span(), rows.span(), params, substep != 0);
+        let update = if substep != 0 && params.num_internal_stabilization_iterations != 0 {
+            5
+        } else {
+            0
+        };
+        split::contacts(ref state, frozen, ref sb, params, update);
+        let mut i = 0;
+        while i != params.num_internal_pgs_iterations {
+            joints(ref rows, ref sb, true, params.warmstart_joints && i == 0);
+            split::contacts(ref state, frozen, ref sb, params, 1);
+            i += 1;
+        }
+        sb.integrate(steps, dt, max_lin, max_ang);
+        let mut i = 0;
+        while i != params.num_internal_stabilization_iterations {
+            joints(ref rows, ref sb, false, false);
+            split::contacts(ref state, frozen, ref sb, params, if i == 0 {
+                2
+            } else {
+                3
+            });
+            i += 1;
+        }
+        substep += 1;
+    }
+    split::contacts(ref state, frozen, ref sb, params, 4);
+    let impulses = impulses_of(frozen, @state, manifolds.len());
+    sweeps::write_joints(rows.span(), ref joint_set);
+    sb.damp(steps, params.dt);
+    let mut out = Collected { bodies: array![] };
+    sb.finish(ref out);
+    SolvedIsland { bodies: out.bodies.span(), steps, impulses }
+}
+
+/// One [`ManifoldImpulses`] per manifold id below `n` from the split state (`split::writeback`'s
+/// values, the active constraints in ascending manifold id).
+fn impulses_of(mut frozen: Span<Frozen>, state: @split::State, n: u32) -> Span<ManifoldImpulses> {
+    let mut hot = state.hot.span();
+    let mut bank = state.bank.span();
+    let mut out = array![];
+    let mut id = 0;
+    while id != n {
+        let mut record: ManifoldImpulses = Default::default();
+        if let Some(f) = frozen.get(0) {
+            let f = f.unbox();
+            if *f.manifold_id == id {
+                let _ = frozen.pop_front();
+                let h = *hot.pop_front().unwrap();
+                let b = *bank.pop_front().unwrap();
+                record.count = *f.count;
+                record.a = point_impulses(h.a, b.a, f.a);
+                if *f.count == 2 {
+                    record.b = point_impulses(h.b, b.b, f.b);
+                }
+            }
+        }
+        out.append(record);
+        id += 1;
+    }
+    out.span()
 }
 
 fn snapshot<B, +DenseBodiesTrait<B>, +Destruct<B>>(ref bodies: B) -> Array<SolverBody> {

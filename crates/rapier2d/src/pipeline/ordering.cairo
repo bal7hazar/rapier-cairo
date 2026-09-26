@@ -5,8 +5,10 @@
 
 use rapier_core::Handle;
 use rapier_core::rigid_body::RigidBodyType;
+use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::ContactPair;
 use rapier_dynamics2d::rigid_body_set::RigidBody;
+use rapier_dynamics2d::solver::island::{SolvedIsland, SolvedIslandTrait};
 use rapier_geometry2d::contact::ContactManifold;
 
 /// The manifolds of the pairs that have at least one solver contact, in pair order. The solver
@@ -179,6 +181,33 @@ pub fn scatter_touching(
     scatter_touching_split(pairs, solved, last, n_first)
 }
 
+/// [`scatter_touching_split`] from the impulses of a solve (BT4, `solve_island_input`): each
+/// touching pair gets the impulses of its manifold written in place (manifold `k` of the first
+/// group, `n_first + k` of the second), instead of the solved manifold copied over its own.
+pub fn scatter_impulses(
+    pairs: Span<ContactPair>, solved: @SolvedIsland, last: Span<bool>, n_first: u32,
+) -> Array<ContactPair> {
+    let mut first: u32 = 0;
+    let mut rest: u32 = n_first;
+    let mut flags = last;
+    let mut out = array![];
+    for pair in pairs {
+        let mut pair = *pair;
+        if pair.manifold.data.num_solver_contacts != 0 {
+            let index = if *flags.pop_front().unwrap() {
+                rest += 1;
+                rest - 1
+            } else {
+                first += 1;
+                first - 1
+            };
+            solved.write_impulses(index, ref pair.manifold);
+        }
+        out.append(pair);
+    }
+    out
+}
+
 /// [`scatter_touching`] with the size of the first group given.
 pub fn scatter_touching_split(
     pairs: Span<ContactPair>, solved: Span<ContactManifold>, last: Span<bool>, n_first: u32,
@@ -201,4 +230,25 @@ pub fn scatter_touching_split(
         out.append(pair);
     }
     out
+}
+
+/// The joints of `entries`, in order (the solver's joint set).
+pub(crate) fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
+    let mut out = array![];
+    for (_, joint) in entries {
+        out.append(*joint);
+    }
+    out
+}
+
+/// Writes the solved joints back into the set, in the order of `entries`.
+pub(crate) fn write_joints(
+    entries: Span<(Handle, ImpulseJoint)>,
+    solved: Span<ImpulseJoint>,
+    ref impulse_joints: ImpulseJointSet,
+) {
+    let mut solved = solved;
+    for (handle, _) in entries {
+        let _ = impulse_joints.set(*handle, *solved.pop_front().unwrap());
+    }
 }

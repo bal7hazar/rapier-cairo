@@ -67,6 +67,26 @@ fn gas_array_stack16_step() {
     step_probe::<ArrayBodies>(16);
 }
 
+/// BT4: the same step through `solve_island_input` (compare with `gas_dict_stack<n>_step`).
+fn input_probe(n: u32) {
+    let (bs, steps, ms) = stack(opaque(n));
+    let mut js = array![];
+    let solved = solve_island_input(
+        opaque(Default::default()), SolverInput { bodies: bs, steps }, ms.span(), ref js,
+    );
+    let mut m = *ms.at(0);
+    solved.write_impulses(0, ref m);
+    let _ = opaque(m);
+}
+#[test]
+fn gas_input_stack3_step() {
+    input_probe(3);
+}
+#[test]
+fn gas_input_stack8_step() {
+    input_probe(8);
+}
+
 fn stage_probe(n: u32, stage: u8) {
     let (bs, steps, ms) = stack(opaque(n));
     let mut bodies: DenseBodies = DenseBodiesTrait::new(bs.span());

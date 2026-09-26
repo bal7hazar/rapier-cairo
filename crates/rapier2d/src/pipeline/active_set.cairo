@@ -612,7 +612,6 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
     world.narrow_phase.pairs = previous_live;
     let mut events = array![];
     if !candidates.is_empty() || any_previous_live {
-        let n_s = statics.len();
         // Static proxy index → its scratch position plus one, in first-use order.
         let mut at: Felt252Dict<u32> = Default::default();
         let mut pairs = array![];

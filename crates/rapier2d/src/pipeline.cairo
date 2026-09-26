@@ -82,8 +82,9 @@ use rapier_dynamics2d::narrow_phase::{
 };
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
-use rapier_dynamics2d::solver::body_store::SolverBodyStoreTrait;
-use rapier_dynamics2d::solver::island::{FreeBodySolverTrait, solve_island};
+use rapier_dynamics2d::solver::island::{
+    FreeBodySolverTrait, SolvedIsland, SolvedIslandTrait, SolverInputTrait, solve_island_input,
+};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
 use rapier_geometry2d::shape::ShapeTrait;
@@ -131,8 +132,10 @@ mod solve_benches;
 mod tests;
 mod user_changes;
 pub use islands::{SleepCensus, SleepCensusTrait, update_islands};
-pub(crate) use ordering::{dormant_of, fixed_last_flag, link_status};
-pub use ordering::{scatter_touching, scatter_touching_split, solve_order, touching_manifolds};
+pub(crate) use ordering::{dormant_of, fixed_last_flag, joint_values, link_status, write_joints};
+pub use ordering::{
+    scatter_impulses, scatter_touching, scatter_touching_split, solve_order, touching_manifolds,
+};
 pub use sleeping::{
     any_sleeping, merge_pairs, release_removed_pairs, split_dormant, split_dormant_existing,
 };
@@ -705,7 +708,7 @@ pub fn solve_and_advance_sleeping(
     }
     let n_first = first.len();
     first.append_span(last.span());
-    let mut manifolds = first;
+    let manifolds = first;
     let joint_entries = if sleeping {
         active_joints(joint_entries, entries).span()
     } else {
@@ -735,7 +738,8 @@ pub fn solve_and_advance_sleeping(
             }
         }
     }
-    let mut store = SolverBodyStoreTrait::from_entries(members.span(), gravity, params);
+    // BT4: the members gathered straight into the solver input (no `SolverBodyStore`).
+    let input = SolverInputTrait::gather(members.span(), gravity, params);
     // With no manifold and no joint, `solve_island` would only validate the parameters, which
     // `FreeBodySolverTrait::new` does with the same panics; with constraints it is only built
     // when a moving body is free.
@@ -744,14 +748,14 @@ pub fn solve_and_advance_sleeping(
     } else {
         Default::default()
     };
+    let mut solved: SolvedIsland = Default::default();
     if any {
-        solve_island(params, ref store, ref manifolds, ref joints);
+        solved = solve_island_input(params, input, manifolds.span(), ref joints);
         if !manifolds.is_empty() {
+            // BT4: the impulses go straight into the pairs (no solved manifold array).
             narrow_phase
                 .pairs =
-                    scatter_touching_split(
-                        narrow_phase.pairs.span(), manifolds.span(), flags.span(), n_first,
-                    );
+                    scatter_impulses(narrow_phase.pairs.span(), @solved, flags.span(), n_first);
         }
         write_joints(joint_entries, joints.span(), ref impulse_joints);
     }
@@ -761,7 +765,7 @@ pub fn solve_and_advance_sleeping(
         if moving(body) {
             let body = if member {
                 let mut body = *body;
-                store.write_body(dense, ref body);
+                solved.write_body(dense, ref body);
                 body
             } else {
                 free.solve(*handle, *body)
@@ -774,25 +778,6 @@ pub fn solve_and_advance_sleeping(
     }
     bodies.mark_modified();
     colliders.mark_modified();
-}
-
-pub(crate) fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {
-    let mut out = array![];
-    for (_, joint) in entries {
-        out.append(*joint);
-    }
-    out
-}
-
-pub(crate) fn write_joints(
-    entries: Span<(Handle, ImpulseJoint)>,
-    solved: Span<ImpulseJoint>,
-    ref impulse_joints: ImpulseJointSet,
-) {
-    let mut solved = solved;
-    for (handle, _) in entries {
-        let _ = impulse_joints.set(*handle, *solved.pop_front().unwrap());
-    }
 }
 
 #[cfg(test)]
