@@ -159,6 +159,31 @@ fn witness_normal(d: Vec2, axis: Vec2) -> (Vec2, Fixed) {
     }
 }
 
+/// Closest points of a cuboid and a triangle placed at `pos12` within `margin` (Parry
+/// `closest_points_cuboid_triangle`): the exact support-map kernel of
+/// [`super::support_map`], each point in its shape's frame.
+/// #### Panics
+/// * See [`super::support_map::closest_points_support_map_support_map`].
+pub fn closest_points_cuboid_triangle(
+    pos12: Pose2, cuboid1: Cuboid, triangle2: crate::shape::Triangle, margin: Fixed,
+) -> ClosestPoints {
+    super::support_map::closest_points_support_map_support_map(
+        pos12, crate::shape::Shape::Cuboid(cuboid1), triangle2.into(), margin,
+    )
+}
+
+/// [`closest_points_cuboid_triangle`] with the shapes in the other order (Parry
+/// `closest_points_triangle_cuboid`).
+/// #### Panics
+/// * See [`closest_points_cuboid_triangle`].
+pub fn closest_points_triangle_cuboid(
+    pos12: Pose2, triangle1: crate::shape::Triangle, cuboid2: Cuboid, margin: Fixed,
+) -> ClosestPoints {
+    super::support_map::closest_points_support_map_support_map(
+        pos12, triangle1.into(), crate::shape::Shape::Cuboid(cuboid2), margin,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};

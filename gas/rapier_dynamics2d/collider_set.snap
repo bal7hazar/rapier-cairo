@@ -21,5 +21,5 @@ rapier_dynamics2d::collider_set::tests::test_insert_with_parent_links_and_poses 
 rapier_dynamics2d::collider_set::tests::test_modified_flags 1124760
 rapier_dynamics2d::collider_set::tests::test_propagate_positions 852537
 rapier_dynamics2d::collider_set::tests::test_remove_swap_removes_from_parent 1091586
-rapier_dynamics2d::collider_set::tests::test_set_and_handle_helpers 1202253
-rapier_dynamics2d::collider_set::tests::test_set_parent 4869822
+rapier_dynamics2d::collider_set::tests::test_set_and_handle_helpers 1238223
+rapier_dynamics2d::collider_set::tests::test_set_parent 4881622

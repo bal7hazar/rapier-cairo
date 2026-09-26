@@ -10,7 +10,7 @@ use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::shape::{
     Ball, BallTrait, Capsule, CapsuleTrait, ConvexPolygon, ConvexPolygonTrait, Cuboid, CuboidTrait,
-    Segment, SegmentTrait, Shape,
+    RoundConvexPolygonShapeTrait, Segment, SegmentTrait, Shape, Triangle, TriangleTrait,
 };
 
 /// A convex shape described by its support function (upstream `SupportMap`).
@@ -95,6 +95,17 @@ pub impl ConvexPolygonSupportMap of SupportMap<ConvexPolygon> {
     }
 }
 
+pub impl TriangleSupportMap of SupportMap<Triangle> {
+    #[inline(always)]
+    fn local_support_point(self: Triangle, dir: Vec2) -> Vec2 {
+        TriangleTrait::local_support_point(self, dir)
+    }
+    #[inline(always)]
+    fn local_support_point_toward(self: Triangle, dir: Vec2) -> Vec2 {
+        TriangleTrait::local_support_point(self, dir)
+    }
+}
+
 /// Dispatch over the closed set.
 /// #### Panics
 /// * `'Query: not a support map'` for a half-space.
@@ -107,6 +118,10 @@ pub impl ShapeSupportMap of SupportMap<Shape> {
             Shape::Segment(s) => SegmentTrait::local_support_point(s, dir),
             Shape::HalfSpace(_) => core::panic_with_felt252(crate::query::errors::NOT_SUPPORT_MAP),
             Shape::ConvexPolygon(s) => ConvexPolygonTrait::local_support_point(s.unbox(), dir),
+            Shape::Triangle(s) => TriangleTrait::local_support_point(s.unbox(), dir),
+            Shape::RoundCuboid(s) => s.local_support_point(dir),
+            Shape::RoundTriangle(s) => s.unbox().local_support_point(dir),
+            Shape::RoundConvexPolygon(s) => s.unbox().to_round().local_support_point(dir),
         }
     }
     fn local_support_point_toward(self: Shape, dir: Vec2) -> Vec2 {

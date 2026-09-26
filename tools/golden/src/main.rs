@@ -23,6 +23,7 @@ mod sat2d;
 mod scenes;
 mod segment_segment;
 mod sensor_trigger;
+mod sh1;
 mod shape_queries;
 mod shapes;
 
@@ -71,7 +72,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 16] = [
+        let families: [Family; 19] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -88,6 +89,9 @@ fn main() {
             ("sensor_trigger", sensor_trigger::generate),
             ("level_scenes", level_scenes::generate),
             ("shape_queries", shape_queries::generate),
+            ("triangle_contacts", sh1::triangle_contacts),
+            ("round_shape_contacts", sh1::round_shape_contacts),
+            ("sh1_queries", sh1::sh1_queries),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

@@ -278,7 +278,7 @@ fn polygon_cases() -> Vec<Case> {
     out
 }
 
-fn fid_json(packed: u32) -> Value {
+pub(crate) fn fid_json(packed: u32) -> Value {
     let (kind, code) = match PackedFeatureId(packed).unpack() {
         FeatureId::Vertex(c) => ("vertex", c),
         FeatureId::Face(c) => ("face", c),

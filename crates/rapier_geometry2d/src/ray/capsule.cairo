@@ -38,8 +38,8 @@ use super::quotient::div_wide;
 use super::{Ray, RayIntersection, RayTrait};
 
 /// Which boundary piece an interval end lies on.
-const DISC_A: u8 = 0;
-const DISC_B: u8 = 1;
+pub(crate) const DISC_A: u8 = 0;
+pub(crate) const DISC_B: u8 = 1;
 /// The side `cross(e, p - a) = +r |e|` (left of `a → b`).
 const SIDE_LEFT: u8 = 2;
 /// The side `cross(e, p - a) = -r |e|` (right of `a → b`).
@@ -54,11 +54,11 @@ const TIME_MAX: Fixed = Fixed { raw: 0x7fff_ffff_ffff_ffff };
 /// The interval of the line `origin + dir * t` inside one component, with the pieces its ends
 /// lie on.
 #[derive(Copy, Drop, Debug)]
-struct Interval {
-    entry: Fixed,
-    exit: Fixed,
-    entry_piece: u8,
-    exit_piece: u8,
+pub(crate) struct Interval {
+    pub(crate) entry: Fixed,
+    pub(crate) exit: Fixed,
+    pub(crate) entry_piece: u8,
+    pub(crate) exit_piece: u8,
 }
 
 /// `num / den` (`den != 0`), saturated to the time sentinels.
@@ -74,7 +74,9 @@ fn div_saturated(num: i128, den: i128) -> Fixed {
 
 /// The interval of the line inside the disc of `center` (`None` when it misses), and whether
 /// the origin is inside that disc. `dir` is not zero.
-fn disc_interval(center: Vec2, radius: Fixed, ray: Ray, piece: u8) -> (bool, Option<Interval>) {
+pub(crate) fn disc_interval(
+    center: Vec2, radius: Fixed, ray: Ray, piece: u8,
+) -> (bool, Option<Interval>) {
     let q = circle_coefficients(center, radius, ray);
     let inside = q.k <= 0;
     match sqrt_discriminant(q) {
@@ -121,7 +123,7 @@ fn slab(p0: i128, p1: i128, lo: i128, hi: i128, lo_piece: u8, hi_piece: u8) -> O
 /// In the frame of `e = b - a`, without normalising it: the axial coordinate
 /// `(p - a) · e ∈ [0, |e|²]` and the lateral one `cross(e, p - a) ∈ [-r |e|, r |e|]`, both
 /// raw Q64.64 and linear in `t`.
-fn rect_interval(capsule: Capsule, ray: Ray) -> (bool, Option<Interval>) {
+pub(crate) fn rect_interval(capsule: Capsule, ray: Ray) -> (bool, Option<Interval>) {
     let a = capsule.segment.a;
     let e = capsule.segment.b - a;
     if is_zero2(e.x, e.y) {
@@ -160,7 +162,7 @@ fn rect_interval(capsule: Capsule, ray: Ray) -> (bool, Option<Interval>) {
 }
 
 /// The outward normal of `piece` at `point` (negated when `inward`).
-fn piece_normal(capsule: Capsule, piece: u8, point: Vec2, inward: bool) -> Vec2 {
+pub(crate) fn piece_normal(capsule: Capsule, piece: u8, point: Vec2, inward: bool) -> Vec2 {
     if piece == DISC_A {
         return circle_normal(capsule.segment.a, point, inward);
     }

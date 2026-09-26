@@ -7,8 +7,8 @@
 //! Deviations: `rotation` takes a unit [`Rot2`] where upstream takes an angle (no trigonometry in
 //! `rapier_math` yet); `halfspace` takes a plain `Vec2` outward normal (expected unit);
 //! `convex_hull` is exact and starts the polygon at the lexicographically smallest vertex
-//! (`super::convex_hull`); the shapes that are not in the closed `Shape` enum and `contact_skin`
-//! are not ported.
+//! (`super::convex_hull`), and so is `round_convex_hull`; the shapes that are not in the closed
+//! `Shape` enum and `contact_skin` are not ported.
 
 use fixed::trig::TrigTrait;
 use fixed::{Fixed, HALF, ONE, ZERO};
@@ -21,7 +21,8 @@ use rapier_core::collider::{
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};
 use rapier_geometry2d::mass::MassProperties;
 use rapier_geometry2d::shape::{
-    BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape,
+    BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, RoundConvexPolygon, RoundShape,
+    SegmentTrait, Shape, TriangleTrait,
 };
 use rapier_math::pose2::{IDENTITY, Pose2};
 use rapier_math::rot2::Rot2;
@@ -118,6 +119,56 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
     fn convex_hull(points: Span<Vec2>) -> Option<ColliderBuilder> {
         let hull = super::convex_hull::convex_hull(points)?;
         Self::convex_polygon(hull.span())
+    }
+
+    /// Upstream `convex_polyline`: [`ColliderBuilderTrait::convex_polygon`] (the same checks and
+    /// `None` cases).
+    fn convex_polyline(points: Span<Vec2>) -> Option<ColliderBuilder> {
+        Self::convex_polygon(points)
+    }
+
+    /// The polygon of [`ColliderBuilderTrait::convex_polyline`] with rounded corners of radius
+    /// `border_radius` (upstream `round_convex_polyline`): `None` in the same cases.
+    fn round_convex_polyline(points: Span<Vec2>, border_radius: Fixed) -> Option<ColliderBuilder> {
+        let polygon = rapier_geometry2d::shape::ConvexPolygonTrait::from_convex_polyline(points)?;
+        let round: RoundConvexPolygon = RoundShape { inner_shape: polygon, border_radius };
+        Some(Self::new(round.into()))
+    }
+
+    /// The hull of [`ColliderBuilderTrait::convex_hull`] with rounded corners of radius
+    /// `border_radius` (upstream `round_convex_hull`): `None` in the same cases.
+    /// #### Panics
+    /// * As [`ColliderBuilderTrait::convex_hull`].
+    fn round_convex_hull(points: Span<Vec2>, border_radius: Fixed) -> Option<ColliderBuilder> {
+        let hull = super::convex_hull::convex_hull(points)?;
+        Self::round_convex_polyline(hull.span(), border_radius)
+    }
+
+    /// The triangle `a`, `b`, `c` (upstream `triangle`; any orientation, not validated).
+    fn triangle(a: Vec2, b: Vec2, c: Vec2) -> ColliderBuilder {
+        Self::new(Shape::Triangle(BoxTrait::new(TriangleTrait::new(a, b, c))))
+    }
+
+    /// The triangle `a`, `b`, `c` with rounded corners of radius `border_radius` (upstream
+    /// `round_triangle`).
+    fn round_triangle(a: Vec2, b: Vec2, c: Vec2, border_radius: Fixed) -> ColliderBuilder {
+        Self::new(
+            Shape::RoundTriangle(
+                BoxTrait::new(
+                    RoundShape { inner_shape: TriangleTrait::new(a, b, c), border_radius },
+                ),
+            ),
+        )
+    }
+
+    /// A box of half extents `(hx, hy)` with rounded corners of radius `border_radius`
+    /// (upstream `round_cuboid`): the collider extends `border_radius` beyond the box.
+    fn round_cuboid(hx: Fixed, hy: Fixed, border_radius: Fixed) -> ColliderBuilder {
+        Self::new(
+            Shape::RoundCuboid(
+                RoundShape { inner_shape: CuboidTrait::new(Vec2 { x: hx, y: hy }), border_radius },
+            ),
+        )
     }
 
     /// A disc of radius `radius`.
@@ -337,7 +388,8 @@ mod tests {
     use rapier_core::interaction_groups::{GROUP_1, GROUP_2, InteractionGroupsTrait};
     use rapier_geometry2d::mass::MassPropertiesTrait;
     use rapier_geometry2d::shape::{
-        BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape,
+        BallTrait, CapsuleTrait, ConvexPolygonTrait, CuboidTrait, HalfSpaceTrait, RoundShape,
+        SegmentTrait, Shape, TriangleTrait,
     };
     use rapier_math::pose2::{IDENTITY, Pose2Trait};
     use rapier_math::rot2::Rot2;
@@ -488,6 +540,73 @@ mod tests {
         assert_eq!(polygon.mass_properties().inv_mass, Fixed { raw: 1073741824 });
         assert!(
             ColliderBuilderTrait::convex_polygon([v(ZERO, ZERO), v(ONE, ZERO)].span()).is_none(),
+        );
+    }
+
+    /// The SH1 constructors: the shape each one wraps (`None` where upstream returns `None`) and
+    /// the round shapes' mass, the inner shape's (upstream).
+    #[test]
+    fn test_triangle_and_round_constructors() {
+        let square = [v(-ONE, -ONE), v(ONE, -ONE), v(ONE, ONE), v(-ONE, ONE)];
+        let polygon = ConvexPolygonTrait::from_convex_polyline(square.span()).unwrap();
+        let (a, b, c) = (v(ZERO, ZERO), v(TWO, ZERO), v(ZERO, TWO));
+        let cases: Array<(ColliderBuilder, Shape)> = array![
+            (
+                ColliderBuilderTrait::triangle(a, b, c),
+                Shape::Triangle(BoxTrait::new(TriangleTrait::new(a, b, c))),
+            ),
+            (
+                ColliderBuilderTrait::round_triangle(a, b, c, HALF),
+                Shape::RoundTriangle(
+                    BoxTrait::new(
+                        RoundShape {
+                            inner_shape: TriangleTrait::new(a, b, c), border_radius: HALF,
+                        },
+                    ),
+                ),
+            ),
+            (
+                ColliderBuilderTrait::round_cuboid(ONE, TWO, HALF),
+                Shape::RoundCuboid(
+                    RoundShape { inner_shape: CuboidTrait::new(v(ONE, TWO)), border_radius: HALF },
+                ),
+            ),
+            (
+                ColliderBuilderTrait::round_convex_polyline(square.span(), HALF).unwrap(),
+                RoundShape { inner_shape: polygon, border_radius: HALF }.into(),
+            ),
+            (
+                ColliderBuilderTrait::round_convex_hull(
+                    [v(ONE, ONE), v(-ONE, ONE), v(ZERO, ZERO), v(ONE, -ONE), v(-ONE, -ONE)].span(),
+                    HALF,
+                )
+                    .unwrap(),
+                RoundShape { inner_shape: polygon, border_radius: HALF }.into(),
+            ),
+            (ColliderBuilderTrait::convex_polyline(square.span()).unwrap(), polygon.into()),
+        ];
+        for (builder, shape) in cases {
+            assert_eq!(builder.shape, shape);
+        }
+        // Mass: a round shape weighs its inner shape.
+        let round = ColliderBuilderTrait::round_cuboid(ONE, ONE, HALF).build();
+        let square_mass = ColliderBuilderTrait::cuboid(ONE, ONE).build();
+        assert_eq!(round.mass_properties(), square_mass.mass_properties());
+        let triangle = ColliderBuilderTrait::triangle(a, b, c).build();
+        assert_eq!(triangle.mass_properties().local_com.y, triangle.mass_properties().local_com.x);
+        assert!(ColliderBuilderTrait::round_convex_polyline([a, b].span(), HALF).is_none());
+        assert!(ColliderBuilderTrait::round_convex_hull([a, b, a].span(), HALF).is_none());
+    }
+
+    #[test]
+    fn gas_round_cuboid() {
+        let _ = ColliderBuilderTrait::round_cuboid(opaque(ONE), opaque(TWO), opaque(HALF));
+    }
+
+    #[test]
+    fn gas_triangle() {
+        let _ = ColliderBuilderTrait::triangle(
+            opaque(v(ZERO, ZERO)), opaque(v(TWO, ZERO)), opaque(v(ZERO, TWO)),
         );
     }
 

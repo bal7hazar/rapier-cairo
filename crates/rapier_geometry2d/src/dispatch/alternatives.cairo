@@ -24,6 +24,7 @@ use crate::contact_generators::cuboid_segment::{
 use crate::contact_generators::halfspace_pfm::{
     contact_manifold_halfspace_pfm, contact_manifold_halfspace_pfm_shapes,
 };
+use crate::contact_generators::pfm_pfm::contact_manifold_pfm_pfm;
 use crate::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
 use super::contact_manifold;
 
@@ -55,10 +56,26 @@ pub fn contact_manifold_plain(
             contact_manifold_capsule_capsule(pos12, capsule1, capsule2, prediction, ref manifold);
             true
         },
+        (Shape::Ball(ball1), Shape::Triangle(_)) | (Shape::Ball(ball1), Shape::RoundCuboid(_)) |
+        (Shape::Ball(ball1), Shape::RoundTriangle(_)) |
+        (
+            Shape::Ball(ball1), Shape::RoundConvexPolygon(_),
+        ) => {
+            contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
         (
             Shape::Ball(ball1), _,
         ) => {
             contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
+        (Shape::Triangle(_), Shape::Ball(ball2)) | (Shape::RoundCuboid(_), Shape::Ball(ball2)) |
+        (Shape::RoundTriangle(_), Shape::Ball(ball2)) |
+        (
+            Shape::RoundConvexPolygon(_), Shape::Ball(ball2),
+        ) => {
+            contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
             true
         },
         (
@@ -139,6 +156,43 @@ pub fn contact_manifold_plain(
             );
             true
         },
+        (Shape::Triangle(_), _) | (Shape::RoundCuboid(_), _) | (Shape::RoundTriangle(_), _) |
+        (
+            Shape::RoundConvexPolygon(_), _,
+        ) => {
+            contact_manifold_pfm_pfm(pos12, shape1, shape2, prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::Triangle(x2),
+        ) => {
+            contact_manifold_pfm_pfm(pos12, shape1, Shape::Triangle(x2), prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::RoundCuboid(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundCuboid(x2), prediction, ref manifold,
+            );
+            true
+        },
+        (
+            _, Shape::RoundTriangle(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundTriangle(x2), prediction, ref manifold,
+            );
+            true
+        },
+        (
+            _, Shape::RoundConvexPolygon(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundConvexPolygon(x2), prediction, ref manifold,
+            );
+            true
+        },
         _ => {
             manifold.clear();
             false
@@ -189,10 +243,26 @@ pub fn contact_manifold_helpers(
             capsule_capsule(pos12, capsule1, capsule2, prediction, ref manifold);
             true
         },
+        (Shape::Ball(ball1), Shape::Triangle(_)) | (Shape::Ball(ball1), Shape::RoundCuboid(_)) |
+        (Shape::Ball(ball1), Shape::RoundTriangle(_)) |
+        (
+            Shape::Ball(ball1), Shape::RoundConvexPolygon(_),
+        ) => {
+            ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
         (
             Shape::Ball(ball1), _,
         ) => {
             ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
+        (Shape::Triangle(_), Shape::Ball(ball2)) | (Shape::RoundCuboid(_), Shape::Ball(ball2)) |
+        (Shape::RoundTriangle(_), Shape::Ball(ball2)) |
+        (
+            Shape::RoundConvexPolygon(_), Shape::Ball(ball2),
+        ) => {
+            convex_ball(pos12, shape1, ball2, prediction, ref manifold);
             true
         },
         (
@@ -255,6 +325,43 @@ pub fn contact_manifold_helpers(
             Shape::Capsule(_), Shape::HalfSpace(halfspace2),
         ) => {
             pfm_halfspace(pos12, shape1, halfspace2, prediction, ref manifold);
+            true
+        },
+        (Shape::Triangle(_), _) | (Shape::RoundCuboid(_), _) | (Shape::RoundTriangle(_), _) |
+        (
+            Shape::RoundConvexPolygon(_), _,
+        ) => {
+            contact_manifold_pfm_pfm(pos12, shape1, shape2, prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::Triangle(x2),
+        ) => {
+            contact_manifold_pfm_pfm(pos12, shape1, Shape::Triangle(x2), prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::RoundCuboid(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundCuboid(x2), prediction, ref manifold,
+            );
+            true
+        },
+        (
+            _, Shape::RoundTriangle(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundTriangle(x2), prediction, ref manifold,
+            );
+            true
+        },
+        (
+            _, Shape::RoundConvexPolygon(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundConvexPolygon(x2), prediction, ref manifold,
+            );
             true
         },
         _ => {
@@ -423,10 +530,26 @@ pub fn contact_manifold_step_fallback(
             contact_manifold_capsule_capsule(pos12, capsule1, capsule2, prediction, ref manifold);
             true
         },
+        (Shape::Ball(ball1), Shape::Triangle(_)) | (Shape::Ball(ball1), Shape::RoundCuboid(_)) |
+        (Shape::Ball(ball1), Shape::RoundTriangle(_)) |
+        (
+            Shape::Ball(ball1), Shape::RoundConvexPolygon(_),
+        ) => {
+            contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
         (
             Shape::Ball(ball1), _,
         ) => {
             contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+            true
+        },
+        (Shape::Triangle(_), Shape::Ball(ball2)) | (Shape::RoundCuboid(_), Shape::Ball(ball2)) |
+        (Shape::RoundTriangle(_), Shape::Ball(ball2)) |
+        (
+            Shape::RoundConvexPolygon(_), Shape::Ball(ball2),
+        ) => {
+            contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
             true
         },
         (
@@ -486,6 +609,43 @@ pub fn contact_manifold_step_fallback(
         ) => {
             contact_manifold_halfspace_pfm(
                 pos12.inverse(), halfspace2, shape1, prediction, ref manifold, true,
+            );
+            true
+        },
+        (Shape::Triangle(_), _) | (Shape::RoundCuboid(_), _) | (Shape::RoundTriangle(_), _) |
+        (
+            Shape::RoundConvexPolygon(_), _,
+        ) => {
+            contact_manifold_pfm_pfm(pos12, shape1, shape2, prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::Triangle(x2),
+        ) => {
+            contact_manifold_pfm_pfm(pos12, shape1, Shape::Triangle(x2), prediction, ref manifold);
+            true
+        },
+        (
+            _, Shape::RoundCuboid(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundCuboid(x2), prediction, ref manifold,
+            );
+            true
+        },
+        (
+            _, Shape::RoundTriangle(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundTriangle(x2), prediction, ref manifold,
+            );
+            true
+        },
+        (
+            _, Shape::RoundConvexPolygon(x2),
+        ) => {
+            contact_manifold_pfm_pfm(
+                pos12, shape1, Shape::RoundConvexPolygon(x2), prediction, ref manifold,
             );
             true
         },

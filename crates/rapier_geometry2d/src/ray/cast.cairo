@@ -14,10 +14,18 @@
 use fixed::Fixed;
 use rapier_math::pose2::Pose2;
 use crate::aabb::{Aabb, cast_local_ray_aabb, cast_local_ray_and_get_normal_aabb};
-use crate::shape::{Ball, Capsule, ConvexPolygon, Cuboid, HalfSpace, Segment, Shape};
+use crate::shape::{
+    Ball, Capsule, ConvexPolygon, Cuboid, HalfSpace, RoundConvexPolygon, RoundCuboid, RoundTriangle,
+    Segment, Shape, Triangle,
+};
 use super::convex_polygon::{
     cast_local_ray_and_get_normal_convex_polygon, cast_local_ray_convex_polygon,
 };
+use super::round_shape::{
+    cast_local_ray_and_get_normal_round_convex_polygon, cast_local_ray_and_get_normal_round_cuboid,
+    cast_local_ray_and_get_normal_round_triangle,
+};
+use super::triangle::{cast_local_ray_and_get_normal_triangle, cast_local_ray_triangle};
 use super::{
     Ray, RayIntersection, RayIntersectionTrait, RayTrait, cast_local_ray,
     cast_local_ray_and_get_normal, cast_local_ray_and_get_normal_ball,
@@ -159,6 +167,73 @@ pub impl ConvexPolygonRayCast of RayCast<ConvexPolygon> {
         self: ConvexPolygon, ray: Ray, max_time_of_impact: Fixed, solid: bool,
     ) -> Option<RayIntersection> {
         cast_local_ray_and_get_normal_convex_polygon(self, ray, max_time_of_impact, solid)
+    }
+}
+
+pub impl TriangleRayCast of RayCast<Triangle> {
+    fn cast_local_ray(
+        self: Triangle, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<Fixed> {
+        cast_local_ray_triangle(self, ray, max_time_of_impact, solid)
+    }
+    fn cast_local_ray_and_get_normal(
+        self: Triangle, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<RayIntersection> {
+        cast_local_ray_and_get_normal_triangle(self, ray, max_time_of_impact, solid)
+    }
+}
+
+pub impl RoundCuboidRayCast of RayCast<RoundCuboid> {
+    fn cast_local_ray(
+        self: RoundCuboid, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<Fixed> {
+        Some(
+            Self::cast_local_ray_and_get_normal(self, ray, max_time_of_impact, solid)?
+                .time_of_impact,
+        )
+    }
+    fn cast_local_ray_and_get_normal(
+        self: RoundCuboid, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<RayIntersection> {
+        cast_local_ray_and_get_normal_round_cuboid(
+            self.inner_shape, self.border_radius, ray, max_time_of_impact, solid,
+        )
+    }
+}
+
+pub impl RoundTriangleRayCast of RayCast<RoundTriangle> {
+    fn cast_local_ray(
+        self: RoundTriangle, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<Fixed> {
+        Some(
+            Self::cast_local_ray_and_get_normal(self, ray, max_time_of_impact, solid)?
+                .time_of_impact,
+        )
+    }
+    fn cast_local_ray_and_get_normal(
+        self: RoundTriangle, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<RayIntersection> {
+        cast_local_ray_and_get_normal_round_triangle(
+            self.inner_shape, self.border_radius, ray, max_time_of_impact, solid,
+        )
+    }
+}
+
+pub impl RoundConvexPolygonRayCast of RayCast<RoundConvexPolygon> {
+    fn cast_local_ray(
+        self: RoundConvexPolygon, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<Fixed> {
+        Some(
+            Self::cast_local_ray_and_get_normal(self, ray, max_time_of_impact, solid)?
+                .time_of_impact,
+        )
+    }
+    fn cast_local_ray_and_get_normal(
+        self: RoundConvexPolygon, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<RayIntersection> {
+        cast_local_ray_and_get_normal_round_convex_polygon(
+            self.inner_shape, self.border_radius, ray, max_time_of_impact, solid,
+        )
     }
 }
 

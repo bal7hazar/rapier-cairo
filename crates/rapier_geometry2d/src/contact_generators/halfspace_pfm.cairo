@@ -2,7 +2,9 @@
 //!
 //! Port of Parry's `contact_manifolds_halfspace_pfm`: ask the feature-map shape for the support
 //! feature toward `-normal`, then emit one contact for each feature vertex whose
-//! `dist_to_plane - border_radius <= prediction`. Convex polygons and compounds are deferred.
+//! `dist_to_plane - border_radius <= prediction`. Convex polygons, triangles and the round
+//! shapes (their inner feature and border radius, SH1) take the generic path; compounds are
+//! deferred.
 //!
 //! BT3: a cuboid whose support distance is surely beyond the prediction leaves early with what
 //! the full path would leave (`cuboid_beyond`; exact, the full path decides every doubtful case).
@@ -18,7 +20,8 @@ use crate::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use crate::feature_id::FeatureIdTrait;
 use crate::manifold::ManifoldTrait;
 use crate::polygonal_feature::PolygonalFeature;
-use crate::shape::{ConvexPolygonTrait, Cuboid, CuboidTrait, HalfSpace, Segment, Shape};
+use crate::shape::triangle::{feature_to_triangle, triangle_core};
+use crate::shape::{ConvexPolygonTrait, Cuboid, CuboidTrait, HalfSpace, Segment, Shape, Triangle};
 
 fn dot(a: Vec2, b: Vec2) -> Fixed {
     dot2(a.x, b.x, a.y, b.y)
@@ -225,6 +228,8 @@ fn halfspace_pfm_generic(
         Shape::ConvexPolygon(c) => Some((c.unbox().support_feature(-normal1_2), ZERO)),
         Shape::Segment(s) => Some((segment_feature(s), ZERO)),
         Shape::Capsule(c) => Some((segment_feature(c.segment), c.radius)),
+        Shape::Triangle(_) | Shape::RoundCuboid(_) | Shape::RoundTriangle(_) |
+        Shape::RoundConvexPolygon(_) => sh1_feature(pfm2, -normal1_2),
         _ => None,
     };
     let old = manifold;
@@ -236,6 +241,33 @@ fn halfspace_pfm_generic(
         finish_normals(pos12, halfspace1, normal1_2, ref manifold, flipped);
     }
     manifold.match_contacts(@old);
+}
+
+/// The support feature and radius of a triangle or a round shape along `dir` (their
+/// `as_polygonal_feature_map` view: the triangle, or the inner shape and the border radius), with
+/// the native feature ids of the core (a triangle's are upstream's `Vertex(i)` / `Face(i)`,
+/// whatever its orientation). `None` for every other shape.
+#[inline(never)]
+fn sh1_feature(pfm2: Shape, dir: Vec2) -> Option<(PolygonalFeature, Fixed)> {
+    match pfm2 {
+        Shape::Triangle(t) => Some((triangle_feature(t.unbox(), dir), ZERO)),
+        Shape::RoundCuboid(s) => Some((s.inner_shape.support_feature(dir), s.border_radius)),
+        Shape::RoundTriangle(s) => {
+            let s = s.unbox();
+            Some((triangle_feature(s.inner_shape, dir), s.border_radius))
+        },
+        Shape::RoundConvexPolygon(s) => {
+            let s = s.unbox();
+            Some((s.inner_shape.support_feature(dir), s.border_radius))
+        },
+        _ => None,
+    }
+}
+
+#[inline(always)]
+fn triangle_feature(t: Triangle, dir: Vec2) -> PolygonalFeature {
+    let (core, reversed) = triangle_core(t);
+    feature_to_triangle(core.support_feature(dir), reversed)
 }
 
 /// Computes the manifold between `halfspace1` and a cuboid/segment/capsule `pfm2`.
@@ -263,6 +295,10 @@ pub fn contact_manifold_halfspace_pfm(
             halfspace_pfm_generic(pos12, halfspace1, pfm2, prediction, ref manifold, flipped);
         },
         Shape::Capsule(_) => {
+            halfspace_pfm_generic(pos12, halfspace1, pfm2, prediction, ref manifold, flipped);
+        },
+        Shape::Triangle(_) | Shape::RoundCuboid(_) | Shape::RoundTriangle(_) |
+        Shape::RoundConvexPolygon(_) => {
             halfspace_pfm_generic(pos12, halfspace1, pfm2, prediction, ref manifold, flipped);
         },
         _ => {

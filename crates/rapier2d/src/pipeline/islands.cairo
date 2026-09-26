@@ -633,5 +633,19 @@ pub fn local_bounding_sphere(shape: Shape) -> (Vec2, Fixed) {
             }
             result
         },
+        // Triangles and round shapes (SH1): the geometry crate's sphere, metered like the polygon.
+        // The loop state is a `BoundingSphere`, not the polygon arm's tuple: identical loops would
+        // be merged and move the polygon arm's code.
+        _ => {
+            let mut sphere = rapier_geometry2d::BoundingSphere {
+                center: Vec2Trait::ZERO, radius: ZERO,
+            };
+            let mut pending = true;
+            while pending {
+                sphere = rapier_geometry2d::shape::ShapeTrait::compute_local_bounding_sphere(shape);
+                pending = false;
+            }
+            (sphere.center, sphere.radius)
+        },
     }
 }

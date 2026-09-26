@@ -229,6 +229,9 @@ OWNER_ALIASES.update({
     "PersistentQueryDispatcher": ("dispatch",), "RigidBodyHandle": ("Handle",),
     "ColliderHandle": ("Handle",), "ImpulseJointHandle": ("Handle",),
     "MultibodyJointHandle": ("Handle",), "IslandManager": ("pipeline::islands", "World"),
+    # SH1: Parry's generic `RoundShape<S>` is instantiated as three aliases; its `impl Shape` and
+    # `RayCast` are the aliases' (`From<RoundCuboid> for Shape`, `RoundCuboidRayCast`, ...).
+    "RoundShape": ("RoundShape", "RoundShapeTrait", "RoundCuboid", "RoundTriangle", "RoundConvexPolygon"),
     "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase",),
     "Halfspace": ("HalfSpace",),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
@@ -295,6 +298,10 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("Shape", "as_ball_mut"): ("as_ball",), ("Shape", "as_capsule_mut"): ("as_capsule",),
     ("Shape", "as_convex_polygon_mut"): ("as_convex_polygon",), ("Shape", "as_cuboid_mut"): ("as_cuboid",),
     ("Shape", "as_halfspace_mut"): ("as_halfspace",), ("Shape", "as_segment_mut"): ("as_segment",),
+    # SH1: the same copy-out reads for the triangle and the round shapes.
+    ("Shape", "as_triangle_mut"): ("as_triangle",), ("Shape", "as_round_cuboid_mut"): ("as_round_cuboid",),
+    ("Shape", "as_round_triangle_mut"): ("as_round_triangle",),
+    ("Shape", "as_round_convex_polygon_mut"): ("as_round_convex_polygon",),
     # PO1: Parry's `TypedShape` (the tagged enum over the concrete shapes) is the closed `Shape` enum.
     ("TypedShape", "TypedShape"): ("Shape",),
 }
@@ -577,7 +584,11 @@ SKIPPED_CRATES = {"rapier_sink"}
 
 def parse_cairo() -> list[Item]:
     items: set[Item] = set()
-    impl_re = re.compile(r"\bpub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)\s+of\s+([^{\n]+)\s*\{")
+    # SH1: an impl may carry generic parameters (`impl RoundShapePointQuery<T, +Drop<T>, ...> of
+    # PointQuery<RoundShape<T>>`, possibly wrapped over lines by `scarb fmt`).
+    impl_re = re.compile(
+        r"\bpub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*<[^{;]*?>)?\s+of\s+([^{\n]+)\s*\{"
+    )
     trait_re = re.compile(r"\bpub\s+trait\s+([A-Za-z_][A-Za-z0-9_]*)[^{]*\{")
     mod_re = re.compile(r"\bpub\s+mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{")
     for path in sorted((ROOT / "crates").glob("*/src/**/*.cairo")):

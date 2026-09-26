@@ -11,7 +11,7 @@ use crate::polygonal_feature::PolygonalFeature;
 use crate::shape::{Capsule, ConvexPolygon, ConvexPolygonTrait, Segment};
 use super::polygon_polygon::{finish, separating_axis};
 
-fn core(s: Segment) -> ConvexPolygon {
+pub(crate) fn core(s: Segment) -> ConvexPolygon {
     let d = s.b - s.a;
     let o = Vec2 { x: ZERO, y: ZERO };
     let n = match try_normalize2(d.y, -d.x) {

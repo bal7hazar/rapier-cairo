@@ -24,7 +24,11 @@
 //!   distance of the closest points (upstream: GJK);
 //! * convex-polygon pairs: SAT on the edge normals of both sides (a segment core contributes its
 //!   two normals), then for a capsule the vertex–segment and endpoint–polygon distances
-//!   (upstream: GJK).
+//!   (upstream: GJK);
+//! * triangle and round-shape pairs (SH1): ball–shape through the shape's solid projection
+//!   (a round shape: the inner shape within `r + border_radius`), half-space–shape through the
+//!   support point, every other pair through the exact support-map witness of
+//!   `crate::query::support_map` (`dist <= 0`; upstream: GJK).
 //!
 //! Candidates (`alternatives`, measured by `tests::gas_*`): deriving the answer from the contact
 //! generators (`intersection_test_from_contacts`: manifold at zero prediction, any point with
@@ -38,7 +42,9 @@ use rapier_math::math_ext::norm2::is_norm2_le;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::closest_points::closest_points_segment_segment;
-use crate::point::{cross_wide, dot_wide, project_local_point_segment};
+use crate::point::round_shape::contains_local_point_round;
+use crate::point::{cross_wide, dot_wide, project_local_point_segment, project_local_point_triangle};
+use crate::query::support_map::{local_support_point_toward, witness};
 use crate::shape::{
     Ball, Capsule, ConvexPolygon, ConvexPolygonTrait, Cuboid, HalfSpace, Segment, Shape,
 };
@@ -99,6 +105,10 @@ pub fn intersection_test(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<b
             Shape::Segment(s1), Shape::Capsule(c2),
         ) => Some(segment_segment(pos12, s1, c2.segment, c2.radius)),
         (Shape::Segment(s1), Shape::Segment(s2)) => Some(segment_segment(pos12, s1, s2, ZERO)),
+        (Shape::Triangle(_), _) | (_, Shape::Triangle(_)) | (Shape::RoundCuboid(_), _) |
+        (_, Shape::RoundCuboid(_)) | (Shape::RoundTriangle(_), _) | (_, Shape::RoundTriangle(_)) |
+        (Shape::RoundConvexPolygon(_), _) |
+        (_, Shape::RoundConvexPolygon(_)) => Some(support_maps(pos12, shape1, shape2)),
         (Shape::ConvexPolygon(p1), _) => Some(polygon_shape(pos12, p1.unbox(), shape2)),
         (_, Shape::ConvexPolygon(p2)) => Some(polygon_shape(pos12.inverse(), p2.unbox(), shape1)),
     }
@@ -123,8 +133,50 @@ pub fn point_query_ball(shape: Shape, center: Vec2, radius: Fixed) -> Option<boo
             Shape::Segment(s) => point_segment(s, center, radius),
             Shape::HalfSpace(h) => point_halfspace(h, center, radius),
             Shape::ConvexPolygon(p) => point_polygon(p.unbox(), center, radius),
+            _ => point_sh1(shape, center, radius),
         },
     )
+}
+
+/// Ball against a triangle or a round shape: the solid projection of the centre is inside or
+/// within `radius` (a round shape: the inner shape within `radius + border_radius`).
+#[inline(never)]
+fn point_sh1(shape: Shape, center: Vec2, radius: Fixed) -> bool {
+    match shape {
+        Shape::Triangle(t) => {
+            let proj = project_local_point_triangle(t.unbox(), center, true);
+            let d = center - proj.point;
+            proj.is_inside || is_norm2_le(d.x, d.y, radius)
+        },
+        Shape::RoundCuboid(s) => contains_local_point_round(
+            s.inner_shape, s.border_radius + radius, center,
+        ),
+        Shape::RoundTriangle(s) => {
+            let s = s.unbox();
+            contains_local_point_round(s.inner_shape, s.border_radius + radius, center)
+        },
+        Shape::RoundConvexPolygon(s) => {
+            let s = s.unbox();
+            contains_local_point_round(s.inner_shape, s.border_radius + radius, center)
+        },
+        _ => false,
+    }
+}
+
+/// Two support maps, one of them a triangle or a round shape: the exact witness distance of
+/// `crate::query::support_map` is at most zero.
+#[inline(never)]
+fn support_maps(pos12: Pose2, shape1: Shape, shape2: Shape) -> bool {
+    witness(pos12, shape1, shape2).dist <= ZERO
+}
+
+/// Half-space against a triangle or a round shape: the support point along `-n` (moved into the
+/// half-space frame) satisfies `n . p <= 0`.
+#[inline(never)]
+fn halfspace_sh1(pos12: Pose2, n: Vec2, shape: Shape) -> bool {
+    let local = local_support_point_toward(shape, pos12.rotation.inverse_rotate(-n));
+    let p = pos12.transform_point(local);
+    dot_wide(n.x, n.y, p.x, p.y) <= 0
 }
 
 /// `pt` within `radius` of the solid cuboid: distance to the clamped point, compared wide.
@@ -298,6 +350,7 @@ pub fn halfspace_convex(pos12: Pose2, halfspace: HalfSpace, shape: Shape) -> Opt
         Shape::Segment(s) => Some(halfspace_segment(pos12, n, s, ZERO)),
         Shape::HalfSpace(_) => None,
         Shape::ConvexPolygon(p) => Some(halfspace_polygon(pos12, n, p.unbox())),
+        _ => Some(halfspace_sh1(pos12, n, shape)),
     }
 }
 

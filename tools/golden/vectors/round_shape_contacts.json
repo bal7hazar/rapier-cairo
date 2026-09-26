@@ -1,0 +1,2871 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "round_shape_contacts",
+  "prediction_upstream_default": { "f64": 0.02, "raw": 85899346 },
+  "prediction": { "f64": 0.02000000001862645, "raw": 85899346 },
+  "cases": [
+    {
+      "id": "rcub_ball/separated",
+      "pair": "rcub_ball",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.25], "raw": [429496730, -5368709120] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000047925972, "raw": 2147483669 }
+      }
+    },
+    {
+      "id": "rcub_ball/within_pred",
+      "pair": "rcub_ball",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.7600000000093132], "raw": [429496730, -3264175145] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [-6.122974756921421e-11, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [6.122974756921421e-11, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.10000000011823645, -0.3500000000747632],
+                  "raw": [429496730, -1503238554]
+                },
+                "local_p2": { "f64": [2.449189902198322e-11, 0.39999999990686774], "raw": [0, 1717986918] },
+                "dist": { "f64": 0.01000000002768231, "raw": 42949673 },
+                "fid1": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.01000000002768231, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rcub_ball/touching",
+      "pair": "rcub_ball",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.75], "raw": [429496730, -3221225472] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [-7.035177996984642e-11, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [7.035177996984642e-11, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.10000000012127297, -0.3500000000720265],
+                  "raw": [429496730, -1503238554]
+                },
+                "local_p2": { "f64": [2.814071198138655e-11, 0.39999999990686774], "raw": [0, 1717986918] },
+                "dist": { "f64": 2.1105783787334076e-11, "raw": 0 },
+                "fid1": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 2.1105783787334076e-11, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_ball/overlapping",
+      "pair": "rcub_ball",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.6999999999534339], "raw": [644245094, -3006477107] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [-4.563373490282707e-11, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.173648177691041, 0.9848077529962095], "raw": [745813244, 4229717092] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.14999999992283955, -0.3500000000817139],
+                  "raw": [644245094, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.06945927106024415, 0.3939231011067664],
+                  "raw": [298325298, 1691886836]
+                },
+                "dist": { "f64": -0.05000000003514776, "raw": -214748365 },
+                "fid1": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "ball_rcub/separated",
+      "pair": "ball_rcub",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.25], "raw": [429496730, -5368709120] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000047925972, "raw": 2147483669 }
+      }
+    },
+    {
+      "id": "ball_rcub/within_pred",
+      "pair": "ball_rcub",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.7600000000093132], "raw": [429496730, -3264175145] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [-6.122974756921421e-11, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [6.122974756921421e-11, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-2.449189902198322e-11, -0.39999999990686774],
+                  "raw": [0, -1717986918]
+                },
+                "local_p2": {
+                  "f64": [-0.10000000011823645, 0.3500000000747632],
+                  "raw": [-429496730, 1503238554]
+                },
+                "dist": { "f64": 0.01000000002768231, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 0, "kind": "unknown", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.01000000002768231, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "ball_rcub/touching",
+      "pair": "ball_rcub",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.75], "raw": [429496730, -3221225472] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [-7.035177996984642e-11, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [7.035177996984642e-11, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-2.814071198138655e-11, -0.39999999990686774],
+                  "raw": [0, -1717986918]
+                },
+                "local_p2": {
+                  "f64": [-0.10000000012127297, 0.3500000000720265],
+                  "raw": [-429496730, 1503238554]
+                },
+                "dist": { "f64": 2.1105783787334076e-11, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 0, "kind": "unknown", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 2.1105783787334076e-11, "raw": 0 }
+      }
+    },
+    {
+      "id": "ball_rcub/overlapping",
+      "pair": "ball_rcub",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.6999999999534339], "raw": [644245094, -3006477107] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [0.17364817730562573, -0.9848077530641686],
+              "raw": [745813243, -4229717092]
+            },
+            "local_n2": { "f64": [3.4572717062518084e-10, 1.0], "raw": [1, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.06945927090607805, -0.39392310113395007],
+                  "raw": [298325297, -1691886837]
+                },
+                "local_p2": {
+                  "f64": [-0.026167438641051532, 0.3499999999604458],
+                  "raw": [-112388293, 1503238553]
+                },
+                "dist": { "f64": -0.034587346179535794, "raw": -148551521 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 0, "kind": "unknown", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_cuboid/separated",
+      "pair": "rcub_cuboid",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.1500000001396984], "raw": [429496730, -4939212391] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000000000363, "raw": 2147483648 }
+      }
+    },
+    {
+      "id": "rcub_cuboid/within_pred",
+      "pair": "rcub_cuboid",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.6600000001490116], "raw": [429496730, -2834678416] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.39999999990686774, -0.35000000009313226],
+                  "raw": [-1717986918, -1503238554]
+                },
+                "local_p2": { "f64": [-0.5, 0.30000000004656613], "raw": [-2147483648, 1288490189] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.2999999998137355, 0.30000000004656613],
+                  "raw": [1288490188, 1288490189]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009433574, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rcub_cuboid/touching",
+      "pair": "rcub_cuboid",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.6500000001396984], "raw": [429496730, -2791728743] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.39999999990686774, -0.35000000009313226],
+                  "raw": [-1717986918, -1503238554]
+                },
+                "local_p2": { "f64": [-0.5, 0.30000000004656613], "raw": [-2147483648, 1288490189] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.2999999998137355, 0.30000000004656613],
+                  "raw": [1288490188, 1288490189]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_cuboid/overlapping",
+      "pair": "rcub_cuboid",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.6000000000931323], "raw": [644245094, -2576980378] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [0.17364817764813228, -0.9848077530155226],
+              "raw": [745813244, -4229717092]
+            },
+            "local_n2": { "f64": [-2.32314167902814e-14, 0.9999999999884311], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.38263518212588227, -0.3484807753932696],
+                  "raw": [-1643405594, -1496713534]
+                },
+                "local_p2": {
+                  "f64": [-0.48086740177652804, 0.30000000003962485],
+                  "raw": [-2065309764, 1288490189]
+                },
+                "dist": { "f64": 0.04018921118503965, "raw": 172611348 },
+                "fid1": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.4173648176878532, -0.3484807753932696],
+                  "raw": [1792568242, -1496713534]
+                },
+                "local_p2": {
+                  "f64": [0.3069788004433408, 0.3000000000396249],
+                  "raw": [1318463908, 1288490189]
+                },
+                "dist": { "f64": -0.09872933090110343, "raw": -424039247 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "cuboid_rcub/separated",
+      "pair": "cuboid_rcub",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.1500000001396984], "raw": [429496730, -4939212391] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000000000364, "raw": 2147483648 }
+      }
+    },
+    {
+      "id": "cuboid_rcub/within_pred",
+      "pair": "cuboid_rcub",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.6600000001490116], "raw": [429496730, -2834678416] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.2999999998137355, -0.30000000004656613],
+                  "raw": [-1288490188, -1288490189]
+                },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, 0.35000000009313226],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, 0.35000000009313226],
+                  "raw": [1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009433574, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "cuboid_rcub/touching",
+      "pair": "cuboid_rcub",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.6500000001396984], "raw": [429496730, -2791728743] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.2999999998137355, -0.30000000004656613],
+                  "raw": [-1288490188, -1288490189]
+                },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, 0.35000000009313226],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, 0.35000000009313226],
+                  "raw": [1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "cuboid_rcub/overlapping",
+      "pair": "cuboid_rcub",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.6000000000931323], "raw": [644245094, -2576980378] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [0.17364817764810941, -0.9848077530155268],
+              "raw": [745813244, -4229717092]
+            },
+            "local_n2": { "f64": [0.0, 0.9999999999884314], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.30906873896163245, -0.30000000004656613],
+                  "raw": [-1327440126, -1288490189]
+                },
+                "local_p2": {
+                  "f64": [-0.3999999998976127, 0.35000000008619103],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.025158775780007497, "raw": 108056119 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+                "local_p2": {
+                  "f64": [0.39677716694508036, 0.350000000086191],
+                  "raw": [1704144956, 1503238554]
+                },
+                "dist": { "f64": -0.11533453633273388, "raw": -495358062 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_capsule/separated",
+      "pair": "rcub_capsule",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.30000000004656613], "raw": [0, -1288490189] },
+        "b": { "f64": [0.0, 0.30000000004656613], "raw": [0, 1288490189] },
+        "radius": { "f64": 0.19999999995343387, "raw": 858993459 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.3500000000931323], "raw": [429496730, -5798205850] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [-0.3511234413793447, -0.9363291776474371],
+              "raw": [-1508063698, -4021503196]
+            },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000086543801, "raw": 2147483685 }
+      }
+    },
+    {
+      "id": "rcub_capsule/within_pred",
+      "pair": "rcub_capsule",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.30000000004656613], "raw": [0, -1288490189] },
+        "b": { "f64": [0.0, 0.30000000004656613], "raw": [0, 1288490189] },
+        "radius": { "f64": 0.19999999995343387, "raw": 858993459 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.8600000001024455], "raw": [429496730, -3693671875] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.10000000009313226, -0.35000000009313226],
+                  "raw": [429496730, -1503238554]
+                },
+                "local_p2": { "f64": [0.0, -0.10000000009313226], "raw": [0, -429496730] },
+                "dist": { "f64": 0.6100000001024455, "raw": 2619930051 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.10000000009313226, -0.35000000009313226],
+                  "raw": [429496730, -1503238554]
+                },
+                "local_p2": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.0100000000786169, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rcub_capsule/touching",
+      "pair": "rcub_capsule",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.30000000004656613], "raw": [0, -1288490189] },
+        "b": { "f64": [0.0, 0.30000000004656613], "raw": [0, 1288490189] },
+        "radius": { "f64": 0.19999999995343387, "raw": 858993459 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.8500000000931323], "raw": [429496730, -3650722202] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.10000000009313226, -0.35000000009313226],
+                  "raw": [429496730, -1503238554]
+                },
+                "local_p2": { "f64": [0.0, -0.10000000009313226], "raw": [0, -429496730] },
+                "dist": { "f64": 0.6000000000931323, "raw": 2576980378 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.10000000009313226, -0.35000000009313226],
+                  "raw": [429496730, -1503238554]
+                },
+                "local_p2": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 7.384803879517676e-11, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_capsule/overlapping",
+      "pair": "rcub_capsule",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "capsule",
+        "a": { "f64": [0.0, -0.30000000004656613], "raw": [0, -1288490189] },
+        "b": { "f64": [0.0, 0.30000000004656613], "raw": [0, 1288490189] },
+        "radius": { "f64": 0.19999999995343387, "raw": 858993459 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.8000000000465661], "raw": [644245094, -3435973837] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.17364817764610052, 0.9848077530041337], "raw": [745813244, 4229717092] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.09790554660495149, -0.35000000009313226],
+                  "raw": [420501121, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.034729635521133985, 0.496961550594593],
+                  "raw": [149162649, 2134433607]
+                },
+                "dist": { "f64": -0.04544232594709885, "raw": -195173304 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.20209445320878405, -0.35000000009313226],
+                  "raw": [867989067, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.03472963552113397, -0.1030384494846569],
+                  "raw": [149162649, -442546771]
+                },
+                "dist": { "f64": 0.5454423259470988, "raw": 2342656952 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_rcub/separated",
+      "pair": "rcub_rcub",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.2000000001862645], "raw": [429496730, -5153960756] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.500000000004561, "raw": 2147483648 }
+      }
+    },
+    {
+      "id": "rcub_rcub/within_pred",
+      "pair": "rcub_rcub",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.7100000001955777], "raw": [429496730, -3049426781] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.2999999998137355, -0.35000000009313226],
+                  "raw": [-1288490188, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, 0.35000000009313226],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.2999999998137355, 0.35000000009313226],
+                  "raw": [1288490188, 1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000035248924, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rcub_rcub/touching",
+      "pair": "rcub_rcub",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.7000000001862645], "raw": [429496730, -3006477108] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.2999999998137355, -0.35000000009313226],
+                  "raw": [-1288490188, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, 0.35000000009313226],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "local_p2": {
+                  "f64": [0.2999999998137355, 0.35000000009313226],
+                  "raw": [1288490188, 1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 2.7477409236935245e-11, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_rcub/overlapping",
+      "pair": "rcub_rcub",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.6500000001396984], "raw": [644245094, -2791728743] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [0.17364817764810977, -0.9848077530155267],
+              "raw": [745813244, -4229717092]
+            },
+            "local_n2": { "f64": [-3.3306690738754696e-16, 0.9999999999884314], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.309336619265947, -0.34848077539327005],
+                  "raw": [-1328590663, -1496713534]
+                },
+                "local_p2": {
+                  "f64": [-0.39999999989761276, 0.35000000008619103],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.026701436969676556, "raw": 114681799 },
+                "fid1": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225534, "kind": "face", "code": 62 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.41736481768785094, -0.34848077539327005],
+                  "raw": [1792568242, -1496713534]
+                },
+                "local_p2": {
+                  "f64": [0.3156612093337319, 0.35000000008619103],
+                  "raw": [1355754571, 1503238554]
+                },
+                "dist": { "f64": -0.09948894325161295, "raw": -427301758 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "halfspace_rcub/separated",
+      "pair": "halfspace_rcub",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.8500000000931323], "raw": [429496730, 3650722202] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5, "raw": 2147483648 }
+      }
+    },
+    {
+      "id": "halfspace_rcub/within_pred",
+      "pair": "halfspace_rcub",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.3600000001024455], "raw": [429496730, 1546188227] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.2999999998137355, 0.0], "raw": [-1288490188, 0] },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, -0.35000000009313226],
+                  "raw": [-1717986918, -1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009313226, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "halfspace_rcub/touching",
+      "pair": "halfspace_rcub",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.35000000009313226], "raw": [429496730, 1503238554] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.0], "raw": [2147483648, 0] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.2999999998137355, 0.0], "raw": [-1288490188, 0] },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, -0.35000000009313226],
+                  "raw": [-1717986918, -1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "halfspace_rcub/overlapping",
+      "pair": "halfspace_rcub",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, 0.30000000004656613], "raw": [644245094, 1288490189] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": {
+              "f64": [-0.17364817764610052, -0.9848077530041337],
+              "raw": [-745813244, -4229717092]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.20051105679154324, 0.0], "raw": [-861188431, 0] },
+                "local_p2": {
+                  "f64": [-0.41736481768765005, -0.34848077539213074],
+                  "raw": [-1792568242, -1496713534]
+                },
+                "dist": { "f64": -0.11566120933986751, "raw": -496761112 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_halfspace/separated",
+      "pair": "rcub_halfspace",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.8500000000931323], "raw": [429496730, -3650722202] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5, "raw": 2147483648 }
+      }
+    },
+    {
+      "id": "rcub_halfspace/within_pred",
+      "pair": "rcub_halfspace",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.3600000001024455], "raw": [429496730, -1546188227] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "local_p2": { "f64": [0.2999999998137355, 0.0], "raw": [1288490188, 0] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              },
+              {
+                "local_p1": {
+                  "f64": [-0.39999999990686774, -0.35000000009313226],
+                  "raw": [-1717986918, -1503238554]
+                },
+                "local_p2": { "f64": [-0.5, 0.0], "raw": [-2147483648, 0] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009313226, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rcub_halfspace/touching",
+      "pair": "rcub_halfspace",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": {
+          "f64": [0.10000000009313226, -0.35000000009313226],
+          "raw": [429496730, -1503238554]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.39999999990686774, -0.35000000009313226],
+                  "raw": [1717986918, -1503238554]
+                },
+                "local_p2": { "f64": [0.2999999998137355, 0.0], "raw": [1288490188, 0] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              },
+              {
+                "local_p1": {
+                  "f64": [-0.39999999990686774, -0.35000000009313226],
+                  "raw": [-1717986918, -1503238554]
+                },
+                "local_p2": { "f64": [-0.5, 0.0], "raw": [-2147483648, 0] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rcub_halfspace/overlapping",
+      "pair": "rcub_halfspace",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "pos12": {
+        "translation": {
+          "f64": [0.14999999990686774, -0.30000000004656613],
+          "raw": [644245094, -1288490189]
+        },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [0.17364817764610052, -0.9848077530041337],
+              "raw": [745813244, -4229717092]
+            },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.41736481768765005, -0.34848077539213074],
+                  "raw": [1792568242, -1496713534]
+                },
+                "local_p2": { "f64": [0.2548843471414246, 0.0], "raw": [1094719935, 0] },
+                "dist": { "f64": -0.09417165680859202, "raw": -404464186 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rtri_ball/separated",
+      "pair": "rtri_ball",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.5], "raw": [429496730, -6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.500000000305705, "raw": 2147483649 }
+      }
+    },
+    {
+      "id": "rtri_ball/within_pred",
+      "pair": "rtri_ball",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.0100000000093132], "raw": [429496730, -4337916969] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [1.2292890244354659e-9, -1.0], "raw": [5, -4294967296] },
+            "local_n2": { "f64": [-1.2292890244354659e-9, 1.0], "raw": [-5, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.09999999958912376, -0.5999999987223469],
+                  "raw": [429496728, -2576980372]
+                },
+                "local_p2": { "f64": [-4.917156096596999e-10, 0.39999999990686774], "raw": [-2, 1717986918] },
+                "dist": { "f64": 0.0100000013800986, "raw": 42949679 },
+                "fid1": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.0100000013800986, "raw": 42949679 }
+      }
+    },
+    {
+      "id": "rtri_ball/touching",
+      "pair": "rtri_ball",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.0], "raw": [429496730, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [1.2767077630358802e-9, -1.0], "raw": [5, -4294967296] },
+            "local_n2": { "f64": [-1.2767077630358802e-9, 1.0], "raw": [-5, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.09999999958244915, -0.5999999986691256],
+                  "raw": [429496728, -2576980372]
+                },
+                "local_p2": { "f64": [-5.106831050954494e-10, 0.39999999990686774], "raw": [-2, 1717986918] },
+                "dist": { "f64": 1.424006690342594e-9, "raw": 6 },
+                "fid1": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 1.424006690342594e-9, "raw": 6 }
+      }
+    },
+    {
+      "id": "rtri_ball/overlapping",
+      "pair": "rtri_ball",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.9499999999534339], "raw": [644245094, -4080218931] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [-1.1023087209029356e-11, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.17364817765695614, 0.9848077530022196], "raw": [745813244, 4229717092] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.14999999991072582, -0.6000000000837625],
+                  "raw": [644245094, -2576980378]
+                },
+                "local_p2": {
+                  "f64": [0.0694592710466102, 0.39392310110917045],
+                  "raw": [298325298, 1691886836]
+                },
+                "dist": { "f64": -0.0500000000371964, "raw": -214748365 },
+                "fid1": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid1_f64_build": { "packed": 0, "kind": "unknown", "code": 0 },
+                "fid2_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rtri_cuboid/separated",
+      "pair": "rtri_cuboid",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.4000000001396984], "raw": [429496730, -6012954215] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000027079456, "raw": 2147483660 }
+      }
+    },
+    {
+      "id": "rtri_cuboid/within_pred",
+      "pair": "rtri_cuboid",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.9100000001490116], "raw": [429496730, -3908420240] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.39999999990686774, -0.6000000000931323],
+                  "raw": [-1717986918, -2576980378]
+                },
+                "local_p2": { "f64": [-0.5, 0.30000000004656613], "raw": [-2147483648, 1288490189] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.6000000000931323, -0.6000000000931323],
+                  "raw": [2576980378, -2576980378]
+                },
+                "local_p2": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009396048, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rtri_cuboid/touching",
+      "pair": "rtri_cuboid",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.9000000001396984], "raw": [429496730, -3865470567] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.39999999990686774, -0.6000000000931323],
+                  "raw": [-1717986918, -2576980378]
+                },
+                "local_p2": { "f64": [-0.5, 0.30000000004656613], "raw": [-2147483648, 1288490189] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.6000000000931323, -0.6000000000931323],
+                  "raw": [2576980378, -2576980378]
+                },
+                "local_p2": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 3.5416288501263047e-14, "raw": 0 }
+      }
+    },
+    {
+      "id": "rtri_cuboid/overlapping",
+      "pair": "rtri_cuboid",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.8500000000931323], "raw": [644245094, -3650722202] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.17364817764610052, 0.9848077530041337], "raw": [745813244, 4229717092] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.3944983298971154, -0.6000000000931323],
+                  "raw": [-1694357425, -2576980378]
+                },
+                "local_p2": {
+                  "f64": [-0.49999999998843125, 0.30000000003962496],
+                  "raw": [-2147483648, 1288490189]
+                },
+                "dist": { "f64": 0.04138176287595141, "raw": 177733318 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.5903094231070183, -0.6000000000931323],
+                  "raw": [2535359667, -2576980378]
+                },
+                "local_p2": {
+                  "f64": [0.49999999998843125, 0.3000000000396249],
+                  "raw": [2147483648, 1288490189]
+                },
+                "dist": { "f64": -0.13226641477014905, "raw": -568079926 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rtri_tri/separated",
+      "pair": "rtri_tri",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.39999999990686774, -0.30000000004656613], "raw": [-1717986918, -1288490189] },
+        "b": { "f64": [0.39999999990686774, -0.30000000004656613], "raw": [1717986918, -1288490189] },
+        "c": { "f64": [0.0, 0.39999999990686774], "raw": [0, 1717986918] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.5], "raw": [429496730, -6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000014759969, "raw": 2147483654 }
+      }
+    },
+    {
+      "id": "rtri_tri/within_pred",
+      "pair": "rtri_tri",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.39999999990686774, -0.30000000004656613], "raw": [-1717986918, -1288490189] },
+        "b": { "f64": [0.39999999990686774, -0.30000000004656613], "raw": [1717986918, -1288490189] },
+        "c": { "f64": [0.0, 0.39999999990686774], "raw": [0, 1717986918] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.0100000000093132], "raw": [429496730, -4337916969] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.10000000009313226, -0.6000000000931323],
+                  "raw": [429496730, -2576980378]
+                },
+                "local_p2": { "f64": [0.0, 0.39999999990686774], "raw": [0, 1717986918] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.6000000000931323], "raw": [2147483648, -2576980378] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, -0.30000000004656613],
+                  "raw": [1717986918, -1288490189]
+                },
+                "dist": { "f64": 0.7099999999627471, "raw": 3049426780 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009313337, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rtri_tri/touching",
+      "pair": "rtri_tri",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.39999999990686774, -0.30000000004656613], "raw": [-1717986918, -1288490189] },
+        "b": { "f64": [0.39999999990686774, -0.30000000004656613], "raw": [1717986918, -1288490189] },
+        "c": { "f64": [0.0, 0.39999999990686774], "raw": [0, 1717986918] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.0], "raw": [429496730, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.10000000009313226, -0.6000000000931323],
+                  "raw": [429496730, -2576980378]
+                },
+                "local_p2": { "f64": [0.0, 0.39999999990686774], "raw": [0, 1717986918] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.6000000000931323], "raw": [2147483648, -2576980378] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, -0.30000000004656613],
+                  "raw": [1717986918, -1288490189]
+                },
+                "dist": { "f64": 0.6999999999534339, "raw": 3006477107 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 3.552214966617841e-9, "raw": 15 }
+      }
+    },
+    {
+      "id": "rtri_tri/overlapping",
+      "pair": "rtri_tri",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_triangle",
+        "a": { "f64": [-1.0, -0.5], "raw": [-4294967296, -2147483648] },
+        "b": { "f64": [1.0, -0.5], "raw": [4294967296, -2147483648] },
+        "c": { "f64": [0.25, 0.75], "raw": [1073741824, 3221225472] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "triangle",
+        "a": { "f64": [-0.39999999990686774, -0.30000000004656613], "raw": [-1717986918, -1288490189] },
+        "b": { "f64": [0.39999999990686774, -0.30000000004656613], "raw": [1717986918, -1288490189] },
+        "c": { "f64": [0.0, 0.39999999990686774], "raw": [0, 1717986918] }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.9499999999534339], "raw": [644245094, -4080218931] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.17364817764610052, 0.9848077530041337], "raw": [745813244, 4229717092] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.08054072886459984, -0.6000000000931323],
+                  "raw": [345919796, -2576980378]
+                },
+                "local_p2": { "f64": [0.0, 0.3999999998976127], "raw": [0, 1717986918] },
+                "dist": { "f64": -0.0439231012496345, "raw": -188648283 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.59601755431872, -0.6000000000931323],
+                  "raw": [2559875904, -2576980378]
+                },
+                "local_p2": {
+                  "f64": [0.39999999989761276, -0.3000000000396248],
+                  "raw": [1717986918, -1288490189]
+                },
+                "dist": { "f64": 0.5759830547651323, "raw": 2473828383 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rpoly_poly/separated",
+      "pair": "rpoly_poly",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.5], "raw": [429496730, -6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [-0.5547001960762085, -0.8320502944371907],
+              "raw": [-2382419201, -3573628803]
+            },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5000000003959192, "raw": 2147483650 }
+      }
+    },
+    {
+      "id": "rpoly_poly/within_pred",
+      "pair": "rpoly_poly",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.0100000000093132], "raw": [429496730, -4337916969] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.10000000009313226, -0.5], "raw": [429496730, -2147483648] },
+                "local_p2": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741830, "kind": "vertex", "code": 6 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "local_p2": {
+                  "f64": [0.3999999999068677, 0.23333333349890184],
+                  "raw": [1717986918, 1002159036]
+                },
+                "dist": { "f64": 0.2766666665104114, "raw": 1188274285 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225477, "kind": "face", "code": 5 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009317445, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "rpoly_poly/touching",
+      "pair": "rpoly_poly",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.0], "raw": [429496730, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.10000000009313226, -0.5], "raw": [429496730, -2147483648] },
+                "local_p2": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741830, "kind": "vertex", "code": 6 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "local_p2": {
+                  "f64": [0.3999999999068677, 0.23333333349890184],
+                  "raw": [1717986918, 1002159036]
+                },
+                "dist": { "f64": 0.26666666650109816, "raw": 1145324612 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225477, "kind": "face", "code": 5 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 4.107918958879418e-15, "raw": 0 }
+      }
+    },
+    {
+      "id": "rpoly_poly/overlapping",
+      "pair": "rpoly_poly",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ]
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.9499999999534339], "raw": [644245094, -4080218931] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -0.9999999999999999], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.1736481776461005, 0.9848077530041336], "raw": [745813244, 4229717092] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.06317591108381748, -0.5], "raw": [271338472, -2147483648] },
+                "local_p2": { "f64": [0.0, 0.49999999998843125], "raw": [0, 2147483648] },
+                "dist": { "f64": -0.042403876548632986, "raw": -182123263 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741830, "kind": "vertex", "code": 6 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "local_p2": {
+                  "f64": [0.3969059822930254, 0.23539601189576076],
+                  "raw": [1704698214, 1011018173]
+                },
+                "dist": { "f64": 0.14925818188325765, "raw": 641059010 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225477, "kind": "face", "code": 5 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "rpoly_rcub/separated",
+      "pair": "rpoly_rcub",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -1.3500000000931323], "raw": [429496730, -5798205850] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 0.0], "raw": [0, 0] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.500000000256641, "raw": 2147483649 }
+      }
+    },
+    {
+      "id": "rpoly_rcub/within_pred",
+      "pair": "rpoly_rcub",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.8600000001024455], "raw": [429496730, -3693671875] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.2999999998137355, -0.5], "raw": [-1288490188, -2147483648] },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, 0.35000000009313226],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, 0.35000000009313226],
+                  "raw": [1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.01000000020314773, "raw": 42949674 }
+      }
+    },
+    {
+      "id": "rpoly_rcub/touching",
+      "pair": "rpoly_rcub",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, -0.8500000000931323], "raw": [429496730, -3650722202] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.2999999998137355, -0.5], "raw": [-1288490188, -2147483648] },
+                "local_p2": {
+                  "f64": [-0.39999999990686774, 0.35000000009313226],
+                  "raw": [-1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "local_p2": {
+                  "f64": [0.39999999990686774, 0.35000000009313226],
+                  "raw": [1717986918, 1503238554]
+                },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2_f64_build": { "packed": 3221225524, "kind": "face", "code": 52 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 5.373485890632829e-14, "raw": 0 }
+      }
+    },
+    {
+      "id": "rpoly_rcub/overlapping",
+      "pair": "rpoly_rcub",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "shape2": {
+        "type": "round_cuboid",
+        "half_extents": { "f64": [0.39999999990686774, 0.25], "raw": [1717986918, 1073741824] },
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, -0.8000000000465661], "raw": [644245094, -3435973837] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": {
+              "f64": [0.006059456364364339, -0.9999816413257637],
+              "raw": [26025167, -4294888446]
+            },
+            "local_n2": { "f64": [0.16767759008915914, 0.9858418867946088], "raw": [720169766, 4234158663] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.28808204288091427, -0.4999981641325747],
+                  "raw": [-1237302953, -2147475763]
+                },
+                "local_p2": {
+                  "f64": [-0.3832322408730806, 0.34858418876549024],
+                  "raw": [-1645969941, 1497157691]
+                },
+                "dist": { "f64": 0.02326143152856272, "raw": 99907088 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              },
+              {
+                "local_p1": {
+                  "f64": [0.5006059456370007, -0.4999981641325747],
+                  "raw": [2150086165, -2147475763]
+                },
+                "local_p2": {
+                  "f64": [0.41676775892214485, 0.3485841887654902],
+                  "raw": [1790003895, 1497157691]
+                },
+                "dist": { "f64": -0.11565966096305473, "raw": -496754461 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid1_f64_build": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "halfspace_rpoly/separated",
+      "pair": "halfspace_rpoly",
+      "regime": "separated",
+      "ambiguous": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 1.0], "raw": [429496730, 4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 0,
+            "points": []
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.5, "raw": 2147483648 }
+      }
+    },
+    {
+      "id": "halfspace_rpoly/within_pred",
+      "pair": "halfspace_rpoly",
+      "regime": "within_pred",
+      "ambiguous": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.5100000000093132], "raw": [429496730, 2190433321] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+                "local_p2": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              },
+              {
+                "local_p1": { "f64": [0.6000000000931323, 0.0], "raw": [2576980378, 0] },
+                "local_p2": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "dist": { "f64": 0.010000000009313226, "raw": 42949673 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": false,
+        "distance": { "f64": 0.010000000009313226, "raw": 42949673 }
+      }
+    },
+    {
+      "id": "halfspace_rpoly/touching",
+      "pair": "halfspace_rpoly",
+      "regime": "touching",
+      "ambiguous": true,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.10000000009313226, 0.5], "raw": [429496730, 2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+                "local_p2": { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              },
+              {
+                "local_p1": { "f64": [0.6000000000931323, 0.0], "raw": [2576980378, 0] },
+                "local_p2": { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                "dist": { "f64": 0.0, "raw": 0 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "halfspace_rpoly/overlapping",
+      "pair": "halfspace_rpoly",
+      "regime": "overlapping",
+      "ambiguous": false,
+      "shape1": { "type": "halfspace", "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] } },
+      "shape2": {
+        "type": "round_convex_polygon",
+        "vertices": [
+          { "f64": [-0.5, -0.39999999990686774], "raw": [-2147483648, -1717986918] },
+          { "f64": [0.5, -0.39999999990686774], "raw": [2147483648, -1717986918] },
+          { "f64": [0.6000000000931323, 0.10000000009313226], "raw": [2576980378, 429496730] },
+          { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+          { "f64": [-0.6000000000931323, 0.10000000009313226], "raw": [-2576980378, 429496730] }
+        ],
+        "border_radius": { "f64": 0.10000000009313226, "raw": 429496730 }
+      },
+      "pos12": {
+        "translation": { "f64": [0.14999999990686774, 0.44999999995343387], "raw": [644245094, 1932735283] },
+        "rotation": { "f64": [0.9848077530041337, 0.17364817764610052], "raw": [4229717092, 745813244] }
+      },
+      "expected": {
+        "num_manifolds": 1,
+        "manifolds": [
+          {
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": {
+              "f64": [-0.17364817764610052, -0.9848077530041337],
+              "raw": [-745813244, -4229717092]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.27294460555293115, 0.0], "raw": [-1172288154, 0] },
+                "local_p2": {
+                  "f64": [-0.5173648177807822, -0.4984807752989985],
+                  "raw": [-2222064972, -2140958628]
+                },
+                "dist": { "f64": -0.13074719007268476, "raw": -561554905 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid1_f64_build": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2_f64_build": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": true,
+        "distance": { "f64": 0.0, "raw": 0 }
+      }
+    }
+  ]
+}

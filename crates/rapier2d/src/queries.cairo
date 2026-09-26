@@ -370,7 +370,20 @@ fn project_local_point(shape: Shape, pt: Vec2, solid: bool) -> PointProjection {
         Shape::ConvexPolygon(s) => rapier_geometry2d::point::convex_polygon::project_local_point_convex_polygon(
             s.unbox(), pt, solid,
         ),
+        _ => {
+            let (is_inside, point) = project_local_point_sh1(shape, pt, solid);
+            PointProjection { is_inside, point }
+        },
     }
+}
+
+/// The triangle and round-shape arms (SH1), out of line. A tuple, not a `PointProjection`: the
+/// polygon arm's call returns one, and identical post-call blocks are merged by the compiler,
+/// which would move the old arms' code.
+#[inline(never)]
+fn project_local_point_sh1(shape: Shape, pt: Vec2, solid: bool) -> (bool, Vec2) {
+    let proj = rapier_geometry2d::point::PointQuery::<Shape>::project_local_point(shape, pt, solid);
+    (proj.is_inside, proj.point)
 }
 
 /// Local containment on any shape of the closed set.
@@ -385,6 +398,18 @@ fn contains_local_point(shape: Shape, pt: Vec2) -> bool {
         Shape::ConvexPolygon(s) => rapier_geometry2d::point::convex_polygon::contains_local_point_convex_polygon(
             s.unbox(), pt,
         ),
+        _ => contains_local_point_sh1(shape, pt) != 0,
+    }
+}
+
+/// The triangle and round-shape arms (SH1), out of line; `1` inside, `0` outside (a `bool` would
+/// share its post-call block with the old arms' calls, see `project_local_point_sh1`).
+#[inline(never)]
+fn contains_local_point_sh1(shape: Shape, pt: Vec2) -> u8 {
+    if rapier_geometry2d::point::PointQuery::<Shape>::contains_local_point(shape, pt) {
+        1
+    } else {
+        0
     }
 }
 
