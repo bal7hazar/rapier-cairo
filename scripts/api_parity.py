@@ -498,6 +498,10 @@ def cairo_impl_item(impl_name: str, trait_expr: str, body: str, fallback: str) -
     return Item(owner, "impl", head)
 
 
+# Crates that are not part of the engine's API (CS1: `rapier_sink` holds contract fixtures).
+SKIPPED_CRATES = {"rapier_sink"}
+
+
 def parse_cairo() -> list[Item]:
     items: set[Item] = set()
     impl_re = re.compile(r"\bpub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)\s+of\s+([^{\n]+)\s*\{")
@@ -505,6 +509,9 @@ def parse_cairo() -> list[Item]:
     mod_re = re.compile(r"\bpub\s+mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{")
     for path in sorted((ROOT / "crates").glob("*/src/**/*.cairo")):
         if any(part in {"tests", "benches", "alternatives", "fixtures", "generated", "probes"} for part in path.parts):
+            continue
+        # Measurement fixtures (never published), not engine API.
+        if path.relative_to(ROOT / "crates").parts[0] in SKIPPED_CRATES:
             continue
         source = str(path.relative_to(ROOT))
         fallback = cairo_owner_from_path(path)

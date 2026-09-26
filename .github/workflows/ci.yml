@@ -82,6 +82,18 @@ jobs:
         if: always()
         run: python3 scripts/gas.py diff --from-log snforge.log >> "$GITHUB_STEP_SUMMARY"
 
+  bytecode:
+    # Compiled class size of the crates/rapier_sink fixtures (Sierra / CASM felts, class bytes) against
+    # gas/bytecode.size: any change fails (deterministic toolchain). Analysis: docs/research/class-size.md.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - name: Check class sizes
+        run: |
+          set -o pipefail
+          python3 scripts/bytecode_size.py check | tee -a "$GITHUB_STEP_SUMMARY"
+
   api-parity:
     runs-on: ubuntu-latest
     steps:
