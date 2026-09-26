@@ -149,6 +149,24 @@ pub(crate) fn refresh(ref world: World, fill: bool) {
     }
 }
 
+/// [`refresh`]`(world, true)` with the bodies given (BT4: the island stage's entries, whose
+/// types, activation flags and change flags are those of the set) instead of read again.
+#[inline(never)]
+fn refill_with(ref world: World, entries: Span<(Handle, RigidBody)>) {
+    let prediction = world.integration_parameters.prediction_distance();
+    let snapshot = world.colliders.iter().span();
+    let force_events = any_force_events(snapshot);
+    world
+        .active_set =
+            BoxTrait::new(
+                rebuild(
+                    snapshot, entries, world.narrow_phase.pairs.span(), force_events, prediction,
+                ),
+            );
+    world.bodies.clear_modified();
+    world.colliders.clear_modified();
+}
+
 /// Whether the world's active set is marked valid.
 #[inline(always)]
 pub fn is_valid(world: @World) -> bool {
@@ -641,6 +659,9 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
     let mut still_valid = true;
     // A member still sleeps after the island stage (then an invalidated set is filled again).
     let mut refill = false;
+    // Every body after the island stage (the refill reads their type, flags and slots, which the
+    // solver and the position update leave alone).
+    let mut island_entries = array![].span();
     let mut dormant = array![];
     if islands {
         // The whole island stage and solver, on every body. The set stays valid when nobody woke
@@ -658,6 +679,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
         );
         still_valid = !woken;
         refill = sleeping;
+        island_entries = all;
         for handle in active_bodies {
             if still_valid && body_status(all, *handle) == BODY_SLEEPING {
                 still_valid = false;
@@ -707,7 +729,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
         if refill {
             // BT4: a body woke up or fell asleep and another still sleeps: the set is filled
             // again for the next step (as the whole step does).
-            refresh(ref world, true);
+            refill_with(ref world, island_entries);
             return output;
         }
     } else {
