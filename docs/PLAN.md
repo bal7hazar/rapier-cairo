@@ -451,7 +451,7 @@ Every lot closes one AP work package (or part of it) and regenerates the invento
 | 12 | SH2 | Additional 2D shapes, part 2: polyline, compound, 2D heightfield (multi-manifold pairs) | |
 | 13 | JA | Joint API completion (239) | JA1 (brief `ja1-joint-api.md`, next free slot): the user-facing part (typed joint views over `GenericJoint`, accessors, setters, builders, set and `World` accessors); no step cost; solver internals stay missing |
 | 13 | KC | Character controller (12), PID / vehicle controllers (35) | after CC |
-| 14 | MH, PO | Mass/AABB/shape helpers (101), API polish (179) | |
+| 14 | MH, PO | Mass/AABB/shape helpers (101), API polish (179) | MH1 briefed (`mh1-shape-helpers.md`: `Aabb` / `BoundingVolume` / `BoundingSphere`, feature ids, per-shape helpers, `MassProperties` members; no step cost), next free slot after JA1 |
 
 **Resumed 2026-09-25 (owner: "continue towards feature parity with rapier-rs").** Wave 9 starts with **AP** (a
 generated API-parity inventory against rapier-rs 0.35.3 2D + the parry2d subset it exposes, `scripts/api_parity.py`
