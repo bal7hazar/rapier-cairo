@@ -1,9 +1,10 @@
 //! `Capsule` (Parry `shape/capsule.rs`, `bounding_volume/aabb_capsule.rs`,
 //! `mass_properties_capsule.rs`).
 
-use fixed::{Fixed, FixedTrait};
+use fixed::{Fixed, FixedTrait, ONE};
 use glam::{Vec2, Vec2Trait};
-use rapier_math::pose2::Pose2;
+use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::rot2::Rot2;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
@@ -59,6 +60,36 @@ pub impl CapsuleImpl of CapsuleTrait {
     #[inline(always)]
     fn center(self: Capsule) -> Vec2 {
         self.segment.a.midpoint(self.segment.b)
+    }
+
+    /// The rotation `r` such that `r * Y` is collinear with `b - a` (upstream `rotation_wrt_y`).
+    ///
+    /// The direction is flipped to point up (`y >= 0`), so the angle stays within a quarter turn
+    /// of the identity; a zero-length core gives the identity. The direction is normalised once
+    /// (rounded to nearest): `r = (re, im) = (dir.y, -dir.x)`.
+    fn rotation_wrt_y(self: Capsule) -> Rot2 {
+        let zero = FixedTrait::from_raw(0);
+        let dir = self.segment.b - self.segment.a;
+        let dir = if dir.y < zero {
+            -dir
+        } else {
+            dir
+        };
+        match dir.try_normalize() {
+            Some(unit) => Rot2 { re: unit.y, im: -unit.x },
+            None => Rot2 { re: ONE, im: zero },
+        }
+    }
+
+    /// The transform `t` such that `t * Y` is collinear with `b - a` and `t * origin` is the
+    /// capsule's center (upstream `transform_wrt_y`).
+    fn transform_wrt_y(self: Capsule) -> Pose2 {
+        Pose2Trait::new(Self::center(self), Self::rotation_wrt_y(self))
+    }
+
+    /// Upstream `canonical_transform`, the same pose as [`CapsuleTrait::transform_wrt_y`].
+    fn canonical_transform(self: Capsule) -> Pose2 {
+        Self::transform_wrt_y(self)
     }
 
     /// The capsule moved by `pose`.
@@ -235,6 +266,37 @@ mod tests {
     }
 
     #[test]
+    fn test_rotation_and_transform_wrt_y() {
+        // (a, b, expected direction of `r * Y`): a 3-4-5 slope, its flip, horizontal, vertical.
+        let cases = array![
+            (
+                v(ZERO, ZERO),
+                v(i(3), i(4)),
+                v(FixedTrait::from_ratio(3, 5), FixedTrait::from_ratio(4, 5)),
+            ),
+            (
+                v(i(3), i(4)),
+                v(ZERO, ZERO),
+                v(FixedTrait::from_ratio(3, 5), FixedTrait::from_ratio(4, 5)),
+            ),
+            (v(ZERO, ZERO), v(i(2), ZERO), v(ONE, ZERO)),
+            (v(ZERO, i(-2)), v(ZERO, ZERO), v(ZERO, ONE)),
+        ];
+        for (a, b, dir) in cases {
+            let capsule = CapsuleTrait::new(a, b, HALF);
+            let r = capsule.rotation_wrt_y();
+            // `r * Y = (-im, re)`, exact for the axis-aligned cases, a few ulps for the slope.
+            assert!((-r.im - dir.x).abs().raw < 8 && (r.re - dir.y).abs().raw < 8);
+            let t = capsule.transform_wrt_y();
+            assert_eq!((t.translation, t.rotation), (capsule.center(), r));
+            assert_eq!(capsule.canonical_transform(), t);
+        }
+        // A zero-length core has no direction: the identity rotation.
+        let point = CapsuleTrait::new(v(ONE, ONE), v(ONE, ONE), HALF);
+        assert_eq!(point.rotation_wrt_y(), Rot2 { re: ONE, im: ZERO });
+    }
+
+    #[test]
     fn test_transform_by_moves_the_core() {
         let moved = CapsuleTrait::new_x(i(2), HALF).transform_by(pose(ONE, ZERO, ZERO, ONE));
         assert_eq!(
@@ -276,6 +338,10 @@ mod tests {
     #[test]
     fn gas_mass_properties() {
         let _ = opaque(CapsuleTrait::new_y(i(1), HALF)).mass_properties(opaque(ONE));
+    }
+    #[test]
+    fn gas_rotation_wrt_y() {
+        let _ = opaque(CapsuleTrait::new(v(ZERO, ZERO), v(i(3), i(4)), HALF)).rotation_wrt_y();
     }
     #[test]
     fn gas_transform_by() {

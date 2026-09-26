@@ -177,6 +177,20 @@ pub impl ShapeImpl of ShapeTrait {
         }
     }
 
+    /// Is the shape known to be convex (upstream `is_convex`)? Every shape of the closed set
+    /// is: a half-space is convex too.
+    #[inline(always)]
+    fn is_convex(self: Shape) -> bool {
+        match self {
+            Shape::Ball(_) => true,
+            Shape::Cuboid(_) => true,
+            Shape::Capsule(_) => true,
+            Shape::Segment(_) => true,
+            Shape::HalfSpace(_) => true,
+            Shape::ConvexPolygon(_) => true,
+        }
+    }
+
     /// The wrapped polygon, `None` for every other shape.
     fn as_convex_polygon(self: Shape) -> Option<ConvexPolygon> {
         match self {
@@ -223,6 +237,54 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::HalfSpace(s) => Some(s),
             _ => None,
         }
+    }
+}
+
+/// Upstream `impl Shape for Ball`: a ball is a shape.
+pub impl BallIntoShape of Into<Ball, Shape> {
+    #[inline(always)]
+    fn into(self: Ball) -> Shape {
+        Shape::Ball(self)
+    }
+}
+
+/// Upstream `impl Shape for Cuboid`.
+pub impl CuboidIntoShape of Into<Cuboid, Shape> {
+    #[inline(always)]
+    fn into(self: Cuboid) -> Shape {
+        Shape::Cuboid(self)
+    }
+}
+
+/// Upstream `impl Shape for Capsule`.
+pub impl CapsuleIntoShape of Into<Capsule, Shape> {
+    #[inline(always)]
+    fn into(self: Capsule) -> Shape {
+        Shape::Capsule(self)
+    }
+}
+
+/// Upstream `impl Shape for Segment`.
+pub impl SegmentIntoShape of Into<Segment, Shape> {
+    #[inline(always)]
+    fn into(self: Segment) -> Shape {
+        Shape::Segment(self)
+    }
+}
+
+/// Upstream `impl Shape for HalfSpace`.
+pub impl HalfSpaceIntoShape of Into<HalfSpace, Shape> {
+    #[inline(always)]
+    fn into(self: HalfSpace) -> Shape {
+        Shape::HalfSpace(self)
+    }
+}
+
+/// Upstream `impl Shape for ConvexPolygon` (boxed, as the variant).
+pub impl ConvexPolygonIntoShape of Into<ConvexPolygon, Shape> {
+    #[inline(always)]
+    fn into(self: ConvexPolygon) -> Shape {
+        Shape::ConvexPolygon(BoxTrait::new(self))
     }
 }
 
@@ -286,8 +348,8 @@ mod tests {
     use rapier_testing::opaque;
     use crate::mass::MassProperties;
     use super::{
-        Ball, BallTrait, Capsule, CapsuleTrait, Cuboid, CuboidTrait, HalfSpace, HalfSpaceTrait,
-        Segment, SegmentTrait, Shape, ShapeTrait, ShapeType,
+        Ball, BallTrait, Capsule, CapsuleTrait, ConvexPolygonTrait, Cuboid, CuboidTrait, HalfSpace,
+        HalfSpaceTrait, Segment, SegmentTrait, Shape, ShapeTrait, ShapeType,
     };
 
     fn v(x: Fixed, y: Fixed) -> Vec2 {
@@ -380,6 +442,29 @@ mod tests {
     }
 
     #[test]
+    fn test_every_shape_is_convex_and_converts_into_shape() {
+        let polygon = ConvexPolygonTrait::from_convex_polyline(
+            [v(ZERO, ZERO), v(ONE, ZERO), v(ZERO, ONE)].span(),
+        )
+            .unwrap();
+        let shapes: Array<Shape> = array![
+            ball().into(), cuboid().into(), capsule().into(), segment().into(), halfspace().into(),
+            polygon.into(),
+        ];
+        let expected = array![
+            Shape::Ball(ball()), Shape::Cuboid(cuboid()), Shape::Capsule(capsule()),
+            Shape::Segment(segment()), Shape::HalfSpace(halfspace()),
+            Shape::ConvexPolygon(BoxTrait::new(polygon)),
+        ];
+        let mut k = 0;
+        for shape in shapes {
+            assert_eq!(shape, *expected.at(k));
+            assert!(shape.is_convex());
+            k += 1;
+        }
+    }
+
+    #[test]
     fn test_segments_and_half_spaces_are_massless() {
         let zero: MassProperties = Default::default();
         assert_eq!(Shape::Segment(segment()).mass_properties(TWO), zero);
@@ -396,6 +481,10 @@ mod tests {
     #[test]
     fn gas_shape_type() {
         let _ = opaque(Shape::Cuboid(cuboid())).shape_type();
+    }
+    #[test]
+    fn gas_is_convex() {
+        let _ = opaque(Shape::Cuboid(cuboid())).is_convex();
     }
     #[test]
     fn gas_as_cuboid() {
