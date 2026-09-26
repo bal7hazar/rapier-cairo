@@ -3,7 +3,7 @@
 //! Coordinates and differences must fit Q32.32; wide cross/dot sums must fit i128. Arithmetic
 //! overflow panics. Padded slots are zero and do not participate in any query.
 
-use fixed::Fixed;
+use fixed::{Fixed, ZERO};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::Pose2;
@@ -58,6 +58,8 @@ pub mod errors {
     pub const NORMAL_INDEX: felt252 = 'Polygon: normal index';
     /// Triangle area cannot be represented as Q32.32.
     pub const AREA_OVERFLOW: felt252 = 'Polygon: area overflow';
+    /// `offsetted` was given a negative amount.
+    pub const NEGATIVE_OFFSET: felt252 = 'Polygon: negative offset';
 }
 
 /// Fixed storage indexing without converting to an allocated span. Internal indices are < 8.
@@ -131,6 +133,109 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
                 count: n.try_into().unwrap(),
             },
         )
+    }
+
+    /// The convex hull of `points`, as a polygon (upstream `from_convex_hull`).
+    ///
+    /// Gift wrapping with exact wide predicates, so the result does not depend on rounding:
+    /// the hull starts at the lowest `x` (lowest `y` on ties) and runs counter-clockwise, points
+    /// on a hull edge and duplicates are dropped. Returns `None` when the hull is degenerate
+    /// (fewer than 3 points, all equal or all collinear) or has more than 8 vertices. Unlike
+    /// upstream (quickhull, unspecified start vertex) the cost is `O(hull * points)`, which is
+    /// what a hull of at most 8 vertices needs. Panics on coordinate differences / wide sums
+    /// overflow, as [`Self::from_convex_polyline`].
+    fn from_convex_hull(points: Span<Vec2>) -> Option<ConvexPolygon> {
+        let n = points.len();
+        if n < 3 {
+            return None;
+        }
+        let mut start = *points.at(0);
+        let mut i = 1;
+        while i != n {
+            let p = *points.at(i);
+            if p.x < start.x || (p.x == start.x && p.y < start.y) {
+                start = p;
+            }
+            i += 1;
+        }
+        let mut hull = array![start];
+        let mut current = start;
+        loop {
+            // The most clockwise point around `current` (the farthest one among collinear
+            // points): every other point is on its left, so the hull turns counter-clockwise.
+            let mut next = current;
+            let mut j = 0;
+            while j != n {
+                let p = *points.at(j);
+                if p != current {
+                    if next == current {
+                        next = p;
+                    } else {
+                        let e = next - current;
+                        let d = p - current;
+                        let turn = cross_wide(e.x, e.y, d.x, d.y);
+                        if turn < 0
+                            || (turn == 0
+                                && dot_wide(d.x, d.y, d.x, d.y) > dot_wide(e.x, e.y, e.x, e.y)) {
+                            next = p;
+                        }
+                    }
+                }
+                j += 1;
+            }
+            if next == current {
+                // Every point equals `current`.
+                return None;
+            }
+            if next == start {
+                break;
+            }
+            if hull.len() == 8 {
+                return None;
+            }
+            hull.append(next);
+            current = next;
+        }
+        Self::from_convex_polyline(hull.span())
+    }
+
+    /// The polygon grown by `amount` along its edge normals (upstream `offsetted`): every vertex
+    /// moves along the sum of its two adjacent normals so that each edge moves outward by exactly
+    /// `amount`. The normals are unchanged; `amount / (1 + n_prev . n)` is one `Fixed` division
+    /// per vertex.
+    ///
+    /// # Panics
+    /// * `Polygon: negative offset` if `amount` is negative.
+    /// * `Fixed: overflow` if a corner is so sharp that the vertex leaves the Q32.32 range.
+    fn offsetted(self: ConvexPolygon, amount: Fixed) -> ConvexPolygon {
+        assert(amount >= ZERO, errors::NEGATIVE_OFFSET);
+        let mut moved = array![];
+        let mut i = 0;
+        while i != self.count {
+            let normal = get(self.normals, i);
+            let previous = get(self.normals, if i == 0 {
+                self.count - 1
+            } else {
+                i - 1
+            });
+            let direction = previous + normal;
+            let scale = amount / direction.dot(previous);
+            let vertex = get(self.vertices, i);
+            moved
+                .append(
+                    Vec2 { x: vertex.x + direction.x * scale, y: vertex.y + direction.y * scale },
+                );
+            i += 1;
+        }
+        let moved = moved.span();
+        ConvexPolygon {
+            vertices: [
+                padded(moved, 0), padded(moved, 1), padded(moved, 2), padded(moved, 3),
+                padded(moved, 4), padded(moved, 5), padded(moved, 6), padded(moved, 7),
+            ],
+            normals: self.normals,
+            count: self.count,
+        }
     }
 
     /// Padded vertex storage, with `count` live entries in CCW order.
@@ -380,6 +485,8 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
     }
 }
 
+#[cfg(test)]
+mod hull_tests;
 #[cfg(test)]
 mod tests;
 

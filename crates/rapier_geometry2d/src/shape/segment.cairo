@@ -9,12 +9,40 @@ use crate::aabb::Aabb;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::MassProperties;
+use crate::point::SegmentPointLocation;
 
 /// The segment from `a` to `b`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct Segment {
     pub a: Vec2,
     pub b: Vec2,
+}
+
+/// The pseudo-normals of a polyline segment, approximating the outward normal cones of its
+/// features (upstream `SegmentPseudoNormals`): `face` is the segment's outward normal and
+/// `edges` the outward pseudo-normals at its two end points. An oriented polyline uses them to
+/// clamp contact normals to one side. Plain data: the port has no polyline shape.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct SegmentPseudoNormals {
+    /// The segment's outward normal.
+    pub face: Vec2,
+    /// The outward pseudo-normals at the segment's two end points.
+    pub edges: [Vec2; 2],
+}
+
+/// Failure modes of [`SegmentTrait`].
+pub mod errors {
+    /// `point_at` was given a vertex index other than `0` or `1`.
+    pub const VERTEX: felt252 = 'Segment: vertex index';
+}
+
+/// Upstream `impl From<[Vector; 2]> for Segment`: the end points `[a, b]`.
+pub impl ArrayIntoSegment of Into<[Vec2; 2], Segment> {
+    #[inline(always)]
+    fn into(self: [Vec2; 2]) -> Segment {
+        let [a, b] = self;
+        Segment { a, b }
+    }
 }
 
 /// `|v|^2` of the raw components, exact.
@@ -33,6 +61,25 @@ pub impl SegmentImpl of SegmentTrait {
     #[inline(always)]
     fn new(a: Vec2, b: Vec2) -> Segment {
         Segment { a, b }
+    }
+
+    /// The point at `location` (upstream `point_at`): `a` or `b` for a vertex, `a * u + b * v`
+    /// for `OnEdge((u, v))` (floored products).
+    ///
+    /// # Panics
+    /// * `Segment: vertex index` if `location` is a vertex other than `0` or `1`.
+    fn point_at(self: Segment, location: SegmentPointLocation) -> Vec2 {
+        match location {
+            SegmentPointLocation::OnVertex(0) => self.a,
+            SegmentPointLocation::OnVertex(1) => self.b,
+            SegmentPointLocation::OnVertex(_) => {
+                assert(false, errors::VERTEX);
+                self.a
+            },
+            SegmentPointLocation::OnEdge((
+                u, v,
+            )) => Vec2 { x: self.a.x * u + self.b.x * v, y: self.a.y * u + self.b.y * v },
+        }
     }
 
     /// `b - a`.
@@ -219,7 +266,8 @@ mod tests {
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;
     use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
-    use super::{Segment, SegmentTrait};
+    use crate::point::SegmentPointLocation;
+    use super::{Segment, SegmentPseudoNormals, SegmentTrait};
 
     fn v(x: i32, y: i32) -> Vec2 {
         Vec2 { x: FixedTrait::from_int(x), y: FixedTrait::from_int(y) }
@@ -310,7 +358,44 @@ mod tests {
     }
 
     #[test]
+    fn test_point_at_table() {
+        let segment = seg(-2, 0, 2, 4);
+        let (three_quarters, quarter) = (
+            FixedTrait::from_ratio(3, 4), FixedTrait::from_ratio(1, 4),
+        );
+        let cases: Span<(SegmentPointLocation, Vec2)> = array![
+            (SegmentPointLocation::OnVertex(0), v(-2, 0)),
+            (SegmentPointLocation::OnVertex(1), v(2, 4)),
+            (SegmentPointLocation::OnEdge((HALF, HALF)), v(0, 2)),
+            (SegmentPointLocation::OnEdge((three_quarters, quarter)), v(-1, 1)),
+        ]
+            .span();
+        for (location, expected) in cases {
+            assert_eq!(segment.point_at(*location), *expected);
+        }
+    }
+
+    #[test]
+    #[should_panic(expected: ('Segment: vertex index',))]
+    fn test_point_at_bad_vertex_panics() {
+        let _ = seg(0, 0, 1, 1).point_at(SegmentPointLocation::OnVertex(2));
+    }
+
+    #[test]
+    fn test_from_array_and_pseudo_normals() {
+        let segment: Segment = [v(1, 2), v(3, 4)].into();
+        assert_eq!(segment, seg(1, 2, 3, 4));
+        let normals = SegmentPseudoNormals { face: v(0, 1), edges: [v(1, 1), v(-1, 1)] };
+        assert_eq!(normals, SegmentPseudoNormals { face: v(0, 1), edges: [v(1, 1), v(-1, 1)] });
+    }
+
+    #[test]
     fn gas_baseline() {}
+    #[test]
+    fn gas_point_at() {
+        let _ = opaque(seg(-2, 0, 2, 4))
+            .point_at(opaque(SegmentPointLocation::OnEdge((HALF, HALF))));
+    }
     #[test]
     fn gas_scaled_direction() {
         let _ = opaque(seg(0, 0, 3, 4)).scaled_direction();

@@ -25,6 +25,8 @@ pub use spring::{
 pub mod errors {
     /// `num_solver_iterations` is zero, so the substep length is undefined (upstream: `inf`).
     pub const ZERO_ITERATIONS: felt252 = 'IntegrationParams: zero iters';
+    /// `set_dt` was given a negative step length.
+    pub const NEGATIVE_DT: felt252 = 'IntegrationParams: negative dt';
 }
 
 /// Configuration parameters that control the physics simulation quality and behaviour.
@@ -120,6 +122,15 @@ pub impl IntegrationParametersImpl of IntegrationParametersTrait {
     /// * `Fixed: overflow` if `1 / dt` exceeds the Q32.32 range (`dt < 2^-31`).
     fn inv_dt(self: IntegrationParameters) -> Fixed {
         inv_or_zero(self.dt)
+    }
+
+    /// Sets the step length (upstream `set_dt`, deprecated there in favour of writing `dt`).
+    ///
+    /// # Panics
+    /// * `IntegrationParams: negative dt` if `dt` is negative.
+    fn set_dt(ref self: IntegrationParameters, dt: Fixed) {
+        assert(dt >= ZERO, errors::NEGATIVE_DT);
+        self.dt = dt;
     }
 
     /// Sets the step length from a frequency: `dt = 1 / inv_dt`, or zero when `inv_dt` is zero.
@@ -343,6 +354,22 @@ mod tests {
     }
 
     #[test]
+    fn test_set_dt() {
+        let mut p = defaults();
+        p.set_dt(Fixed { raw: 1000 });
+        assert_eq!(p.dt.raw, 1000);
+        p.set_dt(ZERO);
+        assert_eq!(p.dt, ZERO);
+    }
+
+    #[test]
+    #[should_panic(expected: ('IntegrationParams: negative dt',))]
+    fn test_set_dt_negative_panics() {
+        let mut p = defaults();
+        p.set_dt(Fixed { raw: -1 });
+    }
+
+    #[test]
     fn test_set_inv_dt() {
         let mut p = defaults();
         p.set_inv_dt(Fixed { raw: 60 * 0x100000000 });
@@ -437,6 +464,12 @@ mod tests {
     fn gas_default() {
         let p: IntegrationParameters = opaque(Default::default());
         assert_eq!(p.num_solver_iterations, 4);
+    }
+
+    #[test]
+    fn gas_set_dt() {
+        let mut p = defaults();
+        p.set_dt(opaque(ONE));
     }
 
     #[test]

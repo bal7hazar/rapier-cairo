@@ -31,6 +31,18 @@ rapier_core::rigid_body::activation::tests::test_sleeping_body_is_pinned 13620
 rapier_core::rigid_body::activation::tests::test_timer_accumulates_across_steps 409360
 rapier_core::rigid_body::activation::tests::test_update_timer 13620
 rapier_core::rigid_body::activation::tests::test_wake_up_and_sleep 15340
+rapier_core::rigid_body::axes_mask::tests::gas_baseline 13620
+rapier_core::rigid_body::axes_mask::tests::gas_contains 15903
+rapier_core::rigid_body::axes_mask::tests::gas_from_bits 15730
+rapier_core::rigid_body::axes_mask::tests::gas_intersection 15503
+rapier_core::rigid_body::axes_mask::tests::gas_intersection_divrem 33380
+rapier_core::rigid_body::axes_mask::tests::gas_union 15503
+rapier_core::rigid_body::axes_mask::tests::gas_union_divrem 33380
+rapier_core::rigid_body::axes_mask::tests::test_alternatives_agree_with_shipped 1580509
+rapier_core::rigid_body::axes_mask::tests::test_constants_are_upstream_bits 18216
+rapier_core::rigid_body::axes_mask::tests::test_default_is_empty 13620
+rapier_core::rigid_body::axes_mask::tests::test_from_bits 68890
+rapier_core::rigid_body::axes_mask::tests::test_set_operations 28780
 rapier_core::rigid_body::body_type::tests::gas_baseline 13620
 rapier_core::rigid_body::body_type::tests::gas_index 14820
 rapier_core::rigid_body::body_type::tests::gas_is_dynamic 14220
@@ -41,6 +53,7 @@ rapier_core::rigid_body::body_type::tests::gas_is_fixed 14220
 rapier_core::rigid_body::body_type::tests::gas_is_fixed_eq 14220
 rapier_core::rigid_body::body_type::tests::gas_is_kinematic 14320
 rapier_core::rigid_body::body_type::tests::gas_is_kinematic_eq 14620
+rapier_core::rigid_body::body_type::tests::test_body_status_is_the_deprecated_alias 13620
 rapier_core::rigid_body::body_type::tests::test_index_is_upstream_discriminant 13620
 rapier_core::rigid_body::body_type::tests::test_predicates 22150
 rapier_core::rigid_body::changes::tests::gas_baseline 13620

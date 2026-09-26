@@ -245,6 +245,7 @@ OWNER_ALIASES.update({
     # free `bounding_volume::` builders live in `aabb/bounding_volume.cairo`.
     "PackedFeatureId": ("FeatureId",),
     "parry::bounding_volume": ("BoundingVolume",),
+    "TypedShape": ("Shape",),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -285,6 +286,13 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("Aabb", "from_points_ref"): ("from_points",),
     ("parry::bounding_volume", "local_point_cloud_aabb_ref"): ("local_point_cloud_aabb",),
     ("parry::bounding_volume", "point_cloud_aabb_ref"): ("point_cloud_aabb",),
+    # PO1: `dyn Shape` downcasts to a mutable reference; a `Shape` is a value, so the `*_mut`
+    # accessors are the copy-out `as_*` reads (build a new `Shape` to change it), as `Collider::shape_mut`.
+    ("Shape", "as_ball_mut"): ("as_ball",), ("Shape", "as_capsule_mut"): ("as_capsule",),
+    ("Shape", "as_convex_polygon_mut"): ("as_convex_polygon",), ("Shape", "as_cuboid_mut"): ("as_cuboid",),
+    ("Shape", "as_halfspace_mut"): ("as_halfspace",), ("Shape", "as_segment_mut"): ("as_segment",),
+    # PO1: Parry's `TypedShape` (the tagged enum over the concrete shapes) is the closed `Shape` enum.
+    ("TypedShape", "TypedShape"): ("Shape",),
 }
 
 
@@ -579,6 +587,10 @@ def parse_cairo() -> list[Item]:
             impl = cairo_impl_item(m.group(1), m.group(2), body, fallback)
             if impl:
                 items.add(Item(impl.owner, impl.kind, impl.name, source, source))
+                # PO1: Parry's `impl Shape for X` (its trait is the closed `Shape` enum here) is
+                # `Into<X, Shape>`: it is what makes `X` usable as a `Shape`.
+                if impl.owner == "Shape" and impl.name.startswith("From<"):
+                    items.add(Item(impl.name[5:-1], "impl", "Shape", source, source))
 
         modules = [(m.group(1), b, e) for m, b, e in blocks(text, mod_re)]
         for m in re.finditer(r"\bpub\s+fn\s+([A-Za-z_][A-Za-z0-9_]*)", text):
@@ -607,12 +619,26 @@ def load_inventory(path: Path) -> list[Item]:
 def exclusion_reason(item: Item) -> str:
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
-    if any(x in blob for x in ("soft_body", "softbody", "softelastic", "deformable_mesh", "insert_deformable")) \
+    # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
+    # `SkylineCholesky`, `ConjugateGradient`), constraints (`NeoHookeanConstraint`, `SoftAttachmentConstraint`,
+    # ...) and sets; checked first so that `prepare` is not mistaken for `epa`.
+    if any(x in blob for x in ("soft_body", "softbody", "softelastic", "deformable_mesh", "insert_deformable",
+                               "soft_fem", "soft_constraint")) \
             or item.name == "soft_bodies" and item.owner in ("PhysicsWorld", "Quarantine"):
         return "soft bodies"
     if "multibody" in blob:
         return "multibody"
     if any(x in blob for x in ("simd", "parallel", "coloring", "graph_col", "thread_pool", "num_threads")):
+        return "SIMD/parallel"
+    # PO1: `solver/interaction_groups.rs` is the SIMD-lane grouping of the contact solver: its
+    # `InteractionGroups` (not the collision-filter type of `geometry/interaction_groups.rs`) has
+    # `clear_groups` / `group_manifold_refs`. Its `new` stays as is: it stands in for the filter
+    # type's `pub const fn new`, which the inventory does not list. The SIMD gathers/scatters of
+    # `solver/solver_body.rs` read `SIMD_WIDTH` bodies at once.
+    if item.source.endswith("solver/interaction_groups.rs") \
+            and item.name in ("clear_groups", "group_manifold_refs") \
+            or item.source.endswith("solver/solver_body.rs") \
+            and any(x in item.name for x in ("gather", "scatter", "assert_ids_in_range")):
         return "SIMD/parallel"
     if "debug_render" in blob:
         return "debug render"
@@ -623,12 +649,15 @@ def exclusion_reason(item: Item) -> str:
     # QY2: the predicate is a `&dyn Fn(ColliderHandle, &Collider) -> bool` closure.
     if (item.owner, item.name) == ("QueryFilter", "predicate"):
         return "dyn hooks"
-    if any(x in blob for x in ("trimesh", "voxels", "heightfield3", "height_field3")) \
+    if any(x in blob for x in ("trimesh", "voxels", "heightfield3", "height_field3", "mesh_converter")) \
             or (item.owner, item.name) == ("ColliderBuilder", "voxelized_mesh"):
         return "trimesh/voxels/3D heightfield"
     if any(x in blob for x in ("epa", "gjk", "simplex")):
         return "EPA/GJK internals not exposed"
     if impl and any(x in item.name for x in ("Serialize", "Deserialize", "Archive", "Pod", "Zeroable")):
+        return "serde/rkyv/bytemuck"
+    # PO1: `DeserializableTypedShape` exists only behind `serde-serialize` (its `into_shared_shape`).
+    if item.owner.startswith("Deserializable"):
         return "serde/rkyv/bytemuck"
     if any(x in blob for x in ("serde", "rkyv", "bytemuck")):
         return "serde/rkyv/bytemuck"
@@ -638,7 +667,8 @@ def exclusion_reason(item: Item) -> str:
         return "f32/f64 conversions and approx traits"
     if "Spherical" in item.owner or any(x in blob for x in (
         "dim3", "polyhedron", "tetrahedron", "cone", "cylinder", "spherical_joint")) \
-            or (item.owner, item.name) == ("ColliderBuilder", "capsule_z"):
+            or (item.owner, item.name) in (("ColliderBuilder", "capsule_z"), ("Cuboid", "vid")):
+        # PO1: `Cuboid::vid` is a nested helper of the 3D-only `support_face`, not a method.
         return "dim3-only"
     return ""
 
@@ -837,6 +867,21 @@ def self_test() -> int:
     assert ("Builder", "method", "density") in keys
     assert ("Builder", "impl", "Add<Real>") in keys
     assert ("Demo", "method", "hook") in keys
+    reasons = {
+        ("SoftFemSet", "new", "rapier/src/dynamics/solver/soft_fem/soft_fem_set.rs"): "soft bodies",
+        ("SoftFemSystem", "prepare", "rapier/src/dynamics/solver/soft_fem/system/soft_fem_system_prepare.rs"): "soft bodies",
+        ("BlockMatrix", "mul", "rapier/src/dynamics/solver/soft_fem/soft_fem_sparse.rs"): "soft bodies",
+        ("MeshConverter", "convert", "rapier/src/geometry/mesh_converter.rs"): "trimesh/voxels/3D heightfield",
+        ("DeserializableTypedShape", "into_shared_shape", "parry/src/shape/shape.rs"): "serde/rkyv/bytemuck",
+        ("InteractionGroups", "clear_groups", "rapier/src/dynamics/solver/interaction_groups.rs"): "SIMD/parallel",
+        ("SolverBodies", "gather_vels", "rapier/src/dynamics/solver/solver_body.rs"): "SIMD/parallel",
+        ("Cuboid", "vid", "parry/src/shape/cuboid.rs"): "dim3-only",
+        # Not excluded: the collision-filter `InteractionGroups`, the scalar solver-body API.
+        ("InteractionGroups", "test", "rapier/src/geometry/interaction_groups.rs"): "",
+        ("SolverBodies", "len", "rapier/src/dynamics/solver/solver_body.rs"): "",
+    }
+    for (owner, name, source), reason in reasons.items():
+        assert exclusion_reason(Item(owner, "method", name, source=source)) == reason, (owner, name)
     print("self-test passed")
     return 0
 

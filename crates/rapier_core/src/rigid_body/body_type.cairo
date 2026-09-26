@@ -19,6 +19,9 @@ pub enum RigidBodyType {
     KinematicVelocityBased,
 }
 
+/// Upstream's deprecated alias of [`RigidBodyType`] (`BodyStatus`, renamed in Rapier 0.12).
+pub type BodyStatus = RigidBodyType;
+
 /// Predicates and indices of [`RigidBodyType`].
 #[generate_trait]
 pub impl RigidBodyTypeImpl of RigidBodyTypeTrait {
@@ -99,7 +102,7 @@ mod tests {
     use super::alternatives::{
         is_dynamic_eq, is_dynamic_or_kinematic_eq, is_fixed_eq, is_kinematic_eq,
     };
-    use super::{RigidBodyType, RigidBodyTypeTrait};
+    use super::{BodyStatus, RigidBodyType, RigidBodyTypeTrait};
 
     const D: RigidBodyType = RigidBodyType::Dynamic;
     const F: RigidBodyType = RigidBodyType::Fixed;
@@ -132,6 +135,13 @@ mod tests {
         assert_eq!(F.index(), 1);
         assert_eq!(KP.index(), 2);
         assert_eq!(KV.index(), 3);
+    }
+
+    #[test]
+    fn test_body_status_is_the_deprecated_alias() {
+        let status: BodyStatus = BodyStatus::KinematicVelocityBased;
+        assert_eq!(status, KV);
+        assert!(status.is_kinematic());
     }
 
     #[test]
