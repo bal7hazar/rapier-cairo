@@ -220,8 +220,13 @@ fn solve_tangent(
     ref v1: SolverVel,
     ref v2: SolverVel,
 ) -> bool {
-    let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.t_rhs);
-    let new_impulse = min(limit, max(-limit, h.t_impulse - *row.r * dv));
+    // BT3: a zero limit (zero normal impulse) clamps to zero whatever the velocity is.
+    let new_impulse = if limit == ZERO {
+        ZERO
+    } else {
+        let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.t_rhs);
+        min(limit, max(-limit, h.t_impulse - *row.r * dv))
+    };
     let delta = new_impulse - h.t_impulse;
     h.t_impulse = new_impulse;
     if delta == ZERO {
@@ -229,6 +234,15 @@ fn solve_tangent(
     }
     apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
     true
+}
+/// `limit * impulse`, zero without the product for a zero impulse (exact: `floor(l * 0) == 0`).
+#[inline(always)]
+fn friction_limit(limit: Fixed, impulse: Fixed) -> Fixed {
+    if impulse == ZERO {
+        ZERO
+    } else {
+        limit * impulse
+    }
 }
 #[inline(always)]
 fn row_zero(h: HotPoint) -> bool {
@@ -381,10 +395,14 @@ fn solve_both(ref h: Hot, f: @Frozen, ref bodies: SweepBodies) {
     }
     let t = *f.t;
     let limit = *f.limit;
-    changed = solve_tangent(ref h.a, t, f.a.t, f.wt, limit * h.a.impulse, ref v1, ref v2)
+    changed =
+        solve_tangent(ref h.a, t, f.a.t, f.wt, friction_limit(limit, h.a.impulse), ref v1, ref v2)
         || changed;
     if two {
-        changed = solve_tangent(ref h.b, t, f.b.t, f.wt, limit * h.b.impulse, ref v1, ref v2)
+        changed =
+            solve_tangent(
+                ref h.b, t, f.b.t, f.wt, friction_limit(limit, h.b.impulse), ref v1, ref v2,
+            )
             || changed;
     }
     // BT3: unchanged velocities are not written back.
