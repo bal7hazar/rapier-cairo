@@ -297,8 +297,24 @@ fn update_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pos
     } else {
         separation(transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist)
     };
-    let rhs_wo_bias = max(ZERO, dist) * *c.inv_dt;
-    h.rhs = rhs_wo_bias + min(ZERO, max(k.neg_cap, dist * *c.erp_inv_dt));
+    // `max(0, dist) * inv_dt + min(0, max(-cap, dist * erp_inv_dt))` without its exact zeros
+    // (BT3): the first term is zero for `dist <= 0`; the second for `dist > 0` when
+    // `erp_inv_dt >= 0` (a floored non-negative product). After a refresh (`reuse`), `h.rhs`
+    // already is the first term of the same `dist`.
+    let erp_inv_dt = *c.erp_inv_dt;
+    h
+        .rhs =
+            if dist > ZERO && erp_inv_dt >= ZERO {
+                if k.reuse {
+                    h.rhs
+                } else {
+                    dist * *c.inv_dt
+                }
+            } else if dist > ZERO {
+                dist * *c.inv_dt + min(ZERO, max(k.neg_cap, dist * erp_inv_dt))
+            } else {
+                min(ZERO, max(k.neg_cap, dist * erp_inv_dt))
+            };
     h.cfm = if dist > ZERO {
         ONE
     } else {
@@ -320,7 +336,12 @@ fn refresh_point(ref h: HotPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Po
     );
     h.dist = dist;
     h.t_dist = t_dist;
-    h.rhs = max(ZERO, dist) * *c.inv_dt;
+    // `max(0, dist) * inv_dt`, zero without the product for `dist <= 0` (BT3).
+    h.rhs = if dist > ZERO {
+        dist * *c.inv_dt
+    } else {
+        ZERO
+    };
     h.cfm = ONE;
     h.t_rhs = *f.t_rhs_wo_bias;
 }
