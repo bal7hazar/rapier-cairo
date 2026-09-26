@@ -487,22 +487,32 @@ pub(crate) fn writeback(
 ) {
     let mut out = array![];
     let mut id = 0;
-    let mut next = frozen.pop_front();
+    // BT3: the loop carries the next constraint's manifold id, not the constraint (an
+    // `Option<@Frozen>` in the loop state was copied whole on every iteration).
+    let mut next = next_id(frozen);
     while let Some(mut m) = manifolds.pop_front() {
-        if let Some(f) = next {
-            if *f.manifold_id == id {
-                let h = *hot.pop_front().unwrap();
-                write_point(h.a, f.a, ref m);
-                if *f.count == 2 {
-                    write_point(h.b, f.b, ref m);
-                }
-                next = frozen.pop_front();
+        if id == next {
+            let f = frozen.pop_front().unwrap();
+            let h = *hot.pop_front().unwrap();
+            write_point(h.a, f.a, ref m);
+            if *f.count == 2 {
+                write_point(h.b, f.b, ref m);
             }
+            next = next_id(frozen);
         }
         out.append(m);
         id += 1;
     }
     manifolds = out;
+}
+
+/// The manifold id of the first constraint of `frozen`; `WORLD` (no manifold has it) when empty.
+#[inline(always)]
+fn next_id(frozen: Span<Frozen>) -> u32 {
+    match frozen.get(0) {
+        Some(f) => *f.unbox().manifold_id,
+        None => WORLD,
+    }
 }
 
 #[inline(always)]
