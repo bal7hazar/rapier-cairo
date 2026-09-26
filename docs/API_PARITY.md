@@ -24,7 +24,7 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | pipeline | 55 | 0 | 35 | 68 | 158 | 61.1% |
 | **total** | **660** | **0** | **1311** | **767** | **2738** | **33.5%** |
 
-Cairo-only public items not matched to upstream: **984**.
+Cairo-only public items not matched to upstream: **998**.
 
 ## Aabb
 
@@ -5404,6 +5404,11 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **ActiveHooks** method `is_empty` (`crates/rapier_core/src/collider/hooks.cairo`)
 - **ActiveHooks** method `remove` (`crates/rapier_core/src/collider/hooks.cairo`)
 - **ActiveHooks** type `ActiveHooks` (`crates/rapier_core/src/collider/hooks.cairo`)
+- **ActiveSet** impl `Default` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** method `default` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** method `invalidate` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** method `is_valid` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** type `ActiveSet` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **Alternatives** const `BALL_BALL` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `BALL_CONVEX` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `CAPSULE_CAPSULE` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
@@ -5551,12 +5556,7 @@ Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
 - **Changes** const `ENABLED_OR_DISABLED` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `GROUPS` (`crates/rapier_core/src/collider/changes.cairo`)
 - **Changes** const `IN_MODIFIED_SET` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `LOCAL_MASS_PROPERTIES` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `PARENT` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `PARENT_EFFECTIVE_DOMINANCE` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `POSITION` (`crates/rapier_core/src/collider/changes.cairo`)
-- **Changes** const `SHAPE` (`crates/rapier_core/src/collider/changes.cairo`)
-- ... 784 more
+- ... 798 more
 
 ## Embedded Rust inventory
 
