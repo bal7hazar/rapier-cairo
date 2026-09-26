@@ -11,6 +11,9 @@ whether simulation results changed.
 - `AabbTrait::{aligned_intersections, intersects_moving_aabb}`, `MotorModelTrait::combine_coefficients`,
   `NarrowPhaseTrait::{intersection_pair_unknown_gen, intersection_pairs_with_unknown_gen}` (#178); `MotorModelTrait` in
   the prelude.
+- Shape casts: `cast_shapes` (`ShapeCastOptions` / `ShapeCastHit` / `ShapeCastStatus`), `cast_shapes_nonlinear`
+  (`NonlinearRigidMotion`), the swept TOI (`Sweep`, `ToiProxy`, `sweep_time_of_impact`) for every pair of the closed
+  set, `World` / `QueryPipeline::cast_shape(_nonlinear)` (ADR 0001 entries 30–32) (#180).
 
 ## 0.1.0-alpha.4 — 2026-09-26
 
