@@ -35,5 +35,9 @@ pub use query::{ClosestPoints, Contact};
 pub use ray::RayCast;
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub use shape::polygonal_feature_map::PolygonalFeatureMap;
+pub use shape::round_shape::{
+    RoundConvexPolygon, RoundCuboid, RoundShape, RoundShapeTrait, RoundTriangle,
+};
 pub use shape::support_map::SupportMap;
+pub use shape::triangle::{Triangle, TriangleTrait};
 pub use shape::{Shape, ShapeTrait, ShapeType};

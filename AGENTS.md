@@ -149,6 +149,11 @@ the programme session's written go (`docs/ORCHESTRATOR.md` § Releases).
   calling a `#[inline(never)]` function that contains a (zero-trip) loop — a "gas wallet", see
   `rapier_dynamics2d::solver::joint::row::gas_wallet` — makes the caller's unused branch gas refundable;
   measure it (it saved 115k of 359k on joint row generation, but cost +20k in the solve loops).
+- Adding arms to an existing `match` (a new enum variant) can move the **Cairo steps** of the old paths even though
+  the taken arm is unchanged (SH1, #174): the compiler's auto-inline thresholds shift, identical post-call blocks get
+  merged or split, and variant order changes fallthroughs. Declare new variants where the old arms' layout is kept
+  (SH1: after `Ball`), box large payloads so the enum keeps its width, and prove "exact steps unchanged" with a
+  before / after table of `--tracked-resource cairo-steps` runs on the P3 and level probes.
 - Traits: `FooTrait` / `FooImpl` (via `#[generate_trait]` when there is a single impl); operators
   through core traits; `Zero`, `One`, `Default` where meaningful.
 - Errors: `pub mod errors { pub const X: felt252 = 'Type: reason'; }` with `assert(cond, errors::X)`;
