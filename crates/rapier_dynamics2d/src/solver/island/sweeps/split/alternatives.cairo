@@ -34,9 +34,9 @@ impl MeteredBiasedKernel of Kernel<MeteredBiased> {
         let mut pending = true;
         while pending {
             let dir = *f.dir;
-            solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
+            let _ = solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
             if *f.count == 2 {
-                solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
+                let _ = solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
             }
             pending = false;
         }

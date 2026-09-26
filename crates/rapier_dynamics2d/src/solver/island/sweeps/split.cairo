@@ -181,7 +181,7 @@ fn jv_add(dir: Vec2, g1: Fixed, g2: Fixed, v1: SolverVel, v2: SolverVel, rhs: Fi
 #[inline(always)]
 fn solve_normal(
     ref h: HotPoint, dir: Vec2, row: @Row, w: @Weights, ref v1: SolverVel, ref v2: SolverVel,
-) {
+) -> bool {
     let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.rhs);
     let clamped = max(ZERO, h.impulse - *row.r * dv);
     // BT3: a rigid row (`cfm == ONE`: every relaxation row, speculative biased rows) skips the
@@ -193,10 +193,12 @@ fn solve_normal(
     };
     let delta = new_impulse - h.impulse;
     h.impulse = new_impulse;
-    // BT3: a zero delta changes no velocity (`floor(w * 0) == 0`).
-    if delta != ZERO {
-        apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    // BT3: a zero delta changes no velocity (`floor(w * 0) == 0`); reports whether it did.
+    if delta == ZERO {
+        return false;
     }
+    apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    true
 }
 #[inline(always)]
 fn solve_tangent(
@@ -207,14 +209,16 @@ fn solve_tangent(
     limit: Fixed,
     ref v1: SolverVel,
     ref v2: SolverVel,
-) {
+) -> bool {
     let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.t_rhs);
     let new_impulse = min(limit, max(-limit, h.t_impulse - *row.r * dv));
     let delta = new_impulse - h.t_impulse;
     h.t_impulse = new_impulse;
-    if delta != ZERO {
-        apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    if delta == ZERO {
+        return false;
     }
+    apply(w, *row.ig1, *row.ig2, delta, ref v1, ref v2);
+    true
 }
 #[inline(always)]
 fn row_zero(h: HotPoint) -> bool {
@@ -347,11 +351,14 @@ impl BiasedKernel of Kernel<Biased> {
             return;
         }
         let dir = *f.dir;
-        solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
+        let mut changed = solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
         if *f.count == 2 {
-            solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
+            changed = solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2) || changed;
         }
-        bodies.set_vels(*f.i, v1, *f.j, v2);
+        // BT3: unchanged velocities are not written back.
+        if changed {
+            bodies.set_vels(*f.i, v1, *f.j, v2);
+        }
     }
 }
 /// Normal then tangent rows (`cached::zero::solve_both`); the all-zero state is left untouched.
@@ -364,17 +371,22 @@ fn solve_both(ref h: Hot, f: @Frozen, ref bodies: SweepBodies) {
     }
     let dir = *f.dir;
     let two = *f.count == 2;
-    solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
+    let mut changed = solve_normal(ref h.a, dir, f.a.n, f.wn, ref v1, ref v2);
     if two {
-        solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2);
+        changed = solve_normal(ref h.b, dir, f.b.n, f.wn, ref v1, ref v2) || changed;
     }
     let t = *f.t;
     let limit = *f.limit;
-    solve_tangent(ref h.a, t, f.a.t, f.wt, limit * h.a.impulse, ref v1, ref v2);
+    changed = solve_tangent(ref h.a, t, f.a.t, f.wt, limit * h.a.impulse, ref v1, ref v2)
+        || changed;
     if two {
-        solve_tangent(ref h.b, t, f.b.t, f.wt, limit * h.b.impulse, ref v1, ref v2);
+        changed = solve_tangent(ref h.b, t, f.b.t, f.wt, limit * h.b.impulse, ref v1, ref v2)
+            || changed;
     }
-    bodies.set_vels(*f.i, v1, *f.j, v2);
+    // BT3: unchanged velocities are not written back.
+    if changed {
+        bodies.set_vels(*f.i, v1, *f.j, v2);
+    }
 }
 impl RefreshKernel of Kernel<Refresh> {
     #[inline(always)]
@@ -402,7 +414,7 @@ fn bounce(
     if *f.seed < ZERO && h.acc + h.impulse > ZERO {
         h.rhs = *f.seed;
         h.cfm = ONE;
-        solve_normal(ref h, dir, f.n, w, ref v1, ref v2);
+        let _ = solve_normal(ref h, dir, f.n, w, ref v1, ref v2);
     }
 }
 impl RestitutionKernel of Kernel<Restitution> {
