@@ -49,10 +49,13 @@ use rapier_dynamics2d::rigid_body_set::{
     RigidBodyTrait,
 };
 use rapier_geometry2d::aabb::Aabb;
+use rapier_geometry2d::feature_id::FeatureId;
 use rapier_geometry2d::point::PointProjection;
 use rapier_geometry2d::ray::{Ray, RayIntersection};
+use rapier_geometry2d::shape::Shape;
+use rapier_math::pose2::Pose2;
 use crate::pipeline::active_set::ActiveSet;
-use crate::queries::QueryFilter;
+use crate::queries::{QueryFilter, QueryPipeline, QueryPipelineTrait};
 
 /// Versioned save / restore ([`WorldTrait::to_state`], [`WorldTrait::from_state`]).
 pub mod state;
@@ -503,6 +506,45 @@ pub impl WorldImpl of WorldTrait {
     #[inline(always)]
     fn intersect_aabb(ref self: World, aabb: Aabb, filter: QueryFilter) -> Array<Handle> {
         crate::queries::intersect_aabb(ref self, aabb, filter)
+    }
+
+    /// Upstream's name of [`WorldTrait::intersect_aabb`] (tight AABBs, see `crate::queries`).
+    #[inline(always)]
+    fn intersect_aabb_conservative(
+        ref self: World, aabb: Aabb, filter: QueryFilter,
+    ) -> Array<Handle> {
+        crate::queries::intersect_aabb_conservative(ref self, aabb, filter)
+    }
+
+    /// Every collider whose shape intersects `shape` placed at `shape_pos`, ascending handle
+    /// order (upstream `QueryPipeline::intersect_shape`).
+    #[inline(always)]
+    fn intersect_shape(
+        ref self: World, shape_pos: Pose2, shape: Shape, filter: QueryFilter,
+    ) -> Array<Handle> {
+        crate::queries::intersect_shape(ref self, shape_pos, shape, filter)
+    }
+
+    /// [`WorldTrait::project_point`] on the boundaries, with the feature the projection lands
+    /// on (no `solid` flag, as upstream).
+    #[inline(always)]
+    fn project_point_and_get_feature(
+        ref self: World, point: Vec2, max_dist: Fixed, filter: QueryFilter,
+    ) -> Option<(Handle, PointProjection, FeatureId)> {
+        crate::queries::project_point_and_get_feature(ref self, point, max_dist, filter)
+    }
+
+    /// A query view that filters nothing (upstream `PhysicsWorld::query_pipeline`); hand the
+    /// world to each of its calls, see `crate::queries::pipeline`.
+    #[inline(always)]
+    fn query_pipeline(self: @World) -> QueryPipeline {
+        QueryPipelineTrait::new()
+    }
+
+    /// A query view with `filter` (upstream `PhysicsWorld::query_pipeline_with_filter`).
+    #[inline(always)]
+    fn query_pipeline_with_filter(self: @World, filter: QueryFilter) -> QueryPipeline {
+        QueryPipelineTrait::new().with_filter(filter)
     }
 }
 
