@@ -26,6 +26,7 @@
 
 pub mod ball;
 pub mod capsule;
+pub mod cast;
 pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
@@ -33,6 +34,7 @@ pub mod quotient;
 pub mod segment;
 pub use ball::{cast_local_ray_and_get_normal_ball, cast_local_ray_ball};
 pub use capsule::{cast_local_ray_and_get_normal_capsule, cast_local_ray_capsule};
+pub use cast::RayCast;
 pub use cuboid::{cast_local_ray_and_get_normal_cuboid, cast_local_ray_cuboid};
 use fixed::Fixed;
 use glam::vec2::{Vec2, Vec2Trait};
@@ -78,6 +80,12 @@ pub impl RayImpl of RayTrait {
         self.origin + self.dir.mul_scalar(t)
     }
 
+    /// The ray with its origin moved by `v` (upstream `translate_by`).
+    #[inline(always)]
+    fn translate_by(self: Ray, v: Vec2) -> Ray {
+        Ray { origin: self.origin + v, dir: self.dir }
+    }
+
     /// The ray moved by `pose` (upstream `transform_by`).
     #[inline(always)]
     fn transform_by(self: Ray, pose: Pose2) -> Ray {
@@ -96,6 +104,12 @@ pub impl RayImpl of RayTrait {
 
 #[generate_trait]
 pub impl RayIntersectionImpl of RayIntersectionTrait {
+    /// An intersection (upstream `RayIntersection::new`).
+    #[inline(always)]
+    fn new(time_of_impact: Fixed, normal: Vec2, feature: FeatureId) -> RayIntersection {
+        RayIntersection { time_of_impact, normal, feature }
+    }
+
     /// The intersection with its normal rotated by `pose` (upstream `transform_by`).
     #[inline(always)]
     fn transform_by(self: RayIntersection, pose: Pose2) -> RayIntersection {

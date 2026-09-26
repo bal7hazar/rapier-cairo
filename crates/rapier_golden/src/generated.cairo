@@ -23,4 +23,5 @@ pub mod sat2d;
 pub mod scenes;
 pub mod segment_segment;
 pub mod sensor_trigger;
+pub mod shape_queries;
 pub mod sleep_impact;

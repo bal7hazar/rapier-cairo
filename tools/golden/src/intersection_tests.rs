@@ -13,12 +13,12 @@ use crate::shapes::ShapeSpec;
 use rapier2d_f64::parry::query::{DefaultQueryDispatcher, QueryDispatcher};
 use serde_json::{json, Value};
 
-struct Case {
-    pair: &'static str,
-    regime: &'static str,
-    shape1: ShapeSpec,
-    shape2: ShapeSpec,
-    pos12: QPose,
+pub(crate) struct Case {
+    pub(crate) pair: &'static str,
+    pub(crate) regime: &'static str,
+    pub(crate) shape1: ShapeSpec,
+    pub(crate) shape2: ShapeSpec,
+    pub(crate) pos12: QPose,
 }
 
 fn pose(x: f64, y: f64, rot: QRot) -> QPose {
@@ -26,14 +26,15 @@ fn pose(x: f64, y: f64, rot: QRot) -> QPose {
 }
 
 /// Upstream sends the pair to GJK (support map against support map).
-fn gjk(s1: &ShapeSpec, s2: &ShapeSpec) -> bool {
+pub(crate) fn gjk(s1: &ShapeSpec, s2: &ShapeSpec) -> bool {
     let special = |s: &ShapeSpec| matches!(s, ShapeSpec::Ball { .. } | ShapeSpec::HalfSpace { .. });
     let cuboids = matches!((s1, s2), (ShapeSpec::Cuboid { .. }, ShapeSpec::Cuboid { .. }));
     !(special(s1) || special(s2) || cuboids)
 }
 
+/// The case table, shared with the `shape_queries` family.
 #[rustfmt::skip]
-fn cases() -> Vec<Case> {
+pub(crate) fn cases() -> Vec<Case> {
     let id = QRot::IDENTITY;
     let q = QRot::QUARTER;
     let r30 = QRot::from_degrees(30.0);

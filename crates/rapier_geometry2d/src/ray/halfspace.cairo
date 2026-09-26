@@ -13,6 +13,41 @@ use crate::shape::HalfSpace;
 use super::quotient::div_wide;
 use super::{Ray, RayIntersection};
 
+/// Parameter where the line `origin + dir * t` crosses the plane through `center` of normal
+/// `normal` (upstream `line_toi_with_halfspace`): `n . (center - origin) / n . dir`, `None` when
+/// the line is parallel to the plane (exact `n . dir == 0`, upstream `relative_eq!(.., 0)`) or the
+/// quotient leaves the scalar range.
+/// #### Panics
+/// * `'i64_sub Overflow'` / `'i64_sub Underflow'` if `center - origin` leaves the scalar range.
+pub fn line_toi_with_halfspace(
+    center: Vec2, normal: Vec2, line_origin: Vec2, line_dir: Vec2,
+) -> Option<Fixed> {
+    let (num, den) = line_terms(center, normal, line_origin, line_dir);
+    if den == 0 {
+        return None;
+    }
+    div_wide(num, den)
+}
+
+/// The exact `(n . (center - origin), n . dir)` of a line against a plane.
+#[inline(always)]
+fn line_terms(center: Vec2, normal: Vec2, origin: Vec2, dir: Vec2) -> (i128, i128) {
+    let dpos = Vec2 { x: center.x - origin.x, y: center.y - origin.y };
+    (dot_wide(normal.x, normal.y, dpos.x, dpos.y), dot_wide(normal.x, normal.y, dir.x, dir.y))
+}
+
+/// [`line_toi_with_halfspace`] for a ray: `None` for a negative parameter (upstream
+/// `ray_toi_with_halfspace`); the sign is read off the exact operands.
+/// #### Panics
+/// * See [`line_toi_with_halfspace`].
+pub fn ray_toi_with_halfspace(center: Vec2, normal: Vec2, ray: Ray) -> Option<Fixed> {
+    let (num, den) = line_terms(center, normal, ray.origin, ray.dir);
+    if den == 0 || (num != 0 && (num > 0) != (den > 0)) {
+        return None;
+    }
+    div_wide(num, den)
+}
+
 /// Time of impact, normal and feature of `ray` on `halfspace` (local frame).
 ///
 /// Mirrors `RayCast::cast_local_ray_and_get_normal` for `HalfSpace`: a `solid` ray starting
@@ -83,7 +118,10 @@ mod tests {
     use rapier_testing::opaque;
     use crate::shape::{HalfSpace, HalfSpaceTrait};
     use super::super::Ray;
-    use super::{cast_local_ray_and_get_normal_halfspace, cast_local_ray_halfspace};
+    use super::{
+        cast_local_ray_and_get_normal_halfspace, cast_local_ray_halfspace, line_toi_with_halfspace,
+        ray_toi_with_halfspace,
+    };
 
     fn v(x: Fixed, y: Fixed) -> Vec2 {
         Vec2 { x, y }
@@ -140,6 +178,34 @@ mod tests {
 
     #[test]
     fn gas_baseline() {}
+
+    /// `(origin, dir, line toi, ray toi)` against the plane `y = 1` of normal `+y`.
+    #[test]
+    fn test_line_and_ray_toi_table() {
+        let (center, normal) = (v(ZERO, ONE), v(ZERO, ONE));
+        let cases: Span<(Vec2, Vec2, Option<Fixed>, Option<Fixed>)> = array![
+            (v(ZERO, ZERO), v(ZERO, HALF), Some(TWO), Some(TWO)),
+            (v(ZERO, ZERO), v(ZERO, -ONE), Some(-ONE), None),
+            (v(ZERO, ZERO), v(ONE, ZERO), None, None),
+            (v(ZERO, ONE), v(ONE, ONE), Some(ZERO), Some(ZERO)),
+        ]
+            .span();
+        for (origin, dir, line, ray) in cases {
+            assert_eq!(line_toi_with_halfspace(center, normal, *origin, *dir), *line);
+            assert_eq!(
+                ray_toi_with_halfspace(center, normal, Ray { origin: *origin, dir: *dir }), *ray,
+            );
+        }
+    }
+
+    #[test]
+    fn gas_ray_toi_with_halfspace() {
+        let _ = ray_toi_with_halfspace(
+            opaque(v(ZERO, ONE)),
+            opaque(v(ZERO, ONE)),
+            opaque(Ray { origin: v(ZERO, ZERO), dir: v(ZERO, HALF) }),
+        );
+    }
 
     #[test]
     fn gas_cast_local_ray_and_get_normal_halfspace() {

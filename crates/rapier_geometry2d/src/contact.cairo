@@ -113,6 +113,111 @@ pub impl ContactManifoldImpl of ContactManifoldTrait {
     fn clear(ref self: ContactManifold) {
         self.num_points = 0;
     }
+
+    /// An empty manifold (upstream `ContactManifold::new`).
+    #[inline(always)]
+    fn new() -> ContactManifold {
+        Default::default()
+    }
+
+    /// An empty manifold between two subshapes, carrying `data` (upstream `with_data`).
+    #[inline(always)]
+    fn with_data(subshape1: u32, subshape2: u32, data: ContactManifoldData) -> ContactManifold {
+        ContactManifold { subshape1, subshape2, data, ..Default::default() }
+    }
+
+    /// A copy of the manifold, which is cleared (upstream `take`: the points move out, the
+    /// normals, subshapes and data are copied).
+    fn take(ref self: ContactManifold) -> ContactManifold {
+        let taken = self;
+        self.num_points = 0;
+        taken
+    }
+
+    /// The `num_points` meaningful points, in generation order (upstream `contacts`).
+    fn contacts(self: @ContactManifold) -> Span<TrackedContact> {
+        let [p0, p1] = *self.points;
+        let n = *self.num_points;
+        if n == 0 {
+            array![].span()
+        } else if n == 1 {
+            array![p0].span()
+        } else {
+            array![p0, p1].span()
+        }
+    }
+
+    /// Zeroes `local_n2`, so that the next `try_update_contacts` regenerates the manifold
+    /// (upstream `mark_shapes_deformed`).
+    #[inline(always)]
+    fn mark_shapes_deformed(ref self: ContactManifold) {
+        self.local_n2 = Default::default();
+    }
+}
+
+#[generate_trait]
+pub impl TrackedContactImpl of TrackedContactTrait {
+    /// A contact point with default solver data (upstream `TrackedContact::new`).
+    #[inline(always)]
+    fn new(
+        local_p1: Vec2, local_p2: Vec2, fid1: FeatureId, fid2: FeatureId, dist: Fixed,
+    ) -> TrackedContact {
+        TrackedContact { local_p1, local_p2, dist, fid1, fid2, data: Default::default() }
+    }
+
+    /// [`TrackedContactTrait::new`] with the two sides swapped when `flipped` (upstream
+    /// `TrackedContact::flipped`).
+    #[inline(always)]
+    fn flipped(
+        local_p1: Vec2,
+        local_p2: Vec2,
+        fid1: FeatureId,
+        fid2: FeatureId,
+        dist: Fixed,
+        flipped: bool,
+    ) -> TrackedContact {
+        if flipped {
+            Self::new(local_p2, local_p1, fid2, fid1, dist)
+        } else {
+            Self::new(local_p1, local_p2, fid1, fid2, dist)
+        }
+    }
+
+    /// Copies the geometry of `contact` (points, feature ids, distance) and keeps the solver
+    /// data (upstream `copy_geometry_from`).
+    #[inline(always)]
+    fn copy_geometry_from(ref self: TrackedContact, contact: TrackedContact) {
+        self.local_p1 = contact.local_p1;
+        self.local_p2 = contact.local_p2;
+        self.fid1 = contact.fid1;
+        self.fid2 = contact.fid2;
+        self.dist = contact.dist;
+    }
+}
+
+#[generate_trait]
+pub impl ContactManifoldDataImpl of ContactManifoldDataTrait {
+    /// The number of solver contacts of the manifold (Rapier `num_active_contacts`).
+    #[inline(always)]
+    fn num_active_contacts(self: @ContactManifoldData) -> u32 {
+        (*self.num_solver_contacts).into()
+    }
+}
+
+/// Rapier's `ContactManifoldExt`.
+pub trait ContactManifoldExt<T> {
+    /// The sum of the normal impulses of the manifold's points.
+    fn total_impulse(self: @T) -> Fixed;
+}
+
+pub impl ContactManifoldExtImpl of ContactManifoldExt<ContactManifold> {
+    fn total_impulse(self: @ContactManifold) -> Fixed {
+        let mut sum: Fixed = Default::default();
+        for pt in self.contacts() {
+            sum = sum + *pt.data.impulse;
+        }
+        sum
+    }
 }
 
 #[cfg(test)]
@@ -120,7 +225,11 @@ mod tests {
     use fixed::{FixedTrait, ONE};
     use glam::vec2::vec2;
     use rapier_testing::opaque;
-    use super::{ContactManifold, ContactManifoldTrait, TrackedContact};
+    use crate::feature_id::FeatureIdTrait;
+    use super::{
+        ContactData, ContactManifold, ContactManifoldData, ContactManifoldDataTrait,
+        ContactManifoldExt, ContactManifoldTrait, TrackedContact, TrackedContactTrait,
+    };
 
     #[test]
     fn test_default_manifold_is_empty_and_points_are_addressable() {
@@ -137,8 +246,53 @@ mod tests {
     }
 
     #[test]
+    fn test_manifold_utilities() {
+        let fid1 = FeatureIdTrait::face(1);
+        let fid2 = FeatureIdTrait::vertex(2);
+        let (a, b) = (vec2(ONE, ONE), vec2(ONE + ONE, ONE));
+        let p = TrackedContactTrait::new(a, b, fid1, fid2, ONE);
+        assert_eq!(TrackedContactTrait::flipped(a, b, fid1, fid2, ONE, false), p);
+        let q = TrackedContactTrait::flipped(a, b, fid1, fid2, ONE, true);
+        assert_eq!((q.local_p1, q.local_p2, q.fid1, q.fid2), (b, a, fid2, fid1));
+        let mut kept = TrackedContact {
+            data: ContactData { impulse: ONE, ..Default::default() }, ..Default::default(),
+        };
+        kept.copy_geometry_from(q);
+        assert_eq!((kept.local_p1, kept.fid2, kept.dist, kept.data.impulse), (b, fid1, ONE, ONE));
+        let data = ContactManifoldData { num_solver_contacts: 2, ..Default::default() };
+        assert_eq!(data.num_active_contacts(), 2);
+        let mut m = ContactManifoldTrait::with_data(3, 4, data);
+        assert_eq!((m.subshape1, m.subshape2, m.num_points, m.data), (3, 4, 0, data));
+        assert_eq!(m.contacts().len(), 0);
+        m.points = [p, kept];
+        m.num_points = 2;
+        m.local_n2 = vec2(ONE, ONE);
+        assert_eq!(m.contacts(), array![p, kept].span());
+        assert_eq!(m.total_impulse(), ONE);
+        m.mark_shapes_deformed();
+        assert_eq!(m.local_n2, Default::default());
+        let taken = m.take();
+        assert_eq!((taken.num_points, m.num_points, taken.subshape1), (2, 0, 3));
+        assert_eq!(ContactManifoldTrait::new(), Default::default());
+    }
+
+    #[test]
     fn gas_baseline() {
         let _ = opaque(ONE);
+    }
+
+    #[test]
+    fn gas_manifold_contacts() {
+        let mut m: ContactManifold = Default::default();
+        m.num_points = opaque(2_u8);
+        let _ = m.contacts();
+    }
+
+    #[test]
+    fn gas_manifold_total_impulse() {
+        let mut m: ContactManifold = Default::default();
+        m.num_points = opaque(2_u8);
+        let _ = m.total_impulse();
     }
 
     #[test]
