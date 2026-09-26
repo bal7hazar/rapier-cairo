@@ -33,6 +33,8 @@ pub mod prelude {
         RopeJointTrait, SpringJoint, SpringJointBuilder, SpringJointBuilderIntoGeneric,
         SpringJointBuilderTrait, SpringJointIntoGeneric, SpringJointTrait,
     };
+    pub use rapier_dynamics2d::rigid_body::ccd::{RigidBodyCcd, RigidBodyCcdTrait};
+    pub use rapier_dynamics2d::rigid_body_set::RigidBodyCcdApiTrait;
     pub use rapier_dynamics2d::{
         ColliderSet, ColliderSetTrait, CollisionEvent, CollisionEventTrait, ContactForceEvent,
         ContactForceEventTrait, ContactPair, ContactPairTrait, OneWayPlatform, RigidBody,
@@ -51,6 +53,7 @@ pub mod prelude {
     pub use rapier_math::pose2::{Pose2, Pose2Trait};
     pub use rapier_math::rot2::{Rot2, Rot2Trait};
     pub use crate::dispatcher::DefaultDispatcher;
+    pub use crate::pipeline::ccd::{CCDSolver, CCDSolverTrait};
     pub use crate::pipeline::facade::{
         CollisionPipeline, CollisionPipelineTrait, PhysicsPipeline, PhysicsPipelineTrait,
     };

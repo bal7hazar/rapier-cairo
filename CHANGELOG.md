@@ -5,7 +5,11 @@ whether simulation results changed.
 
 ## Unreleased
 
-**Results:** the step is unchanged since `0.1.0-alpha.4` (same results, same Cairo steps). `WorldState` unchanged (v2).
+**Results:** `World::step` is unchanged since `0.1.0-alpha.4` (same results, same Cairo steps).
+
+### Breaking
+- `WorldState` is **version 3** (the bodies' cold data gained a CCD slot; `user_data` moved into it): version-2 states
+  panic with `'world state: version'` (#182).
 
 ### Added
 - `AabbTrait::{aligned_intersections, intersects_moving_aabb}`, `MotorModelTrait::combine_coefficients`,
@@ -14,6 +18,10 @@ whether simulation results changed.
 - Shape casts: `cast_shapes` (`ShapeCastOptions` / `ShapeCastHit` / `ShapeCastStatus`), `cast_shapes_nonlinear`
   (`NonlinearRigidMotion`), the swept TOI (`Sweep`, `ToiProxy`, `sweep_time_of_impact`) for every pair of the closed
   set, `World` / `QueryPipeline::cast_shape(_nonlinear)` (ADR 0001 entries 30–32) (#180).
+- Continuous collision detection: `World::step_with_ccd(_and_force_events)(ref CCDSolver)`, `RigidBodyCcd`,
+  `RigidBodyBuilder::{ccd_enabled, soft_ccd_prediction}`, `enable_ccd` / `is_ccd_enabled` / `is_ccd_active`; upstream's
+  automatic CCD for fast bodies is off by default (`CCDSolverTrait::set_automatic`, ADR 0001 entries 33–34). A
+  `CCDSolver` serializes only its switch: recreate it with the same setting after `from_state` (#182).
 
 ## 0.1.0-alpha.4 — 2026-09-26
 
