@@ -5,7 +5,7 @@ use crate::shapes::ShapeSpec;
 use rapier2d_f64::prelude::*;
 use serde_json::{json, Value};
 
-fn mprops_json(mp: &MassProperties) -> Value {
+pub(crate) fn mprops_json(mp: &MassProperties) -> Value {
     json!({
         "mass": jf(mp.mass()),
         "inv_mass": jf(mp.inv_mass),

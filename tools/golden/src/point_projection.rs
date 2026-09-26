@@ -83,11 +83,11 @@ fn cases() -> Vec<Case> {
     ]
 }
 
-fn proj_json(p: &PointProjection) -> Value {
+pub(crate) fn proj_json(p: &PointProjection) -> Value {
     json!({ "point": jvec(p.point), "is_inside": p.is_inside })
 }
 
-fn feature_json(f: FeatureId) -> Value {
+pub(crate) fn feature_json(f: FeatureId) -> Value {
     match f {
         FeatureId::Vertex(i) => json!({ "kind": "vertex", "code": i }),
         FeatureId::Face(i) => json!({ "kind": "face", "code": i }),

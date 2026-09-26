@@ -148,7 +148,7 @@ fn feature_json(f: FeatureId) -> Value {
     }
 }
 
-fn hit_json(hit: Option<RayIntersection>) -> Value {
+pub(crate) fn hit_json(hit: Option<RayIntersection>) -> Value {
     match hit {
         None => Value::Null,
         Some(h) => json!({

@@ -843,3 +843,115 @@ pub struct ShapeQueryCase {
     pub closest_points: [ClosestPointsRaw; 3],
     pub contacts: [ContactAnswerRaw; 2],
 }
+
+/// SH1: a cuboid of `half_extents` with rounded corners of `border_radius`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RoundCuboidRaw {
+    pub half_extents: Vec2Raw,
+    pub border_radius: i64,
+}
+
+/// SH1: a triangle with rounded corners of `border_radius`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RoundTriangleRaw {
+    pub triangle: TriangleRaw,
+    pub border_radius: i64,
+}
+
+/// SH1: a convex polygon with rounded corners of `border_radius`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct RoundPolygonRaw {
+    pub polygon: ConvexPolygonRaw,
+    pub border_radius: i64,
+}
+
+/// SH1 fixture shapes: the closed MVP set, polygons, triangles and round shapes (keeps the frozen
+/// `ShapeRaw` unchanged).
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum Sh1ShapeRaw {
+    Other: ShapeRaw,
+    Polygon: ConvexPolygonRaw,
+    Triangle: TriangleRaw,
+    RoundCuboid: RoundCuboidRaw,
+    RoundTriangle: RoundTriangleRaw,
+    RoundPolygon: RoundPolygonRaw,
+}
+
+/// SH1 manifold fixture; semantics as `ManifoldCase`, plus upstream's `query::intersection_test`
+/// and `query::distance` for the same placement.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Sh1ManifoldCase {
+    pub id: felt252,
+    pub shape1: Sh1ShapeRaw,
+    pub shape2: Sh1ShapeRaw,
+    pub pos12: PoseRaw,
+    pub ambiguous: bool,
+    pub num_points: u32,
+    pub local_n1: Vec2Raw,
+    pub local_n2: Vec2Raw,
+    pub points: [ContactPointRaw; 2],
+    pub intersects: bool,
+    pub distance: i64,
+}
+
+/// `TrianglePointLocation::OnEdge(edge, [u, v])`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct TriangleEdgeRaw {
+    pub edge: u32,
+    pub u: i64,
+    pub v: i64,
+}
+
+/// `TrianglePointLocation` of a hollow projection; `NoLocation` for the other shapes.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub enum TriangleLocationRaw {
+    NoLocation,
+    OnVertex: u32,
+    OnEdge: TriangleEdgeRaw,
+    OnSolid,
+}
+
+/// SH1 point projection fixture (local frame); semantics as `ProjectionCase`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Sh1ProjectionCase {
+    pub id: felt252,
+    pub shape: Sh1ShapeRaw,
+    pub point: Vec2Raw,
+    pub projection: ProjectionRaw,
+    pub projection_solid: ProjectionRaw,
+    pub distance: i64,
+    pub feature: PointFeatureRaw,
+    pub location: TriangleLocationRaw,
+}
+
+/// SH1 world-space ray cast fixture; semantics as `RayCase`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Sh1RayCase {
+    pub id: felt252,
+    pub shape: Sh1ShapeRaw,
+    pub pose: PoseRaw,
+    pub origin: Vec2Raw,
+    pub dir: Vec2Raw,
+    pub max_toi: i64,
+    pub solid: RayAnswerRaw,
+    pub hollow: RayAnswerRaw,
+}
+
+/// SH1 `shape.mass_properties(density)`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Sh1MassCase {
+    pub id: felt252,
+    pub shape: Sh1ShapeRaw,
+    pub density: i64,
+    pub expected: MassPropertiesRaw,
+}
+
+/// SH1 `shape.compute_aabb(pose)`.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Sh1AabbCase {
+    pub id: felt252,
+    pub shape: Sh1ShapeRaw,
+    pub pose: PoseRaw,
+    pub mins: Vec2Raw,
+    pub maxs: Vec2Raw,
+}
