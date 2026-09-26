@@ -88,6 +88,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rapier_sink"
+version = "0.1.0-alpha.2"
+dependencies = [
+ "fixed",
+ "glam",
+ "rapier2d",
+]
+
+[[package]]
 name = "rapier_testing"
 version = "0.1.0-alpha.2"
 dependencies = [
