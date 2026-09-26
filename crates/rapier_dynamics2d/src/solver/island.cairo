@@ -103,14 +103,25 @@ pub impl SolverInputImpl of SolverInputTrait {
         entries: Span<(Handle, RigidBody)>, gravity: Vec2, params: IntegrationParameters,
     ) -> SolverInput {
         let dt = params.substep_dt();
-        let mut bodies = array![];
-        let mut steps = array![];
+        let mut input = Self::new();
         for (handle, rb) in entries {
-            let (body, step) = gather(*handle, *rb, gravity, dt);
-            bodies.append(body);
-            steps.append(step);
+            input.push(*handle, *rb, gravity, dt);
         }
-        SolverInput { bodies, steps }
+        input
+    }
+
+    /// An empty input, filled body by body with [`push`](Self::push).
+    #[inline(always)]
+    fn new() -> SolverInput {
+        SolverInput { bodies: array![], steps: array![] }
+    }
+
+    /// Appends the body `rb` of `handle` as `gather` does, `dt` being `params.substep_dt()`.
+    #[inline(always)]
+    fn push(ref self: SolverInput, handle: Handle, rb: RigidBody, gravity: Vec2, dt: Fixed) {
+        let (body, step) = gather(handle, rb, gravity, dt);
+        self.bodies.append(body);
+        self.steps.append(step);
     }
 }
 

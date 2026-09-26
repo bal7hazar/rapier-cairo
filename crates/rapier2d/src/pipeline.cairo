@@ -722,24 +722,27 @@ pub fn solve_and_advance_sleeping(
         }
     }
     let any = !manifolds.is_empty() || !joints.is_empty();
-    let mut members = array![];
+    // BT4: the members gathered straight into the solver input (no `SolverBodyStore`, no copy
+    // of the entries), their flags kept for the write-back walk.
+    let mut input = SolverInputTrait::new();
+    let mut member_flags = array![];
     let mut has_free = false;
     if any {
-        for entry in entries {
-            let (handle, body) = entry;
-            if constrained.get((*handle).into()) {
+        let dt = params.substep_dt();
+        for (handle, body) in entries {
+            let member = constrained.get((*handle).into());
+            member_flags.append(member);
+            if member {
                 if sleeping && *body.activation.sleeping {
-                    members.append((*handle, immovable(*body)));
+                    input.push(*handle, immovable(*body), gravity, dt);
                 } else {
-                    members.append(*entry);
+                    input.push(*handle, *body, gravity, dt);
                 }
             } else if moving(body) {
                 has_free = true;
             }
         }
     }
-    // BT4: the members gathered straight into the solver input (no `SolverBodyStore`).
-    let input = SolverInputTrait::gather(members.span(), gravity, params);
     // With no manifold and no joint, `solve_island` would only validate the parameters, which
     // `FreeBodySolverTrait::new` does with the same panics; with constraints it is only built
     // when a moving body is free.
@@ -760,8 +763,12 @@ pub fn solve_and_advance_sleeping(
         write_joints(joint_entries, joints.span(), ref impulse_joints);
     }
     let mut dense: u32 = 0;
+    let mut member_flags = member_flags.span();
     for (handle, body) in entries {
-        let member = any && constrained.get((*handle).into());
+        let member = match member_flags.pop_front() {
+            Some(member) => *member,
+            None => false,
+        };
         if moving(body) {
             let body = if member {
                 let mut body = *body;
