@@ -36,6 +36,7 @@ rapier_core::integration_parameters::tests::gas_inv_or_zero_div 17990
 rapier_core::integration_parameters::tests::gas_inv_recip 20730
 rapier_core::integration_parameters::tests::gas_joint_softness_coefficients 51930
 rapier_core::integration_parameters::tests::gas_max_linear_velocity 21620
+rapier_core::integration_parameters::tests::gas_set_dt 14590
 rapier_core::integration_parameters::tests::gas_static_contact_softness_coefficients 51330
 rapier_core::integration_parameters::tests::gas_substep_dt 23860
 rapier_core::integration_parameters::tests::gas_substep_dt_fixed_div 28050
@@ -46,6 +47,8 @@ rapier_core::integration_parameters::tests::test_default_scalars 13620
 rapier_core::integration_parameters::tests::test_disabled_caps_keep_the_max_sentinel 13620
 rapier_core::integration_parameters::tests::test_length_unit_scales_normalized_lengths 23640
 rapier_core::integration_parameters::tests::test_scaled_velocity_overflow_panics 20810
+rapier_core::integration_parameters::tests::test_set_dt 13620
+rapier_core::integration_parameters::tests::test_set_dt_negative_panics 20810
 rapier_core::integration_parameters::tests::test_set_inv_dt 22030
 rapier_core::integration_parameters::tests::test_static_contacts_are_stiffer 70820
 rapier_core::integration_parameters::tests::test_substep_and_inverses_at_defaults 19570
