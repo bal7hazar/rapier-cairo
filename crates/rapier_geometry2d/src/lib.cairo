@@ -16,6 +16,7 @@ pub mod manifold;
 pub mod mass;
 pub mod point;
 pub mod polygonal_feature;
+pub mod query;
 pub mod ray;
 pub mod sat;
 pub mod shape;
