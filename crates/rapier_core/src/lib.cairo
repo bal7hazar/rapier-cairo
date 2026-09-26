@@ -5,6 +5,7 @@ pub mod data;
 pub mod integration_parameters;
 pub mod interaction_groups;
 pub mod rigid_body;
+pub use collider::events::ActiveEventsDefault;
 
 pub use collider::{
     ActiveCollisionTypes, ActiveCollisionTypesDefault, ActiveCollisionTypesImpl,
@@ -25,6 +26,7 @@ pub use integration_parameters::{
 pub use interaction_groups::{
     Group, GroupTrait, InteractionGroups, InteractionGroupsTrait, InteractionTestMode,
 };
+pub use rigid_body::changes::RigidBodyChangesDefault;
 pub use rigid_body::{
     AxesMask, AxesMaskDefault, AxesMaskImpl, AxesMaskTrait, BodyStatus, RigidBodyActivation,
     RigidBodyActivationImpl, RigidBodyActivationTrait, RigidBodyChanges, RigidBodyChangesImpl,

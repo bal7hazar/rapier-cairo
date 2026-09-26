@@ -26,6 +26,9 @@ sizes, identical). `WorldState` unchanged (version 2).
 - API polish: `AxesMask`, `BodyStatus`, `IntegrationParametersTrait::set_dt`, `ShapeTrait::is_convex`, `Into<Shape>`
   for every shape, `CapsuleTrait::{rotation_wrt_y, transform_wrt_y, canonical_transform}`, `SegmentTrait::point_at`,
   `SegmentPseudoNormals`, `ConvexPolygonTrait::{from_convex_hull, offsetted}` (#167).
+- Parity leftovers: `RigidBodyActivationTrait::default_*` thresholds, `Default` for `RigidBodyChanges` / `ActiveEvents`,
+  `Into<RigidBodyPosition>` from `Pose2`, `RigidBodyColliders`, `ShapeIntersection`, parry's `intersection_test_*`
+  entry points (#170).
 
 ## 0.1.0-alpha.3 — 2026-09-26
 
