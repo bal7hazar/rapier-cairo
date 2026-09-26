@@ -62,6 +62,31 @@ pub mod errors {
 /// Free-list terminator; also the only `u32` that is never a valid slot index.
 pub(crate) const NO_SLOT: u32 = 0xffffffff;
 
+/// Bit of [`Arena`]'s `stamp` above the 32-bit generation: set by every successful write.
+const MODIFIED: u64 = 0x100000000;
+
+/// The generation held in `stamp` (the stamp without its [`MODIFIED`] bit).
+#[inline(always)]
+fn generation_of(stamp: u64) -> u32 {
+    let generation = if stamp >= MODIFIED {
+        stamp - MODIFIED
+    } else {
+        stamp
+    };
+    // A stamp is a `u32` generation plus at most `MODIFIED`.
+    generation.try_into().unwrap()
+}
+
+/// `stamp` with its [`MODIFIED`] bit set.
+#[inline(always)]
+fn marked(stamp: u64) -> u64 {
+    if stamp >= MODIFIED {
+        stamp
+    } else {
+        stamp + MODIFIED
+    }
+}
+
 /// Content of an allocated arena slot.
 #[derive(Copy, Drop)]
 pub(crate) enum Slot<T> {
@@ -153,8 +178,10 @@ pub struct ArenaState<T> {
 pub struct Arena<T> {
     /// Slot index → boxed slot; null for never-allocated indices.
     slots: Felt252Dict<Nullable<Slot<T>>>,
-    /// Arena generation counter (number of successful removals).
-    generation: u32,
+    /// Arena generation counter (number of successful removals), plus [`MODIFIED`] when the
+    /// arena was written since [`ArenaStateTrait::clear_modified`] (BT4: the bit rides in this
+    /// cold field, read by `insert` and `remove` only, rather than in a field of each set).
+    stamp: u64,
     /// Most recently freed slot, or `NO_SLOT`.
     free_head: u32,
     /// Number of live values.
@@ -181,11 +208,12 @@ pub impl ArenaDefault<T, +Copy<T>, +Drop<T>> of Default<Arena<T>> {
 /// dict access, except `to_array` / `set_all` which cost one per allocated slot.
 pub impl ArenaImpl<T, +Copy<T>, +Drop<T>> of ArenaTrait<Arena<T>, T> {
     fn new() -> Arena<T> {
-        Arena { slots: Default::default(), generation: 0, free_head: NO_SLOT, len: 0, capacity: 0 }
+        Arena { slots: Default::default(), stamp: 0, free_head: NO_SLOT, len: 0, capacity: 0 }
     }
 
     fn insert(ref self: Arena<T>, value: T) -> Handle {
-        let generation = self.generation;
+        let generation = generation_of(self.stamp);
+        self.stamp = generation.into() + MODIFIED;
         let slot = NullableTrait::new(Slot::Occupied((generation, value)));
         let index = self.free_head;
         let index = if index == NO_SLOT {
@@ -225,7 +253,14 @@ pub impl ArenaImpl<T, +Copy<T>, +Drop<T>> of ArenaTrait<Arena<T>, T> {
     }
 
     fn contains(ref self: Arena<T>, handle: Handle) -> bool {
-        self.get(handle).is_some()
+        // Matched in place (BT4): `get(handle).is_some()` returns, hence copies, the value.
+        match match_nullable(self.slots.get(handle.index.into())) {
+            FromNullableResult::NotNull(slot) => match slot.unbox() {
+                Slot::Occupied((generation, _)) => generation == handle.generation,
+                Slot::Free(_) => false,
+            },
+            FromNullableResult::Null => false,
+        }
     }
 
     fn set(ref self: Arena<T>, handle: Handle, value: T) -> bool {
@@ -240,6 +275,7 @@ pub impl ArenaImpl<T, +Copy<T>, +Drop<T>> of ArenaTrait<Arena<T>, T> {
                     self
                         .slots = entry
                         .finalize(NullableTrait::new(Slot::Occupied((generation, value))));
+                    self.stamp = marked(self.stamp);
                     return Option::Some(old);
                 }
             }
@@ -250,6 +286,7 @@ pub impl ArenaImpl<T, +Copy<T>, +Drop<T>> of ArenaTrait<Arena<T>, T> {
 
     fn set_all(ref self: Arena<T>, mut values: Span<T>) {
         assert(values.len() == self.len, errors::LENGTH_MISMATCH);
+        self.stamp = marked(self.stamp);
         let capacity = self.capacity;
         let mut index = 0;
         while index != capacity {
@@ -276,11 +313,10 @@ pub impl ArenaImpl<T, +Copy<T>, +Drop<T>> of ArenaTrait<Arena<T>, T> {
                     self.slots = entry.finalize(NullableTrait::new(Slot::Free(self.free_head)));
                     self.free_head = handle.index;
                     self.len -= 1;
-                    self
-                        .generation = self
-                        .generation
+                    let generation = generation_of(self.stamp)
                         .checked_add(1)
                         .expect(errors::GENERATION_OVERFLOW);
+                    self.stamp = generation.into() + MODIFIED;
                     return Option::Some(value);
                 }
             }
@@ -321,13 +357,85 @@ pub impl ArenaImpl<T, +Copy<T>, +Drop<T>> of ArenaTrait<Arena<T>, T> {
     }
 }
 
+/// One component `F` of an arena value `T`, read by [`ArenaFieldTrait::get_field`] (BT4). The
+/// projection is inlined into the read, so only the cells of the component are copied out of the
+/// slot (an [`ArenaTrait::get`] returns, hence copies, the whole value).
+pub trait ArenaField<T, F> {
+    /// The component of `value`.
+    fn read(value: T) -> F;
+}
+
+/// Component reads of an [`Arena`].
+#[generate_trait]
+pub impl ArenaFieldImpl<T, +Copy<T>, +Drop<T>> of ArenaFieldTrait<T> {
+    /// The component `P` selects of the value behind `handle`, `None` when the handle is stale,
+    /// was removed, or was never issued by this arena. One dict read.
+    fn get_field<F, impl P: ArenaField<T, F>, +Drop<F>>(
+        ref self: Arena<T>, handle: Handle,
+    ) -> Option<F> {
+        match match_nullable(self.slots.get(handle.index.into())) {
+            FromNullableResult::NotNull(slot) => match slot.unbox() {
+                Slot::Occupied((generation, value)) => if generation == handle.generation {
+                    Option::Some(P::read(value))
+                } else {
+                    Option::None
+                },
+                Slot::Free(_) => Option::None,
+            },
+            FromNullableResult::Null => Option::None,
+        }
+    }
+}
+
 /// Persistence of an [`Arena`]: flatten to / rebuild from an [`ArenaState`].
 #[generate_trait]
 pub impl ArenaStateImpl<T, +Copy<T>, +Drop<T>> of ArenaStateTrait<T> {
     /// Returns the current generation counter (the generation the next insert is stamped with).
     #[inline(always)]
     fn generation(self: @Arena<T>) -> u32 {
-        *self.generation
+        generation_of(*self.stamp)
+    }
+
+    /// Whether a value was inserted, overwritten (`set`, `replace`, `set_all`) or removed since
+    /// [`clear_modified`](ArenaStateTrait::clear_modified) or since the arena was created or
+    /// restored ([`from_state`](ArenaStateTrait::from_state)). Reads and failed writes (a handle
+    /// that does not resolve) leave it unchanged.
+    #[inline(always)]
+    fn is_modified(self: @Arena<T>) -> bool {
+        *self.stamp >= MODIFIED
+    }
+
+    /// Raises the [`is_modified`](ArenaStateTrait::is_modified) bit.
+    #[inline(always)]
+    fn mark_modified(ref self: Arena<T>) {
+        self.stamp = marked(self.stamp);
+    }
+
+    /// [`ArenaTrait::set`] without raising the [`is_modified`](ArenaStateTrait::is_modified) bit
+    /// (upstream `get_mut_internal`): for a caller that tracks its own writes.
+    fn set_untracked(ref self: Arena<T>, handle: Handle, value: T) -> bool {
+        let (entry, previous) = self.slots.entry(handle.index.into());
+        if let FromNullableResult::NotNull(slot) = match_nullable(previous) {
+            if let Slot::Occupied((generation, _)) = slot.unbox() {
+                if generation == handle.generation {
+                    self
+                        .slots = entry
+                        .finalize(NullableTrait::new(Slot::Occupied((generation, value))));
+                    return true;
+                }
+            }
+        }
+        self.slots = entry.finalize(previous);
+        false
+    }
+
+    /// Clears the [`is_modified`](ArenaStateTrait::is_modified) bit.
+    #[inline(always)]
+    fn clear_modified(ref self: Arena<T>) {
+        let stamp = self.stamp;
+        if stamp >= MODIFIED {
+            self.stamp = stamp - MODIFIED;
+        }
     }
 
     /// Flattens the arena. Cost: one dict read per allocated slot plus one per free slot.
@@ -346,7 +454,7 @@ pub impl ArenaStateImpl<T, +Copy<T>, +Drop<T>> of ArenaStateTrait<T> {
             };
         }
         ArenaState {
-            generation: self.generation,
+            generation: generation_of(self.stamp),
             capacity: self.capacity,
             free_list: free_list.span(),
             entries,
@@ -400,7 +508,7 @@ pub impl ArenaStateImpl<T, +Copy<T>, +Drop<T>> of ArenaStateTrait<T> {
             assert(vacant, errors::STATE_SLOT_REUSED);
         }
 
-        Arena { slots, generation, free_head, len, capacity }
+        Arena { slots, stamp: generation.into(), free_head, len, capacity }
     }
 }
 

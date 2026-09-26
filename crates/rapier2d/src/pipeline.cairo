@@ -554,6 +554,8 @@ pub fn advance_with_snapshot(
             advance_body_with_snapshot(*handle, *body, ref bodies, ref colliders, snapshot, params);
         }
     }
+    bodies.mark_modified();
+    colliders.mark_modified();
 }
 
 /// The step moves `body`: enabled, not fixed, awake.
@@ -573,7 +575,8 @@ pub(crate) fn immovable(body: RigidBody) -> RigidBody {
 
 /// The position update of one moving body (`position ← next_position`, world mass properties,
 /// attached colliders moved) after its sleep timer (`islands::update_sleep_timer`, on the
-/// displacement of the step).
+/// displacement of the step). The writes are untracked (`set_internal`, BT4): the public callers
+/// raise the sets' `is_modified` flags once.
 #[inline(always)]
 pub(crate) fn advance_body_with_snapshot(
     handle: Handle,
@@ -588,12 +591,12 @@ pub(crate) fn advance_body_with_snapshot(
     body.pos.position = body.pos.next_position;
     islands::update_sleep_timer(ref body, previous, params);
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-    let _ = bodies.set(handle, body);
+    let _ = bodies.set_internal(handle, body);
     for co_handle in body.colliders {
         if let Some(mut collider) = snapshot_collider(snapshot, *co_handle, ref colliders) {
             if let Some(parent) = collider.parent {
                 collider.pos.pose = body.pos.position * parent.pos_wrt_parent;
-                let _ = colliders.set(*co_handle, collider);
+                let _ = colliders.set_internal(*co_handle, collider);
             }
         }
     }
@@ -768,6 +771,8 @@ pub fn solve_and_advance_sleeping(
             dense += 1;
         }
     }
+    bodies.mark_modified();
+    colliders.mark_modified();
 }
 
 pub(crate) fn joint_values(entries: Span<(Handle, ImpulseJoint)>) -> Array<ImpulseJoint> {

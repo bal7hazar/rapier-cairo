@@ -22,10 +22,13 @@
 //!   to change a body without waking it.
 
 use core::num::traits::DivRem;
-use fixed::{ONE, ZERO};
+use fixed::{Fixed, ONE, ZERO};
+use glam::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::changes::{PARENT, POSITION as COLLIDER_POSITION};
-use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
+use rapier_core::data::arena::{
+    Arena, ArenaField, ArenaFieldTrait, ArenaState, ArenaStateTrait, ArenaTrait,
+};
 use rapier_core::rigid_body::changes::{COLLIDERS, POSITION};
 use rapier_core::rigid_body::{
     RigidBodyActivation, RigidBodyChanges, RigidBodyChangesTrait, RigidBodyDamping,
@@ -235,12 +238,43 @@ pub use builder_api::{
     RigidBodyFromBuilder,
 };
 
+/// Component reads of a stored body (BT4, `RigidBodySetTrait::get_field`): the activation's
+/// `sleeping` flag.
+pub impl BodySleeping of ArenaField<RigidBody, bool> {
+    #[inline(always)]
+    fn read(value: RigidBody) -> bool {
+        value.activation.sleeping
+    }
+}
+
+/// The linear velocity of a stored body.
+pub impl BodyLinvel of ArenaField<RigidBody, Vec2> {
+    #[inline(always)]
+    fn read(value: RigidBody) -> Vec2 {
+        value.vels.linvel
+    }
+}
+
+/// The angular velocity of a stored body.
+pub impl BodyAngvel of ArenaField<RigidBody, Fixed> {
+    #[inline(always)]
+    fn read(value: RigidBody) -> Fixed {
+        value.vels.angvel
+    }
+}
+
+/// The world pose of a stored body.
+pub impl BodyPose of ArenaField<RigidBody, Pose2> {
+    #[inline(always)]
+    fn read(value: RigidBody) -> Pose2 {
+        value.pos.position
+    }
+}
+
 /// The set of rigid bodies. Holds a dict: pass it by `ref`.
 #[derive(Destruct, Default)]
 pub struct RigidBodySet {
     bodies: Arena<RigidBody>,
-    /// Written since the last `clear_modified` (BT2: the step's active set trusts a clean set).
-    modified: bool,
 }
 
 /// Operations of [`RigidBodySet`]. Reads take `ref self` because arena reads mutate the dict log.
@@ -249,7 +283,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     /// An empty set.
     #[inline(always)]
     fn new() -> RigidBodySet {
-        RigidBodySet { bodies: ArenaTrait::new(), modified: false }
+        RigidBodySet { bodies: ArenaTrait::new() }
     }
 
     /// Empty set. Cairo arenas reserve no memory, so `capacity` is intentionally ignored.
@@ -265,7 +299,6 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
         let mut body = body;
         body.colliders = array![].span();
         body.changes = RigidBodyChangesTrait::all();
-        self.modified = true;
         self.bodies.insert(body)
     }
 
@@ -273,6 +306,15 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     #[inline(always)]
     fn get(ref self: RigidBodySet, handle: Handle) -> Option<RigidBody> {
         self.bodies.get(handle)
+    }
+
+    /// One component of the body behind `handle` (`P`: [`BodySleeping`], [`BodyLinvel`],
+    /// [`BodyAngvel`], [`BodyPose`]), `None` when the handle is stale or unknown. Copies only
+    /// the component out of the set, where [`get`](Self::get) copies the whole body.
+    fn get_field<F, impl P: ArenaField<RigidBody, F>, +Drop<F>>(
+        ref self: RigidBodySet, handle: Handle,
+    ) -> Option<F> {
+        self.bodies.get_field::<F, P>(handle)
     }
 
     /// Upstream `get_mut` by name. Values are copied out; write back with [`set`].
@@ -313,7 +355,6 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     /// Returns `false` and changes nothing when the handle does not resolve.
     #[inline(always)]
     fn set(ref self: RigidBodySet, handle: Handle, body: RigidBody) -> bool {
-        self.modified = true;
         self.bodies.set(handle, body)
     }
 
@@ -333,7 +374,6 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
         remove_attached_colliders: bool,
     ) -> Option<RigidBody> {
         let body = self.bodies.remove(handle)?;
-        self.modified = true;
         let mut attached = body.colliders;
         while let Some(co_handle) = attached.pop_front() {
             let co_handle = *co_handle;
@@ -348,16 +388,32 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
         Some(body)
     }
 
-    /// A body was inserted, written, removed or (de)parented since `clear_modified` / creation.
+    /// A body was inserted, written, removed or (de)parented since `clear_modified` / creation
+    /// (BT4: the bit lives in the arena, `ArenaStateTrait::is_modified`; a write whose handle
+    /// does not resolve and [`set_internal`](Self::set_internal) leave it unchanged).
     #[inline(always)]
     fn is_modified(self: @RigidBodySet) -> bool {
-        *self.modified
+        self.bodies.is_modified()
+    }
+
+    /// Raises the [`is_modified`](Self::is_modified) flag (a caller that wrote through
+    /// [`set_internal`](Self::set_internal)).
+    #[inline(always)]
+    fn mark_modified(ref self: RigidBodySet) {
+        self.bodies.mark_modified();
+    }
+
+    /// [`set`](Self::set) without raising the [`is_modified`](Self::is_modified) flag (upstream
+    /// `get_mut_internal`): the step's own write-backs, which it tracks itself (BT4).
+    #[inline(always)]
+    fn set_internal(ref self: RigidBodySet, handle: Handle, body: RigidBody) -> bool {
+        self.bodies.set_untracked(handle, body)
     }
 
     /// Clears the [`is_modified`](Self::is_modified) flag (the step does).
     #[inline(always)]
     fn clear_modified(ref self: RigidBodySet) {
-        self.modified = false;
+        self.bodies.clear_modified();
     }
 
     /// Number of bodies.
@@ -413,7 +469,7 @@ pub impl RigidBodySetImpl of RigidBodySetTrait {
     /// # Panics
     /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
     fn from_state(state: ArenaState<RigidBody>) -> RigidBodySet {
-        RigidBodySet { bodies: ArenaStateTrait::from_state(state), modified: false }
+        RigidBodySet { bodies: ArenaStateTrait::from_state(state) }
     }
 }
 
@@ -441,7 +497,6 @@ pub fn attach_collider(
     let mprops = collider.mass_properties().transform_by(pos_wrt_parent);
     body.mprops.local_mprops = body.mprops.local_mprops + mprops;
     body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
-    bodies.modified = true;
     let _ = bodies.bodies.set(handle, body);
     body.pos.position
 }
@@ -472,7 +527,6 @@ pub fn detach_collider(ref bodies: RigidBodySet, handle: Handle, co_handle: Hand
             }
             body.colliders = swapped.span();
             body.changes.insert(COLLIDERS);
-            bodies.modified = true;
             let _ = bodies.bodies.set(handle, body);
         }
     }
@@ -529,272 +583,4 @@ fn propagate_positions(body: RigidBody, ref colliders: ColliderSet) {
 }
 
 #[cfg(test)]
-mod tests {
-    use fixed::{Fixed, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
-    use rapier_core::Handle;
-    use rapier_core::rigid_body::changes::{ENABLED_OR_DISABLED, LOCAL_MASS_PROPERTIES, TYPE};
-    use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyType};
-    use rapier_geometry2d::mass::MassProperties;
-    use rapier_math::pose2::Pose2;
-    use rapier_math::rot2::Rot2;
-    use rapier_testing::opaque;
-    use crate::collider::ColliderBuilderTrait;
-    use crate::collider_set::{ColliderSet, ColliderSetTrait};
-    use crate::rigid_body::{LockedAxesTrait, ROTATION_LOCKED};
-    use super::{
-        RigidBody, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait, RigidBodyTrait,
-        cold_or_default, extra_additional_is_mass, recompute_body_mass_properties,
-    };
-
-    fn at(x: Fixed, y: Fixed) -> Pose2 {
-        Pose2 { translation: Vec2 { x, y }, rotation: Rot2 { re: ONE, im: ZERO } }
-    }
-
-    #[test]
-    fn test_set_lifecycle() {
-        let mut bodies = RigidBodySetTrait::new();
-        let mut colliders: ColliderSet = ColliderSetTrait::new();
-        let mut body = RigidBodyTrait::dynamic(at(ZERO, ZERO));
-        body.colliders = array![Handle { index: 9, generation: 9 }].span();
-        let h0 = bodies.insert(body);
-        let h1 = bodies.insert(RigidBodyTrait::fixed(at(ONE, ZERO)));
-        assert_eq!(h0, Handle { index: 0, generation: 0 });
-        assert_eq!(h1, Handle { index: 1, generation: 0 });
-        // `insert` resets the collider list and raises every change flag.
-        let stored = bodies.get(h0).unwrap();
-        assert_eq!(stored.colliders.len(), 0);
-        assert_eq!(stored.changes, RigidBodyChangesTrait::all());
-        assert_eq!(bodies.len(), 2);
-        let mut moved = stored;
-        moved.set_linvel(Vec2 { x: ONE, y: ONE });
-        assert!(bodies.set(h0, moved));
-        assert_eq!(bodies.get(h0).unwrap().linvel(), Vec2 { x: ONE, y: ONE });
-        assert!(bodies.remove(h0, ref colliders, true).is_some());
-        assert!(!bodies.contains(h0));
-        assert!(!bodies.set(h0, moved));
-        assert_eq!(bodies.get(h0), None);
-        // Slot 0 is reused with the bumped generation; iteration is by slot index.
-        let h2 = bodies.insert(RigidBodyTrait::dynamic(at(TWO, ZERO)));
-        assert_eq!(h2, Handle { index: 0, generation: 1 });
-        let all = bodies.iter();
-        assert_eq!(all.len(), 2);
-        let (first, _) = *all.at(0);
-        let (second, _) = *all.at(1);
-        assert_eq!(first, h2);
-        assert_eq!(second, h1);
-        assert!(!bodies.is_empty());
-    }
-
-    #[test]
-    fn test_set_compatibility_accessors_are_value_copies() {
-        let mut bodies = RigidBodySetTrait::with_capacity(4);
-        let h0 = bodies.insert(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
-        let h1 = bodies.insert(RigidBodyTrait::fixed(at(ONE, ZERO)));
-        assert_eq!(bodies.get_mut(h0), bodies.get(h0));
-        let (_, unknown_h1) = bodies.get_unknown_gen(1).unwrap();
-        let (_, unknown_h0) = bodies.get_unknown_gen_mut(0).unwrap();
-        assert_eq!(unknown_h1, h1);
-        assert_eq!(unknown_h0, h0);
-        let (first, second) = bodies.get_pair_mut(h0, h1);
-        assert_eq!(first.unwrap().body_type(), RigidBodyType::Dynamic);
-        assert_eq!(second.unwrap().body_type(), RigidBodyType::Fixed);
-        let (same, none) = bodies.get_pair_mut(h0, h0);
-        assert!(same.is_some());
-        assert_eq!(none, None);
-        assert_eq!(bodies.iter_mut().len(), 2);
-    }
-
-    #[test]
-    fn test_builder_round_trip() {
-        let extra = MassProperties {
-            local_com: Vec2 { x: ONE, y: ZERO }, inv_mass: ONE, inv_principal_inertia: HALF,
-        };
-        let body = RigidBodyBuilderTrait::dynamic()
-            .translation(Vec2 { x: ONE, y: TWO })
-            .rotation(Rot2 { re: ZERO, im: ONE })
-            .linvel(Vec2 { x: TWO, y: -ONE })
-            .angvel(HALF)
-            .linear_damping(ONE)
-            .angular_damping(TWO)
-            .gravity_scale(HALF)
-            .dominance_group(-3)
-            .enabled(false)
-            .user_data(99)
-            .additional_solver_iterations(7)
-            .additional_pgs_iterations(5)
-            .locked_axes(ROTATION_LOCKED)
-            .additional_mass_properties(extra)
-            .allow_fast_rotation(true)
-            .build();
-        assert_eq!(body.translation(), Vec2 { x: ONE, y: TWO });
-        assert_eq!(body.rotation(), Rot2 { re: ZERO, im: ONE });
-        assert_eq!(body.linvel(), Vec2 { x: TWO, y: -ONE });
-        assert_eq!(body.angvel(), HALF);
-        assert_eq!(body.gravity_scale(), HALF);
-        assert_eq!(body.dominance_group(), -3);
-        assert!(!body.is_enabled());
-        let cold = cold_or_default(body.cold);
-        assert_eq!(cold.user_data, 99);
-        assert_eq!(body.additional_solver_iterations(), 7);
-        assert_eq!(body.additional_pgs_iterations(), 5);
-        assert!(body.locked_axes().contains(ROTATION_LOCKED));
-        assert!(body.is_fast_rotation_allowed());
-        assert_eq!(cold.additional_local_mprops, extra);
-        assert!(!extra_additional_is_mass(cold.solver_flags));
-    }
-
-    #[test]
-    fn test_setters_flags_and_additional_mass_recompute() {
-        let mut colliders: ColliderSet = ColliderSetTrait::new();
-        let mut body = RigidBodyTrait::dynamic(at(ZERO, ZERO));
-        body.set_enabled(false);
-        assert!(body.changes.contains(ENABLED_OR_DISABLED));
-        body.set_body_type(RigidBodyType::Fixed, true);
-        assert!(body.changes.contains(TYPE));
-        assert_eq!(body.angvel(), ZERO);
-        body.set_body_type(RigidBodyType::Dynamic, true);
-        body.set_locked_axes(ROTATION_LOCKED, true);
-        assert!(body.changes.contains(LOCAL_MASS_PROPERTIES));
-        body.set_additional_mass(TWO, true);
-        recompute_body_mass_properties(ref body, ref colliders);
-        assert_eq!(body.mass(), TWO);
-    }
-
-    #[test]
-    fn gas_baseline() {
-        let _ = opaque(ONE);
-    }
-
-    #[test]
-    fn gas_body_new() {
-        let _ = RigidBodyTrait::dynamic(opaque(at(ONE, ZERO)));
-    }
-
-    #[test]
-    fn gas_insert() {
-        let mut bodies = RigidBodySetTrait::new();
-        let _ = bodies.insert(opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO))));
-    }
-
-    #[test]
-    fn gas_get_set() {
-        let mut bodies = RigidBodySetTrait::new();
-        let h = bodies.insert(opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO))));
-        let body = bodies.get(opaque(h)).unwrap();
-        let _ = bodies.set(h, body);
-    }
-
-    #[test]
-    fn gas_remove() {
-        let mut bodies = RigidBodySetTrait::new();
-        let mut colliders = ColliderSetTrait::new();
-        let h = bodies.insert(opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO))));
-        let _ = bodies.remove(opaque(h), ref colliders, true);
-    }
-
-    #[test]
-    fn gas_iter_8() {
-        let mut bodies = RigidBodySetTrait::new();
-        let body = opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
-        let mut i: u32 = 0;
-        while i != 8 {
-            let _ = bodies.insert(body);
-            i += 1;
-        }
-        let _ = bodies.iter();
-    }
-
-    /// Eight moved bodies with one collider each.
-    #[test]
-    fn gas_propagate_modified_body_positions_8() {
-        let mut bodies: RigidBodySet = RigidBodySetTrait::new();
-        let mut colliders = ColliderSetTrait::new();
-        let body = opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
-        let collider = opaque(ColliderBuilderTrait::ball(ONE).build());
-        let mut i: u32 = 0;
-        while i != 8 {
-            let h = bodies.insert(body);
-            let _ = colliders.insert_with_parent(collider, h, ref bodies);
-            i += 1;
-        }
-        bodies.propagate_modified_body_positions_to_colliders(ref colliders);
-    }
-
-    /// Save / restore of eight bodies, one of them removed: `gas_to_state` − `gas_state_setup`,
-    /// `gas_from_state` − `gas_to_state`.
-    fn state_setup() -> RigidBodySet {
-        let mut bodies = RigidBodySetTrait::new();
-        let mut colliders = ColliderSetTrait::new();
-        let body = opaque(RigidBodyTrait::dynamic(at(ZERO, ZERO)));
-        let mut i: u32 = 0;
-        while i != 8 {
-            let _ = bodies.insert(body);
-            i += 1;
-        }
-        let _ = bodies.remove(Handle { index: 3, generation: 0 }, ref colliders, true);
-        bodies
-    }
-
-    #[test]
-    fn gas_state_setup() {
-        let _ = state_setup();
-    }
-
-    #[test]
-    fn gas_to_state() {
-        let mut bodies = state_setup();
-        let _ = bodies.to_state();
-    }
-
-    #[test]
-    fn gas_from_state() {
-        let mut bodies = state_setup();
-        let restored = RigidBodySetTrait::from_state(bodies.to_state());
-        assert_eq!(restored.len(), 7);
-    }
-
-    /// Sleep helpers on a sleeping dynamic body (file budget: one probe per family;
-    /// `gas_<family>` − `gas_sleeping_body`).
-    #[inline(never)]
-    fn sleeping_body() -> RigidBody {
-        let mut body = RigidBodyTrait::dynamic(opaque(at(ZERO, ZERO)));
-        body.sleep();
-        body
-    }
-
-    #[test]
-    fn gas_sleeping_body() {
-        let _ = sleeping_body();
-    }
-
-    /// `is_sleeping` then a strong `wake_up`.
-    #[test]
-    fn gas_wake_up() {
-        let mut body = sleeping_body();
-        let _ = opaque(body.is_sleeping());
-        body.wake_up(opaque(true));
-    }
-
-    /// `add_force`, `add_torque`, `add_force_at_point`, `reset_forces`, `reset_torques`.
-    #[test]
-    fn gas_forces() {
-        let mut body = sleeping_body();
-        let f = opaque(Vec2 { x: ONE, y: ZERO });
-        body.add_force(f, true);
-        body.add_torque(ONE, true);
-        body.add_force_at_point(f, Vec2 { x: ZERO, y: ONE }, true);
-        body.reset_forces(true);
-        body.reset_torques(true);
-    }
-
-    /// `apply_impulse`, `apply_torque_impulse`, `apply_impulse_at_point`.
-    #[test]
-    fn gas_impulses() {
-        let mut body = sleeping_body();
-        let i = opaque(Vec2 { x: ONE, y: ZERO });
-        body.apply_impulse(i, true);
-        body.apply_torque_impulse(ONE, true);
-        body.apply_impulse_at_point(i, Vec2 { x: ZERO, y: ONE }, true);
-    }
-}
+mod tests;
