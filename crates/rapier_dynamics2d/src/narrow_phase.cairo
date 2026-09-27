@@ -60,7 +60,10 @@
 //! dispatch) is documented in `rapier_geometry2d`. Moving the previous manifold's unboxing next
 //! to the dispatcher call changes nothing (the compiler copies the same values).
 //!
-//! Deviations from upstream: one manifold per pair (every supported shape is convex); no
+//! Composite pairs (a polyline or a heightfield, SH2a) are groups of entries, one per manifold,
+//! with collision events per collider pair: see [`composite`].
+//!
+//! Deviations from upstream: one manifold per entry (a composite pair is a group of entries); no
 //! contact skin, no velocity-based speculative contacts (upstream also keeps a point beyond
 //! `prediction` when the bodies approach it within `dt`), no solver-contact modification hooks,
 //! no contact recycling; force events are collected by the world; an unsupported pair
@@ -104,6 +107,10 @@ mod alternatives;
 #[cfg(test)]
 mod benches;
 
+pub mod composite;
+use composite::composite_pair_step;
+pub mod process;
+pub use process::{pair_transition, previous_state, process_pair, update_manifold};
 pub mod intersections;
 #[cfg(test)]
 pub(crate) mod mock;
@@ -501,7 +508,21 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
         let supported = D::contact_manifold(
             pair_pose(co1, co2), co1.shape, co2.shape, prediction, ref manifold,
         );
-        let manifold = solver_data(prediction, co1, co2, manifold, supported);
+        // `solver_data` spelled out: a composite pair (unsupported by the dispatcher) leaves from
+        // the unsupported branch with its group of manifolds (`composite`).
+        if !supported {
+            if let Some((group, event, skip)) =
+                composite_pair_step(prediction, co1, co2, previous, cursor, ref manifold) {
+                current.append_span(group);
+                if let Some(event) = event {
+                    transitions.append(event);
+                }
+                cursor += skip;
+                continue;
+            }
+            manifold.num_points = 0;
+        }
+        let manifold = solver_data_supported(prediction, co1, co2, manifold);
         let has_contact = manifold.data.num_solver_contacts != 0;
         let mut event_status = status;
         if has_contact != had_contact && events_on(co1, co2) {
@@ -591,60 +612,6 @@ pub fn dropped_events(
     events
 }
 
-/// Upstream `process_pair` for one pair of solid colliders: filters, manifold update, solver
-/// data, event transition. Returns the new pair and its event, if any. The pair loop
-/// ([`compute_contacts_from_scratch`]) runs the same composition inlined.
-pub fn process_pair<impl D: ContactDispatcher>(
-    prediction: Fixed, co1: PairCollider, co2: PairCollider, previous: Option<ContactPair>,
-) -> (ContactPair, Option<CollisionEvent>) {
-    let (manifold, status) = previous_state(previous);
-    let had_contact = manifold.data.num_solver_contacts != 0;
-    let manifold = if pair_filtered(co1, co2) {
-        Default::default()
-    } else {
-        update_manifold::<D>(prediction, co1, co2, manifold)
-    };
-    pair_transition(co1, co2, manifold, status, had_contact)
-}
-
-/// The manifold and event status carried over from `previous`: a default manifold and no
-/// event emitted for a new pair.
-#[inline(always)]
-pub fn previous_state(previous: Option<ContactPair>) -> (ContactManifold, PairEventStatus) {
-    match previous {
-        Some(pair) => (pair.manifold, pair.event_status),
-        None => (Default::default(), PairEventStatusTrait::empty()),
-    }
-}
-
-/// The pair built from its new `manifold`, with its `Started` / `Stopped` transition: emitted
-/// when the "has a solver contact" state differs from `had_contact` and either collider has
-/// `COLLISION_EVENTS`.
-#[inline(always)]
-pub fn pair_transition(
-    co1: PairCollider,
-    co2: PairCollider,
-    manifold: ContactManifold,
-    status: PairEventStatus,
-    had_contact: bool,
-) -> (ContactPair, Option<CollisionEvent>) {
-    let mut pair = ContactPair {
-        collider1: co1.handle, collider2: co2.handle, manifold, event_status: status,
-    };
-    let has_contact = manifold.data.num_solver_contacts != 0;
-    let mut event = None;
-    if has_contact != had_contact && events_on(co1, co2) {
-        if has_contact {
-            pair.event_status.bits = pair.event_status.bits | START_EVENT_EMITTED.bits;
-            event = Some(started(co1.handle, co2.handle));
-        } else {
-            pair.event_status.bits = pair.event_status.bits & 252;
-            event = Some(stopped(co1.handle, co2.handle, CollisionEventFlagsTrait::empty()));
-        }
-    }
-    (pair, event)
-}
-
 /// Upstream's filters, in order: same parent body, `ActiveCollisionTypes` (neither collider
 /// accepts the pair of body types), collision groups.
 #[inline(always)]
@@ -695,17 +662,6 @@ fn transform(p: Pose2, l: Vec2) -> Vec2 {
     }
 }
 
-/// Runs the dispatcher on `manifold` (the previous one) and rebuilds its solver data.
-pub fn update_manifold<impl D: ContactDispatcher>(
-    prediction: Fixed, co1: PairCollider, co2: PairCollider, manifold: ContactManifold,
-) -> ContactManifold {
-    let mut manifold = manifold;
-    let supported = D::contact_manifold(
-        pair_pose(co1, co2), co1.shape, co2.shape, prediction, ref manifold,
-    );
-    solver_data(prediction, co1, co2, manifold, supported)
-}
-
 /// The solver data of `manifold`, which the dispatcher just updated (`supported == false`
 /// clears its points): bodies, solver flags, combined friction and restitution, relative
 /// dominance, world normal, and one solver contact per point at `dist < prediction`.
@@ -721,6 +677,15 @@ pub fn solver_data(
     if !supported {
         manifold.num_points = 0;
     }
+    solver_data_supported(prediction, co1, co2, manifold)
+}
+
+/// [`solver_data`] of a manifold the dispatcher supported (its points are kept).
+#[inline(always)]
+pub fn solver_data_supported(
+    prediction: Fixed, co1: PairCollider, co2: PairCollider, manifold: ContactManifold,
+) -> ContactManifold {
+    let mut manifold = manifold;
     manifold.data.rigid_body1 = co1.body;
     manifold.data.rigid_body2 = co2.body;
     manifold
