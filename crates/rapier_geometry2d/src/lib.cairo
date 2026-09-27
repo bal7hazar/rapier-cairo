@@ -38,6 +38,7 @@ pub use query::{
     cast_shapes_nonlinear,
 };
 pub use ray::RayCast;
+pub use shape::compound::{Compound, CompoundTrait};
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub use shape::heightfield::{HeightField, HeightFieldCellStatus, HeightFieldTrait};
 pub use shape::polygonal_feature_map::PolygonalFeatureMap;

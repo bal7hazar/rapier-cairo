@@ -3,6 +3,15 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## Unreleased
+
+**Results:** `World::step` is unchanged since `0.1.0-alpha.5` for worlds without compound shapes (same results, same
+Cairo steps); composite pairs pay +170 to +235 steps per step (≈ 0.15 %).
+
+### Added
+- `Compound` shapes (posed convex parts) with every query, per-part contact manifolds against every supported shape,
+  mass properties (`MassPropertiesTrait::from_compound`), CCD, `ColliderBuilder::compound` (ADR 0001 entry 36) (#187).
+
 ## 0.1.0-alpha.5 — 2026-09-27
 
 **Results:** `World::step` is unchanged since `0.1.0-alpha.4` (same results, same Cairo steps).
