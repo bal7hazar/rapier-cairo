@@ -1,5 +1,6 @@
 //! Rejected candidates of `super::support_map`, kept for the `gas_*` ranking of `super::tests`.
 
+use fixed::wide::dot2;
 use fixed::{Fixed, MAX, ZERO};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::consts::GJK_EPS_TOL;
@@ -9,8 +10,8 @@ use rapier_math::rot2::Rot2Trait;
 use crate::point::wide2::dot_wide;
 use crate::ray::quotient::div_wide;
 use crate::shape::{Segment, Shape};
-use super::support_map::{CsoCast, CsoFace, classify, cso_faces};
-use super::super::support_map::{Core, core_witness, local_core, transformed};
+use super::support_map::{CsoCast, CsoFace, classify, cso_faces, in_slab};
+use super::super::support_map::{Core, Witness, core_witness, local_core, transformed};
 use super::{ShapeCastHit, ShapeCastOptions, ShapeCastStatus};
 
 /// Step bound of [`cast_conservative_advancement`].
@@ -131,4 +132,41 @@ pub fn cso_cast_clipped(
         return CsoCast::Miss;
     }
     classify(face, t_in, radius, dir)
+}
+
+/// `super::support_map::on_face` without choosing the face by its direction: every face of core1
+/// is tested with core2's point, then every face of core2 with core1's (same answers: the outer
+/// slabs of a convex core's faces are disjoint).
+pub fn on_face_every_face(core1: Core, core2: Core, w: Witness) -> Witness {
+    let (r1, r2) = (core1.radius, core2.radius);
+    if w.dist + r1 + r2 <= ZERO {
+        return w;
+    }
+    let n = w.normal1;
+    let p1 = w.point1 - n.mul_scalar(r1);
+    let p2 = w.point2 + n.mul_scalar(r2);
+    let mut normal: Option<Vec2> = None;
+    let mut faces = core1.faces;
+    for u in core1.axes {
+        let f = *faces.pop_front().unwrap();
+        let d = p2 - f.a;
+        if normal.is_none() && in_slab(*u, f, p2, dot2(d.x, *u.x, d.y, *u.y)) {
+            normal = Some(*u);
+        }
+    }
+    let mut faces = core2.faces;
+    for w2 in core2.axes {
+        let f = *faces.pop_front().unwrap();
+        let m = -*w2;
+        let d = f.a - p1;
+        if normal.is_none() && in_slab(m, f, p1, dot2(d.x, m.x, d.y, m.y)) {
+            normal = Some(m);
+        }
+    }
+    match normal {
+        Some(m) => Witness {
+            point1: p1 + m.mul_scalar(r1), point2: p2 - m.mul_scalar(r2), normal1: m, dist: w.dist,
+        },
+        None => w,
+    }
 }

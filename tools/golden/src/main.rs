@@ -9,6 +9,7 @@ mod aabb_overlap;
 mod cairo;
 mod ccd_scenes;
 mod clip2d;
+mod cn1;
 mod intersection_tests;
 mod jsonfmt;
 mod kc1;

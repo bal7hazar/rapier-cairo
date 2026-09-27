@@ -31,16 +31,8 @@ use rapier_math::rot2::Rot2;
 /// Raw ulps allowed on the PD / PID outputs (measured maximum: 38).
 pub const PID_TOL: u64 = 64;
 /// Raw ulps allowed on the character's translations, times of impact, normals and witness depths
-/// (measured maximum: 900, a cuboid–cuboid start normal, about 2e-7).
-pub const MOVE_TOL: u64 = 2048;
-/// The upstream normal nudge of every case (`1e-4`).
-const NUDGE: i64 = 429497;
-/// The case where the port meets the ground once more than upstream: after the wall, the move
-/// left is exactly parallel to the ground, within the offset. Upstream's contact normal is exactly
-/// `(0, 1)` and `normal · velocity >= 0` drops the hit (`stop_at_penetration = false`); the port's
-/// ball–cuboid start normal is `(10 or 20 raw, 1)`, so the move counts as a hit at `t = 0` and
-/// slides with one more nudge (`1e-4` up). A CC1 kernel precision matter (see the KC1 REPORT).
-const KNOWN_EXTRA_GROUND_HIT: felt252 = 'wall_slide';
+/// (measured maximum: 3 since CN1's exact start normals, 900 before).
+pub const MOVE_TOL: u64 = 64;
 /// Raw ulps allowed on the pushed box's velocities (measured maximum: 2,807 on 22 rad/s).
 pub const PUSH_TOL: u64 = 8192;
 
@@ -237,25 +229,13 @@ fn test_character_moves_golden() {
         let mut events: Array<CharacterCollision> = array![];
         let movement = ctrl
             .move_shape(f(dt), ref world, queries, shape, pose(p), vr(desired), ref events);
-        // Known divergence (`KNOWN_EXTRA_GROUND_HIT`): one more ground event at the end, and its
-        // nudge.
-        let known = id == KNOWN_EXTRA_GROUND_HIT;
-        let mut expected = vr(translation);
-        let mut count = count;
-        if known {
-            expected.y = expected.y + f(NUDGE);
-            count += 1;
-        }
+        let expected = vr(translation);
         judge(id, 'translation x', movement.translation.x, expected.x.raw, MOVE_TOL, ref worst);
         judge(id, 'translation y', movement.translation.y, expected.y.raw, MOVE_TOL, ref worst);
         assert!(movement.grounded == grounded, "{} grounded", id);
         assert!(movement.is_sliding_down_slope == sliding, "{} sliding", id);
         assert!(events.len() == count, "{} collisions: {} vs {}", id, events.len(), count);
-        let mut events = events.span();
-        if known {
-            let extra = events.pop_back().unwrap();
-            assert!(*extra.handle.index == 0 && *extra.hit.time_of_impact == f(0), "{} extra", id);
-        }
+        let events = events.span();
         for event in events {
             let (c, collider, toi, normal1, witness1, applied, remaining) = *hits
                 .pop_front()

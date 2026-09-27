@@ -36,5 +36,5 @@ rapier2d::queries::shape_casts::tests::gas_cast_shape_nonlinear_20 94374620
 rapier2d::queries::shape_casts::tests::gas_cast_shape_nonlinear_direct_20 160899710
 rapier2d::queries::shape_casts::tests::gas_setup_20 1031800
 rapier2d::queries::shape_casts::tests::test_cast_shape_frames_filter_and_ties 19542734
-rapier2d::queries::shape_casts::tests::test_cast_shape_matches_direct 186392070
+rapier2d::queries::shape_casts::tests::test_cast_shape_matches_direct 186415310
 rapier2d::queries::shape_casts::tests::test_cast_shape_nonlinear_matches_direct 620280430
