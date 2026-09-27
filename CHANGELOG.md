@@ -3,12 +3,17 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
-## Unreleased
+## 0.1.0-alpha.6 — 2026-09-27
 
 **Results: numeric change** (a MINOR bump by the versioning policy once out of alpha): contacts whose gap closes exactly
 now solve rigidly as upstream (SF1, below), so worlds with resting or landing contacts give different — closer to
 rapier-rs — trajectories than `0.1.0-alpha.5`; regenerate goldens. Cairo steps −0.20 % to +0.07 % from it; composite
 pairs pay +170 to +235 steps per step (≈ 0.15 %).
+
+### Measured
+- `WorldState` round trips of the old shapes cost ≈ +15 Cairo steps per shape more than at `0.1.0-alpha.4`: the
+  price of the 13-variant `Shape` enum, not of the dispatch shape (four candidates tie, the variant order does not
+  matter); serialized bytes unchanged (#195).
 
 ### Changed (numeric)
 - Contact generation rebases each frozen contact separation on the floored round trip of its anchors, as upstream
