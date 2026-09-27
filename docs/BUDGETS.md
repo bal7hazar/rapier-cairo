@@ -8,6 +8,12 @@ Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 1
 linear scan from ~50 parts (1.87M vs 2.13M gas at 50, 6.80M vs 8.20M at 200). Existing pairs pay +2 steps per pair per
 step for the group check (level windows +107 to +139 steps on ≈ 2M).
 
+## SF1 #191 (contact-separation rebase, 2026-09-27; results change)
+
+Exact Cairo steps, before → after: `cuboid_stack10` 421,484 → 421,780; `mixed_pile8` 403,413 → 402,755;
+`impact_level10` 2,685,306 → 2,685,623; `steps_game_*` +30 to +317 (≤ +0.03 %); free fall and joints unchanged. The
+rebase costs 137 / 172 steps per manifold (ground / body pairs) and seeds the first substep's separations.
+
 ## Game-shaped path (RG1 #189, 2026-09-27)
 
 `crates/rapier2d/tests/game_path.cairo`, level 10, 30 ticks, force events on (exact Cairo steps): alpha.4 → alpha.5 →

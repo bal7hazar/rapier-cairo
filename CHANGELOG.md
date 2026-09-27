@@ -5,8 +5,16 @@ whether simulation results changed.
 
 ## Unreleased
 
-**Results:** `World::step` is unchanged since `0.1.0-alpha.5` for worlds without compound shapes (same results, same
-Cairo steps); composite pairs pay +170 to +235 steps per step (≈ 0.15 %).
+**Results: numeric change** (a MINOR bump by the versioning policy once out of alpha): contacts whose gap closes exactly
+now solve rigidly as upstream (SF1, below), so worlds with resting or landing contacts give different — closer to
+rapier-rs — trajectories than `0.1.0-alpha.5`; regenerate goldens. Cairo steps −0.20 % to +0.07 % from it; composite
+pairs pay +170 to +235 steps per step (≈ 0.15 %).
+
+### Changed (numeric)
+- Contact generation rebases each frozen contact separation on the floored round trip of its anchors, as upstream
+  rebases its separation exactly: an exactly closed gap no longer comes out ≈ 1 raw negative and takes the soft side
+  of the `dist <= 0` switch. Fixes the drift on tilted landings and slides (`box_slope_slide` step 4: 26 184 → 5 ulps;
+  `ell_topple`, `tilted_landing/ell_twin` within bands); force events unchanged on the game's reference shot (#191).
 
 ### Performance (Cairo steps)
 - Force-event worlds step below `0.1.0-alpha.4` again: `0.1.0-alpha.5`'s force-event collect paid a composite-group

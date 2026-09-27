@@ -116,6 +116,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `compound_contacts.json` | 93 | `<compound>_<shape>/<regime>` | **SH2b** contact manifolds (one per part pair, both sub-shape ids) of a compound against the convex shapes, the half-space, the SH2a composites and another compound, plus `intersection_test` and `distance`, see [SH2b families](#sh2b-families) |
 | `compound_queries.json` | 18 + 15 + 36 + 12 | `<compound>/<what>`, `<compound>_<shape>/<regime>` | **SH2b** point projections, ray casts, shape-pair queries and AABBs / bounding spheres / mass properties of the compounds |
 | `compound_scenes.json` | 150 + 90 + 90 steps | `<scene>` | **SH2b** an L toppling on a half-space, an L across a polyline vertex, a three-part compound over a heightfield: samples, manifolds with contacts, collision events |
+| `tilted_landing.json` | 1 scene × 90 steps | `ell_twin` | **SF1** SH2b's tall L built from two plain cuboid colliders on one body, landing tilted on a half-space (the contact-separation rebase, see the SF1 update in the slope section); stops at 90 steps because upstream solves a new pair first at step 94 (persisted graph order, the SO / DO class) |
 
 ### contact_manifolds
 
@@ -320,6 +321,14 @@ tolerance unchanged.
 Reproduce with `snforge test -p rapier2d slope_diagnostics`: the engine mode traces the pair with
 the public constraint API and asserts the pipeline solve reproduces it bit for bit; the zero-gap
 counterfactual writes the traced state back. There are no production engine edits.
+
+**SF1 update (#191): it was a port defect.** The "exactly `0`" gap came from the port, not from a tie:
+contact generation froze `sc.dist` without rebasing it on the floored round trip of the anchors
+(stored as `Rᵀ·dp`, rebuilt as `R·l + t`), so an exactly closed gap came out ≈ 1 raw low and took the
+soft side of the `dist <= 0` switch, where upstream (which rebases the separation exactly) sees
++1.26 raw and solves rigidly. With the rebase, `box_slope_slide` passes every sample (step 4: 5 / 1
+translation ulps) and is no longer ignored; SH2b's `ell_topple` and SF1's `tilted_landing/ell_twin`
+pass too.
 
 **First response, step 3.** Steps 1–2 already have two speculative manifold points;
 step 3 is the first step with nonzero impulse. Both materials have the same initial
