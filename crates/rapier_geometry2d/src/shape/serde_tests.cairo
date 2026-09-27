@@ -129,9 +129,9 @@ fn round_trip(shapes: Span<Shape>, candidate: Candidate) -> Array<Shape> {
     let mut out: Array<felt252> = array![];
     for shape in shapes {
         match candidate {
-            Candidate::Mixed => mixed::serialize(shape, ref out),
-            Candidate::TwoLevel => two_level::serialize(shape, ref out),
-            Candidate::SingleMatch => single_match::serialize(shape, ref out),
+            Candidate::Mixed => mixed_serialize(shape, ref out),
+            Candidate::TwoLevel => two_level_serialize(shape, ref out),
+            Candidate::SingleMatch => single_match_serialize(shape, ref out),
         }
     }
     let mut span = out.span();
@@ -139,11 +139,7 @@ fn round_trip(shapes: Span<Shape>, candidate: Candidate) -> Array<Shape> {
     let n = shapes.len();
     let mut i = 0;
     while i != n {
-        let shape = match candidate {
-            Candidate::Mixed => mixed::deserialize(ref span),
-            Candidate::TwoLevel => two_level::deserialize(ref span),
-            Candidate::SingleMatch => single_match::deserialize(ref span),
-        };
+        let shape = single_match_deserialize(ref span);
         result.append(shape.unwrap());
         i += 1;
     }
@@ -161,249 +157,222 @@ enum Candidate {
 /// next to three call arms for the SH2a / SH2b payloads only (the SH1 payloads stayed inlined).
 /// Tied with the shipped `flat` on `steps_game_serde_trips` (see the module doc); kept because the
 /// ranking can flip between compiler versions (AGENTS §2).
-mod mixed {
-    use super::{
-        BoxedCompoundSerde, BoxedConvexPolygonSerde, BoxedHeightFieldSerde, BoxedPolylineSerde,
-        BoxedRoundConvexPolygonShapeSerde, BoxedRoundTriangleSerde, BoxedTriangleSerde, Shape,
-    };
+fn mixed_serialize(shape: @Shape, ref output: Array<felt252>) {
+    match shape {
+        Shape::Ball(x) => {
+            Serde::serialize(@0, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Triangle(x) => {
+            Serde::serialize(@6, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundCuboid(x) => {
+            Serde::serialize(@7, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundTriangle(x) => {
+            Serde::serialize(@8, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundConvexPolygon(x) => {
+            Serde::serialize(@9, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Polyline(x) => mixed_serialize_polyline(x, ref output),
+        Shape::HeightField(x) => mixed_serialize_heightfield(x, ref output),
+        Shape::Compound(x) => mixed_serialize_compound(x, ref output),
+        Shape::Cuboid(x) => {
+            Serde::serialize(@1, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Capsule(x) => {
+            Serde::serialize(@2, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Segment(x) => {
+            Serde::serialize(@3, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::HalfSpace(x) => {
+            Serde::serialize(@4, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::ConvexPolygon(x) => {
+            Serde::serialize(@5, ref output);
+            Serde::serialize(x, ref output);
+        },
+    }
+}
 
-    pub fn serialize(shape: @Shape, ref output: Array<felt252>) {
-        match shape {
-            Shape::Ball(x) => {
-                Serde::serialize(@0, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Triangle(x) => {
-                Serde::serialize(@6, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundCuboid(x) => {
-                Serde::serialize(@7, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundTriangle(x) => {
-                Serde::serialize(@8, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundConvexPolygon(x) => {
-                Serde::serialize(@9, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Polyline(x) => serialize_polyline(x, ref output),
-            Shape::HeightField(x) => serialize_heightfield(x, ref output),
-            Shape::Compound(x) => serialize_compound(x, ref output),
-            Shape::Cuboid(x) => {
-                Serde::serialize(@1, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Capsule(x) => {
-                Serde::serialize(@2, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Segment(x) => {
-                Serde::serialize(@3, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::HalfSpace(x) => {
-                Serde::serialize(@4, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::ConvexPolygon(x) => {
-                Serde::serialize(@5, ref output);
-                Serde::serialize(x, ref output);
-            },
-        }
-    }
-
-    #[inline(never)]
-    fn serialize_polyline(x: @Box<crate::shape::polyline::Polyline>, ref output: Array<felt252>) {
-        Serde::serialize(@10, ref output);
-        Serde::serialize(x, ref output);
-    }
-    #[inline(never)]
-    fn serialize_heightfield(
-        x: @Box<crate::shape::heightfield::HeightField>, ref output: Array<felt252>,
-    ) {
-        Serde::serialize(@11, ref output);
-        Serde::serialize(x, ref output);
-    }
-    #[inline(never)]
-    fn serialize_compound(x: @Box<crate::shape::compound::Compound>, ref output: Array<felt252>) {
-        Serde::serialize(@12, ref output);
-        Serde::serialize(x, ref output);
-    }
-
-    pub fn deserialize(ref serialized: Span<felt252>) -> Option<Shape> {
-        super::single_match::deserialize(ref serialized)
-    }
+#[inline(never)]
+fn mixed_serialize_polyline(x: @Box<crate::shape::polyline::Polyline>, ref output: Array<felt252>) {
+    Serde::serialize(@10, ref output);
+    Serde::serialize(x, ref output);
+}
+#[inline(never)]
+fn mixed_serialize_heightfield(
+    x: @Box<crate::shape::heightfield::HeightField>, ref output: Array<felt252>,
+) {
+    Serde::serialize(@11, ref output);
+    Serde::serialize(x, ref output);
+}
+#[inline(never)]
+fn mixed_serialize_compound(x: @Box<crate::shape::compound::Compound>, ref output: Array<felt252>) {
+    Serde::serialize(@12, ref output);
+    Serde::serialize(x, ref output);
 }
 
 /// `serialize`'s top match keeps exactly the six old arms it had at `0.1.0-alpha.4` (the derived
 /// shape) plus one wildcard, out of line, as `deserialize` (unchanged everywhere) already does on
 /// the tag side. Tied with the shipped `flat` on `steps_game_serde_trips`.
-mod two_level {
-    use super::{
-        BoxedCompoundSerde, BoxedConvexPolygonSerde, BoxedHeightFieldSerde, BoxedPolylineSerde,
-        BoxedRoundConvexPolygonShapeSerde, BoxedRoundTriangleSerde, BoxedTriangleSerde, Shape,
-    };
-
-    pub fn serialize(shape: @Shape, ref output: Array<felt252>) {
-        match shape {
-            Shape::Ball(x) => {
-                Serde::serialize(@0, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Cuboid(x) => {
-                Serde::serialize(@1, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Capsule(x) => {
-                Serde::serialize(@2, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Segment(x) => {
-                Serde::serialize(@3, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::HalfSpace(x) => {
-                Serde::serialize(@4, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::ConvexPolygon(x) => {
-                Serde::serialize(@5, ref output);
-                Serde::serialize(x, ref output);
-            },
-            _ => serialize_new(shape, ref output),
-        }
+fn two_level_serialize(shape: @Shape, ref output: Array<felt252>) {
+    match shape {
+        Shape::Ball(x) => {
+            Serde::serialize(@0, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Cuboid(x) => {
+            Serde::serialize(@1, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Capsule(x) => {
+            Serde::serialize(@2, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Segment(x) => {
+            Serde::serialize(@3, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::HalfSpace(x) => {
+            Serde::serialize(@4, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::ConvexPolygon(x) => {
+            Serde::serialize(@5, ref output);
+            Serde::serialize(x, ref output);
+        },
+        _ => two_level_serialize_new(shape, ref output),
     }
+}
 
-    #[inline(never)]
-    fn serialize_new(shape: @Shape, ref output: Array<felt252>) {
-        match shape {
-            Shape::Triangle(x) => {
-                Serde::serialize(@6, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundCuboid(x) => {
-                Serde::serialize(@7, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundTriangle(x) => {
-                Serde::serialize(@8, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundConvexPolygon(x) => {
-                Serde::serialize(@9, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Polyline(x) => {
-                Serde::serialize(@10, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::HeightField(x) => {
-                Serde::serialize(@11, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Compound(x) => {
-                Serde::serialize(@12, ref output);
-                Serde::serialize(x, ref output);
-            },
-            _ => {},
-        }
-    }
-
-    pub fn deserialize(ref serialized: Span<felt252>) -> Option<Shape> {
-        super::single_match::deserialize(ref serialized)
+#[inline(never)]
+fn two_level_serialize_new(shape: @Shape, ref output: Array<felt252>) {
+    match shape {
+        Shape::Triangle(x) => {
+            Serde::serialize(@6, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundCuboid(x) => {
+            Serde::serialize(@7, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundTriangle(x) => {
+            Serde::serialize(@8, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundConvexPolygon(x) => {
+            Serde::serialize(@9, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Polyline(x) => {
+            Serde::serialize(@10, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::HeightField(x) => {
+            Serde::serialize(@11, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Compound(x) => {
+            Serde::serialize(@12, ref output);
+            Serde::serialize(x, ref output);
+        },
+        _ => {},
     }
 }
 
 /// Every arm inlined, none out of line: the fully-derived shape a thirteen-variant enum would get.
 /// Rejected: +45 Cairo steps on `steps_game_serde_trips` relative to the shipped `flat` / `mixed` /
-/// `two_level` (all three of which tie).
-mod single_match {
-    use super::{
-        BoxedCompoundSerde, BoxedConvexPolygonSerde, BoxedHeightFieldSerde, BoxedPolylineSerde,
-        BoxedRoundConvexPolygonShapeSerde, BoxedRoundTriangleSerde, BoxedTriangleSerde, Shape,
-    };
-
-    pub fn serialize(shape: @Shape, ref output: Array<felt252>) {
-        match shape {
-            Shape::Ball(x) => {
-                Serde::serialize(@0, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Triangle(x) => {
-                Serde::serialize(@6, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundCuboid(x) => {
-                Serde::serialize(@7, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundTriangle(x) => {
-                Serde::serialize(@8, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundConvexPolygon(x) => {
-                Serde::serialize(@9, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Polyline(x) => {
-                Serde::serialize(@10, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::HeightField(x) => {
-                Serde::serialize(@11, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Compound(x) => {
-                Serde::serialize(@12, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Cuboid(x) => {
-                Serde::serialize(@1, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Capsule(x) => {
-                Serde::serialize(@2, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Segment(x) => {
-                Serde::serialize(@3, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::HalfSpace(x) => {
-                Serde::serialize(@4, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::ConvexPolygon(x) => {
-                Serde::serialize(@5, ref output);
-                Serde::serialize(x, ref output);
-            },
-        }
+/// `two_level` (all three of which tie). Its `deserialize` doubles as the reference for all three
+/// candidates: they serialize differently but agree on the wire, so one `match` on the tag reads
+/// any of them back.
+fn single_match_serialize(shape: @Shape, ref output: Array<felt252>) {
+    match shape {
+        Shape::Ball(x) => {
+            Serde::serialize(@0, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Triangle(x) => {
+            Serde::serialize(@6, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundCuboid(x) => {
+            Serde::serialize(@7, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundTriangle(x) => {
+            Serde::serialize(@8, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::RoundConvexPolygon(x) => {
+            Serde::serialize(@9, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Polyline(x) => {
+            Serde::serialize(@10, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::HeightField(x) => {
+            Serde::serialize(@11, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Compound(x) => {
+            Serde::serialize(@12, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Cuboid(x) => {
+            Serde::serialize(@1, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Capsule(x) => {
+            Serde::serialize(@2, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::Segment(x) => {
+            Serde::serialize(@3, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::HalfSpace(x) => {
+            Serde::serialize(@4, ref output);
+            Serde::serialize(x, ref output);
+        },
+        Shape::ConvexPolygon(x) => {
+            Serde::serialize(@5, ref output);
+            Serde::serialize(x, ref output);
+        },
     }
+}
 
-    pub fn deserialize(ref serialized: Span<felt252>) -> Option<Shape> {
-        let idx: felt252 = Serde::deserialize(ref serialized)?;
-        Some(
-            match idx {
-                0 => Shape::Ball(Serde::deserialize(ref serialized)?),
-                1 => Shape::Cuboid(Serde::deserialize(ref serialized)?),
-                2 => Shape::Capsule(Serde::deserialize(ref serialized)?),
-                3 => Shape::Segment(Serde::deserialize(ref serialized)?),
-                4 => Shape::HalfSpace(Serde::deserialize(ref serialized)?),
-                5 => Shape::ConvexPolygon(Serde::deserialize(ref serialized)?),
-                6 => Shape::Triangle(Serde::deserialize(ref serialized)?),
-                7 => Shape::RoundCuboid(Serde::deserialize(ref serialized)?),
-                8 => Shape::RoundTriangle(Serde::deserialize(ref serialized)?),
-                9 => Shape::RoundConvexPolygon(Serde::deserialize(ref serialized)?),
-                10 => Shape::Polyline(Serde::deserialize(ref serialized)?),
-                11 => Shape::HeightField(Serde::deserialize(ref serialized)?),
-                12 => Shape::Compound(Serde::deserialize(ref serialized)?),
-                _ => { return None; },
-            },
-        )
-    }
+fn single_match_deserialize(ref serialized: Span<felt252>) -> Option<Shape> {
+    let idx: felt252 = Serde::deserialize(ref serialized)?;
+    Some(
+        match idx {
+            0 => Shape::Ball(Serde::deserialize(ref serialized)?),
+            1 => Shape::Cuboid(Serde::deserialize(ref serialized)?),
+            2 => Shape::Capsule(Serde::deserialize(ref serialized)?),
+            3 => Shape::Segment(Serde::deserialize(ref serialized)?),
+            4 => Shape::HalfSpace(Serde::deserialize(ref serialized)?),
+            5 => Shape::ConvexPolygon(Serde::deserialize(ref serialized)?),
+            6 => Shape::Triangle(Serde::deserialize(ref serialized)?),
+            7 => Shape::RoundCuboid(Serde::deserialize(ref serialized)?),
+            8 => Shape::RoundTriangle(Serde::deserialize(ref serialized)?),
+            9 => Shape::RoundConvexPolygon(Serde::deserialize(ref serialized)?),
+            10 => Shape::Polyline(Serde::deserialize(ref serialized)?),
+            11 => Shape::HeightField(Serde::deserialize(ref serialized)?),
+            12 => Shape::Compound(Serde::deserialize(ref serialized)?),
+            _ => { return None; },
+        },
+    )
 }
 
 /// The three candidates agree on every shape of the closed set, old and new, and their bytes match
@@ -422,11 +391,11 @@ fn test_candidates_agree_and_match_shipped() {
         let mut shipped: Array<felt252> = array![];
         Serde::serialize(shape, ref shipped);
         let mut mixed: Array<felt252> = array![];
-        mixed::serialize(shape, ref mixed);
+        mixed_serialize(shape, ref mixed);
         let mut two_level: Array<felt252> = array![];
-        two_level::serialize(shape, ref two_level);
+        two_level_serialize(shape, ref two_level);
         let mut single_match: Array<felt252> = array![];
-        single_match::serialize(shape, ref single_match);
+        single_match_serialize(shape, ref single_match);
         assert_eq!(shipped, mixed);
         assert_eq!(shipped, two_level);
         assert_eq!(shipped, single_match);
