@@ -151,3 +151,15 @@ pub mod SplitNarrowStep {
         world.into_state()
     }
 }
+
+#[starknet::contract]
+pub mod Echo {
+    #[storage]
+    struct Storage {}
+
+    /// `data` back: the fixed cost of a `library_call` and its cost per crossing felt.
+    #[external(v0)]
+    fn echo(self: @ContractState, data: Span<felt252>) -> Span<felt252> {
+        data
+    }
+}
