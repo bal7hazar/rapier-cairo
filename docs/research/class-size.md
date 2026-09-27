@@ -172,6 +172,24 @@ This gets the game's class to ≈ 180–198k CASM (2.2–2.4×), which is still 
 standalone executable remains the proof path (programme decision 2026-09-26). Keep the `bytecode` CI job as the budget
 that tracks CS2's progress.
 
+## 7. CS2 outcome (#193, 2026-09-27)
+
+`StepConfig` made the step generic over the dispatcher and the sensor / composite / joint strategies. Executable
+programs (`crates/rapier_sink/programs`, `program.*` in `gas/bytecode.size`), a game-shaped world:
+
+| program | felts | vs full |
+|---|--:|--:|
+| full (`DefaultStepConfig`) | 565,378 | |
+| **basic (`BasicStepConfig`)** | **231,196** | **−59.1 %** |
+| no joints | 399,172 | −29.4 % |
+| no composites | 502,402 | −11.1 % |
+| no sensors | 526,992 | −6.8 % |
+| basic dispatcher | 557,367 | −1.4 % |
+
+Results bit-identical, Cairo steps equal or lower (basic vs full −1,612 steps per step: the empty joint stages).
+Dispatch dedup, dropping `free_path` and `#[inline(never)]` levers stay deferred (they change steps). The contract
+class `GameStep` is unchanged at ≈ 603k CASM felts: the in-class path stays closed for the MVP.
+
 ## Appendix: throwaway protocol
 
 Each lever: `git archive HEAD` into `/tmp`, a Python patch, then `SCARB_PROFILE=release scarb build -p rapier_sink` and a
