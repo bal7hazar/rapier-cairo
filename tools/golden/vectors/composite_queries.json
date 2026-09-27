@@ -1,0 +1,4234 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "composite_queries",
+  "composites": [
+    {
+      "name": "vee",
+      "shape": {
+        "type": "polyline",
+        "vertices": [
+          { "f64": [-2.0, 1.0], "raw": [-8589934592, 4294967296] },
+          { "f64": [0.0, 0.0], "raw": [0, 0] },
+          { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] }
+        ],
+        "indices": null,
+        "oriented": false
+      }
+    },
+    {
+      "name": "bumps",
+      "shape": {
+        "type": "polyline",
+        "vertices": [
+          { "f64": [-5.0, 0.0], "raw": [-21474836480, 0] },
+          { "f64": [-4.0, 0.19999999995343387], "raw": [-17179869184, 858993459] },
+          { "f64": [-3.0, 0.0], "raw": [-12884901888, 0] },
+          { "f64": [-2.0, 0.30000000004656613], "raw": [-8589934592, 1288490189] },
+          { "f64": [-1.0, 0.10000000009313226], "raw": [-4294967296, 429496730] },
+          { "f64": [0.0, 0.0], "raw": [0, 0] },
+          { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+          { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+          { "f64": [3.0, 0.14999999990686774], "raw": [12884901888, 644245094] },
+          { "f64": [4.0, 0.0], "raw": [17179869184, 0] },
+          { "f64": [5.0, 0.0], "raw": [21474836480, 0] }
+        ],
+        "indices": null,
+        "oriented": false
+      }
+    },
+    {
+      "name": "flat",
+      "shape": {
+        "type": "heightfield",
+        "heights": [
+          { "f64": 0.0, "raw": 0 },
+          { "f64": 0.0, "raw": 0 },
+          { "f64": 0.0, "raw": 0 },
+          { "f64": 0.0, "raw": 0 },
+          { "f64": 0.0, "raw": 0 }
+        ],
+        "scale": { "f64": [8.0, 1.0], "raw": [34359738368, 4294967296] },
+        "removed": []
+      }
+    },
+    {
+      "name": "hills",
+      "shape": {
+        "type": "heightfield",
+        "heights": [
+          { "f64": 0.0, "raw": 0 },
+          { "f64": 0.5, "raw": 2147483648 },
+          { "f64": 0.19999999995343387, "raw": 858993459 },
+          { "f64": 0.8000000000465661, "raw": 3435973837 },
+          { "f64": 0.30000000004656613, "raw": 1288490189 },
+          { "f64": 0.0, "raw": 0 }
+        ],
+        "scale": { "f64": [10.0, 1.0], "raw": [42949672960, 4294967296] },
+        "removed": []
+      }
+    },
+    {
+      "name": "holed",
+      "shape": {
+        "type": "heightfield",
+        "heights": [
+          { "f64": 0.0, "raw": 0 },
+          { "f64": 0.5, "raw": 2147483648 },
+          { "f64": 0.19999999995343387, "raw": 858993459 },
+          { "f64": 0.8000000000465661, "raw": 3435973837 },
+          { "f64": 0.30000000004656613, "raw": 1288490189 },
+          { "f64": 0.0, "raw": 0 }
+        ],
+        "scale": { "f64": [10.0, 1.0], "raw": [42949672960, 4294967296] },
+        "removed": [2]
+      }
+    },
+    {
+      "name": "square",
+      "shape": {
+        "type": "polyline",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.0, 1.0], "raw": [4294967296, 4294967296] },
+          { "f64": [-1.0, 1.0], "raw": [-4294967296, 4294967296] }
+        ],
+        "indices": [[0, 1], [1, 2], [2, 3], [3, 0]],
+        "oriented": true
+      }
+    },
+    {
+      "name": "plain_square",
+      "shape": {
+        "type": "polyline",
+        "vertices": [
+          { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+          { "f64": [1.0, -1.0], "raw": [4294967296, -4294967296] },
+          { "f64": [1.0, 1.0], "raw": [4294967296, 4294967296] },
+          { "f64": [-1.0, 1.0], "raw": [-4294967296, 4294967296] }
+        ],
+        "indices": [[0, 1], [1, 2], [2, 3], [3, 0]],
+        "oriented": false
+      }
+    }
+  ],
+  "points": [
+    {
+      "id": "vee/p0",
+      "composite": 0,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.040000000037253, 0.5200000000186265], "raw": [4466765988, 2233382994] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.040000000037253, 0.5200000000186265], "raw": [4466765988, 2233382994] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [1.040000000037253, 0.5200000000186265], "raw": [4466765988, 2233382994] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 1.6546903033290195, "raw": 7106840738 },
+        "contains": false
+      }
+    },
+    {
+      "id": "vee/p1",
+      "composite": 0,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.5199999999254943, 0.7599999999627471], "raw": [-6528350290, 3264175145] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.5199999999254943, 0.7599999999627471], "raw": [-6528350290, 3264175145] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.5199999999254943, 0.7599999999627471], "raw": [-6528350290, 3264175145] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 0 },
+        "distance": { "f64": 0.40249223601243717, "raw": 1728690991 },
+        "contains": false
+      }
+    },
+    {
+      "id": "vee/p2",
+      "composite": 0,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature": { "kind": "face", "code": 0 },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "contains": false
+      }
+    },
+    {
+      "id": "vee/p3",
+      "composite": 0,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": { "point": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] }, "is_inside": false },
+        "projection_solid": {
+          "point": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 0.9433981132451484, "raw": 4051864043 },
+        "contains": false
+      }
+    },
+    {
+      "id": "vee/p4",
+      "composite": 0,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+          "is_inside": true
+        },
+        "feature_projection": {
+          "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+          "is_inside": true
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 0.0, "raw": 0 },
+        "contains": true
+      }
+    },
+    {
+      "id": "vee/p5",
+      "composite": 0,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 0.5590169943749475, "raw": 2400959709 },
+        "contains": false
+      }
+    },
+    {
+      "id": "bumps/p0",
+      "composite": 1,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.7529411765144152, 0.1882352941286038], "raw": [3233857729, 808464432] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.7529411765144152, 0.1882352941286038], "raw": [3233857729, 808464432] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.7529411765144152, 0.1882352941286038], "raw": [3233857729, 808464432] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 5 },
+        "distance": { "f64": 1.8675243127684698, "raw": 8020955848 },
+        "contains": false
+      }
+    },
+    {
+      "id": "bumps/p1",
+      "composite": 1,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.7307692306882911, 0.2461538461967614], "raw": [-7433597243, 1057222719] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.7307692306882911, 0.2461538461967614], "raw": [-7433597243, 1057222719] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.7307692306882911, 0.2461538461967614], "raw": [-7433597243, 1057222719] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 3 },
+        "distance": { "f64": 0.15689290797040048, "raw": 673849909 },
+        "contains": false
+      }
+    },
+    {
+      "id": "bumps/p2",
+      "composite": 1,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature": { "kind": "face", "code": 4 },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "contains": false
+      }
+    },
+    {
+      "id": "bumps/p3",
+      "composite": 1,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [2.518337408302074, 0.07775061119703718], "raw": [10816176809, 333936332] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [2.518337408302074, 0.07775061119703718], "raw": [10816176809, 333936332] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [2.518337408302074, 0.07775061119703718], "raw": [10816176809, 333936332] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 7 },
+        "distance": { "f64": 0.12361704411022612, "raw": 530931162 },
+        "contains": false
+      }
+    },
+    {
+      "id": "bumps/p4",
+      "composite": 1,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.1058823530397871, 0.026470588259946776], "raw": [454761244, 113690311] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.1058823530397871, 0.026470588259946776], "raw": [454761244, 113690311] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.1058823530397871, 0.026470588259946776], "raw": [454761244, 113690311] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 5 },
+        "distance": { "f64": 0.024253562526221187, "raw": 104168258 },
+        "contains": false
+      }
+    },
+    {
+      "id": "bumps/p5",
+      "composite": 1,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.11764705882352941, 0.029411764705882353], "raw": [505290270, 126322568] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.11764705882352941, 0.029411764705882353], "raw": [505290270, 126322568] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.11764705882352941, 0.029411764705882353], "raw": [505290270, 126322568] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 5 },
+        "distance": { "f64": 0.5457051563317492, "raw": 2343785800 },
+        "contains": false
+      }
+    },
+    {
+      "id": "flat/p0",
+      "composite": 2,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.30000000004656613, 0.0], "raw": [1288490189, 0] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 2.0, "raw": 8589934592 },
+        "contains": false
+      }
+    },
+    {
+      "id": "flat/p1",
+      "composite": 2,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.6999999999534339, 0.0], "raw": [-7301444403, 0] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.6999999999534339, 0.0], "raw": [-7301444403, 0] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.6999999999534339, 0.0], "raw": [-7301444403, 0] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.39999999990686774, "raw": 1717986918 },
+        "contains": false
+      }
+    },
+    {
+      "id": "flat/p2",
+      "composite": 2,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "contains": false
+      }
+    },
+    {
+      "id": "flat/p3",
+      "composite": 2,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": { "point": { "f64": [2.5, 0.0], "raw": [10737418240, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [2.5, 0.0], "raw": [10737418240, 0] }, "is_inside": false },
+        "feature_projection": { "point": { "f64": [2.5, 0.0], "raw": [10737418240, 0] }, "is_inside": false },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.19999999995343387, "raw": 858993459 },
+        "contains": false
+      }
+    },
+    {
+      "id": "flat/p4",
+      "composite": 2,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.05000000004656613, "raw": 214748365 },
+        "contains": false
+      }
+    },
+    {
+      "id": "flat/p5",
+      "composite": 2,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.25, 0.0], "raw": [1073741824, 0] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.25, 0.0], "raw": [1073741824, 0] }, "is_inside": false },
+        "feature_projection": { "point": { "f64": [0.25, 0.0], "raw": [1073741824, 0] }, "is_inside": false },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "contains": false
+      }
+    },
+    {
+      "id": "hills/p0",
+      "composite": 3,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.6880733945845787, 0.7064220184074145], "raw": [2955252727, 3034059466] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.6880733945845787, 0.7064220184074145], "raw": [2955252727, 3034059466] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.6880733945845787, 0.7064220184074145], "raw": [2955252727, 3034059466] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 1.3505350621177532, "raw": 5800503924 },
+        "contains": false
+      }
+    },
+    {
+      "id": "hills/p1",
+      "composite": 3,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.7139364302651527, 0.3070904645098294], "raw": [-7361300915, 1318943502] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.7139364302651527, 0.3070904645098294], "raw": [-7361300915, 1318943502] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.7139364302651527, 0.3070904645098294], "raw": [-7361300915, 1318943502] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.09394895346690625, "raw": 403507683 },
+        "contains": false
+      }
+    },
+    {
+      "id": "hills/p2",
+      "composite": 3,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.2752293578338314, 0.41743119263703415], "raw": [-1182101091, 1792853321] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-0.2752293578338314, 0.41743119263703415], "raw": [-1182101091, 1792853321] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-0.2752293578338314, 0.41743119263703415], "raw": [-1182101091, 1792853321] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.9578262852088756, "raw": 4113832570 },
+        "contains": false
+      }
+    },
+    {
+      "id": "hills/p3",
+      "composite": 3,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [2.552941176492502, 0.4117647059234409], "raw": [10964798862, 1768515946] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [2.552941176492502, 0.4117647059234409], "raw": [10964798862, 1768515946] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [2.552941176492502, 0.4117647059234409], "raw": [10964798862, 1768515946] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.2182820626230515, "raw": 937514320 },
+        "contains": false
+      }
+    },
+    {
+      "id": "hills/p4",
+      "composite": 3,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.03211009166326184, 0.49036697249952615], "raw": [-137911794, 2106110110] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-0.03211009166326184, 0.49036697249952615], "raw": [-137911794, 2106110110] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-0.03211009166326184, 0.49036697249952615], "raw": [-137911794, 2106110110] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.4597566168868795, "raw": 1974639634 },
+        "contains": false
+      }
+    },
+    {
+      "id": "hills/p5",
+      "composite": 3,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.045871559674572904, 0.486238532095492], "raw": [-197016849, 2088378593] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-0.045871559674572904, 0.486238532095492], "raw": [-197016849, 2088378593] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-0.045871559674572904, 0.486238532095492], "raw": [-197016849, 2088378593] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 1.0296632566106918, "raw": 4422370013 },
+        "contains": false
+      }
+    },
+    {
+      "id": "holed/p0",
+      "composite": 4,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 1.3892443988812948, "raw": 5966759259 },
+        "contains": false
+      }
+    },
+    {
+      "id": "holed/p1",
+      "composite": 4,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.7139364302651527, 0.3070904645098294], "raw": [-7361300915, 1318943502] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.7139364302651527, 0.3070904645098294], "raw": [-7361300915, 1318943502] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.7139364302651527, 0.3070904645098294], "raw": [-7361300915, 1318943502] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.09394895346690625, "raw": 403507683 },
+        "contains": false
+      }
+    },
+    {
+      "id": "holed/p2",
+      "composite": 4,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 1.2206555615466663, "raw": 5242675717 },
+        "contains": false
+      }
+    },
+    {
+      "id": "holed/p3",
+      "composite": 4,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [2.552941176492502, 0.4117647059234409], "raw": [10964798862, 1768515946] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [2.552941176492502, 0.4117647059234409], "raw": [10964798862, 1768515946] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [2.552941176492502, 0.4117647059234409], "raw": [10964798862, 1768515946] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 0.2182820626230515, "raw": 937514320 },
+        "contains": false
+      }
+    },
+    {
+      "id": "holed/p4",
+      "composite": 4,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 1.1101801656384205, "raw": 4768187504 },
+        "contains": false
+      }
+    },
+    {
+      "id": "holed/p5",
+      "composite": 4,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-0.9999999999999998, 0.19999999995343387], "raw": [-4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature": { "kind": "unknown", "code": 0 },
+        "distance": { "f64": 1.4326548781666877, "raw": 6153205848 },
+        "contains": false
+      }
+    },
+    {
+      "id": "square/p0",
+      "composite": 5,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 2 },
+        "distance": { "f64": 1.0, "raw": 4294967296 },
+        "contains": false
+      }
+    },
+    {
+      "id": "square/p1",
+      "composite": 5,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 3 },
+        "distance": { "f64": 0.6999999999534339, "raw": 3006477107 },
+        "contains": false
+      }
+    },
+    {
+      "id": "square/p2",
+      "composite": 5,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }, "is_inside": true },
+        "projection_solid": { "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] }, "is_inside": true },
+        "feature_projection": { "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }, "is_inside": true },
+        "feature": { "kind": "face", "code": 0 },
+        "distance": { "f64": -0.5, "raw": -2147483648 },
+        "contains": true
+      }
+    },
+    {
+      "id": "square/p3",
+      "composite": 5,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 1.5, "raw": 6442450944 },
+        "contains": false
+      }
+    },
+    {
+      "id": "square/p4",
+      "composite": 5,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0, 0.05000000004656613], "raw": [4294967296, 214748365] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+          "is_inside": true
+        },
+        "feature_projection": {
+          "point": { "f64": [1.0, 0.05000000004656613], "raw": [4294967296, 214748365] },
+          "is_inside": true
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": -0.8999999999068677, "raw": -3865470566 },
+        "contains": true
+      }
+    },
+    {
+      "id": "square/p5",
+      "composite": 5,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
+          "is_inside": true
+        },
+        "projection_solid": {
+          "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+          "is_inside": true
+        },
+        "feature_projection": {
+          "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
+          "is_inside": true
+        },
+        "feature": { "kind": "face", "code": 0 },
+        "distance": { "f64": -0.5, "raw": -2147483648 },
+        "contains": true
+      }
+    },
+    {
+      "id": "plain_square/p0",
+      "composite": 6,
+      "point": { "f64": [0.30000000004656613, 2.0], "raw": [1288490189, 8589934592] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 2 },
+        "distance": { "f64": 1.0, "raw": 4294967296 },
+        "contains": false
+      }
+    },
+    {
+      "id": "plain_square/p1",
+      "composite": 6,
+      "point": { "f64": [-1.6999999999534339, 0.39999999990686774], "raw": [-7301444403, 1717986918] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 3 },
+        "distance": { "f64": 0.6999999999534339, "raw": 3006477107 },
+        "contains": false
+      }
+    },
+    {
+      "id": "plain_square/p2",
+      "composite": 6,
+      "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+      "expected": {
+        "projection": { "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }, "is_inside": false },
+        "projection_solid": { "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }, "is_inside": false },
+        "feature_projection": {
+          "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 0 },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "contains": false
+      }
+    },
+    {
+      "id": "plain_square/p3",
+      "composite": 6,
+      "point": { "f64": [2.5, 0.19999999995343387], "raw": [10737418240, 858993459] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 1.5, "raw": 6442450944 },
+        "contains": false
+      }
+    },
+    {
+      "id": "plain_square/p4",
+      "composite": 6,
+      "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [1.0, 0.05000000004656613], "raw": [4294967296, 214748365] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [1.0, 0.05000000004656613], "raw": [4294967296, 214748365] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [1.0, 0.05000000004656613], "raw": [4294967296, 214748365] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 1 },
+        "distance": { "f64": 0.8999999999068677, "raw": 3865470566 },
+        "contains": false
+      }
+    },
+    {
+      "id": "plain_square/p5",
+      "composite": 6,
+      "point": { "f64": [0.25, -0.5], "raw": [1073741824, -2147483648] },
+      "expected": {
+        "projection": {
+          "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
+          "is_inside": false
+        },
+        "projection_solid": {
+          "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
+          "is_inside": false
+        },
+        "feature_projection": {
+          "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
+          "is_inside": false
+        },
+        "feature": { "kind": "face", "code": 0 },
+        "distance": { "f64": 0.5, "raw": 2147483648 },
+        "contains": false
+      }
+    }
+  ],
+  "rays": [
+    {
+      "id": "vee/down",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.849999999976717, "raw": 12240656794 },
+          "hit": {
+            "time_of_impact": { "f64": 2.849999999976717, "raw": 12240656794 },
+            "normal": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.849999999976717, "raw": 12240656794 },
+          "hit": {
+            "time_of_impact": { "f64": 2.849999999976717, "raw": 12240656794 },
+            "normal": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "vee/slant",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.181818181548791, "raw": 13665805032 },
+          "hit": {
+            "time_of_impact": { "f64": 3.181818181548791, "raw": 13665805032 },
+            "normal": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.181818181548791, "raw": 13665805032 },
+          "hit": {
+            "time_of_impact": { "f64": 3.181818181548791, "raw": 13665805032 },
+            "normal": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "vee/up",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.099999999976717, "raw": 9019431322 },
+          "hit": {
+            "time_of_impact": { "f64": 2.099999999976717, "raw": 9019431322 },
+            "normal": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.099999999976717, "raw": 9019431322 },
+          "hit": {
+            "time_of_impact": { "f64": 2.099999999976717, "raw": 9019431322 },
+            "normal": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "vee/miss",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "vee/posed",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.2591128605568453, "raw": 13997783150 },
+          "hit": {
+            "time_of_impact": { "f64": 3.2591128605568453, "raw": 13997783150 },
+            "normal": { "f64": [-0.059915260854159436, 0.9982034670415759], "raw": [-257334086, 4287251246] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.2591128605568453, "raw": 13997783150 },
+          "hit": {
+            "time_of_impact": { "f64": 3.2591128605568453, "raw": 13997783150 },
+            "normal": { "f64": [-0.059915260854159436, 0.9982034670415759], "raw": [-257334086, 4287251246] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps/down",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.9249999999883585, "raw": 12562779341 },
+          "hit": {
+            "time_of_impact": { "f64": 2.9249999999883585, "raw": 12562779341 },
+            "normal": { "f64": [-0.24253562503633297, 0.9701425001453319], "raw": [-1041682578, 4166730311] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.9249999999883585, "raw": 12562779341 },
+          "hit": {
+            "time_of_impact": { "f64": 2.9249999999883585, "raw": 12562779341 },
+            "normal": { "f64": [-0.24253562503633297, 0.9701425001453319], "raw": [-1041682578, 4166730311] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps/slant",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.2352941172925767, "raw": 13895482427 },
+          "hit": {
+            "time_of_impact": { "f64": 3.2352941172925767, "raw": 13895482427 },
+            "normal": { "f64": [-0.24253562503633297, 0.9701425001453319], "raw": [-1041682578, 4166730311] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.2352941172925767, "raw": 13895482427 },
+          "hit": {
+            "time_of_impact": { "f64": 3.2352941172925767, "raw": 13895482427 },
+            "normal": { "f64": [-0.24253562503633297, 0.9701425001453319], "raw": [-1041682578, 4166730311] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps/up",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0499999999883585, "raw": 8804682957 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0499999999883585, "raw": 8804682957 },
+            "normal": { "f64": [0.24253562503633297, -0.9701425001453319], "raw": [1041682578, -4166730311] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0499999999883585, "raw": 8804682957 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0499999999883585, "raw": 8804682957 },
+            "normal": { "f64": [0.24253562503633297, -0.9701425001453319], "raw": [1041682578, -4166730311] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps/miss",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "bumps/posed",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.324410419460711, "raw": 14278234030 },
+          "hit": {
+            "time_of_impact": { "f64": 3.324410419460711, "raw": 14278234030 },
+            "normal": { "f64": [-0.41134584657215795, 0.9114793440363195], "raw": [-1766716958, 3914773974] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.324410419460711, "raw": 14278234030 },
+          "hit": {
+            "time_of_impact": { "f64": 3.324410419460711, "raw": 14278234030 },
+            "normal": { "f64": [-0.41134584657215795, 0.9114793440363195], "raw": [-1766716958, 3914773974] },
+            "feature": { "kind": "face", "code": 1 }
+          }
+        }
+      }
+    },
+    {
+      "id": "flat/down",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.0, "raw": 12884901888 },
+          "hit": {
+            "time_of_impact": { "f64": 3.0, "raw": 12884901888 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 6 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.0, "raw": 12884901888 },
+          "hit": {
+            "time_of_impact": { "f64": 3.0, "raw": 12884901888 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 6 }
+          }
+        }
+      }
+    },
+    {
+      "id": "flat/slant",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.333333332815932, "raw": 14316557651 },
+          "hit": {
+            "time_of_impact": { "f64": 3.333333332815932, "raw": 14316557651 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 6 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.333333332815932, "raw": 14316557651 },
+          "hit": {
+            "time_of_impact": { "f64": 3.333333332815932, "raw": 14316557651 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 6 }
+          }
+        }
+      }
+    },
+    {
+      "id": "flat/up",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 2 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 2 }
+          }
+        }
+      }
+    },
+    {
+      "id": "flat/miss",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "flat/posed",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 3.347907980004369, "raw": 14379155284 },
+          "hit": {
+            "time_of_impact": { "f64": 3.347907980004369, "raw": 14379155284 },
+            "normal": { "f64": [0.5, -0.8660254038404673], "raw": [2147483648, -3719550787] },
+            "feature": { "kind": "face", "code": 5 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 3.347907980004369, "raw": 14379155284 },
+          "hit": {
+            "time_of_impact": { "f64": 3.347907980004369, "raw": 14379155284 },
+            "normal": { "f64": [0.5, -0.8660254038404673], "raw": [2147483648, -3719550787] },
+            "feature": { "kind": "face", "code": 5 }
+          }
+        }
+      }
+    },
+    {
+      "id": "hills/down",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.4099999999720607, "raw": 10350871183 },
+          "hit": {
+            "time_of_impact": { "f64": 2.4099999999720607, "raw": 10350871183 },
+            "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
+            "feature": { "kind": "face", "code": 7 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.4099999999720607, "raw": 10350871183 },
+          "hit": {
+            "time_of_impact": { "f64": 2.4099999999720607, "raw": 10350871183 },
+            "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
+            "feature": { "kind": "face", "code": 7 }
+          }
+        }
+      }
+    },
+    {
+      "id": "hills/slant",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.666666666407966, "raw": 11453246122 },
+          "hit": {
+            "time_of_impact": { "f64": 2.666666666407966, "raw": 11453246122 },
+            "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
+            "feature": { "kind": "face", "code": 7 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.666666666407966, "raw": 11453246122 },
+          "hit": {
+            "time_of_impact": { "f64": 2.666666666407966, "raw": 11453246122 },
+            "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
+            "feature": { "kind": "face", "code": 7 }
+          }
+        }
+      }
+    },
+    {
+      "id": "hills/up",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.5599999999953433, "raw": 10995116278 },
+          "hit": {
+            "time_of_impact": { "f64": 2.5599999999953433, "raw": 10995116278 },
+            "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
+            "feature": { "kind": "face", "code": 2 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.5599999999953433, "raw": 10995116278 },
+          "hit": {
+            "time_of_impact": { "f64": 2.5599999999953433, "raw": 10995116278 },
+            "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
+            "feature": { "kind": "face", "code": 2 }
+          }
+        }
+      }
+    },
+    {
+      "id": "hills/miss",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "hills/posed",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.565629185119534, "raw": 11019293444 },
+          "hit": {
+            "time_of_impact": { "f64": 2.565629185119534, "raw": 11019293444 },
+            "normal": { "f64": [0.7277637112801738, -0.6858279526533987], "raw": [3125721339, -2945608627] },
+            "feature": { "kind": "face", "code": 7 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.565629185119534, "raw": 11019293444 },
+          "hit": {
+            "time_of_impact": { "f64": 2.565629185119534, "raw": 11019293444 },
+            "normal": { "f64": [0.7277637112801738, -0.6858279526533987], "raw": [3125721339, -2945608627] },
+            "feature": { "kind": "face", "code": 7 }
+          }
+        }
+      }
+    },
+    {
+      "id": "holed/down",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "holed/slant",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "holed/up",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "holed/miss",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "holed/posed",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "square/down",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "square/slant",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "square/up",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "square/miss",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "square/posed",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.042468245295693, "raw": 8772334317 },
+          "hit": {
+            "time_of_impact": { "f64": 2.042468245295693, "raw": 8772334317 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.042468245295693, "raw": 8772334317 },
+          "hit": {
+            "time_of_impact": { "f64": 2.042468245295693, "raw": 8772334317 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "plain_square/down",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.30000000004656613, 3.0], "raw": [1288490189, 12884901888] },
+      "dir": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "plain_square/slant",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-3.0, 2.0], "raw": [-12884901888, 8589934592] },
+      "dir": { "f64": [1.0, -0.6000000000931323], "raw": [4294967296, -2576980378] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.0, "raw": 8589934592 },
+          "hit": {
+            "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
+            "normal": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "plain_square/up",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [0.19999999995343387, -2.0], "raw": [858993459, -8589934592] },
+      "dir": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 1.0, "raw": 4294967296 },
+          "hit": {
+            "time_of_impact": { "f64": 1.0, "raw": 4294967296 },
+            "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    },
+    {
+      "id": "plain_square/miss",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "origin": { "f64": [-6.0, 5.0], "raw": [-25769803776, 21474836480] },
+      "dir": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": { "solid": { "toi": null, "hit": null }, "hollow": { "toi": null, "hit": null } }
+    },
+    {
+      "id": "plain_square/posed",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [0.5, -0.25], "raw": [2147483648, -1073741824] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "origin": { "f64": [1.0, 3.0], "raw": [4294967296, 12884901888] },
+      "dir": { "f64": [-0.19999999995343387, -1.0], "raw": [-858993459, -4294967296] },
+      "max_toi": { "f64": 100.0, "raw": 429496729600 },
+      "expected": {
+        "solid": {
+          "toi": { "f64": 2.042468245295693, "raw": 8772334317 },
+          "hit": {
+            "time_of_impact": { "f64": 2.042468245295693, "raw": 8772334317 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        },
+        "hollow": {
+          "toi": { "f64": 2.042468245295693, "raw": 8772334317 },
+          "hit": {
+            "time_of_impact": { "f64": 2.042468245295693, "raw": 8772334317 },
+            "normal": { "f64": [-0.5, 0.8660254038404673], "raw": [-2147483648, 3719550787] },
+            "feature": { "kind": "face", "code": 0 }
+          }
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "id": "vee_ball/hover",
+      "composite": 0,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.5500000000465661], "raw": [8160437862, -2362232013] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.4944271910930481, "raw": 2123548616 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.2999999999068677, -1.3500000000465662], "raw": [9878424780, -5798205850] },
+            "p2": { "f64": [2.0788854380652007, -0.9077708763632325], "raw": [8928744969, -3898846226] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.48068383004292703, "raw": 2064521330 },
+            "witness1": { "f64": [1.2230905895567967, 0.6115452947783984], "raw": [5253134082, 2626567041] },
+            "witness2": {
+              "f64": [0.1788854403630462, -0.35777087521430984],
+              "raw": [768307116, -1536614209]
+            },
+            "normal1": { "f64": [-0.4472135937807483, 0.8944271918595208], "raw": [-1920767760, 3841535538] },
+            "normal2": { "f64": [0.4472135937807483, -0.8944271918595208], "raw": [1920767760, -3841535538] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_vee/hover",
+      "composite": 0,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.5500000000465661], "raw": [8160437862, -2362232013] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.4944271910930481, "raw": 2123548616 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.0788854380652007, -0.9077708763632325], "raw": [8928744969, -3898846226] },
+            "p2": { "f64": [2.2999999999068677, -1.3500000000465662], "raw": [9878424780, -5798205850] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.48068383004292703, "raw": 2064521330 },
+            "witness1": {
+              "f64": [0.1788854403630462, -0.35777087521430984],
+              "raw": [768307116, -1536614209]
+            },
+            "witness2": { "f64": [1.2230905895567967, 0.6115452947783984], "raw": [5253134082, 2626567041] },
+            "normal1": { "f64": [0.4472135937807483, -0.8944271918595208], "raw": [1920767760, -3841535538] },
+            "normal2": { "f64": [-0.4472135937807483, 0.8944271918595208], "raw": [-1920767760, 3841535538] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "vee_ball/deep",
+      "composite": 0,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.9000000001396984], "raw": [8160437862, -3865470567] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.18137767415977757, "raw": 779011179 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.1599999998696147, -1.4200000000651927], "raw": [9277129359, -6098853561] },
+            "p2": { "f64": [2.078885438065201, -1.2577708764563647], "raw": [8928744969, -5402084780] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.1763360038588739, "raw": 757357370 },
+            "witness1": { "f64": [1.131786256021913, 0.5658931280109565], "raw": [4860984956, 2430492478] },
+            "witness2": {
+              "f64": [0.1788854545907248, -0.35777086810046865],
+              "raw": [768307177, -1536614178]
+            },
+            "normal1": { "f64": [-0.44721359344134, 0.8944271920292248], "raw": [-1920767758, 3841535538] },
+            "normal2": { "f64": [0.44721359344134, -0.8944271920292248], "raw": [1920767758, -3841535538] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_vee/deep",
+      "composite": 0,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.9000000001396984], "raw": [8160437862, -3865470567] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.18137767415977757, "raw": 779011179 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.078885438065201, -1.2577708764563647], "raw": [8928744969, -5402084780] },
+            "p2": { "f64": [2.1599999998696147, -1.4200000000651927], "raw": [9277129359, -6098853561] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.1763360038588739, "raw": 757357370 },
+            "witness1": {
+              "f64": [0.1788854545907248, -0.35777086810046865],
+              "raw": [768307177, -1536614178]
+            },
+            "witness2": { "f64": [1.131786256021913, 0.5658931280109565], "raw": [4860984956, 2430492478] },
+            "normal1": { "f64": [0.44721359344134, -0.8944271920292248], "raw": [1920767758, -3841535538] },
+            "normal2": { "f64": [-0.44721359344134, 0.8944271920292248], "raw": [-1920767758, 3841535538] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "vee_cuboid/hover",
+      "composite": 0,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.6499999999068677], "raw": [8160437862, -2791728742] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.3130495169332706, "raw": 1344537437 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.5399999999441207, -1.2300000000279396], "raw": [10909216932, -5282809774] },
+            "p2": { "f64": [2.3999999999068677, -0.9499999999534339], "raw": [10307921510, -4080218931] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.3043478261679411, "raw": 1307163960 },
+            "witness1": { "f64": [1.49130434775725, 0.745652173878625], "raw": [6405103402, 3202551701] },
+            "witness2": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+            "normal1": {
+              "f64": [-0.44721359549995787, 0.8944271909999159],
+              "raw": [-1920767767, 3841535534]
+            },
+            "normal2": {
+              "f64": [0.44721359549995787, -0.8944271909999159],
+              "raw": [1920767767, -3841535534]
+            },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_vee/hover",
+      "composite": 0,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.6499999999068677], "raw": [8160437862, -2791728742] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.3130495169332706, "raw": 1344537437 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.3999999999068677, -0.9499999999534339], "raw": [10307921510, -4080218931] },
+            "p2": { "f64": [2.5399999999441207, -1.2300000000279396], "raw": [10909216932, -5282809774] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.3043478261679411, "raw": 1307163960 },
+            "witness1": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+            "witness2": { "f64": [1.49130434775725, 0.745652173878625], "raw": [6405103402, 3202551701] },
+            "normal1": {
+              "f64": [0.44721359549995787, -0.8944271909999159],
+              "raw": [1920767767, -3841535534]
+            },
+            "normal2": {
+              "f64": [-0.44721359549995787, 0.8944271909999159],
+              "raw": [-1920767767, 3841535534]
+            },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "vee_cuboid/deep",
+      "composite": 0,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.0], "raw": [8160437862, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.3999999999068677, -1.3000000000465661], "raw": [10307921510, -5583457485] },
+            "point2": { "f64": [2.3999999999068677, -1.3000000000465661], "raw": [10307921510, -5583457485] },
+            "normal1": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "normal2": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "dist": { "f64": 0.0, "raw": 0 }
+          }
+        },
+        "closest_points": { "supported": true, "value": { "kind": 0 } },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [1.3999999999068677, 0.6999999999534339], "raw": [6012954214, 3006477107] },
+            "witness2": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+            "normal1": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "normal2": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_vee/deep",
+      "composite": 0,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.0], "raw": [8160437862, -4294967296] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.3999999999068677, -1.3000000000465661], "raw": [10307921510, -5583457485] },
+            "point2": { "f64": [2.3999999999068677, -1.3000000000465661], "raw": [10307921510, -5583457485] },
+            "normal1": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "normal2": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "dist": { "f64": 0.0, "raw": 0 }
+          }
+        },
+        "closest_points": { "supported": true, "value": { "kind": 0 } },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.5, -0.30000000004656613], "raw": [2147483648, -1288490189] },
+            "witness2": { "f64": [1.3999999999068677, 0.6999999999534339], "raw": [6012954214, 3006477107] },
+            "normal1": { "f64": [0.4472135954999579, -0.8944271909999159], "raw": [1920767767, -3841535534] },
+            "normal2": { "f64": [-0.4472135954999579, 0.8944271909999159], "raw": [-1920767767, 3841535534] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "vee_segment/hover",
+      "composite": 0,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.9499999999534339], "raw": [8160437862, -4080218931] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.35777087652491635, "raw": 1536614214 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.459999999869615, -1.2700000000651925], "raw": [10565619548, -5454608466] },
+            "p2": { "f64": [2.2999999998137355, -0.9499999999534339], "raw": [9878424780, -4080218931] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.3478260870779986, "raw": 1493901669 },
+            "witness1": { "f64": [1.4043478259371351, 0.7021739129685676], "raw": [6031627985, 3015813992] },
+            "witness2": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] },
+            "normal1": { "f64": [-0.4472135954999579, 0.894427190999916], "raw": [-1920767767, 3841535534] },
+            "normal2": { "f64": [0.4472135954999579, -0.894427190999916], "raw": [1920767767, -3841535534] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_vee/hover",
+      "composite": 0,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.9499999999534339], "raw": [8160437862, -4080218931] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.35777087652491635, "raw": 1536614214 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.2999999998137355, -0.9499999999534339], "raw": [9878424780, -4080218931] },
+            "p2": { "f64": [2.459999999869615, -1.2700000000651925], "raw": [10565619548, -5454608466] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.3478260870779986, "raw": 1493901669 },
+            "witness1": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] },
+            "witness2": { "f64": [1.4043478259371351, 0.7021739129685676], "raw": [6031627985, 3015813992] },
+            "normal1": { "f64": [0.4472135954999579, -0.894427190999916], "raw": [1920767767, -3841535534] },
+            "normal2": { "f64": [-0.4472135954999579, 0.894427190999916], "raw": [-1920767767, 3841535534] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "vee_segment/deep",
+      "composite": 0,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.3000000000465661], "raw": [8160437862, -5583457485] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.044721359591645804, "raw": 192076777 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.319999999832362, -1.340000000083819], "raw": [9964324126, -5755256177] },
+            "point2": { "f64": [2.2999999998137355, -1.3000000000465661], "raw": [9878424780, -5583457485] },
+            "normal1": { "f64": [-0.447213595499958, 0.894427190999916], "raw": [-1920767767, 3841535534] },
+            "normal2": { "f64": [0.447213595499958, -0.894427190999916], "raw": [1920767767, -3841535534] },
+            "dist": { "f64": 0.044721359591645804, "raw": 192076777 }
+          }
+        },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.319999999832362, -1.340000000083819], "raw": [9964324126, -5755256177] },
+            "p2": { "f64": [2.2999999998137355, -1.3000000000465661], "raw": [9878424780, -5583457485] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0434782609100575, "raw": 186737709 },
+            "witness1": { "f64": [1.3130434780867528, 0.6565217390433764], "raw": [5639478797, 2819739398] },
+            "witness2": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] },
+            "normal1": { "f64": [-0.447213595499958, 0.894427190999916], "raw": [-1920767767, 3841535534] },
+            "normal2": { "f64": [0.447213595499958, -0.894427190999916], "raw": [1920767767, -3841535534] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_vee/deep",
+      "composite": 0,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.3000000000465661], "raw": [8160437862, -5583457485] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.044721359591645804, "raw": 192076777 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.2999999998137355, -1.3000000000465661], "raw": [9878424780, -5583457485] },
+            "point2": { "f64": [2.319999999832362, -1.340000000083819], "raw": [9964324126, -5755256177] },
+            "normal1": { "f64": [0.447213595499958, -0.894427190999916], "raw": [1920767767, -3841535534] },
+            "normal2": { "f64": [-0.447213595499958, 0.894427190999916], "raw": [-1920767767, 3841535534] },
+            "dist": { "f64": 0.044721359591645804, "raw": 192076777 }
+          }
+        },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.2999999998137355, -1.3000000000465661], "raw": [9878424780, -5583457485] },
+            "p2": { "f64": [2.319999999832362, -1.340000000083819], "raw": [9964324126, -5755256177] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0434782609100575, "raw": 186737709 },
+            "witness1": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] },
+            "witness2": { "f64": [1.3130434780867528, 0.6565217390433764], "raw": [5639478797, 2819739398] },
+            "normal1": { "f64": [0.447213595499958, -0.894427190999916], "raw": [1920767767, -3841535534] },
+            "normal2": { "f64": [-0.447213595499958, 0.894427190999916], "raw": [-1920767767, 3841535534] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "hills_ball/hover",
+      "composite": 3,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.5], "raw": [8160437862, -2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30012409035160326, "raw": 1289023153 },
+            "witness1": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "witness2": {
+              "f64": [0.009962772987652135, -0.3998759096018285],
+              "raw": [42789784, -1717453954]
+            },
+            "normal1": { "f64": [-0.02490686758836073, 0.9996897758539574], "raw": [-106974182, 4293634893] },
+            "normal2": { "f64": [0.02490686758836073, -0.9996897758539574], "raw": [106974182, -4293634893] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_hills/hover",
+      "composite": 3,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.5], "raw": [8160437862, -2147483648] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30012409035160326, "raw": 1289023153 },
+            "witness1": {
+              "f64": [0.009962772987652135, -0.3998759096018285],
+              "raw": [42789784, -1717453954]
+            },
+            "witness2": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "normal1": { "f64": [0.02490686758836073, -0.9996897758539574], "raw": [106974182, -4293634893] },
+            "normal2": { "f64": [-0.02490686758836073, 0.9996897758539574], "raw": [-106974182, 4293634893] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "hills_ball/deep",
+      "composite": 3,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.8500000000931323], "raw": [8160437862, -3650722202] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0000000000000004, -1.1999999999534339], "raw": [8589934592, -5153960755] },
+            "point2": { "f64": [2.009888451175402, -1.234609579021293], "raw": [8632405166, -5302607765] },
+            "normal1": { "f64": [-0.2747211282352996, 0.9615239475442743], "raw": [-1179918261, 4129713909] },
+            "normal2": { "f64": [0.2747211282352996, -0.9615239475442743], "raw": [1179918261, -4129713909] },
+            "dist": { "f64": -0.03599450555157968, "raw": -154595224 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "witness2": { "f64": [0.1098884522254171, -0.3846095786547079], "raw": [471967309, -1651885562] },
+            "normal1": { "f64": [-0.2747211548198563, 0.961523939948686], "raw": [-1179918375, 4129713876] },
+            "normal2": { "f64": [0.2747211548198563, -0.961523939948686], "raw": [1179918375, -4129713876] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_hills/deep",
+      "composite": 3,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.8500000000931323], "raw": [8160437862, -3650722202] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.009888451175402, -1.234609579021293], "raw": [8632405166, -5302607765] },
+            "point2": { "f64": [2.0000000000000004, -1.1999999999534339], "raw": [8589934592, -5153960755] },
+            "normal1": { "f64": [0.2747211282352996, -0.9615239475442743], "raw": [1179918261, -4129713909] },
+            "normal2": { "f64": [-0.2747211282352996, 0.9615239475442743], "raw": [-1179918261, 4129713909] },
+            "dist": { "f64": -0.03599450555157968, "raw": -154595224 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.1098884522254171, -0.3846095786547079], "raw": [471967309, -1651885562] },
+            "witness2": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "normal1": { "f64": [0.2747211548198563, -0.961523939948686], "raw": [1179918375, -4129713876] },
+            "normal2": { "f64": [-0.2747211548198563, 0.961523939948686], "raw": [-1179918375, 4129713876] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "hills_cuboid/hover",
+      "composite": 3,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.5999999998603016], "raw": [8160437862, -2576980377] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "witness2": {
+              "f64": [0.010000000079162907, -0.30000000004656613],
+              "raw": [42949673, -1288490189]
+            },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_hills/hover",
+      "composite": 3,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.5999999998603016], "raw": [8160437862, -2576980377] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": {
+              "f64": [0.010000000079162907, -0.30000000004656613],
+              "raw": [42949673, -1288490189]
+            },
+            "witness2": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "hills_cuboid/deep",
+      "composite": 3,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.9499999999534339], "raw": [8160437862, -4080218931] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0000000000000004, -1.1999999999534339], "raw": [8589934592, -5153960755] },
+            "point2": { "f64": [2.0000000000000004, -1.25], "raw": [8589934592, -5368709120] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "witness2": {
+              "f64": [0.1000000000931327, -0.30000000004656613],
+              "raw": [429496730, -1288490189]
+            },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_hills/deep",
+      "composite": 3,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.9499999999534339], "raw": [8160437862, -4080218931] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0000000000000004, -1.25], "raw": [8589934592, -5368709120] },
+            "point2": { "f64": [2.0000000000000004, -1.1999999999534339], "raw": [8589934592, -5153960755] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": {
+              "f64": [0.1000000000931327, -0.30000000004656613],
+              "raw": [429496730, -1288490189]
+            },
+            "witness2": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "hills_segment/hover",
+      "composite": 3,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -0.8999999999068677], "raw": [8160437862, -3865470566] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656585, "raw": 1288490189 },
+            "witness1": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "witness2": { "f64": [0.010000000079163351, 0.0], "raw": [42949673, 0] },
+            "normal1": { "f64": [-7.175831744268554e-16, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [7.175831744268554e-16, -1.0], "raw": [0, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_hills/hover",
+      "composite": 3,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -0.8999999999068677], "raw": [8160437862, -3865470566] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656585, "raw": 1288490189 },
+            "witness1": { "f64": [0.010000000079163351, 0.0], "raw": [42949673, 0] },
+            "witness2": { "f64": [1.0000000000000009, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "normal1": { "f64": [7.175831744268554e-16, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [-7.175831744268554e-16, 1.0], "raw": [0, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "hills_segment/deep",
+      "composite": 3,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.25], "raw": [8160437862, -5368709120] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0000000000000004, -1.1999999999534339], "raw": [8589934592, -5153960755] },
+            "point2": { "f64": [2.0000000000000004, -1.25], "raw": [8589934592, -5368709120] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "witness2": { "f64": [0.1000000000931327, 0.0], "raw": [429496730, 0] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_hills/deep",
+      "composite": 3,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.25], "raw": [8160437862, -5368709120] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0000000000000004, -1.25], "raw": [8589934592, -5368709120] },
+            "point2": { "f64": [2.0000000000000004, -1.1999999999534339], "raw": [8589934592, -5153960755] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.1000000000931327, 0.0], "raw": [429496730, 0] },
+            "witness2": { "f64": [1.0000000000000004, 0.8000000000465661], "raw": [4294967296, 3435973837] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "flat_ball/hover",
+      "composite": 2,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.3000000000465661], "raw": [8160437862, -5583457485] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.2999999999697387, "raw": 1288490189 },
+            "witness1": { "f64": [0.9900008838150678, 0.0], "raw": [4252021419, 0] },
+            "witness2": { "f64": [8.841801655279369e-7, -0.39999999990482904], "raw": [3798, -1717986918] },
+            "normal1": { "f64": [9.436807315450395e-10, 1.0], "raw": [4, 4294967296] },
+            "normal2": { "f64": [-9.436807315450395e-10, -1.0], "raw": [-4, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_flat/hover",
+      "composite": 2,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.3000000000465661], "raw": [8160437862, -5583457485] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.2999999999697387, "raw": 1288490189 },
+            "witness1": { "f64": [8.841801655279369e-7, -0.39999999990482904], "raw": [3798, -1717986918] },
+            "witness2": { "f64": [0.9900008838150678, 0.0], "raw": [4252021419, 0] },
+            "normal1": { "f64": [-9.436807315450395e-10, -1.0], "raw": [-4, -4294967296] },
+            "normal2": { "f64": [9.436807315450395e-10, 1.0], "raw": [4, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "flat_ball/deep",
+      "composite": 2,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.6500000001396984], "raw": [8160437862, -7086696039] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.8999999999068677, -2.0], "raw": [8160437862, -8589934592] },
+            "point2": { "f64": [1.8999999999068677, -2.050000000046566], "raw": [8160437862, -8804682957] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.8999999824104792, 0.0], "raw": [3865470491, 0] },
+            "witness2": { "f64": [-1.7496388782234362e-8, -0.3999999999068669], "raw": [-75, -1717986918] },
+            "normal1": { "f64": [9.436895521288635e-16, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [-9.436895521288635e-16, -1.0], "raw": [0, -4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_flat/deep",
+      "composite": 2,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.6500000001396984], "raw": [8160437862, -7086696039] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.8999999999068677, -2.050000000046566], "raw": [8160437862, -8804682957] },
+            "point2": { "f64": [1.8999999999068677, -2.0], "raw": [8160437862, -8589934592] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [-1.7496388782234362e-8, -0.3999999999068669], "raw": [-75, -1717986918] },
+            "witness2": { "f64": [0.8999999824104792, 0.0], "raw": [3865470491, 0] },
+            "normal1": { "f64": [-9.436895521288635e-16, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [9.436895521288635e-16, 1.0], "raw": [0, 4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "flat_cuboid/hover",
+      "composite": 2,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.3999999999068677], "raw": [8160437862, -6012954214] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [0.9933333332805583, 0.0], "raw": [4266334180, 0] },
+            "witness2": {
+              "f64": [0.003333333359720858, -0.30000000004656613],
+              "raw": [14316558, -1288490189]
+            },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_flat/hover",
+      "composite": 2,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.3999999999068677], "raw": [8160437862, -6012954214] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": {
+              "f64": [0.003333333359720858, -0.30000000004656613],
+              "raw": [14316558, -1288490189]
+            },
+            "witness2": { "f64": [0.9933333332805583, 0.0], "raw": [4266334180, 0] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "flat_cuboid/deep",
+      "composite": 2,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.75], "raw": [8160437862, -7516192768] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.9333333332712452, -2.0], "raw": [8303603439, -8589934592] },
+            "point2": { "f64": [1.933333333271245, -2.050000000046566], "raw": [8303603439, -8804682957] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.9333333332712452, 0.0], "raw": [4008636143, 0] },
+            "witness2": {
+              "f64": [0.03333333336437738, -0.30000000004656613],
+              "raw": [143165577, -1288490189]
+            },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_flat/deep",
+      "composite": 2,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.75], "raw": [8160437862, -7516192768] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.933333333271245, -2.050000000046566], "raw": [8303603439, -8804682957] },
+            "point2": { "f64": [1.9333333332712452, -2.0], "raw": [8303603439, -8589934592] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": {
+              "f64": [0.03333333336437738, -0.30000000004656613],
+              "raw": [143165577, -1288490189]
+            },
+            "witness2": { "f64": [0.9333333332712452, 0.0], "raw": [4008636143, 0] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "flat_segment/hover",
+      "composite": 2,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.6999999999534339], "raw": [8160437862, -7301444403] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [0.992857142800123, 0.0], "raw": [4264288958, 0] },
+            "witness2": { "f64": [0.0028571428792855125, 0.0], "raw": [12271335, 0] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_flat/hover",
+      "composite": 2,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.6999999999534339], "raw": [8160437862, -7301444403] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": { "supported": false, "value": null },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [0.0028571428792855125, 0.0], "raw": [12271335, 0] },
+            "witness2": { "f64": [0.992857142800123, 0.0], "raw": [4264288958, 0] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "flat_segment/deep",
+      "composite": 2,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -2.050000000046566], "raw": [8160437862, -8804682957] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.9285714285001538, -2.0], "raw": [8283151213, -8589934592] },
+            "point2": { "f64": [1.9285714285001538, -2.050000000046566], "raw": [8283151213, -8804682957] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": 0.05000000004656613, "raw": 214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": { "supported": true, "value": { "some": false } }
+      }
+    },
+    {
+      "id": "segment_flat/deep",
+      "composite": 2,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -2.050000000046566], "raw": [8160437862, -8804682957] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": false, "value": null },
+        "distance": { "supported": false, "value": null },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.9285714285001538, -2.050000000046566], "raw": [8283151213, -8804682957] },
+            "point2": { "f64": [1.9285714285001538, -2.0], "raw": [8283151213, -8589934592] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": 0.05000000004656613, "raw": 214748365 }
+          }
+        },
+        "closest_points": { "supported": false, "value": null },
+        "cast": { "supported": true, "value": { "some": false } }
+      }
+    },
+    {
+      "id": "bumps_ball/hover",
+      "composite": 1,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.0500000000465661], "raw": [8160437862, -4509715661] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.3071067812467525, "raw": 1319013582 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "p2": { "f64": [1.9565685424439383, -1.445979797410934], "raw": [8403397902, -6210435941] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30012409035160326, "raw": 1289023153 },
+            "witness1": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "witness2": {
+              "f64": [0.009962772987651247, -0.3998759096018285],
+              "raw": [42789784, -1717453954]
+            },
+            "normal1": {
+              "f64": [-0.024906869509725493, 0.9996897758060874],
+              "raw": [-106974190, 4293634893]
+            },
+            "normal2": {
+              "f64": [0.024906869509725493, -0.9996897758060874],
+              "raw": [106974190, -4293634893]
+            },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_bumps/hover",
+      "composite": 1,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.0500000000465661], "raw": [8160437862, -4509715661] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.3071067812467525, "raw": 1319013582 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [1.9565685424439383, -1.445979797410934], "raw": [8403397902, -6210435941] },
+            "p2": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30012409035160326, "raw": 1289023153 },
+            "witness1": {
+              "f64": [0.009962772987651247, -0.3998759096018285],
+              "raw": [42789784, -1717453954]
+            },
+            "witness2": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "normal1": {
+              "f64": [0.024906869509725493, -0.9996897758060874],
+              "raw": [106974190, -4293634893]
+            },
+            "normal2": {
+              "f64": [-0.024906869509725493, 0.9996897758060874],
+              "raw": [-106974190, 4293634893]
+            },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps_ball/deep",
+      "composite": 1,
+      "composite_first": true,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.4000000001396984], "raw": [8160437862, -6012954215] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.988235293997123, -1.7529411765007192], "raw": [8539405564, -7528825025] },
+            "point2": { "f64": [1.997014249898813, -1.7880570001074796], "raw": [8577110893, -7679646339] },
+            "normal1": {
+              "f64": [-0.24253562503633297, 0.9701425001453319],
+              "raw": [-1041682578, 4166730311]
+            },
+            "normal2": {
+              "f64": [0.24253562503633297, -0.9701425001453319],
+              "raw": [1041682578, -4166730311]
+            },
+            "dist": { "f64": -0.03619656246530778, "raw": -155463052 }
+          }
+        },
+        "closest_points": { "supported": true, "value": { "kind": 0 } },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.9882352877172568, 0.2470588219293142], "raw": [4244438241, 1061109560] },
+            "witness2": {
+              "f64": [0.09701424371207912, -0.3880570015377477],
+              "raw": [416673004, -1666692131]
+            },
+            "normal1": { "f64": [-0.24253562503633283, 0.970142500145332], "raw": [-1041682578, 4166730311] },
+            "normal2": { "f64": [0.24253562503633283, -0.970142500145332], "raw": [1041682578, -4166730311] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "ball_bumps/deep",
+      "composite": 1,
+      "composite_first": false,
+      "other": { "type": "ball", "radius": { "f64": 0.39999999990686774, "raw": 1717986918 } },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.4000000001396984], "raw": [8160437862, -6012954215] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [1.997014249898813, -1.7880570001074796], "raw": [8577110893, -7679646339] },
+            "point2": { "f64": [1.988235293997123, -1.7529411765007192], "raw": [8539405564, -7528825025] },
+            "normal1": {
+              "f64": [0.24253562503633297, -0.9701425001453319],
+              "raw": [1041682578, -4166730311]
+            },
+            "normal2": {
+              "f64": [-0.24253562503633297, 0.9701425001453319],
+              "raw": [-1041682578, 4166730311]
+            },
+            "dist": { "f64": -0.03619656246530778, "raw": -155463052 }
+          }
+        },
+        "closest_points": { "supported": true, "value": { "kind": 0 } },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": {
+              "f64": [0.09701424371207912, -0.3880570015377477],
+              "raw": [416673004, -1666692131]
+            },
+            "witness2": { "f64": [0.9882352877172568, 0.2470588219293142], "raw": [4244438241, 1061109560] },
+            "normal1": { "f64": [0.24253562503633283, -0.970142500145332], "raw": [1041682578, -4166730311] },
+            "normal2": { "f64": [-0.24253562503633283, 0.970142500145332], "raw": [-1041682578, 4166730311] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps_cuboid/hover",
+      "composite": 1,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.1499999999068677], "raw": [8160437862, -4939212390] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.30000000004656613, "raw": 1288490189 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "p2": { "f64": [2.0, -1.4499999999534339], "raw": [8589934592, -6227702579] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "witness2": {
+              "f64": [0.010000000079162463, -0.30000000004656613],
+              "raw": [42949673, -1288490189]
+            },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_bumps/hover",
+      "composite": 1,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.1499999999068677], "raw": [8160437862, -4939212390] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.30000000004656613, "raw": 1288490189 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.0, -1.4499999999534339], "raw": [8589934592, -6227702579] },
+            "p2": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": {
+              "f64": [0.010000000079162463, -0.30000000004656613],
+              "raw": [42949673, -1288490189]
+            },
+            "witness2": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps_cuboid/deep",
+      "composite": 1,
+      "composite_first": true,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.5], "raw": [8160437862, -6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "point2": { "f64": [2.0, -1.8000000000465661], "raw": [8589934592, -7730941133] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": true, "value": { "kind": 0 } },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "witness2": {
+              "f64": [0.10000000009313226, -0.30000000004656613],
+              "raw": [429496730, -1288490189]
+            },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "cuboid_bumps/deep",
+      "composite": 1,
+      "composite_first": false,
+      "other": {
+        "type": "cuboid",
+        "half_extents": { "f64": [0.5, 0.30000000004656613], "raw": [2147483648, 1288490189] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.5], "raw": [8160437862, -6442450944] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0, -1.8000000000465661], "raw": [8589934592, -7730941133] },
+            "point2": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": { "supported": true, "value": { "kind": 0 } },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": {
+              "f64": [0.10000000009313226, -0.30000000004656613],
+              "raw": [429496730, -1288490189]
+            },
+            "witness2": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps_segment/hover",
+      "composite": 1,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.4499999999534339], "raw": [8160437862, -6227702579] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.30000000004656613, "raw": 1288490189 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "p2": { "f64": [2.0, -1.4499999999534339], "raw": [8589934592, -6227702579] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "witness2": { "f64": [0.010000000079162352, 0.0], "raw": [42949673, 0] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_bumps/hover",
+      "composite": 1,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.4499999999534339], "raw": [8160437862, -6227702579] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": false },
+        "distance": { "supported": true, "value": { "f64": 0.30000000004656613, "raw": 1288490189 } },
+        "contact": { "supported": true, "value": { "some": false } },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.0, -1.4499999999534339], "raw": [8589934592, -6227702579] },
+            "p2": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.30000000004656613, "raw": 1288490189 },
+            "witness1": { "f64": [0.010000000079162352, 0.0], "raw": [42949673, 0] },
+            "witness2": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "bumps_segment/deep",
+      "composite": 1,
+      "composite_first": true,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.8999999999068677, -1.8000000000465661], "raw": [8160437862, -7730941133] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 2.7755575615628914e-17, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "point2": { "f64": [2.0, -1.8000000000465661], "raw": [8589934592, -7730941133] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.2000000001862645, -1.8000000000465661], "raw": [9448928052, -7730941133] },
+            "p2": { "f64": [2.2000000001862645, -1.8000000000465661], "raw": [9448928052, -7730941133] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "witness2": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+            "normal1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "normal2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "status": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "segment_bumps/deep",
+      "composite": 1,
+      "composite_first": false,
+      "other": {
+        "type": "segment",
+        "a": { "f64": [-0.39999999990686774, 0.0], "raw": [-1717986918, 0] },
+        "b": { "f64": [0.39999999990686774, 0.0], "raw": [1717986918, 0] }
+      },
+      "pos1": {
+        "translation": { "f64": [1.8999999999068677, -1.8000000000465661], "raw": [8160437862, -7730941133] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "pos2": {
+        "translation": { "f64": [1.0, -2.0], "raw": [4294967296, -8589934592] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "vel": { "f64": [0.3, -1.0], "raw": [1288490189, -4294967296] },
+      "prediction": { "f64": 0.10000000009313226, "raw": 429496730 },
+      "margin": { "f64": 1.0, "raw": 4294967296 },
+      "expected": {
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 2.7755575615628914e-17, "raw": 0 } },
+        "contact": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "point1": { "f64": [2.0, -1.8000000000465661], "raw": [8589934592, -7730941133] },
+            "point2": { "f64": [2.0, -1.75], "raw": [8589934592, -7516192768] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "dist": { "f64": -0.05000000004656613, "raw": -214748365 }
+          }
+        },
+        "closest_points": {
+          "supported": true,
+          "value": {
+            "kind": 1,
+            "p1": { "f64": [2.2000000001862645, -1.8000000000465661], "raw": [9448928052, -7730941133] },
+            "p2": { "f64": [2.2000000001862645, -1.8000000000465661], "raw": [9448928052, -7730941133] }
+          }
+        },
+        "cast": {
+          "supported": true,
+          "value": {
+            "some": true,
+            "toi": { "f64": 0.0, "raw": 0 },
+            "witness1": { "f64": [0.10000000009313226, 0.0], "raw": [429496730, 0] },
+            "witness2": { "f64": [1.0, 0.25], "raw": [4294967296, 1073741824] },
+            "normal1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "normal2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "status": 3
+          }
+        }
+      }
+    }
+  ],
+  "aabbs": [
+    {
+      "id": "vee/identity",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-2.0, 0.0], "raw": [-8589934592, 0] },
+        "maxs": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
+        "center": { "f64": [0.0, 0.5], "raw": [0, 2147483648] },
+        "radius": { "f64": 2.0615528128088303, "raw": 8854301910 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "vee/rot30",
+      "composite": 0,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-1.2320508076809347, 1.0], "raw": [-5291617926, 4294967296] },
+        "maxs": { "f64": [2.7320508076809347, 3.8660254038404673], "raw": [11734068870, 16604452675] },
+        "center": { "f64": [0.75, 2.4330127019202337], "raw": [3221225472, 10449709986] },
+        "radius": { "f64": 2.0615528128088303, "raw": 8854301910 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "bumps/identity",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-5.0, 0.0], "raw": [-21474836480, 0] },
+        "maxs": { "f64": [5.0, 0.30000000004656613], "raw": [21474836480, 1288490189] },
+        "center": { "f64": [0.0, 0.15000000002328306], "raw": [0, 644245095] },
+        "radius": { "f64": 5.002249493978383, "raw": 21484497983 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "bumps/rot30",
+      "composite": 1,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-3.4801270192256197, -0.5], "raw": [-14947031734, -2147483648] },
+        "maxs": { "f64": [5.330127019202337, 4.759807621192468], "raw": [22892721231, 20443218068] },
+        "center": { "f64": [0.9249999999883585, 2.129903810596234], "raw": [3972844749, 9147867210] },
+        "radius": { "f64": 5.002249493978383, "raw": 21484497983 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "flat/identity",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-4.0, 0.0], "raw": [-17179869184, 0] },
+        "maxs": { "f64": [4.0, 0.0], "raw": [17179869184, 0] },
+        "center": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "radius": { "f64": 4.0, "raw": 17179869184 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "flat/rot30",
+      "composite": 2,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-2.4641016153618693, 0.0], "raw": [-10583235852, 0] },
+        "maxs": { "f64": [4.464101615361869, 4.0], "raw": [19173170444, 17179869184] },
+        "center": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "radius": { "f64": 4.0, "raw": 17179869184 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "hills/identity",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-5.0, 0.0], "raw": [-21474836480, 0] },
+        "maxs": { "f64": [5.0, 0.8000000000465661], "raw": [21474836480, 3435973837] },
+        "center": { "f64": [0.0, 0.40000000002328306], "raw": [0, 1717986919] },
+        "radius": { "f64": 5.015974481595638, "raw": 21543446356 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "hills/rot30",
+      "composite": 3,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-3.7301270192256197, -0.5], "raw": [-16020773558, -2147483648] },
+        "maxs": { "f64": [5.330127019202337, 5.192820323112701], "raw": [22892721231, 22302993462] },
+        "center": { "f64": [0.7999999999883585, 2.3464101615563506], "raw": [3435973837, 10077754907] },
+        "radius": { "f64": 5.015974481595638, "raw": 21543446356 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "holed/identity",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-5.0, 0.0], "raw": [-21474836480, 0] },
+        "maxs": { "f64": [5.0, 0.8000000000465661], "raw": [21474836480, 3435973837] },
+        "center": { "f64": [0.0, 0.40000000002328306], "raw": [0, 1717986919] },
+        "radius": { "f64": 5.015974481595638, "raw": 21543446356 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "holed/rot30",
+      "composite": 4,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-3.7301270192256197, -0.5], "raw": [-16020773558, -2147483648] },
+        "maxs": { "f64": [5.330127019202337, 5.192820323112701], "raw": [22892721231, 22302993462] },
+        "center": { "f64": [0.7999999999883585, 2.3464101615563506], "raw": [3435973837, 10077754907] },
+        "radius": { "f64": 5.015974481595638, "raw": 21543446356 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "square/identity",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+        "maxs": { "f64": [1.0, 1.0], "raw": [4294967296, 4294967296] },
+        "center": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "radius": { "f64": 1.4142135623730951, "raw": 6074001000 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "square/rot30",
+      "composite": 5,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-0.36602540384046733, 0.6339745961595327], "raw": [-1572067139, 2722900157] },
+        "maxs": { "f64": [2.3660254038404673, 3.3660254038404673], "raw": [10162001731, 14456969027] },
+        "center": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "radius": { "f64": 1.4142135623730951, "raw": 6074001000 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "plain_square/identity",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "mins": { "f64": [-1.0, -1.0], "raw": [-4294967296, -4294967296] },
+        "maxs": { "f64": [1.0, 1.0], "raw": [4294967296, 4294967296] },
+        "center": { "f64": [0.0, 0.0], "raw": [0, 0] },
+        "radius": { "f64": 1.4142135623730951, "raw": 6074001000 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    },
+    {
+      "id": "plain_square/rot30",
+      "composite": 6,
+      "pose": {
+        "translation": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "rotation": { "f64": [0.8660254038404673, 0.5], "raw": [3719550787, 2147483648] }
+      },
+      "expected": {
+        "mins": { "f64": [-0.36602540384046733, 0.6339745961595327], "raw": [-1572067139, 2722900157] },
+        "maxs": { "f64": [2.3660254038404673, 3.3660254038404673], "raw": [10162001731, 14456969027] },
+        "center": { "f64": [1.0, 2.0], "raw": [4294967296, 8589934592] },
+        "radius": { "f64": 1.4142135623730951, "raw": 6074001000 },
+        "mass": { "f64": 0.0, "raw": 0 }
+      }
+    }
+  ]
+}
