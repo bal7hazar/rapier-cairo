@@ -72,7 +72,7 @@ pub struct Witness {
 
 /// The support point of `shape` along the unit direction `dir`, in its local frame.
 /// #### Panics
-/// * `'Query: not a support map'` for a half-space.
+/// * `'Query: not a support map'` for a half-space, a polyline or a heightfield.
 pub fn local_support_point_toward(shape: Shape, dir: Vec2) -> Vec2 {
     match shape {
         Shape::Ball(s) => s.local_support_point_toward(dir),
@@ -91,6 +91,8 @@ pub fn local_support_point_toward(shape: Shape, dir: Vec2) -> Vec2 {
         Shape::RoundConvexPolygon(s) => crate::shape::support_map::SupportMap::local_support_point_toward(
             s.unbox().to_round(), dir,
         ),
+        Shape::Polyline(_) => core::panic_with_felt252(super::errors::NOT_SUPPORT_MAP),
+        Shape::HeightField(_) => core::panic_with_felt252(super::errors::NOT_SUPPORT_MAP),
     }
 }
 

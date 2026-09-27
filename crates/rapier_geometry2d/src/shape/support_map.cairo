@@ -108,7 +108,7 @@ pub impl TriangleSupportMap of SupportMap<Triangle> {
 
 /// Dispatch over the closed set.
 /// #### Panics
-/// * `'Query: not a support map'` for a half-space.
+/// * `'Query: not a support map'` for a half-space, a polyline or a heightfield.
 pub impl ShapeSupportMap of SupportMap<Shape> {
     fn local_support_point(self: Shape, dir: Vec2) -> Vec2 {
         match self {
@@ -122,6 +122,10 @@ pub impl ShapeSupportMap of SupportMap<Shape> {
             Shape::RoundCuboid(s) => s.local_support_point(dir),
             Shape::RoundTriangle(s) => s.unbox().local_support_point(dir),
             Shape::RoundConvexPolygon(s) => s.unbox().to_round().local_support_point(dir),
+            Shape::Polyline(_) => core::panic_with_felt252(crate::query::errors::NOT_SUPPORT_MAP),
+            Shape::HeightField(_) => core::panic_with_felt252(
+                crate::query::errors::NOT_SUPPORT_MAP,
+            ),
         }
     }
     fn local_support_point_toward(self: Shape, dir: Vec2) -> Vec2 {

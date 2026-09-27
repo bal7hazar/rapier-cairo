@@ -27,6 +27,7 @@
 pub mod ball;
 pub mod capsule;
 pub mod cast;
+pub mod composite;
 pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
@@ -182,8 +183,8 @@ pub fn cast_local_ray_and_get_normal(
     }
 }
 
-/// The round-shape arms of the two inlined dispatchers, out of line (`None` for any other
-/// shape, which the dispatchers never pass).
+/// The round-shape and composite (SH2a) arms of the two inlined dispatchers, out of line (`None`
+/// for any other shape, which the dispatchers never pass).
 #[inline(never)]
 fn cast_local_ray_and_get_normal_rounded(
     shape: Shape, ray: Ray, max_time_of_impact: Fixed, solid: bool,
@@ -204,6 +205,12 @@ fn cast_local_ray_and_get_normal_rounded(
                 s.inner_shape, s.border_radius, ray, max_time_of_impact, solid,
             )
         },
+        Shape::Polyline(s) => composite::cast_local_ray_and_get_normal_polyline(
+            @s.unbox(), ray, max_time_of_impact, solid,
+        ),
+        Shape::HeightField(s) => composite::cast_local_ray_and_get_normal_heightfield(
+            @s.unbox(), ray, max_time_of_impact, solid,
+        ),
         _ => None,
     }
 }

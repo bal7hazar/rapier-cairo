@@ -49,10 +49,10 @@ rapier_geometry2d::point::query::tests::gas_aabb_project_local_point_and_get_fea
 rapier_geometry2d::point::query::tests::gas_ball_project_local_point_with_max_dist 33700
 rapier_geometry2d::point::query::tests::gas_baseline 13620
 rapier_geometry2d::point::query::tests::gas_segment_project_point_and_get_location 62650
-rapier_geometry2d::point::query::tests::gas_shape_project_point_cuboid 50260
+rapier_geometry2d::point::query::tests::gas_shape_project_point_cuboid 50560
 rapier_geometry2d::point::query::tests::test_aabb_projection_table 497820
 rapier_geometry2d::point::query::tests::test_max_dist_filters_table 319090
-rapier_geometry2d::point::query::tests::test_posed_methods_match_local_methods 10611210
+rapier_geometry2d::point::query::tests::test_posed_methods_match_local_methods 10625610
 rapier_geometry2d::point::query::tests::test_segment_location_queries 98700
 rapier_geometry2d::point::query::tests::test_shape_dispatch_matches_typed_impls 116620
 rapier_geometry2d::point::ratio::tests::gas_baseline 13620

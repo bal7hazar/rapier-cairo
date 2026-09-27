@@ -8,7 +8,7 @@
 //! `rapier_math` yet); `halfspace` takes a plain `Vec2` outward normal (expected unit);
 //! `convex_hull` is exact and starts the polygon at the lexicographically smallest vertex
 //! (`super::convex_hull`), and so is `round_convex_hull`; the shapes that are not in the closed
-//! `Shape` enum and `contact_skin` are not ported.
+//! `Shape` enum (compounds: SH2b; meshes, voxels) and `contact_skin` are not ported.
 
 use fixed::trig::TrigTrait;
 use fixed::{Fixed, HALF, ONE, ZERO};
@@ -21,8 +21,9 @@ use rapier_core::collider::{
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};
 use rapier_geometry2d::mass::MassProperties;
 use rapier_geometry2d::shape::{
-    BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, RoundConvexPolygon, RoundShape,
-    SegmentTrait, Shape, TriangleTrait,
+    BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, HeightFieldTrait, PolylineFlags,
+    PolylineFlagsTrait, PolylineTrait, RoundConvexPolygon, RoundShape, SegmentTrait, Shape,
+    TriangleTrait,
 };
 use rapier_math::pose2::{IDENTITY, Pose2};
 use rapier_math::rot2::Rot2;
@@ -169,6 +170,39 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
                 RoundShape { inner_shape: CuboidTrait::new(Vec2 { x: hx, y: hy }), border_radius },
             ),
         )
+    }
+
+    /// The polyline of `vertices` and segment `indices` (upstream `polyline`; `None` chains the
+    /// vertices). A polyline has no mass (upstream: zero mass properties).
+    /// #### Panics
+    /// * `'Polyline: vertex index'` when an index is out of range.
+    fn polyline(vertices: Span<Vec2>, indices: Option<Span<[u32; 2]>>) -> ColliderBuilder {
+        Self::new(PolylineTrait::new(vertices, indices).into())
+    }
+
+    /// [`ColliderBuilderTrait::polyline`] with `flags` (upstream `polyline_with_flags`).
+    /// #### Panics
+    /// * As [`ColliderBuilderTrait::polyline`].
+    fn polyline_with_flags(
+        vertices: Span<Vec2>, indices: Option<Span<[u32; 2]>>, flags: PolylineFlags,
+    ) -> ColliderBuilder {
+        Self::new(PolylineTrait::with_flags(vertices, indices, flags).into())
+    }
+
+    /// A one-sided polyline (upstream `oriented_polyline`): `ORIENTED`, closed and
+    /// counter-clockwise, its interior solid for the point queries.
+    /// #### Panics
+    /// * As [`ColliderBuilderTrait::polyline`].
+    fn oriented_polyline(vertices: Span<Vec2>, indices: Option<Span<[u32; 2]>>) -> ColliderBuilder {
+        Self::polyline_with_flags(vertices, indices, PolylineFlagsTrait::oriented())
+    }
+
+    /// The 2D heightfield of `heights` over `[-scale.x / 2, scale.x / 2]`, heights multiplied
+    /// by `scale.y` (upstream `heightfield`). A heightfield has no mass.
+    /// #### Panics
+    /// * `'HeightField: < 2 heights'`, `'HeightField: scale.x <= 0'`.
+    fn heightfield(heights: Span<Fixed>, scale: Vec2) -> ColliderBuilder {
+        Self::new(HeightFieldTrait::new(heights, scale).into())
     }
 
     /// A disc of radius `radius`.
@@ -373,6 +407,9 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
         }
     }
 }
+
+#[cfg(test)]
+mod composite_tests;
 
 #[cfg(test)]
 mod tests {

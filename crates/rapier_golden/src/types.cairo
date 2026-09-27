@@ -8,6 +8,11 @@ pub use cc1::{
     NonlinearMotionRaw, NonlinearShapeCastCase, ShapeCastCase, ShapeCastHitRaw, ShapeCastOptionsRaw,
     SweepToiCase,
 };
+pub mod sh2a;
+pub use sh2a::{
+    CompositeAabbCase, CompositeManifoldCase, CompositePairCase, CompositePointCase, CompositeRaw,
+    CompositeRayCase, PartManifoldRaw,
+};
 
 /// A 2D vector.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]

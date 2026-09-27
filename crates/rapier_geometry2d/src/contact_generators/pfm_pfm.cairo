@@ -183,6 +183,49 @@ pub fn contact_manifold_pfm_pfm(
     true
 }
 
+/// Upstream's `contact_manifold_pfm_pfm` on a composite shape's part (SH2a): a copy of
+/// [`contact_manifold_pfm_pfm`] that also takes two segment cores (segment–segment and
+/// segment–capsule parts; the SAT of two segment cores is their face axes, then their closest
+/// edge pair). A copy rather than a shared body: factoring the body out costs the existing pairs
+/// 265 to 291 Cairo steps (measured on the `gas_*` probes of this module).
+pub fn contact_manifold_pfm_pfm_part(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
+) -> bool {
+    let (Some((inner1, r1)), Some((inner2, r2))) = (decompose(shape1), decompose(shape2)) else {
+        manifold.clear();
+        return false;
+    };
+    if manifold.try_update_contacts(pos12) {
+        return true;
+    }
+    let (core1, core2) = (core_of(inner1), core_of(inner2));
+    match separating_axis(core1, core2, pos12, prediction + r1 + r2) {
+        None => manifold.clear(),
+        Some((
+            n, witnesses,
+        )) => {
+            let n = if witnesses.is_some() {
+                snap_normal(n, core1, core2, pos12)
+            } else {
+                n
+            };
+            let f1 = feature_of(inner1, n);
+            let f2 = feature_of(inner2, pos12.inverse_transform_vector(-n));
+            finish(pos12, n, f1, f2, witnesses, r2, false, ref manifold);
+            if r1 != ZERO {
+                let offset = manifold.local_n1.mul_scalar(r1);
+                let [mut a, mut b] = manifold.points;
+                a.local_p1 = a.local_p1 + offset;
+                b.local_p1 = b.local_p1 + offset;
+                a.dist = a.dist - r1;
+                b.dist = b.dist - r1;
+                manifold.points = [a, b];
+            }
+        },
+    }
+    true
+}
+
 /// The cuboid–triangle manifold (Parry `contact_manifold_cuboid_triangle`, with `pos12` placing
 /// the triangle in the cuboid's frame): [`contact_manifold_pfm_pfm`] on the pair.
 pub fn contact_manifold_cuboid_triangle(

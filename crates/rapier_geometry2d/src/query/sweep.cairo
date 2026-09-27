@@ -21,8 +21,9 @@
 //!   simplex cache it returns (the features) drives the same separation functions.
 //! * A half-turn `nlerp` (opposite rotations at `t = 1/2`) has no direction: upstream normalises
 //!   a zero complex number (`NaN`); the port keeps the start rotation there.
-//! * Composite targets (`sweep_time_of_impact_composite`) are lot SH2.
+//! * Composite targets: [`composite::sweep_time_of_impact_composite`] (SH2a).
 
+pub mod composite;
 pub mod proxy;
 pub mod separation;
 use fixed::{Fixed, HALF, ZERO};
@@ -143,7 +144,7 @@ pub impl ToiProxyImpl of ToiProxyTrait {
     /// The proxy of a shape (upstream `from_shape`): a ball is its centre, a cuboid its four
     /// corners, a capsule or a segment its two end points, a triangle or a convex polygon its
     /// vertices, a round shape its inner shape's with the border as radius; `None` for a
-    /// half-space.
+    /// half-space and the composite shapes (their parts are proxied one by one).
     fn from_shape(shape: Shape) -> Option<ToiProxy> {
         match shape {
             Shape::Ball(b) => Some(Self::point(Vec2 { x: ZERO, y: ZERO }, b.radius)),
@@ -170,6 +171,8 @@ pub impl ToiProxyImpl of ToiProxyTrait {
                 Some(polygon_proxy(r.inner_shape, r.border_radius))
             },
             Shape::HalfSpace(_) => None,
+            Shape::Polyline(_) => None,
+            Shape::HeightField(_) => None,
         }
     }
 

@@ -24,6 +24,7 @@ use rapier_math::rot2::Rot2;
 
 pub mod builder;
 mod ccd;
+mod composite;
 mod coupled_joints;
 mod events;
 mod joint_controls;
