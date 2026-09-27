@@ -20,6 +20,13 @@
 //! The payloads wider than the capsule (triangle, round triangle, round polygon, polyline,
 //! heightfield, compound) are boxed like the polygon, so that a `Shape` stays six felts; the round
 //! cuboid (three felts) is stored inline.
+//!
+//! Work package PX2: [`ShapeTrait`] also carries the upstream `SharedShape::*` constructors, each
+//! building the same value as its `ColliderBuilderTrait` counterpart (same validation, `None`
+//! cases and argument order). `SharedShape::new`, `make_mut` and `convex_polyline_unmodified` stay
+//! unmatched (`docs/API_PARITY.md`'s `MISSING_REASONS`): a closed value enum has no generic `new`
+//! or copy-on-write accessor, and `ConvexPolygonTrait::from_convex_polyline` always validates
+//! convexity.
 
 pub mod convex_polygon;
 use convex_polygon::{BoxedConvexPolygonPartialEq, BoxedConvexPolygonSerde};
@@ -563,6 +570,116 @@ pub impl ShapeImpl of ShapeTrait {
             _ => None,
         }
     }
+
+    /// A disc of radius `radius` (upstream `SharedShape::ball`).
+    fn ball(radius: Fixed) -> Shape {
+        Shape::Ball(BallTrait::new(radius))
+    }
+
+    /// A box of half extents `(hx, hy)` (upstream `SharedShape::cuboid`).
+    fn cuboid(hx: Fixed, hy: Fixed) -> Shape {
+        Shape::Cuboid(CuboidTrait::new(Vec2 { x: hx, y: hy }))
+    }
+
+    /// The capsule of core segment `a`-`b` and radius `radius` (upstream `SharedShape::capsule`).
+    fn capsule(a: Vec2, b: Vec2, radius: Fixed) -> Shape {
+        Shape::Capsule(CapsuleTrait::new(a, b, radius))
+    }
+
+    /// A capsule along the `x` axis, its core segment `2 * half_height` long (upstream
+    /// `SharedShape::capsule_x`).
+    fn capsule_x(half_height: Fixed, radius: Fixed) -> Shape {
+        Shape::Capsule(CapsuleTrait::new_x(half_height, radius))
+    }
+
+    /// A capsule along the `y` axis, its core segment `2 * half_height` long (upstream
+    /// `SharedShape::capsule_y`).
+    fn capsule_y(half_height: Fixed, radius: Fixed) -> Shape {
+        Shape::Capsule(CapsuleTrait::new_y(half_height, radius))
+    }
+
+    /// The segment `a`-`b` (upstream `SharedShape::segment`).
+    fn segment(a: Vec2, b: Vec2) -> Shape {
+        Shape::Segment(SegmentTrait::new(a, b))
+    }
+
+    /// The half-space behind the plane through the origin of outward unit normal
+    /// `outward_normal` (upstream `SharedShape::halfspace`).
+    fn halfspace(outward_normal: Vec2) -> Shape {
+        Shape::HalfSpace(HalfSpaceTrait::new(outward_normal))
+    }
+
+    /// The triangle `a`, `b`, `c` (upstream `SharedShape::triangle`; any orientation, not
+    /// validated).
+    fn triangle(a: Vec2, b: Vec2, c: Vec2) -> Shape {
+        Shape::Triangle(BoxTrait::new(TriangleTrait::new(a, b, c)))
+    }
+
+    /// A box of half extents `(hx, hy)` with rounded corners of radius `border_radius` (upstream
+    /// `SharedShape::round_cuboid`).
+    fn round_cuboid(hx: Fixed, hy: Fixed, border_radius: Fixed) -> Shape {
+        Shape::RoundCuboid(
+            RoundShapeTrait::new(CuboidTrait::new(Vec2 { x: hx, y: hy }), border_radius),
+        )
+    }
+
+    /// The triangle `a`, `b`, `c` with rounded corners of radius `border_radius` (upstream
+    /// `SharedShape::round_triangle`).
+    fn round_triangle(a: Vec2, b: Vec2, c: Vec2, border_radius: Fixed) -> Shape {
+        Shape::RoundTriangle(
+            BoxTrait::new(RoundShapeTrait::new(TriangleTrait::new(a, b, c), border_radius)),
+        )
+    }
+
+    /// The convex hull of `points` (upstream `SharedShape::convex_hull`; algorithm, `None` cases
+    /// and panics as `ConvexPolygonTrait::from_convex_hull`).
+    fn convex_hull(points: Span<Vec2>) -> Option<Shape> {
+        let polygon = ConvexPolygonTrait::from_convex_hull(points)?;
+        Some(polygon.into())
+    }
+
+    /// [`Self::convex_hull`] with rounded corners of radius `border_radius` (upstream
+    /// `SharedShape::round_convex_hull`); `None` and panics as [`Self::convex_hull`].
+    fn round_convex_hull(points: Span<Vec2>, border_radius: Fixed) -> Option<Shape> {
+        let polygon = ConvexPolygonTrait::from_convex_hull(points)?;
+        let round: RoundConvexPolygon = RoundShapeTrait::new(polygon, border_radius);
+        Some(round.into())
+    }
+
+    /// The convex polygon of the CCW convex polyline `points`, not hulled (upstream
+    /// `SharedShape::convex_polyline`; see `ConvexPolygonTrait::from_convex_polyline` for the
+    /// `None` cases).
+    fn convex_polyline(points: Span<Vec2>) -> Option<Shape> {
+        let polygon = ConvexPolygonTrait::from_convex_polyline(points)?;
+        Some(polygon.into())
+    }
+
+    /// [`Self::convex_polyline`] with rounded corners of radius `border_radius` (upstream
+    /// `SharedShape::round_convex_polyline`); `None` in the same cases.
+    fn round_convex_polyline(points: Span<Vec2>, border_radius: Fixed) -> Option<Shape> {
+        let polygon = ConvexPolygonTrait::from_convex_polyline(points)?;
+        let round: RoundConvexPolygon = RoundShapeTrait::new(polygon, border_radius);
+        Some(round.into())
+    }
+
+    /// The polyline of `vertices` and segment `indices` (upstream `SharedShape::polyline`; no
+    /// mass; panics as `PolylineTrait::new` on an out-of-range index).
+    fn polyline(vertices: Span<Vec2>, indices: Option<Span<[u32; 2]>>) -> Shape {
+        PolylineTrait::new(vertices, indices).into()
+    }
+
+    /// The 2D heightfield of `heights` over `[-scale.x / 2, scale.x / 2]`, heights multiplied by
+    /// `scale.y` (upstream `SharedShape::heightfield`); no mass; panics as `HeightFieldTrait::new`.
+    fn heightfield(heights: Span<Fixed>, scale: Vec2) -> Shape {
+        HeightFieldTrait::new(heights, scale).into()
+    }
+
+    /// The compound of `shapes`, each part placed by its pose in the compound's frame (upstream
+    /// `SharedShape::compound`); mass properties are the sum of its parts'; panics as
+    /// `CompoundTrait::new`.
+    fn compound(shapes: Span<(Pose2, Shape)>) -> Shape {
+        CompoundTrait::new(shapes).into()
+    }
 }
 
 /// The SH1 arms of the inlined `ShapeTrait::compute_aabb`, out of line and loop-free. Returns the
@@ -604,165 +721,27 @@ fn sh1_mass_properties(shape: Shape, density: Fixed) -> (MassProperties, bool) {
     (props, true)
 }
 
-/// Upstream `impl Shape for Ball`: a ball is a shape.
-pub impl BallIntoShape of Into<Ball, Shape> {
-    #[inline(always)]
-    fn into(self: Ball) -> Shape {
-        Shape::Ball(self)
-    }
-}
+/// The `Into<X, Shape>` impls, one per concrete shape (upstream `impl Shape for X`), out of line
+/// to keep this file under the compile budget; re-exported so `.into()` resolves both here and
+/// for every other module that imports a shape from `crate::shape`.
+mod into_shape;
+pub use into_shape::{
+    BallIntoShape, CapsuleIntoShape, CompoundIntoShape, ConvexPolygonIntoShape, CuboidIntoShape,
+    HalfSpaceIntoShape, HeightFieldIntoShape, PolylineIntoShape, RoundConvexPolygonIntoShape,
+    RoundCuboidIntoShape, RoundTriangleIntoShape, SegmentIntoShape, TriangleIntoShape,
+};
 
-/// Upstream `impl Shape for Cuboid`.
-pub impl CuboidIntoShape of Into<Cuboid, Shape> {
-    #[inline(always)]
-    fn into(self: Cuboid) -> Shape {
-        Shape::Cuboid(self)
-    }
-}
+#[cfg(test)]
+mod alternatives;
 
-/// Upstream `impl Shape for Capsule`.
-pub impl CapsuleIntoShape of Into<Capsule, Shape> {
-    #[inline(always)]
-    fn into(self: Capsule) -> Shape {
-        Shape::Capsule(self)
-    }
-}
-
-/// Upstream `impl Shape for Segment`.
-pub impl SegmentIntoShape of Into<Segment, Shape> {
-    #[inline(always)]
-    fn into(self: Segment) -> Shape {
-        Shape::Segment(self)
-    }
-}
-
-/// Upstream `impl Shape for HalfSpace`.
-pub impl HalfSpaceIntoShape of Into<HalfSpace, Shape> {
-    #[inline(always)]
-    fn into(self: HalfSpace) -> Shape {
-        Shape::HalfSpace(self)
-    }
-}
-
-/// Upstream `impl Shape for ConvexPolygon` (boxed, as the variant).
-pub impl ConvexPolygonIntoShape of Into<ConvexPolygon, Shape> {
-    #[inline(always)]
-    fn into(self: ConvexPolygon) -> Shape {
-        Shape::ConvexPolygon(BoxTrait::new(self))
-    }
-}
-
-/// Upstream `impl Shape for Triangle` (boxed, as the variant).
-pub impl TriangleIntoShape of Into<Triangle, Shape> {
-    #[inline(always)]
-    fn into(self: Triangle) -> Shape {
-        Shape::Triangle(BoxTrait::new(self))
-    }
-}
-
-/// Upstream `impl Shape for RoundShape<Cuboid>`.
-pub impl RoundCuboidIntoShape of Into<RoundCuboid, Shape> {
-    #[inline(always)]
-    fn into(self: RoundCuboid) -> Shape {
-        Shape::RoundCuboid(self)
-    }
-}
-
-/// Upstream `impl Shape for RoundShape<Triangle>` (boxed, as the variant).
-pub impl RoundTriangleIntoShape of Into<RoundTriangle, Shape> {
-    #[inline(always)]
-    fn into(self: RoundTriangle) -> Shape {
-        Shape::RoundTriangle(BoxTrait::new(self))
-    }
-}
-
-/// Upstream `impl Shape for Polyline` (boxed, as the variant).
-pub impl PolylineIntoShape of Into<Polyline, Shape> {
-    #[inline(always)]
-    fn into(self: Polyline) -> Shape {
-        Shape::Polyline(BoxTrait::new(self))
-    }
-}
-
-/// Upstream `impl Shape for HeightField` (boxed, as the variant).
-pub impl HeightFieldIntoShape of Into<HeightField, Shape> {
-    #[inline(always)]
-    fn into(self: HeightField) -> Shape {
-        Shape::HeightField(BoxTrait::new(self))
-    }
-}
-
-/// Upstream `impl Shape for Compound` (boxed, as the variant).
-pub impl CompoundIntoShape of Into<Compound, Shape> {
-    #[inline(always)]
-    fn into(self: Compound) -> Shape {
-        Shape::Compound(BoxTrait::new(self))
-    }
-}
-
-/// Upstream `impl Shape for RoundShape<ConvexPolygon>` (boxed, as the variant).
-pub impl RoundConvexPolygonIntoShape of Into<RoundConvexPolygon, Shape> {
-    #[inline(always)]
-    fn into(self: RoundConvexPolygon) -> Shape {
-        Shape::RoundConvexPolygon(BoxTrait::new(RoundConvexPolygonShapeTrait::new(self)))
-    }
-}
+#[cfg(test)]
+mod constructors_tests;
 
 #[cfg(test)]
 mod helpers_tests;
 
 #[cfg(test)]
 mod serde_tests;
-
-#[cfg(test)]
-mod alternatives {
-    use rapier_math::pose2::Pose2;
-    use crate::aabb::Aabb;
-    use super::{
-        BallTrait, CapsuleTrait, ConvexPolygonTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait,
-        Shape,
-    };
-
-    /// Rejected direct polygon payload; increases every Shape value to 34 felts.
-    #[derive(Copy, Drop)]
-    pub enum UnboxedShape {
-        Ball: super::Ball,
-        Cuboid: super::Cuboid,
-        Capsule: super::Capsule,
-        Segment: super::Segment,
-        HalfSpace: super::HalfSpace,
-        ConvexPolygon: super::ConvexPolygon,
-    }
-
-    /// Rejected 34-felt enum representation: existing scene probes measured the copy overhead
-    /// before boxing the polygon payload. This retained AABB path exercises that representation.
-    #[inline(never)]
-    pub fn compute_aabb_outlined(shape: Shape, pose: Pose2) -> Aabb {
-        let shape = match shape {
-            Shape::Ball(s) => UnboxedShape::Ball(s),
-            Shape::Cuboid(s) => UnboxedShape::Cuboid(s),
-            Shape::Capsule(s) => UnboxedShape::Capsule(s),
-            Shape::Segment(s) => UnboxedShape::Segment(s),
-            Shape::HalfSpace(s) => UnboxedShape::HalfSpace(s),
-            Shape::ConvexPolygon(s) => UnboxedShape::ConvexPolygon(s.unbox()),
-            // The SH1 shapes postdate this candidate.
-            _ => core::panic_with_felt252('Shape: not in candidate'),
-        };
-        compute_unboxed_aabb(shape, pose)
-    }
-
-    #[inline(never)]
-    fn compute_unboxed_aabb(shape: UnboxedShape, pose: Pose2) -> Aabb {
-        match shape {
-            UnboxedShape::Ball(s) => s.compute_aabb(pose),
-            UnboxedShape::Capsule(s) => s.compute_aabb(pose),
-            UnboxedShape::Cuboid(s) => s.compute_aabb(pose),
-            UnboxedShape::HalfSpace(s) => s.compute_aabb(pose),
-            UnboxedShape::Segment(s) => s.compute_aabb(pose),
-            UnboxedShape::ConvexPolygon(s) => s.compute_aabb(pose),
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests;

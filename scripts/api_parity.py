@@ -458,9 +458,11 @@ OWNER_ALIASES.update({
     "Heightfield": ("HeightField", "Heightfield", "Composite"),
     "Polyline": ("Polyline", "Composite"),
     "CompositeShapeRef": ("Composite",),
-    # PX1: `SharedShape` (an `Arc<dyn Shape>` wrapper) is the closed `Shape` enum's role; only the
-    # `type` mapping (below) and any coincidentally-named accessor match — the constructors don't
-    # (`SharedShape::ball` vs `Ball::new(..).into()`), and are listed `missing` with a reason.
+    # PX1: `SharedShape` (an `Arc<dyn Shape>` wrapper) is the closed `Shape` enum's role. PX2 gave
+    # `Shape` the same-named constructors (`ShapeTrait::ball`, `::cuboid`, …, `shape.cairo`), so
+    # those now match too; only `new`, `make_mut` and `convex_polyline_unmodified` stay `missing`
+    # (`MISSING_REASONS`), the `Arc<dyn Shape>` / copy-on-write / unmodified-polyline surface a
+    # closed value enum has no counterpart for.
     "SharedShape": ("Shape",),
 })
 
@@ -1025,27 +1027,15 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
         ("Compound", "with_flags"), ("CompoundFlags", "CompoundFlags"),
         ("CompoundPseudoNormals", "CompoundPseudoNormals"))},
     ("Compound", "bvh"): "SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`).",
-    ("SharedShape", "compound"): "`ColliderBuilder::compound` / `CompoundTrait::new(..).into()` (no `SharedShape`).",
-    ("SharedShape", "polyline"): "`ColliderBuilder::polyline` / `PolylineTrait::new(..).into()` (no `SharedShape`).",
-    ("SharedShape", "heightfield"): "`ColliderBuilder::heightfield` / `HeightFieldTrait::new(..).into()` (no `SharedShape`).",
-    # PX1: `SharedShape` -> `Shape` (`OWNER_ALIASES`); the per-shape constructors build a Cairo
-    # value directly and convert with `.into()` (no `Arc`, so no generic `new` / `make_mut`).
+    # PX2: `SharedShape` -> `Shape` (`OWNER_ALIASES`); every constructor upstream builds through a
+    # concrete shape now has a same-named `ShapeTrait` counterpart (`shape.cairo`), matched by name
+    # without a `METHOD_RENAMES` entry. `SharedShape` itself is not an `Arc<dyn Shape>` here (a
+    # closed value enum), so `new` (generic over any `Shape` impl) and `make_mut` (copy-on-write)
+    # stay unmatched, and so does `convex_polyline_unmodified`: `ConvexPolygonTrait::
+    # from_convex_polyline` always validates convexity, so there is no "leave the input as is"
+    # variant to port.
     ("SharedShape", "new"): "`T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`).",
     ("SharedShape", "make_mut"): "Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed.",
-    ("SharedShape", "ball"): "`Ball::new(radius).into()`.",
-    ("SharedShape", "capsule"): "`Capsule::new(a, b, radius).into()`.",
-    ("SharedShape", "capsule_x"): "`Capsule::new_x(half_height, radius).into()`.",
-    ("SharedShape", "capsule_y"): "`Capsule::new_y(half_height, radius).into()`.",
-    ("SharedShape", "cuboid"): "`Cuboid::new(half_extents).into()`.",
-    ("SharedShape", "halfspace"): "`HalfSpace::new(normal).into()`.",
-    ("SharedShape", "segment"): "`Segment::new(a, b).into()`.",
-    ("SharedShape", "triangle"): "`Triangle::new(a, b, c).into()`.",
-    ("SharedShape", "round_cuboid"): "`RoundShape { inner_shape: Cuboid::new(..), border_radius }.into()`.",
-    ("SharedShape", "round_triangle"): "`RoundShape { inner_shape: Triangle::new(..), border_radius }.into()`.",
-    ("SharedShape", "convex_hull"): "`ConvexPolygon::from_convex_hull(points).into()` (gift wrap, <= 8 vertices, MH1/CW).",
-    ("SharedShape", "round_convex_hull"): "`RoundShape { inner_shape: ConvexPolygon::from_convex_hull(points)?, border_radius }.into()`.",
-    ("SharedShape", "convex_polyline"): "`ConvexPolygon::from_convex_polyline(points).into()`.",
-    ("SharedShape", "round_convex_polyline"): "`RoundShape { inner_shape: ConvexPolygon::from_convex_polyline(points)?, border_radius }.into()`.",
     ("SharedShape", "convex_polyline_unmodified"): "`ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant.",
     # CC1: upstream compiles no nonlinear half-space kernel (commented out of its `mod.rs` and of
     # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
