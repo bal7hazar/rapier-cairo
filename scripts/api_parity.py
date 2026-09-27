@@ -38,8 +38,207 @@ EXCLUSIONS = (
     "dim3-only", "soft bodies", "multibody", "SIMD/parallel", "debug render",
     "serde/rkyv/bytemuck", "profiling counters", "dyn hooks",
     "trimesh/voxels/3D heightfield", "EPA/GJK internals not exposed",
+    "solver / island internals not exposed",
     "f32/f64 conversions and approx traits",
 )
+
+# PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
+# summary reports "raw" parity against them alone, and "in scope" parity against every reason,
+# so closing SOLVER_ISLAND_INTERNALS below cannot quietly raise the headline number.
+SOLVER_ISLAND_REASON = "solver / island internals not exposed"
+
+# PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
+# broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
+# exposed": Cairo's contact and joint solvers (`rapier_dynamics2d::solver::{contact,joint}`) are
+# unrolled per-body kernels with no persistent constraint objects, no generic (multibody-only)
+# solve path and no SIMD lanes; the island graph and the BVH broad phase are not ported (ADR 6 /
+# D7: no persistent islands, no BVH broad phase — Cairo's broad phase is the swept-AABB grid).
+# Anything a user of rapier calls stays in scope: Cairo's own `JointConstraint` /
+# `JointConstraintHelper` (`solver/joint.cairo`, `solver/joint/helper.cairo`) cover the
+# non-generic solve/warmstart/writeback/lock/new surface under the same names (`ported`), and
+# `IslandManager::{active_bodies, new, num_active_bodies, wake_up}` map onto `World` (`ported`);
+# only the upstream-only pieces below are internal. Listed by exact `(owner, kind, name)`, never a
+# loose pattern (a previous PO1 self-test decision keeps the scalar `SolverBodies` API — `len`,
+# `get_pose`, `get_vel`, `set_vel`, `clear`, `copy_from`, `resize` — and `SolverPose` / `SolverVel`
+# / `VelocitySolver` / the persisted contact-graph order (`ContactRef`, `GraphPos`, the SO/DO class
+# of PLAN.md) out of this reason: those are open gaps, not closed internals).
+SOLVER_ISLAND_INTERNALS: frozenset[tuple[str, str, str]] = frozenset({
+    # Sequential-impulse contact constraints (dynamics/solver/contact_constraint/): per-contact
+    # Coulomb/twist-friction builders and the warmstart state they carry across steps.
+    ("ContactWithCoulombFriction", "method", "solve"),
+    ("ContactWithCoulombFriction", "method", "warmstart"),
+    ("ContactWithCoulombFriction", "method", "writeback_impulses"),
+    ("ContactWithCoulombFrictionBuilder", "method", "apply_restitution"),
+    ("ContactWithCoulombFrictionBuilder", "method", "generate"),
+    ("ContactWithCoulombFrictionBuilder", "method", "has_bouncy_seed"),
+    ("ContactWithCoulombFrictionBuilder", "method", "update"),
+    ("ContactWithCoulombFrictionBuilder", "method", "update_rhs_wo_bias"),
+    ("ContactWithTwistFriction", "method", "solve"),
+    ("ContactWithTwistFriction", "method", "warmstart"),
+    ("ContactWithTwistFriction", "method", "writeback_impulses"),
+    ("ContactWithTwistFrictionBuilder", "method", "apply_restitution"),
+    ("ContactWithTwistFrictionBuilder", "method", "generate"),
+    ("ContactWithTwistFrictionBuilder", "method", "has_bouncy_seed"),
+    ("ContactWithTwistFrictionBuilder", "method", "update"),
+    ("ContactWithTwistFrictionBuilder", "method", "update_rhs_wo_bias"),
+    ("CoulombContactPointInfos", "impl", "Default"),
+    ("CoulombContactPointInfos", "type", "CoulombContactPointInfos"),
+    ("TwistContactPointInfos", "impl", "Default"),
+    ("TwistContactPointInfos", "type", "TwistContactPointInfos"),
+    # The normal/tangent constraint parts and the free solve/warmstart kernels they call
+    # (`total_impulse` stays `ported`: Cairo's contact row exposes the same accessor).
+    ("ContactConstraintNormalPart", "method", "generic_solve"),
+    ("ContactConstraintNormalPart", "method", "generic_warmstart"),
+    ("ContactConstraintNormalPart", "method", "solve"),
+    ("ContactConstraintNormalPart", "method", "solve_pair"),
+    ("ContactConstraintNormalPart", "method", "solve_restitution"),
+    ("ContactConstraintNormalPart", "method", "warmstart"),
+    ("ContactConstraintNormalPart", "method", "zero"),
+    ("ContactConstraintTangentPart", "method", "generic_solve"),
+    ("ContactConstraintTangentPart", "method", "generic_warmstart"),
+    ("ContactConstraintTangentPart", "method", "solve"),
+    ("ContactConstraintTangentPart", "method", "warmstart"),
+    ("ContactConstraintTangentPart", "method", "zero"),
+    ("ContactConstraintsSet", "method", "new"),
+    ("dynamics", "function", "solve"),
+    ("dynamics", "function", "solve_pair"),
+    ("dynamics", "function", "solve_restitution"),
+    ("dynamics", "function", "warmstart"),
+    ("dynamics", "function", "joint_data_num_constraints"),
+    ("dynamics", "function", "joint_num_constraints"),
+    ("dynamics", "function", "reset_buffer"),
+    ("dynamics", "function", "reset_buffer_reusing"),
+    # The generic (multibody-attached) contact/joint constraint variants: Cairo has no multibody
+    # solve path (nalgebra-cairo, out of scope), so these never gain a counterpart.
+    ("GenericContactConstraint", "method", "generic_solve_group"),
+    ("GenericContactConstraint", "method", "generic_warmstart_group"),
+    ("GenericContactConstraint", "method", "invalid"),
+    ("GenericContactConstraint", "method", "remove_cfm_and_bias_from_rhs"),
+    ("GenericContactConstraint", "method", "solve"),
+    ("GenericContactConstraint", "method", "warmstart"),
+    ("GenericContactConstraint", "method", "writeback_impulses"),
+    ("GenericContactConstraintBuilder", "method", "apply_restitution"),
+    ("GenericContactConstraintBuilder", "method", "generate"),
+    ("GenericContactConstraintBuilder", "method", "has_bouncy_seed"),
+    ("GenericContactConstraintBuilder", "method", "invalid"),
+    ("GenericContactConstraintBuilder", "method", "update"),
+    ("GenericJointConstraint", "impl", "Default"),
+    ("GenericJointConstraint", "method", "invalid"),
+    ("GenericJointConstraint", "method", "lock_axes"),
+    ("GenericJointConstraint", "method", "remove_bias_from_rhs"),
+    ("GenericJointConstraint", "method", "solve"),
+    ("GenericJointConstraint", "method", "writeback_impulses"),
+    ("GenericJointConstraint", "type", "GenericJointConstraint"),
+    ("GenericJointConstraintBuilder", "type", "GenericJointConstraintBuilder"),
+    ("JointGenericExternalConstraintBuilder", "method", "generate"),
+    ("JointGenericExternalConstraintBuilder", "method", "update"),
+    ("JointGenericExternalConstraintBuilder", "type", "JointGenericExternalConstraintBuilder"),
+    ("JointGenericInternalConstraintBuilder", "method", "generate"),
+    ("JointGenericInternalConstraintBuilder", "method", "num_constraints"),
+    ("JointGenericInternalConstraintBuilder", "method", "update"),
+    ("JointGenericInternalConstraintBuilder", "type", "JointGenericInternalConstraintBuilder"),
+    ("JointSolverBody", "method", "fill_jacobians"),
+    ("JointSolverBody", "method", "invalid"),
+    ("JointSolverBody", "type", "JointSolverBody"),
+    ("LinkOrBodyRef", "type", "LinkOrBodyRef"),
+    # The persistent joint-constraint builders and the dyn-dispatch mutable view; Cairo's own
+    # `JointConstraint` / `JointConstraintHelper` cover the non-generic solve surface (`ported`).
+    ("AnyJointConstraintMut", "method", "writeback_impulses"),
+    ("AnyJointConstraintMut", "type", "AnyJointConstraintMut"),
+    ("JointConstraint", "method", "remove_bias_from_rhs"),
+    ("JointConstraint", "method", "solve_generic"),
+    ("JointConstraint", "method", "update"),
+    ("JointConstraint", "method", "warmstart_generic"),
+    ("JointConstraintBuilder", "method", "generate"),
+    ("JointConstraintBuilder", "method", "update"),
+    ("JointConstraintBuilder", "method", "update_warmstart_seeds"),
+    ("JointConstraintBuilder", "type", "JointConstraintBuilder"),
+    ("JointConstraintHelper", "method", "finalize_constraints"),
+    ("JointConstraintHelper", "method", "finalize_generic_constraints"),
+    ("JointConstraintHelper", "method", "limit_angular"),
+    ("JointConstraintHelper", "method", "limit_angular_generic"),
+    ("JointConstraintHelper", "method", "limit_linear"),
+    ("JointConstraintHelper", "method", "limit_linear_coupled"),
+    ("JointConstraintHelper", "method", "limit_linear_generic"),
+    ("JointConstraintHelper", "method", "lock_angular_generic"),
+    ("JointConstraintHelper", "method", "lock_jacobians_generic"),
+    ("JointConstraintHelper", "method", "lock_linear_generic"),
+    ("JointConstraintHelper", "method", "motor_angular"),
+    ("JointConstraintHelper", "method", "motor_angular_generic"),
+    ("JointConstraintHelper", "method", "motor_linear"),
+    ("JointConstraintHelper", "method", "motor_linear_coupled"),
+    ("JointConstraintHelper", "method", "motor_linear_generic"),
+    ("JointConstraintHelper", "method", "recentered_angle"),
+    ("JointConstraintsSet", "method", "iter_constraints_mut"),
+    ("JointConstraintsSet", "method", "new"),
+    ("JointConstraintsSet", "method", "writeback_impulses"),
+    ("JointConstraintsSet", "type", "JointConstraintsSet"),
+    ("AngularLimitParams", "method", "new"),
+    ("AngularLimitParams", "type", "AngularLimitParams"),
+    ("MotorParameters", "impl", "Default"),
+    ("MotorParameters", "type", "MotorParameters"),
+    ("WritebackId", "type", "WritebackId"),
+    # The staged island solver (the per-island sweep over the constraint graph).
+    ("StagedIslandSolver", "method", "init_and_solve"),
+    ("StagedIslandSolver", "method", "new"),
+    # Persistent islands (ADR 6 / D7: no persistent island graph — `World::active_bodies` scans
+    # awake bodies each step) and the BVH broad phase (ADR 6 / D7: swept-AABB grid instead).
+    ("Island", "method", "bodies"),
+    ("Island", "method", "len"),
+    ("Island", "method", "singleton"),
+    ("IslandManager", "method", "persistent_island_of"),
+    ("IslandManager", "type", "IslandManager"),
+    ("PersistentIslands", "method", "apply_impulse_joint_event"),
+    ("PersistentIslands", "method", "assert_consistent"),
+    ("PersistentIslands", "method", "begin_sleep_scan"),
+    ("PersistentIslands", "method", "body_island"),
+    ("PersistentIslands", "method", "bootstrap"),
+    ("PersistentIslands", "method", "clear_pending_split_of"),
+    ("PersistentIslands", "method", "contact_edge_removed"),
+    ("PersistentIslands", "method", "contact_link_loc"),
+    ("PersistentIslands", "method", "ensure_body"),
+    ("PersistentIslands", "method", "finish_sleep_scan"),
+    ("PersistentIslands", "method", "link_contact"),
+    ("PersistentIslands", "method", "link_joint"),
+    ("PersistentIslands", "method", "mark_island_sleeping"),
+    ("PersistentIslands", "method", "observe_body_for_sleep"),
+    ("PersistentIslands", "method", "remove_body"),
+    ("PersistentIslands", "method", "remove_body_raw"),
+    ("PersistentIslands", "method", "run_pending_split"),
+    ("PersistentIslands", "method", "schedule_split"),
+    ("PersistentIslands", "method", "split_allowed"),
+    ("PersistentIslands", "method", "split_island_now"),
+    ("PersistentIslands", "method", "unlink_contact"),
+    ("PersistentIslands", "method", "unlink_joint"),
+    ("BroadPhaseBvh", "method", "as_query_pipeline"),
+    ("BroadPhaseBvh", "method", "as_query_pipeline_mut"),
+    ("BroadPhaseBvh", "method", "new"),
+    ("BroadPhaseBvh", "method", "set_aabb"),
+    ("BroadPhaseBvh", "method", "update"),
+    ("BroadPhaseBvh", "method", "with_optimization_strategy"),
+    ("BroadPhaseBvh", "type", "BroadPhaseBvh"),
+    ("BvhOptimizationStrategy", "type", "BvhOptimizationStrategy"),
+    # Multi-manifold contact workspaces: persisted state matching sub-shape ids across steps
+    # (SH2a's decision, `MISSING_REASONS` above, is the same "no workspace" shape for the
+    # composite/heightfield pairs already ported; the workspace machinery itself is internal).
+    ("CompositeShapeCompositeShapeContactManifoldsWorkspace", "method", "new"),
+    ("CompositeShapeCompositeShapeContactManifoldsWorkspace", "type",
+     "CompositeShapeCompositeShapeContactManifoldsWorkspace"),
+    ("CompositeShapeShapeContactManifoldsWorkspace", "method", "new"),
+    ("CompositeShapeShapeContactManifoldsWorkspace", "type", "CompositeShapeShapeContactManifoldsWorkspace"),
+    ("ContactManifoldsWorkspace", "impl", "Clone"),
+    ("ContactManifoldsWorkspace", "impl", "From<T>"),
+    ("ContactManifoldsWorkspace", "type", "ContactManifoldsWorkspace"),
+    ("HeightFieldCompositeShapeContactManifoldsWorkspace", "method", "new"),
+    ("HeightFieldCompositeShapeContactManifoldsWorkspace", "type",
+     "HeightFieldCompositeShapeContactManifoldsWorkspace"),
+    ("HeightFieldShapeContactManifoldsWorkspace", "method", "new"),
+    ("HeightFieldShapeContactManifoldsWorkspace", "type", "HeightFieldShapeContactManifoldsWorkspace"),
+    ("TypedWorkspaceData", "type", "TypedWorkspaceData"),
+    ("WorkspaceData", "method", "as_typed_workspace_data"),
+    ("WorkspaceData", "method", "clone_dyn"),
+    ("WorkspaceData", "trait", "WorkspaceData"),
+})
 
 
 @dataclass(frozen=True, order=True)
@@ -259,6 +458,10 @@ OWNER_ALIASES.update({
     "Heightfield": ("HeightField", "Heightfield", "Composite"),
     "Polyline": ("Polyline", "Composite"),
     "CompositeShapeRef": ("Composite",),
+    # PX1: `SharedShape` (an `Arc<dyn Shape>` wrapper) is the closed `Shape` enum's role; only the
+    # `type` mapping (below) and any coincidentally-named accessor match — the constructors don't
+    # (`SharedShape::ball` vs `Ball::new(..).into()`), and are listed `missing` with a reason.
+    "SharedShape": ("Shape",),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -349,6 +552,8 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("Shape", "as_round_convex_polygon_mut"): ("as_round_convex_polygon",),
     # PO1: Parry's `TypedShape` (the tagged enum over the concrete shapes) is the closed `Shape` enum.
     ("TypedShape", "TypedShape"): ("Shape",),
+    # PX1: the `SharedShape` type itself is the `Shape` enum (see `OWNER_ALIASES`).
+    ("SharedShape", "SharedShape"): ("Shape",),
 }
 
 
@@ -744,6 +949,9 @@ def exclusion_reason(item: Item) -> str:
     if any(x in blob for x in ("epa", "gjk", "simplex")) \
             or item.owner == "parry::query" and item.name.endswith("_support_map_with_params"):
         return "EPA/GJK internals not exposed"
+    # PX1: exact `(owner, kind, name)` list only — see `SOLVER_ISLAND_INTERNALS` above.
+    if item.key in SOLVER_ISLAND_INTERNALS:
+        return SOLVER_ISLAND_REASON
     if impl and any(x in item.name for x in ("Serialize", "Deserialize", "Archive", "Pod", "Zeroable")):
         return "serde/rkyv/bytemuck"
     # PO1: `DeserializableTypedShape` exists only behind `serde-serialize` (its `into_shared_shape`).
@@ -814,6 +1022,25 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
     ("SharedShape", "compound"): "`ColliderBuilder::compound` / `CompoundTrait::new(..).into()` (no `SharedShape`).",
     ("SharedShape", "polyline"): "`ColliderBuilder::polyline` / `PolylineTrait::new(..).into()` (no `SharedShape`).",
     ("SharedShape", "heightfield"): "`ColliderBuilder::heightfield` / `HeightFieldTrait::new(..).into()` (no `SharedShape`).",
+    # PX1: `SharedShape` -> `Shape` (`OWNER_ALIASES`); the per-shape constructors build a Cairo
+    # value directly and convert with `.into()` (no `Arc`, so no generic `new` / `make_mut`).
+    ("SharedShape", "new"): "`T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`).",
+    ("SharedShape", "make_mut"): "Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed.",
+    ("SharedShape", "ball"): "`Ball::new(radius).into()`.",
+    ("SharedShape", "capsule"): "`Capsule::new(a, b, radius).into()`.",
+    ("SharedShape", "capsule_x"): "`Capsule::new_x(half_height, radius).into()`.",
+    ("SharedShape", "capsule_y"): "`Capsule::new_y(half_height, radius).into()`.",
+    ("SharedShape", "cuboid"): "`Cuboid::new(half_extents).into()`.",
+    ("SharedShape", "halfspace"): "`HalfSpace::new(normal).into()`.",
+    ("SharedShape", "segment"): "`Segment::new(a, b).into()`.",
+    ("SharedShape", "triangle"): "`Triangle::new(a, b, c).into()`.",
+    ("SharedShape", "round_cuboid"): "`RoundShape { inner_shape: Cuboid::new(..), border_radius }.into()`.",
+    ("SharedShape", "round_triangle"): "`RoundShape { inner_shape: Triangle::new(..), border_radius }.into()`.",
+    ("SharedShape", "convex_hull"): "`ConvexPolygon::from_convex_hull(points).into()` (gift wrap, <= 8 vertices, MH1/CW).",
+    ("SharedShape", "round_convex_hull"): "`RoundShape { inner_shape: ConvexPolygon::from_convex_hull(points)?, border_radius }.into()`.",
+    ("SharedShape", "convex_polyline"): "`ConvexPolygon::from_convex_polyline(points).into()`.",
+    ("SharedShape", "round_convex_polyline"): "`RoundShape { inner_shape: ConvexPolygon::from_convex_polyline(points)?, border_radius }.into()`.",
+    ("SharedShape", "convex_polyline_unmodified"): "`ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant.",
     # CC1: upstream compiles no nonlinear half-space kernel (commented out of its `mod.rs` and of
     # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
     **{("parry::query", n): "Not compiled upstream (commented out); the pair is unsupported, as upstream." for n in (
@@ -901,21 +1128,31 @@ def render(rust: list[Item], cairo: list[Item]) -> str:
         "",
         "## Coverage summary",
         "",
-        "| Module | Ported | Partial | Missing | Excluded | Items | Coverage |",
-        "|---|---:|---:|---:|---:|---:|---:|",
+        "Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the "
+        "headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); "
+        f"**in scope** = ported / (items − every excluded item, including `{SOLVER_ISLAND_REASON}`).",
+        "",
+        "| Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
-    total = {k: 0 for k in ("ported", "partial", "missing", "excluded")}
+    total = {k: 0 for k in ("ported", "partial", "missing", "excluded", "excluded_new")}
     for module in modules:
         owned = [item for item in rust if item.module == module]
-        counts = {k: sum(statuses[item][0] == k for item in owned) for k in total}
+        counts = {k: sum(statuses[item][0] == k for item in owned) for k in ("ported", "partial", "missing", "excluded")}
+        counts["excluded_new"] = sum(
+            statuses[item][0] == "excluded" and statuses[item][1] == SOLVER_ISLAND_REASON for item in owned)
         for k, v in counts.items():
             total[k] += v
-        denom = len(owned) - counts["excluded"]
-        cov = "—" if denom <= 0 else f"{100.0 * counts['ported'] / denom:.1f}%"
-        lines.append(f"| {module} | {counts['ported']} | {counts['partial']} | {counts['missing']} | {counts['excluded']} | {len(owned)} | {cov} |")
-    denom = len(rust) - total["excluded"]
-    cov = "—" if denom <= 0 else f"{100.0 * total['ported'] / denom:.1f}%"
-    lines.append(f"| **total** | **{total['ported']}** | **{total['partial']}** | **{total['missing']}** | **{total['excluded']}** | **{len(rust)}** | **{cov}** |")
+        raw_denom = len(owned) - (counts["excluded"] - counts["excluded_new"])
+        scope_denom = len(owned) - counts["excluded"]
+        raw_cov = "—" if raw_denom <= 0 else f"{100.0 * counts['ported'] / raw_denom:.1f}%"
+        scope_cov = "—" if scope_denom <= 0 else f"{100.0 * counts['ported'] / scope_denom:.1f}%"
+        lines.append(f"| {module} | {counts['ported']} | {counts['partial']} | {counts['missing']} | {counts['excluded']} | {len(owned)} | {raw_cov} | {scope_cov} |")
+    raw_denom = len(rust) - (total["excluded"] - total["excluded_new"])
+    scope_denom = len(rust) - total["excluded"]
+    raw_cov = "—" if raw_denom <= 0 else f"{100.0 * total['ported'] / raw_denom:.1f}%"
+    scope_cov = "—" if scope_denom <= 0 else f"{100.0 * total['ported'] / scope_denom:.1f}%"
+    lines.append(f"| **total** | **{total['ported']}** | **{total['partial']}** | **{total['missing']}** | **{total['excluded']}** | **{len(rust)}** | **{raw_cov}** | **{scope_cov}** |")
     lines += ["", f"Cairo-only public items not matched to upstream: **{len(extras)}**.", ""]
 
     owners = sorted(set(item.owner for item in rust))
