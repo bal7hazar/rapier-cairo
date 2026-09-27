@@ -121,7 +121,13 @@ pub enum Shape {
 }
 
 /// `Serde` with stable tags: the six original variants keep `0..=5` (their derived tags before
-/// SH1), the SH1 variants take `6..=9`; the payload follows its tag, as a derived `Serde` does.
+/// SH1), the SH1 variants take `6..=9`, the SH2a composites `10..=11`, the SH2b compound `12`; the
+/// payload follows its tag, as a derived `Serde` does. `serialize`'s six old arms stay inlined (as
+/// the derived shape had); every SH1 / SH2a / SH2b variant serializes through its own
+/// `#[inline(never)]` helper (RG2, #189): tied on Cairo steps with mixing a few call arms into the
+/// old ones (the pre-RG2 shape) or funnelling every new variant through one shared out-of-line
+/// wildcard, and uniform enough that a future SH3 variant does not have to pick a treatment
+/// (`shape/serde_tests.cairo`'s module doc has the measurements and the rejected candidates).
 pub impl ShapeSerde of Serde<Shape> {
     fn serialize(self: @Shape, ref output: Array<felt252>) {
         match self {
@@ -129,25 +135,6 @@ pub impl ShapeSerde of Serde<Shape> {
                 Serde::serialize(@0, ref output);
                 Serde::serialize(x, ref output);
             },
-            Shape::Triangle(x) => {
-                Serde::serialize(@6, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundCuboid(x) => {
-                Serde::serialize(@7, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundTriangle(x) => {
-                Serde::serialize(@8, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::RoundConvexPolygon(x) => {
-                Serde::serialize(@9, ref output);
-                Serde::serialize(x, ref output);
-            },
-            Shape::Polyline(x) => serialize_polyline(x, ref output),
-            Shape::HeightField(x) => serialize_heightfield(x, ref output),
-            Shape::Compound(x) => serialize_compound(x, ref output),
             Shape::Cuboid(x) => {
                 Serde::serialize(@1, ref output);
                 Serde::serialize(x, ref output);
@@ -168,6 +155,13 @@ pub impl ShapeSerde of Serde<Shape> {
                 Serde::serialize(@5, ref output);
                 Serde::serialize(x, ref output);
             },
+            Shape::Triangle(x) => serialize_triangle(x, ref output),
+            Shape::RoundCuboid(x) => serialize_round_cuboid(x, ref output),
+            Shape::RoundTriangle(x) => serialize_round_triangle(x, ref output),
+            Shape::RoundConvexPolygon(x) => serialize_round_convex_polygon(x, ref output),
+            Shape::Polyline(x) => serialize_polyline(x, ref output),
+            Shape::HeightField(x) => serialize_heightfield(x, ref output),
+            Shape::Compound(x) => serialize_compound(x, ref output),
         }
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<Shape> {
@@ -201,6 +195,28 @@ fn deserialize_sh1(idx: felt252, ref serialized: Span<felt252>) -> Option<Shape>
     } else {
         deserialize_sh2a(idx, ref serialized)
     }
+}
+
+/// The SH1 arms of [`ShapeSerde::serialize`] (tags `6..=9`), each its own out-of-line helper.
+#[inline(never)]
+fn serialize_triangle(x: @Box<Triangle>, ref output: Array<felt252>) {
+    Serde::serialize(@6, ref output);
+    Serde::serialize(x, ref output);
+}
+#[inline(never)]
+fn serialize_round_cuboid(x: @RoundCuboid, ref output: Array<felt252>) {
+    Serde::serialize(@7, ref output);
+    Serde::serialize(x, ref output);
+}
+#[inline(never)]
+fn serialize_round_triangle(x: @Box<RoundTriangle>, ref output: Array<felt252>) {
+    Serde::serialize(@8, ref output);
+    Serde::serialize(x, ref output);
+}
+#[inline(never)]
+fn serialize_round_convex_polygon(x: @Box<RoundConvexPolygonShape>, ref output: Array<felt252>) {
+    Serde::serialize(@9, ref output);
+    Serde::serialize(x, ref output);
 }
 
 /// The polyline arm of [`ShapeSerde::serialize`] (tag `10`), out of line.
@@ -694,6 +710,9 @@ pub impl RoundConvexPolygonIntoShape of Into<RoundConvexPolygon, Shape> {
 
 #[cfg(test)]
 mod helpers_tests;
+
+#[cfg(test)]
+mod serde_tests;
 
 #[cfg(test)]
 mod alternatives {
