@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
 | **total** | **1409** | **0** | **244** | **939** | **2592** | **78.2%** | **85.2%** |
 
-Cairo-only public items not matched to upstream: **1515**.
+Cairo-only public items not matched to upstream: **1518**.
 
 ## Aabb
 
@@ -4828,6 +4828,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Alternatives** method `local_world_frame` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `manifolds_metered` (`crates/rapier2d/src/control/character_controller/alternatives.cairo`)
 - **Alternatives** method `midpoint_two_stage` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
+- **Alternatives** method `on_face_every_face` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `pair_key` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
 - **Alternatives** method `point_polygon_projection` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `position_at_time_branch` (`crates/rapier_geometry2d/src/query/nonlinear_shape_cast/alternatives.cairo`)
@@ -4906,8 +4907,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **AxesMask** method `from_bits` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `intersection` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `is_empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `union` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- ... 1315 more
+- ... 1318 more
 
 ## Embedded Rust inventory
 
