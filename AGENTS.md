@@ -153,7 +153,9 @@ the programme session's written go (`docs/ORCHESTRATOR.md` § Releases).
   the taken arm is unchanged (SH1, #174): the compiler's auto-inline thresholds shift, identical post-call blocks get
   merged or split, and variant order changes fallthroughs. Declare new variants where the old arms' layout is kept
   (SH1: after `Ball`), box large payloads so the enum keeps its width, and prove "exact steps unchanged" with a
-  before / after table of `--tracked-resource cairo-steps` runs on the P3 and level probes.
+  before / after table of `--tracked-resource cairo-steps` runs on the P3 and level probes **and on the game-shaped
+  probes** (`crates/rapier2d/tests/game_path.cairo`: force events, reads, despawn, `WorldState` round trips). RG1
+  (#189): SH2a's "unchanged" proof covered P3 and levels, but its force-event collect cost the game +1.5 %.
 - Traits: `FooTrait` / `FooImpl` (via `#[generate_trait]` when there is a single impl); operators
   through core traits; `Zero`, `One`, `Default` where meaningful.
 - Errors: `pub mod errors { pub const X: felt252 = 'Type: reason'; }` with `assert(cond, errors::X)`;
