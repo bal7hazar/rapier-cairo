@@ -31,6 +31,12 @@ use crate::shape::{
     Ball, Capsule, ConvexPolygon, Cuboid, HalfSpace, Segment, Shape, Triangle,
     TrianglePointLocation,
 };
+use super::composite::{
+    contains_local_point_polyline, distance_to_local_point_heightfield,
+    distance_to_local_point_polyline, project_local_point_and_get_feature_heightfield,
+    project_local_point_and_get_feature_polyline, project_local_point_heightfield,
+    project_local_point_polyline,
+};
 use super::convex_polygon::{
     contains_local_point_convex_polygon, distance_to_local_point_convex_polygon,
     project_local_point_and_get_feature_convex_polygon, project_local_point_convex_polygon,
@@ -358,6 +364,8 @@ pub impl ShapePointQuery of PointQuery<Shape> {
                 let s = s.unbox();
                 project_local_point_round(s.inner_shape, s.border_radius, pt, solid)
             },
+            Shape::Polyline(s) => project_local_point_polyline(@s.unbox(), pt, solid),
+            Shape::HeightField(s) => project_local_point_heightfield(@s.unbox(), pt, solid),
         }
     }
     #[inline(always)]
@@ -383,6 +391,10 @@ pub impl ShapePointQuery of PointQuery<Shape> {
                 let s = s.unbox();
                 project_local_point_and_get_feature_round(s.inner_shape, s.border_radius, pt)
             },
+            Shape::Polyline(s) => project_local_point_and_get_feature_polyline(@s.unbox(), pt),
+            Shape::HeightField(s) => project_local_point_and_get_feature_heightfield(
+                @s.unbox(), pt,
+            ),
         }
     }
     #[inline(always)]
@@ -406,6 +418,8 @@ pub impl ShapePointQuery of PointQuery<Shape> {
                 let s = s.unbox();
                 distance_to_local_point_round(s.inner_shape, s.border_radius, pt, solid)
             },
+            Shape::Polyline(s) => distance_to_local_point_polyline(@s.unbox(), pt, solid),
+            Shape::HeightField(s) => distance_to_local_point_heightfield(@s.unbox(), pt, solid),
         }
     }
     #[inline(always)]
@@ -442,6 +456,7 @@ fn contains_local_point_sh1(shape: Shape, pt: Vec2) -> u8 {
                 let s = s.unbox();
                 contains_local_point_round(s.inner_shape, s.border_radius, pt)
             },
+            Shape::Polyline(s) => contains_local_point_polyline(@s.unbox(), pt),
             _ => false,
         };
         pending = false;

@@ -33,6 +33,7 @@ use super::ball::{
     contact_convex_polyhedron_ball, distance_ball_ball, distance_ball_convex_polyhedron,
     distance_convex_polyhedron_ball,
 };
+use super::composite::{closest_points_composite, contact_composite, distance_composite};
 use super::cuboid::{closest_points_cuboid_cuboid, distance_cuboid_cuboid};
 use super::halfspace::{
     closest_points_halfspace_support_map, closest_points_support_map_halfspace,
@@ -56,6 +57,27 @@ use super::{ClosestPoints, Contact};
 pub fn distance(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<Fixed> {
     match (shape1, shape2) {
         (Shape::Ball(b1), Shape::Ball(b2)) => Some(distance_ball_ball(b1, pos12.translation, b2)),
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => distance_composite(pos12, shape1, shape2),
+        (Shape::Ball(b1), _) => Some(distance_ball_convex_polyhedron(pos12, b1, shape2)),
+        (_, Shape::Ball(b2)) => Some(distance_convex_polyhedron_ball(pos12, shape1, b2)),
+        (Shape::Cuboid(c1), Shape::Cuboid(c2)) => Some(distance_cuboid_cuboid(pos12, c1, c2)),
+        (Shape::Segment(s1), Shape::Segment(s2)) => Some(distance_segment_segment(pos12, s1, s2)),
+        (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
+        (Shape::HalfSpace(h), _) => Some(distance_halfspace_support_map(pos12, h, shape2)),
+        (_, Shape::HalfSpace(h)) => Some(distance_support_map_halfspace(pos12, shape1, h)),
+        _ => Some(distance_support_map_support_map(pos12, shape1, shape2)),
+    }
+}
+
+/// [`distance`] outlined, for the parts of the composite shapes (see
+/// `crate::dispatch::intersection::intersection_test_outlined`).
+#[inline(never)]
+pub(crate) fn distance_outlined(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<Fixed> {
+    match (shape1, shape2) {
+        (Shape::Ball(b1), Shape::Ball(b2)) => Some(distance_ball_ball(b1, pos12.translation, b2)),
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => distance_composite(pos12, shape1, shape2),
         (Shape::Ball(b1), _) => Some(distance_ball_convex_polyhedron(pos12, b1, shape2)),
         (_, Shape::Ball(b2)) => Some(distance_convex_polyhedron_ball(pos12, shape1, b2)),
         (Shape::Cuboid(c1), Shape::Cuboid(c2)) => Some(distance_cuboid_cuboid(pos12, c1, c2)),
@@ -80,6 +102,43 @@ pub fn closest_points(
         (
             Shape::Ball(b1), Shape::Ball(b2),
         ) => Some(closest_points_ball_ball(pos12, b1, b2, max_dist)),
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => closest_points_composite(pos12, shape1, shape2, max_dist),
+        (
+            Shape::Ball(b1), _,
+        ) => Some(closest_points_ball_convex_polyhedron(pos12, b1, shape2, max_dist)),
+        (
+            _, Shape::Ball(b2),
+        ) => Some(closest_points_convex_polyhedron_ball(pos12, shape1, b2, max_dist)),
+        (
+            Shape::Cuboid(c1), Shape::Cuboid(c2),
+        ) => Some(closest_points_cuboid_cuboid(pos12, c1, c2, max_dist)),
+        (
+            Shape::Segment(s1), Shape::Segment(s2),
+        ) => Some(closest_points_segment_segment(pos12, s1, s2, max_dist)),
+        (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
+        (
+            Shape::HalfSpace(h), _,
+        ) => Some(closest_points_halfspace_support_map(pos12, h, shape2, max_dist)),
+        (
+            _, Shape::HalfSpace(h),
+        ) => Some(closest_points_support_map_halfspace(pos12, shape1, h, max_dist)),
+        _ => Some(closest_points_support_map_support_map(pos12, shape1, shape2, max_dist)),
+    }
+}
+
+/// [`closest_points`] outlined, for the parts of the composite shapes (see
+/// `crate::dispatch::intersection::intersection_test_outlined`).
+#[inline(never)]
+pub(crate) fn closest_points_outlined(
+    pos12: Pose2, shape1: Shape, shape2: Shape, max_dist: Fixed,
+) -> Option<ClosestPoints> {
+    match (shape1, shape2) {
+        (
+            Shape::Ball(b1), Shape::Ball(b2),
+        ) => Some(closest_points_ball_ball(pos12, b1, b2, max_dist)),
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => closest_points_composite(pos12, shape1, shape2, max_dist),
         (
             Shape::Ball(b1), _,
         ) => Some(closest_points_ball_convex_polyhedron(pos12, b1, shape2, max_dist)),
@@ -113,6 +172,31 @@ pub fn contact(
 ) -> Option<Option<Contact>> {
     match (shape1, shape2) {
         (Shape::Ball(b1), Shape::Ball(b2)) => Some(contact_ball_ball(pos12, b1, b2, prediction)),
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => contact_composite(pos12, shape1, shape2, prediction),
+        (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
+        (
+            Shape::HalfSpace(h), _,
+        ) => Some(contact_halfspace_support_map(pos12, h, shape2, prediction)),
+        (
+            _, Shape::HalfSpace(h),
+        ) => Some(contact_support_map_halfspace(pos12, shape1, h, prediction)),
+        (Shape::Ball(b1), _) => Some(contact_ball_convex_polyhedron(pos12, b1, shape2, prediction)),
+        (_, Shape::Ball(b2)) => Some(contact_convex_polyhedron_ball(pos12, shape1, b2, prediction)),
+        _ => Some(contact_support_map_support_map(pos12, shape1, shape2, prediction)),
+    }
+}
+
+/// [`contact`] outlined, for the parts of the composite shapes (see
+/// `crate::dispatch::intersection::intersection_test_outlined`).
+#[inline(never)]
+pub(crate) fn contact_outlined(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed,
+) -> Option<Option<Contact>> {
+    match (shape1, shape2) {
+        (Shape::Ball(b1), Shape::Ball(b2)) => Some(contact_ball_ball(pos12, b1, b2, prediction)),
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => contact_composite(pos12, shape1, shape2, prediction),
         (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
         (
             Shape::HalfSpace(h), _,

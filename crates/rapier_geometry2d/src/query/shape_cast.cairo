@@ -8,7 +8,8 @@
 //!   [`cast_shapes_local`] (upstream `DefaultQueryDispatcher::cast_shapes`).
 //! * The table sends ball–ball to [`ball_ball`], a half-space against a support map to
 //!   [`halfspace`], every other supported pair to [`support_map`]; half-space–half-space is
-//!   unsupported (`None`, upstream `Err(Unsupported)`). Composite shapes are lot SH2.
+//!   unsupported (`None`, upstream `Err(Unsupported)`). The composite shapes (SH2a) go to
+//!   `super::composite::cast_shapes_composite`.
 //!
 //! # Semantics (upstream's)
 //!
@@ -163,6 +164,35 @@ pub fn cast_shapes_local(
             Shape::Ball(b1), Shape::Ball(b2),
         ) => Some(cast_shapes_ball_ball(pos12, vel12, b1, b2, options)),
         (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (
+            _, Shape::HeightField(_),
+        ) => super::composite::cast_shapes_composite(pos12, vel12, shape1, shape2, options),
+        (
+            Shape::HalfSpace(h), _,
+        ) => Some(cast_shapes_halfspace_support_map(pos12, vel12, h, shape2, options)),
+        (
+            _, Shape::HalfSpace(h),
+        ) => Some(cast_shapes_support_map_halfspace(pos12, vel12, shape1, h, options)),
+        _ => Some(cast_shapes_support_map_support_map(pos12, vel12, shape1, shape2, options)),
+    }
+}
+
+/// [`cast_shapes_local`] outlined, for the parts of the composite shapes (see
+/// `crate::dispatch::intersection::intersection_test_outlined`).
+#[inline(never)]
+pub(crate) fn cast_shapes_local_outlined(
+    pos12: Pose2, vel12: Vec2, shape1: Shape, shape2: Shape, options: ShapeCastOptions,
+) -> Option<Option<ShapeCastHit>> {
+    match (shape1, shape2) {
+        (
+            Shape::Ball(b1), Shape::Ball(b2),
+        ) => Some(cast_shapes_ball_ball(pos12, vel12, b1, b2, options)),
+        (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (
+            _, Shape::HeightField(_),
+        ) => super::composite::cast_shapes_composite(pos12, vel12, shape1, shape2, options),
         (
             Shape::HalfSpace(h), _,
         ) => Some(cast_shapes_halfspace_support_map(pos12, vel12, h, shape2, options)),

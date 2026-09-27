@@ -26,6 +26,7 @@
 
 pub mod ball;
 pub mod capsule;
+pub mod composite;
 pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
@@ -73,7 +74,8 @@ pub use wide2::{cross_wide, dot_wide};
 ///
 /// `point` is the closest point of the shape, `is_inside` tells whether the query point was
 /// inside it. The boundary counts as inside (`<=`) for every shape. Upstream's `subshape` field
-/// is dropped: the MVP shape set has no composite shape.
+/// is dropped so that every projection keeps its width: the composite shapes (SH2a) return
+/// their part's index out of band (`composite::*_part`).
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct PointProjection {
     pub is_inside: bool,

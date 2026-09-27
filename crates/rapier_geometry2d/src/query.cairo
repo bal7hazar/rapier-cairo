@@ -34,7 +34,8 @@
 //!   `contact_halfspace_support_map` (parry 0.30.2 and 0.31.1), so it answers a contact for a
 //!   shape above a half-space placed second. The port inverts it, as the matching `distance` and
 //!   `closest_points` kernels do upstream.
-//! * Composite shapes are deferred (lot SH2).
+//! * The composite shapes (SH2a) answer through their parts ([`composite`]), with upstream's
+//!   support matrix (see there).
 //!
 //! # Shape casts (CC1)
 //!
@@ -43,6 +44,7 @@
 //! `sweep_toi` (the swept-proxy time of impact that Rapier's CCD calls).
 
 pub mod ball;
+pub mod composite;
 pub mod cuboid;
 pub mod dispatcher;
 pub mod halfspace;

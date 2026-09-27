@@ -28,7 +28,10 @@
 //! * triangle and round-shape pairs (SH1): ball–shape through the shape's solid projection
 //!   (a round shape: the inner shape within `r + border_radius`), half-space–shape through the
 //!   support point, every other pair through the exact support-map witness of
-//!   `crate::query::support_map` (`dist <= 0`; upstream: GJK).
+//!   `crate::query::support_map` (`dist <= 0`; upstream: GJK);
+//! * composite shapes (SH2a): ball–composite through the composite's solid projection, every
+//!   other pair through `crate::query::composite::intersection_test_composite` (a polyline's
+//!   segments; a heightfield is unsupported, as upstream).
 //!
 //! Candidates (`alternatives`, measured by `tests::gas_*`): deriving the answer from the contact
 //! generators (`intersection_test_from_contacts`: manifold at zero prediction, any point with
@@ -42,8 +45,10 @@ use rapier_math::math_ext::norm2::is_norm2_le;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::closest_points::closest_points_segment_segment;
+use crate::point::composite::project_local_point_composite;
 use crate::point::round_shape::contains_local_point_round;
 use crate::point::{cross_wide, dot_wide, project_local_point_segment, project_local_point_triangle};
+use crate::query::composite::intersection_test_composite;
 use crate::query::support_map::{local_support_point_toward, witness};
 use crate::shape::{
     Ball, Capsule, ConvexPolygon, ConvexPolygonTrait, Cuboid, HalfSpace, Segment, Shape,
@@ -85,6 +90,58 @@ pub fn intersection_test(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<b
             point_query_ball(shape2, center, b1.radius)
         },
         (_, Shape::Ball(b2)) => point_query_ball(shape1, pos12.translation, b2.radius),
+        // SH2a: after the balls (point queries), as upstream's dispatcher.
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => intersection_test_composite(pos12, shape1, shape2),
+        (Shape::HalfSpace(h1), _) => halfspace_convex(pos12, h1, shape2),
+        (_, Shape::HalfSpace(h2)) => halfspace_convex(pos12.inverse(), h2, shape1),
+        (Shape::Cuboid(c1), Shape::Capsule(c2)) => Some(cuboid_capsule(pos12, c1, c2)),
+        (Shape::Capsule(c1), Shape::Cuboid(c2)) => Some(cuboid_capsule(pos12.inverse(), c2, c1)),
+        (
+            Shape::Cuboid(c1), Shape::Segment(s2),
+        ) => Some(cuboid_capsule(pos12, c1, Capsule { segment: s2, radius: ZERO })),
+        (
+            Shape::Segment(s1), Shape::Cuboid(c2),
+        ) => Some(cuboid_capsule(pos12.inverse(), c2, Capsule { segment: s1, radius: ZERO })),
+        (
+            Shape::Capsule(c1), Shape::Capsule(c2),
+        ) => Some(segment_segment(pos12, c1.segment, c2.segment, c1.radius + c2.radius)),
+        (
+            Shape::Capsule(c1), Shape::Segment(s2),
+        ) => Some(segment_segment(pos12, c1.segment, s2, c1.radius)),
+        (
+            Shape::Segment(s1), Shape::Capsule(c2),
+        ) => Some(segment_segment(pos12, s1, c2.segment, c2.radius)),
+        (Shape::Segment(s1), Shape::Segment(s2)) => Some(segment_segment(pos12, s1, s2, ZERO)),
+        (Shape::Triangle(_), _) | (_, Shape::Triangle(_)) | (Shape::RoundCuboid(_), _) |
+        (_, Shape::RoundCuboid(_)) | (Shape::RoundTriangle(_), _) | (_, Shape::RoundTriangle(_)) |
+        (Shape::RoundConvexPolygon(_), _) |
+        (_, Shape::RoundConvexPolygon(_)) => Some(support_maps(pos12, shape1, shape2)),
+        (Shape::ConvexPolygon(p1), _) => Some(polygon_shape(pos12, p1.unbox(), shape2)),
+        (_, Shape::ConvexPolygon(p2)) => Some(polygon_shape(pos12.inverse(), p2.unbox(), shape1)),
+    }
+}
+
+/// [`intersection_test`] outlined: the table the composite shapes' parts go through
+/// (`crate::query::composite`). An inlined table cannot sit on the recursion
+/// table → composite → table of a composite–composite pair; this copy can.
+#[inline(never)]
+pub(crate) fn intersection_test_outlined(
+    pos12: Pose2, shape1: Shape, shape2: Shape,
+) -> Option<bool> {
+    match (shape1, shape2) {
+        (Shape::Ball(b1), Shape::Ball(b2)) => Some(ball_ball(pos12.translation, b1, b2)),
+        (Shape::Cuboid(c1), Shape::Cuboid(c2)) => Some(cuboid_cuboid(pos12, c1, c2)),
+        (
+            Shape::Ball(b1), _,
+        ) => {
+            let center = pos12.inverse_transform_point(Default::default());
+            point_query_ball(shape2, center, b1.radius)
+        },
+        (_, Shape::Ball(b2)) => point_query_ball(shape1, pos12.translation, b2.radius),
+        // SH2a: after the balls (point queries), as upstream's dispatcher.
+        (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) => intersection_test_composite(pos12, shape1, shape2),
         (Shape::HalfSpace(h1), _) => halfspace_convex(pos12, h1, shape2),
         (_, Shape::HalfSpace(h2)) => halfspace_convex(pos12.inverse(), h2, shape1),
         (Shape::Cuboid(c1), Shape::Capsule(c2)) => Some(cuboid_capsule(pos12, c1, c2)),
@@ -138,8 +195,9 @@ pub fn point_query_ball(shape: Shape, center: Vec2, radius: Fixed) -> Option<boo
     )
 }
 
-/// Ball against a triangle or a round shape: the solid projection of the centre is inside or
-/// within `radius` (a round shape: the inner shape within `radius + border_radius`).
+/// Ball against a triangle, a round shape or a composite shape: the solid projection of the
+/// centre is inside or within `radius` (a round shape: the inner shape within
+/// `radius + border_radius`).
 #[inline(never)]
 fn point_sh1(shape: Shape, center: Vec2, radius: Fixed) -> bool {
     match shape {
@@ -158,6 +216,12 @@ fn point_sh1(shape: Shape, center: Vec2, radius: Fixed) -> bool {
         Shape::RoundConvexPolygon(s) => {
             let s = s.unbox();
             contains_local_point_round(s.inner_shape, s.border_radius + radius, center)
+        },
+        Shape::Polyline(_) |
+        Shape::HeightField(_) => {
+            let proj = project_local_point_composite(shape, center, true);
+            let d = center - proj.point;
+            proj.is_inside || is_norm2_le(d.x, d.y, radius)
         },
         _ => false,
     }

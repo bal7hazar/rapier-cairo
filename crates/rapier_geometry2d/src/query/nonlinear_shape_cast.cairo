@@ -184,8 +184,8 @@ pub impl NonlinearShapeCastModeImpl of NonlinearShapeCastModeTrait {
 
 /// The thickness under which a shape may tunnel (upstream `Shape::ccd_thickness`): the radius
 /// of a ball or capsule, the smallest half extent of a cuboid or of a polygon's local box, zero
-/// for a segment or a triangle, the inner value plus the border for a round shape, and upstream's
-/// `f32::MAX` (saturated to `fixed::MAX`) for a half-space.
+/// for a segment, a triangle, a polyline or a heightfield, the inner value plus the border for a
+/// round shape, and upstream's `f32::MAX` (saturated to `fixed::MAX`) for a half-space.
 pub fn ccd_thickness(shape: Shape) -> Fixed {
     match shape {
         Shape::Ball(s) => s.radius,
@@ -201,18 +201,22 @@ pub fn ccd_thickness(shape: Shape) -> Fixed {
             let s = s.unbox();
             min_element(s.local_aabb.half_extents()) + s.border_radius
         },
+        Shape::Polyline(_) => ZERO,
+        Shape::HeightField(_) => ZERO,
     }
 }
 
 /// The smallest rotation after which a shape may touch with a new contact (upstream
 /// `Shape::ccd_angular_thickness`): `pi` for a ball or a half-space, `pi / 4` for a convex
-/// polygon (round or not), `pi / 2` otherwise.
+/// polygon (round or not), a polyline or a heightfield, `pi / 2` otherwise.
 pub fn ccd_angular_thickness(shape: Shape) -> Fixed {
     match shape {
         Shape::Ball(_) => PI,
         Shape::HalfSpace(_) => PI,
         Shape::ConvexPolygon(_) => FRAC_PI_4,
         Shape::RoundConvexPolygon(_) => FRAC_PI_4,
+        Shape::Polyline(_) => FRAC_PI_4,
+        Shape::HeightField(_) => FRAC_PI_4,
         _ => FRAC_PI_2,
     }
 }
@@ -230,7 +234,8 @@ fn min_element(v: Vec2) -> Fixed {
 /// `[start_time, end_time]` (upstream `query::cast_shapes_nonlinear` /
 /// `DefaultQueryDispatcher::cast_shapes_nonlinear`). With `stop_at_penetration`, a start in
 /// contact answers `t = start_time`; otherwise the directional mode of the two shapes applies.
-/// The outer `None` is an unsupported pair (a half-space on either side).
+/// The outer `None` is an unsupported pair (a half-space on either side, a heightfield); a
+/// polyline answers through its segments (`super::composite`).
 /// #### Panics
 /// * The panics of [`cast_shapes_nonlinear_support_map_support_map`].
 pub fn cast_shapes_nonlinear(
@@ -243,7 +248,10 @@ pub fn cast_shapes_nonlinear(
     stop_at_penetration: bool,
 ) -> Option<Option<ShapeCastHit>> {
     if g1.as_support_map().is_none() || g2.as_support_map().is_none() {
-        return None;
+        // SH2a: a polyline answers through its segments (a heightfield is unsupported).
+        return super::composite::cast_shapes_nonlinear_composite(
+            motion1, g1, motion2, g2, start_time, end_time, stop_at_penetration,
+        );
     }
     let mode = if stop_at_penetration {
         NonlinearShapeCastMode::StopAtPenetration
