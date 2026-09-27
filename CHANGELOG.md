@@ -20,8 +20,9 @@ whether simulation results changed.
   for two boxes 0.01 apart, 327,680 for two boxes 2^-16 apart). Its witnesses move along the new normal by up to the
   same amount times the radii; times of impact and statuses are unchanged. `KinematicCharacterController::move_shape`
   follows: a move exactly parallel to the ground no longer counts as a ground hit (`character_moves/wall_slide` now
-  matches rapier-rs: one collision fewer, `1e-4` lower), and its golden's worst error drops from 900 to 3 raw. Touching
-  starts cost +684 Cairo steps per cast; other casts are unchanged (CN1).
+  matches rapier-rs: one collision fewer, `1e-4` lower), and its golden's worst error drops from 900 to 3 raw. A corner
+  just past the end of a face keeps its corner normal (the face snap forgives an excess of at most `height / 2^30`).
+  Touching starts cost +670 Cairo steps per cast; other casts are unchanged (CN1).
 
 ### Added
 - Controllers (`rapier2d::control`, in the prelude): `PdController`, `PidController`, `PdErrors` and the kinematic

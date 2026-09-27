@@ -495,8 +495,14 @@ fn closest_face(core: Core, n: Vec2, flip: bool) -> Option<(Vec2, Segment)> {
     answer
 }
 
+/// `2^30`: a point `excess` past a face's span at `height` above it snaps to the face normal only
+/// when `excess * 2^30 <= height`, so that the snap moves the normal by at most four raw.
+const SLAB_SCALE: i64 = 0x40000000;
+
 /// Whether `p` lies in the outer slab of the face `f` of normal `m`: strictly above its line
-/// (`height > 0`) and within four ulps of its span.
+/// (`height > 0`) and within its span, up to an excess of four ulps and of `height / 2^30` (the
+/// rounding of a projection on a long face is forgiven, a corner a few ulps past the face at a
+/// small height is not: its true normal leans by `excess / height`).
 pub fn in_slab(m: Vec2, f: Segment, p: Vec2, height: Fixed) -> bool {
     if height <= ZERO {
         return false;
@@ -509,7 +515,14 @@ pub fn in_slab(m: Vec2, f: Segment, p: Vec2, height: Fixed) -> bool {
     } else {
         (ZERO, len)
     };
-    s >= lo - SLACK && s <= hi + SLACK
+    let excess = if s < lo {
+        lo - s
+    } else if s > hi {
+        s - hi
+    } else {
+        return true;
+    };
+    excess <= SLACK && excess.raw * SLAB_SCALE <= height.raw
 }
 
 /// The start witness `w` of the two cores with the exact normal of the face it meets (CN1).
@@ -520,9 +533,9 @@ pub fn in_slab(m: Vec2, f: Segment, p: Vec2, height: Fixed) -> bool {
 /// the face normal exactly. The closest point of one core lies in the outer slab of a face of the
 /// other exactly when the closest pair meets that face, along its normal: the face of core1
 /// closest in direction to `w.normal1` is tested with core2's point, then the face of core2 with
-/// core1's. On a match the normal is the face's, the points are pushed out by the radii along it
-/// and the distance is kept. Overlapping cores (the SAT axis already) and the other pairs (vertex
-/// against vertex) keep `w`.
+/// core1's ([`in_slab`]). On a match the normal is the face's, the points are pushed out by the
+/// radii along it and the distance is kept. Overlapping cores (the SAT axis already) and the other
+/// pairs (vertex against vertex) keep `w`.
 pub fn on_face(core1: Core, core2: Core, w: Witness) -> Witness {
     let (r1, r2) = (core1.radius, core2.radius);
     if w.dist + r1 + r2 <= ZERO {
