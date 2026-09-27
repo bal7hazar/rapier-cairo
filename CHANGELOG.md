@@ -3,6 +3,14 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## Unreleased
+
+**Results:** unchanged since `0.1.0-alpha.6`.
+
+### Added
+- `rapier2d::prelude` exports the body field selectors `BodyPose`, `BodySleeping`, `BodyLinvel`, `BodyAngvel` (for
+  `RigidBodySetTrait::get_field`).
+
 ## 0.1.0-alpha.6 — 2026-09-27
 
 **Results: numeric change** (a MINOR bump by the versioning policy once out of alpha): contacts whose gap closes exactly
