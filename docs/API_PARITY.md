@@ -16,7 +16,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| control | 0 | 0 | 47 | 0 | 47 | 0.0% | 0.0% |
+| control | 31 | 0 | 16 | 0 | 47 | 66.0% | 66.0% |
 | dynamics | 554 | 0 | 36 | 602 | 1192 | 76.3% | 93.9% |
 | geometry | 209 | 0 | 84 | 24 | 317 | 69.9% | 71.3% |
 | parry::bounding_volume | 85 | 0 | 4 | 30 | 119 | 95.5% | 95.5% |
@@ -24,9 +24,9 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | parry::query | 218 | 0 | 73 | 133 | 424 | 71.2% | 74.9% |
 | parry::shape | 200 | 0 | 65 | 119 | 384 | 75.5% | 75.5% |
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
-| **total** | **1361** | **0** | **320** | **986** | **2667** | **74.0%** | **81.0%** |
+| **total** | **1392** | **0** | **289** | **986** | **2667** | **75.7%** | **82.8%** |
 
-Cairo-only public items not matched to upstream: **1490**.
+Cairo-only public items not matched to upstream: **1513**.
 
 ## Aabb
 
@@ -268,22 +268,22 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | control | missing | Not found on Cairo candidate(s): CharacterAutostep, CharacterAutostepTrait. | `rapier/src/control/character_controller.rs` |
-| type `CharacterAutostep` | control | missing | Not found on Cairo candidate(s): CharacterAutostep, CharacterAutostepTrait. | `rapier/src/control/character_controller.rs` |
+| impl `Default` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
+| type `CharacterAutostep` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
 
 ## CharacterCollision
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CharacterCollision` | control | missing | Not found on Cairo candidate(s): CharacterCollision, CharacterCollisionTrait. | `rapier/src/control/character_controller.rs` |
+| type `CharacterCollision` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
 
 ## CharacterLength
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `map_absolute` | control | missing | Not found on Cairo candidate(s): CharacterLength, CharacterLengthTrait. | `rapier/src/control/character_controller.rs` |
-| method `map_relative` | control | missing | Not found on Cairo candidate(s): CharacterLength, CharacterLengthTrait. | `rapier/src/control/character_controller.rs` |
-| type `CharacterLength` | control | missing | Not found on Cairo candidate(s): CharacterLength, CharacterLengthTrait. | `rapier/src/control/character_controller.rs` |
+| method `map_absolute` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
+| method `map_relative` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
+| type `CharacterLength` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
 
 ## ClippingPoints
 
@@ -1039,7 +1039,7 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `EffectiveCharacterMovement` | control | missing | Not found on Cairo candidate(s): EffectiveCharacterMovement, EffectiveCharacterMovementTrait. | `rapier/src/control/character_controller.rs` |
+| type `EffectiveCharacterMovement` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
 
 ## EventHandler
 
@@ -1315,7 +1315,7 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `unconstrained_slide_part` | control | missing | Not found on Cairo candidate(s): HitDecomposition, HitDecompositionTrait. | `rapier/src/control/character_controller.rs` |
+| method `unconstrained_slide_part` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
 
 ## ImpulseJoint
 
@@ -1587,10 +1587,10 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | control | missing | Not found on Cairo candidate(s): KinematicCharacterController, KinematicCharacterControllerTrait. | `rapier/src/control/character_controller.rs` |
-| method `move_shape` | control | missing | Not found on Cairo candidate(s): KinematicCharacterController, KinematicCharacterControllerTrait. | `rapier/src/control/character_controller.rs` |
-| method `solve_character_collision_impulses` | control | missing | Not found on Cairo candidate(s): KinematicCharacterController, KinematicCharacterControllerTrait. | `rapier/src/control/character_controller.rs` |
-| type `KinematicCharacterController` | control | missing | Not found on Cairo candidate(s): KinematicCharacterController, KinematicCharacterControllerTrait. | `rapier/src/control/character_controller.rs` |
+| impl `Default` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
+| method `move_shape` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
+| method `solve_character_collision_impulses` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
+| type `KinematicCharacterController` | control | ported | Same public name. | `rapier/src/control/character_controller.rs` |
 
 ## LinkOrBodyRef
 
@@ -1941,20 +1941,20 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `angular_rigid_body_correction` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `correction` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `linear_rigid_body_correction` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `new` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `rigid_body_correction` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| type `PdController` | control | missing | Not found on Cairo candidate(s): PdController, PdControllerTrait. | `rapier/src/control/pid_controller.rs` |
+| impl `Default` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `angular_rigid_body_correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `linear_rigid_body_correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `new` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `rigid_body_correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| type `PdController` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
 
 ## PdErrors
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `From<RigidBodyVelocity>` | control | missing | Not found on Cairo candidate(s): PdErrors, PdErrorsTrait. | `rapier/src/control/pid_controller.rs` |
-| type `PdErrors` | control | missing | Not found on Cairo candidate(s): PdErrors, PdErrorsTrait. | `rapier/src/control/pid_controller.rs` |
+| impl `From<RigidBodyVelocity>` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| type `PdErrors` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
 
 ## PersistentIslands
 
@@ -2087,16 +2087,16 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `angular_rigid_body_correction` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `axes` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `correction` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `linear_rigid_body_correction` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `new` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `reset_integrals` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `rigid_body_correction` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| method `set_axes` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
-| type `PidController` | control | missing | Not found on Cairo candidate(s): PidController, PidControllerTrait. | `rapier/src/control/pid_controller.rs` |
+| impl `Default` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `angular_rigid_body_correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `axes` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `linear_rigid_body_correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `new` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `reset_integrals` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `rigid_body_correction` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| method `set_axes` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
+| type `PidController` | control | ported | Same public name. | `rapier/src/control/pid_controller.rs` |
 
 ## PinSlotJoint
 
@@ -4572,8 +4572,7 @@ Cairo-only public items not matched to upstream: **1490**.
 | [Query completion](#wp-query-completion) | 123 | standard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 58 | mechanical | AP triage |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 50 | standard | shape interface |
-| [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
-| [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
+| [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 16 | standard | control crate policy |
 | [Collider API completion](#wp-collider-api-completion) | 11 | mechanical | DB/EV |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 8 | standard | P1/SL/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 7 | standard | SE sensors |
@@ -4788,7 +4787,7 @@ Tier: standard. Depends/context: shape interface. Estimate: 50 public items.
 
 ### WP: Vehicle and PID controllers
 
-Tier: standard. Depends/context: control crate policy. Estimate: 35 public items.
+Tier: standard. Depends/context: control crate policy. Estimate: 16 public items.
 
 - **DynamicRayCastVehicleController** method `add_wheel` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **DynamicRayCastVehicleController** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
@@ -4796,25 +4795,6 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **DynamicRayCastVehicleController** method `wheels` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **DynamicRayCastVehicleController** method `wheels_mut` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **DynamicRayCastVehicleController** type `DynamicRayCastVehicleController` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **PdController** impl `Default` (`rapier/src/control/pid_controller.rs`)
-- **PdController** method `angular_rigid_body_correction` (`rapier/src/control/pid_controller.rs`)
-- **PdController** method `correction` (`rapier/src/control/pid_controller.rs`)
-- **PdController** method `linear_rigid_body_correction` (`rapier/src/control/pid_controller.rs`)
-- **PdController** method `new` (`rapier/src/control/pid_controller.rs`)
-- **PdController** method `rigid_body_correction` (`rapier/src/control/pid_controller.rs`)
-- **PdController** type `PdController` (`rapier/src/control/pid_controller.rs`)
-- **PdErrors** impl `From<RigidBodyVelocity>` (`rapier/src/control/pid_controller.rs`)
-- **PdErrors** type `PdErrors` (`rapier/src/control/pid_controller.rs`)
-- **PidController** impl `Default` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `angular_rigid_body_correction` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `axes` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `correction` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `linear_rigid_body_correction` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `new` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `reset_integrals` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `rigid_body_correction` (`rapier/src/control/pid_controller.rs`)
-- **PidController** method `set_axes` (`rapier/src/control/pid_controller.rs`)
-- **PidController** type `PidController` (`rapier/src/control/pid_controller.rs`)
 - **RayCastInfo** type `RayCastInfo` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **Wheel** method `axle` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **Wheel** method `center` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
@@ -4825,23 +4805,6 @@ Tier: standard. Depends/context: control crate policy. Estimate: 35 public items
 - **WheelContactPoint** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
 - **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-
-### WP: Character controller
-
-Tier: standard. Depends/context: phase 3. Estimate: 12 public items.
-
-- **CharacterAutostep** impl `Default` (`rapier/src/control/character_controller.rs`)
-- **CharacterAutostep** type `CharacterAutostep` (`rapier/src/control/character_controller.rs`)
-- **CharacterCollision** type `CharacterCollision` (`rapier/src/control/character_controller.rs`)
-- **CharacterLength** method `map_absolute` (`rapier/src/control/character_controller.rs`)
-- **CharacterLength** method `map_relative` (`rapier/src/control/character_controller.rs`)
-- **CharacterLength** type `CharacterLength` (`rapier/src/control/character_controller.rs`)
-- **EffectiveCharacterMovement** type `EffectiveCharacterMovement` (`rapier/src/control/character_controller.rs`)
-- **HitDecomposition** method `unconstrained_slide_part` (`rapier/src/control/character_controller.rs`)
-- **KinematicCharacterController** impl `Default` (`rapier/src/control/character_controller.rs`)
-- **KinematicCharacterController** method `move_shape` (`rapier/src/control/character_controller.rs`)
-- **KinematicCharacterController** method `solve_character_collision_impulses` (`rapier/src/control/character_controller.rs`)
-- **KinematicCharacterController** type `KinematicCharacterController` (`rapier/src/control/character_controller.rs`)
 
 ### WP: Collider API completion
 
@@ -5018,6 +4981,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `contact_manifold_plain_outlined` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_shapes_chain` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_step_fallback` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
+- **Alternatives** method `correction_mask_mul` (`crates/rapier2d/src/control/pid_controller/alternatives.cairo`)
 - **Alternatives** method `cso_cast_clipped` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `cuboid_cuboid_upstream_sat` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `distance_exhaustive` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
@@ -5032,11 +4996,14 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `generate_public_jl` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
 - **Alternatives** method `handle_user_changes_flagged` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `handle_user_changes_propagate` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
+- **Alternatives** method `hit_info_cosine` (`crates/rapier2d/src/control/character_controller/alternatives.cairo`)
 - **Alternatives** method `intersect_shape_direct` (`crates/rapier2d/src/queries/alternatives.cairo`)
 - **Alternatives** method `intersection_test_from_contacts` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `joint_free` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
+- **Alternatives** method `linear_rigid_body_correction_full` (`crates/rapier2d/src/control/pid_controller/alternatives.cairo`)
 - **Alternatives** method `literal` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
 - **Alternatives** method `local_world_frame` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
+- **Alternatives** method `manifolds_metered` (`crates/rapier2d/src/control/character_controller/alternatives.cairo`)
 - **Alternatives** method `midpoint_two_stage` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `pair_key` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
 - **Alternatives** method `point_polygon_projection` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
@@ -5118,11 +5085,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **AxesMask** method `is_empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `union` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **Ball** method `cast_local_ray_and_get_normal_ball` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
-- **Ball** method `cast_local_ray_ball` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
-- **Ball** method `circle_coefficients` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
-- **Ball** method `circle_normal` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
-- **Ball** method `closest_points_ball_convex_polyhedron` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- ... 1290 more
+- ... 1313 more
 
 ## Embedded Rust inventory
 

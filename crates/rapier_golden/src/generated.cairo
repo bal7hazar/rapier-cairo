@@ -6,6 +6,7 @@
 pub mod aabb;
 pub mod aabb_overlap;
 pub mod ccd_scenes;
+pub mod character_moves;
 pub mod clip2d;
 pub mod composite_aabbs;
 pub mod composite_contacts;
@@ -27,6 +28,7 @@ pub mod intersection_tests;
 pub mod level_scenes;
 pub mod mass_properties;
 pub mod nonlinear_shape_casts;
+pub mod pid_corrections;
 pub mod point_projection;
 pub mod polygon_aabb;
 pub mod polygon_contacts;
