@@ -29,7 +29,10 @@ Non-negotiable frame:
    engine code (any crate `rapier2d` depends on), also regenerate the contract class sizes:
      python3 scripts/bytecode_size.py snapshot     (builds the `rapier_sink` fixtures; heavy: nothing else in
                                                    parallel)
-   and commit `gas/bytecode.size` (CI's `bytecode` job checks it for equality).
+   and commit `gas/bytecode.size` (CI's `bytecode` job checks it for equality). A claim that existing Cairo steps
+   are unchanged must include the game-shaped probes (`snforge test -p rapier2d steps_game --tracked-resource
+   cairo-steps`, `crates/rapier2d/tests/game_path.cairo`): force events, reads, despawn and `WorldState` round trips,
+   which the P3 and level probes do not exercise (RG1, #189).
 6. Commit with conventional messages ending with the line
    `Co-Authored-By: Claude <noreply@anthropic.com>` (or `Co-Authored-By: Codex <noreply@openai.com>`),
    push your branch (`git push -u origin <branch>`), open the PR with

@@ -8,6 +8,12 @@ whether simulation results changed.
 **Results:** `World::step` is unchanged since `0.1.0-alpha.5` for worlds without compound shapes (same results, same
 Cairo steps); composite pairs pay +170 to +235 steps per step (≈ 0.15 %).
 
+### Performance (Cairo steps)
+- Force-event worlds step below `0.1.0-alpha.4` again: `0.1.0-alpha.5`'s force-event collect paid a composite-group
+  check on every pair (+1.5 % on the game's cases, not announced in alpha.5's notes); the collect now takes the
+  alpha.4 loop and hands off to the group-aware version at the first composite pair — game-shaped probe −0.11 % vs
+  alpha.4, results bit-identical (#189).
+
 ### Added
 - `Compound` shapes (posed convex parts) with every query, per-part contact manifolds against every supported shape,
   mass properties (`MassPropertiesTrait::from_compound`), CCD, `ColliderBuilder::compound` (ADR 0001 entry 36) (#187).

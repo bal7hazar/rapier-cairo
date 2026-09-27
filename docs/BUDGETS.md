@@ -8,6 +8,13 @@ Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 1
 linear scan from ~50 parts (1.87M vs 2.13M gas at 50, 6.80M vs 8.20M at 200). Existing pairs pay +2 steps per pair per
 step for the group check (level windows +107 to +139 steps on ≈ 2M).
 
+## Game-shaped path (RG1 #189, 2026-09-27)
+
+`crates/rapier2d/tests/game_path.cairo`, level 10, 30 ticks, force events on (exact Cairo steps): alpha.4 → alpha.5 →
+RG1: `step_with_force_events` 2,723,719 → 2,764,257 (+1.49 %, SH2a's collect) → 2,720,701; with reads, despawn and 3
+`WorldState` round trips 2,924,944 → 2,964,071 → 2,924,116. Remaining: `ShapeSerde` +676 steps per round trip (RG2),
+the composite hook +2 steps per pair per step (≤ 0.009 % on P3 / levels, accepted).
+
 ## Compound shapes (SH2b #187, 2026-09-27)
 
 Per warm step (Sierra gas | Cairo steps), a compound resting on a half-space / on a polyline: 2 parts 5.84M | 51.7k /
