@@ -2,6 +2,7 @@
 //! pipeline and the dispatcher glue between `rapier_geometry2d` and `rapier_dynamics2d`.
 //! Modules are pre-declared per work package (see `docs/briefs/`).
 
+pub mod control;
 pub mod dispatcher;
 pub mod pipeline;
 pub mod queries;
@@ -34,7 +35,9 @@ pub mod prelude {
         SpringJointBuilderTrait, SpringJointIntoGeneric, SpringJointTrait,
     };
     pub use rapier_dynamics2d::rigid_body::ccd::{RigidBodyCcd, RigidBodyCcdTrait};
-    pub use rapier_dynamics2d::rigid_body_set::RigidBodyCcdApiTrait;
+    pub use rapier_dynamics2d::rigid_body_set::{
+        BodyAngvel, BodyLinvel, BodyPose, BodySleeping, RigidBodyCcdApiTrait,
+    };
     pub use rapier_dynamics2d::{
         ColliderSet, ColliderSetTrait, CollisionEvent, CollisionEventTrait, ContactForceEvent,
         ContactForceEventTrait, ContactPair, ContactPairTrait, OneWayPlatform, RigidBody,
