@@ -8,6 +8,12 @@ Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 1
 linear scan from ~50 parts (1.87M vs 2.13M gas at 50, 6.80M vs 8.20M at 200). Existing pairs pay +2 steps per pair per
 step for the group check (level windows +107 to +139 steps on ≈ 2M).
 
+## Compound shapes (SH2b #187, 2026-09-27)
+
+Per warm step (Sierra gas | Cairo steps), a compound resting on a half-space / on a polyline: 2 parts 5.84M | 51.7k /
+7.78M | 66.3k; 4 parts 9.86M | 86.8k / 13.25M | 113k; 8 parts 18.89M | 166k / 22.89M | 194k — each extra part ≈ 2.26M gas,
+close to one cuboid on a half-space. `GameStep` class 577,435 → 600,420 CASM felts.
+
 ## Cost of a level (G0 #133, 2026-09-25)
 
 Half-space, 10 pre-settled sleeping blocks (cuboids + 2 polygons) + 3 cores, pebble r = 0.25, density 4, (18, 4) m/s

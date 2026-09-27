@@ -46,6 +46,7 @@ pub mod prelude {
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::Shape;
+    pub use rapier_geometry2d::shape::compound::{Compound, CompoundTrait};
     pub use rapier_geometry2d::shape::heightfield::{
         HeightField, HeightFieldCellStatus, HeightFieldTrait,
     };
