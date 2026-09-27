@@ -1,11 +1,13 @@
 //! Post-solver force events, in ascending collider-pair order.
 use fixed::{Fixed, FixedTrait, ZERO};
+use glam::{Vec2, Vec2Trait};
 use rapier_core::collider::ActiveEventsTrait;
 use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent, ContactForceEventTrait};
-use rapier_dynamics2d::narrow_phase::NarrowPhase;
+use rapier_dynamics2d::narrow_phase::composite::group_len;
+use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 
 
 /// Specialize only the return shape: both modes execute the same stages and event bookkeeping.
@@ -117,7 +119,65 @@ fn threshold(collider: Collider) -> Fixed {
     }
 }
 
+/// The force event of the composite group of `len` entries starting at `pairs[start]` (upstream
+/// `ContactForceEvent::from_contact_pair` over the pair's manifolds): the manifolds with solver
+/// contacts (and solver flags) contribute their points' impulses along their normal; the strongest
+/// point gives `max_force_*`. `None` when no manifold contributes (the pair is not in contact).
+fn group_event(
+    dt: Fixed, inv_dt: Fixed, pairs: Span<ContactPair>, start: u32, len: u32,
+) -> Option<ContactForceEvent> {
+    let lead = pairs.at(start);
+    let mut total_force: Vec2 = Default::default();
+    let mut total = ZERO;
+    let mut max = ZERO;
+    let mut max_direction: Vec2 = Default::default();
+    let mut any = false;
+    let mut i = start;
+    while i != start + len {
+        let m = *pairs.at(i).manifold;
+        i += 1;
+        if m.data.num_solver_contacts == 0 || m.data.solver_flags.bits == 0 {
+            continue;
+        }
+        any = true;
+        let [a, b] = m.points;
+        let first = if m.num_points != 0 {
+            a.data.impulse
+        } else {
+            ZERO
+        };
+        let second = if m.num_points > 1 {
+            b.data.impulse
+        } else {
+            ZERO
+        };
+        total = total + first + second;
+        total_force = total_force + m.data.normal.mul_scalar(first + second);
+        let strongest = first.max(second);
+        if strongest > max {
+            max = strongest;
+            max_direction = m.data.normal;
+        }
+    }
+    if !any {
+        return None;
+    }
+    Some(
+        ContactForceEvent {
+            collider1: *lead.collider1,
+            collider2: *lead.collider2,
+            total_force: total_force.mul_scalar(inv_dt),
+            total_force_magnitude: total * inv_dt,
+            max_force_direction: max_direction,
+            max_force_magnitude: max * inv_dt,
+            started: *lead.event_status.bits & 2 == 0,
+        },
+    )
+}
+
 /// Emits normal-force events after impulse writeback, preserving the collision-event bit.
+/// A composite pair (a group of entries, `rapier_dynamics2d::narrow_phase::composite`) emits one
+/// event for the collider pair, from its lead entry, as upstream.
 /// Only enabled sides contribute thresholds (minimum when both enable); strict `>`.
 /// `dt == 0` means zero force, as upstream's safe inverse. Division rounds nearest-even.
 /// Panics on fixed overflow. Called only when a collider has enabled force events.
@@ -131,12 +191,38 @@ pub fn collect(
     };
     let mut events = array![];
     let mut pairs = array![];
-    for old in narrow.pairs.span() {
+    let span = narrow.pairs.span();
+    let mut k: u32 = 0;
+    // Entries left in the current composite group (their force is the lead's event).
+    let mut members: u32 = 0;
+    for old in span {
         let mut pair = *old;
+        k += 1;
+        if members != 0 {
+            members -= 1;
+            pairs.append(pair);
+            continue;
+        }
+        let group = group_len(span, k - 1);
         let co1 = colliders.get(pair.collider1).unwrap();
         let co2 = colliders.get(pair.collider2).unwrap();
         if (co1.flags.active_events | co2.flags.active_events).contains(CONTACT_FORCE_EVENTS) {
             let limit = threshold(co1).min(threshold(co2));
+            if group != 1 {
+                // SH2a: one event per collider pair, over every manifold of the group.
+                members = group - 1;
+                match group_event(dt, inv_dt, span, k - 1, group) {
+                    Some(event) => if event.total_force_magnitude > limit {
+                        events.append(event);
+                        pair.event_status.bits = pair.event_status.bits | 2;
+                    } else {
+                        pair.event_status.bits = pair.event_status.bits & 253;
+                    },
+                    None => { pair.event_status.bits = pair.event_status.bits & 253; },
+                }
+                pairs.append(pair);
+                continue;
+            }
             let magnitude = if pair.manifold.data.num_solver_contacts == 0
                 || pair.manifold.data.solver_flags.bits == 0 {
                 ZERO
@@ -162,6 +248,8 @@ pub fn collect(
             } else {
                 pair.event_status.bits = pair.event_status.bits & 253;
             }
+        } else {
+            members = group - 1;
         }
         // Upstream visits only enabled force-event pairs. Preserve inactive bookkeeping,
         // including when some unrelated collider keeps the global collection pass enabled.

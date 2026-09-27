@@ -2,11 +2,12 @@
 //! a body, the targets they sweep against, the per-pair swept time of impact
 //! (`rapier_geometry2d::query::sweep::sweep_time_of_impact`, CC1) and the per-body sweep.
 //!
-//! The closed shape set has no composite shape and no shape that is never swept: every shape but
-//! the half-space has a point-cloud proxy (`ToiProxyTrait::from_shape`). Upstream sends a pair
-//! without proxy (a half-space on either side) to the nonlinear shape cast, which does not support
-//! the half-space (`cast_shapes_nonlinear` answers `Unsupported`): such a pair never hits, here as
-//! upstream, and is skipped before any cast.
+//! Every convex shape but the half-space has a point-cloud proxy (`ToiProxyTrait::from_shape`).
+//! Upstream sends a pair without proxy (a half-space on either side) to the nonlinear shape cast,
+//! which does not support the half-space (`cast_shapes_nonlinear` answers `Unsupported`): such a
+//! pair never hits, here as upstream, and is skipped before any cast. The composite shapes (SH2a)
+//! are never swept as the fast shape (no proxy, upstream `shape_never_ccd_swept`) and are swept
+//! against part by part as targets (`cast_composite`, upstream `TargetKind::Composite`).
 
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
@@ -19,6 +20,9 @@ use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::rigid_body_set::{BodyType, RigidBodySet, RigidBodySetTrait};
 use rapier_geometry2d::aabb::{Aabb, AabbTrait};
 use rapier_geometry2d::query::nonlinear_shape_cast::ccd_thickness;
+use rapier_geometry2d::query::sweep::composite::{
+    SweepCompositeFastShape, sweep_time_of_impact_composite,
+};
 use rapier_geometry2d::query::sweep::{
     Sweep, SweepToiStatus, SweepTrait, ToiProxy, ToiProxyTrait, sweep_time_of_impact,
 };
@@ -251,7 +255,15 @@ pub fn cast_pair(
     linear_slop: Fixed,
     is_pseudo: bool,
 ) -> Option<Fixed> {
-    let target_proxy = ToiProxyTrait::from_shape(shape2)?;
+    let Some(target_proxy) = ToiProxyTrait::from_shape(shape2) else {
+        return match shape2 {
+            Shape::Polyline(_) |
+            Shape::HeightField(_) => cast_composite(
+                fast, shape2, pose2, max_fraction, linear_slop, is_pseudo,
+            ),
+            _ => None,
+        };
+    };
     let target_sweep = SweepTrait::constant(pose2, Vec2 { x: ZERO, y: ZERO });
     let output = sweep_time_of_impact(
         target_proxy, target_sweep, *fast.proxy, *fast.sweep, max_fraction, linear_slop,
@@ -281,6 +293,45 @@ pub fn cast_pair(
         if ZERO < output.fraction && output.fraction < max_fraction {
             return Some(output.fraction);
         }
+    }
+    None
+}
+
+/// [`cast_pair`] against a target without point-cloud proxy (upstream `TargetKind::Composite`):
+/// a polyline or a heightfield goes through `sweep_time_of_impact_composite` (its parts swept one
+/// by one, with the core-ball retry of an initial overlap inside), accepted as in [`cast_pair`]
+/// (no second retry here, as upstream); `None` for a half-space.
+#[inline(never)]
+fn cast_composite(
+    fast: @FastCollider,
+    shape2: Shape,
+    pose2: Pose2,
+    max_fraction: Fixed,
+    linear_slop: Fixed,
+    is_pseudo: bool,
+) -> Option<Fixed> {
+    let shape = *fast.shape;
+    let desc = SweepCompositeFastShape {
+        proxy: *fast.proxy,
+        sweep: *fast.sweep,
+        local_centroid: shape.mass_properties(ONE).local_com,
+        min_extent: ccd_thickness(shape),
+    };
+    let output = sweep_time_of_impact_composite(
+        shape2, pose2, desc, false, is_pseudo, max_fraction, linear_slop,
+    )?;
+    if is_pseudo {
+        return match output.status {
+            SweepToiStatus::Separated => None,
+            _ => if output.fraction <= max_fraction {
+                Some(output.fraction)
+            } else {
+                None
+            },
+        };
+    }
+    if ZERO < output.fraction && output.fraction < max_fraction {
+        return Some(output.fraction);
     }
     None
 }
