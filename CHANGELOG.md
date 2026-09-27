@@ -3,7 +3,7 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
-## Unreleased
+## 0.1.0-alpha.5 — 2026-09-27
 
 **Results:** `World::step` is unchanged since `0.1.0-alpha.4` (same results, same Cairo steps).
 
