@@ -1,5 +1,13 @@
 # Step Budgets
 
+## Composite grounds (SH2a #184, 2026-09-27)
+
+Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 10- / 50-segment polyline 3.58M / 30.8k,
+3.89M / 32.7k; box 5.12M / 44.0k, 5.89M / 49.0k; on a 10- / 50-cell heightfield: ball 3.83M / 4.20M gas, box 5.33M /
+6.14M gas; the half-space references are ball 2.16M / 19.0k, box 2.51M / 22.3k. The implicit-tree prefilter beats a
+linear scan from ~50 parts (1.87M vs 2.13M gas at 50, 6.80M vs 8.20M at 200). Existing pairs pay +2 steps per pair per
+step for the group check (level windows +107 to +139 steps on ≈ 2M).
+
 ## Cost of a level (G0 #133, 2026-09-25)
 
 Half-space, 10 pre-settled sleeping blocks (cuboids + 2 polygons) + 3 cores, pebble r = 0.25, density 4, (18, 4) m/s
