@@ -22,11 +22,11 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | parry::bounding_volume | 85 | 0 | 4 | 6 | 95 | 95.5% | 95.5% |
 | parry::mass_properties | 18 | 0 | 1 | 5 | 24 | 94.7% | 94.7% |
 | parry::query | 218 | 0 | 67 | 122 | 407 | 72.7% | 76.5% |
-| parry::shape | 200 | 0 | 61 | 119 | 380 | 76.6% | 76.6% |
+| parry::shape | 217 | 0 | 44 | 119 | 380 | 83.1% | 83.1% |
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
-| **total** | **1392** | **0** | **261** | **939** | **2592** | **77.2%** | **84.2%** |
+| **total** | **1409** | **0** | **244** | **939** | **2592** | **78.2%** | **85.2%** |
 
-Cairo-only public items not matched to upstream: **1513**.
+Cairo-only public items not matched to upstream: **1515**.
 
 ## Aabb
 
@@ -2985,30 +2985,30 @@ Cairo-only public items not matched to upstream: **1513**.
 |---|---|---|---|---|
 | impl `Debug` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | impl `Serialize` | parry::shape | excluded | serde/rkyv/bytemuck | `parry/src/shape/shared_shape.rs` |
-| method `ball` | parry::shape | missing | `Ball::new(radius).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `capsule` | parry::shape | missing | `Capsule::new(a, b, radius).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `capsule_x` | parry::shape | missing | `Capsule::new_x(half_height, radius).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `capsule_y` | parry::shape | missing | `Capsule::new_y(half_height, radius).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `compound` | parry::shape | missing | `ColliderBuilder::compound` / `CompoundTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
+| method `ball` | parry::shape | ported | Mapped to Shape.ball | `parry/src/shape/shared_shape.rs` |
+| method `capsule` | parry::shape | ported | Mapped to Shape.capsule | `parry/src/shape/shared_shape.rs` |
+| method `capsule_x` | parry::shape | ported | Mapped to Shape.capsule_x | `parry/src/shape/shared_shape.rs` |
+| method `capsule_y` | parry::shape | ported | Mapped to Shape.capsule_y | `parry/src/shape/shared_shape.rs` |
+| method `compound` | parry::shape | ported | Mapped to Shape.compound | `parry/src/shape/shared_shape.rs` |
 | method `convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_hull` | parry::shape | missing | `ConvexPolygon::from_convex_hull(points).into()` (gift wrap, <= 8 vertices, MH1/CW). | `parry/src/shape/shared_shape.rs` |
-| method `convex_polyline` | parry::shape | missing | `ConvexPolygon::from_convex_polyline(points).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `convex_hull` | parry::shape | ported | Mapped to Shape.convex_hull | `parry/src/shape/shared_shape.rs` |
+| method `convex_polyline` | parry::shape | ported | Mapped to Shape.convex_polyline | `parry/src/shape/shared_shape.rs` |
 | method `convex_polyline_unmodified` | parry::shape | missing | `ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant. | `parry/src/shape/shared_shape.rs` |
-| method `cuboid` | parry::shape | missing | `Cuboid::new(half_extents).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `halfspace` | parry::shape | missing | `HalfSpace::new(normal).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `heightfield` | parry::shape | missing | `ColliderBuilder::heightfield` / `HeightFieldTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
+| method `cuboid` | parry::shape | ported | Mapped to Shape.cuboid | `parry/src/shape/shared_shape.rs` |
+| method `halfspace` | parry::shape | ported | Mapped to Shape.halfspace | `parry/src/shape/shared_shape.rs` |
+| method `heightfield` | parry::shape | ported | Mapped to Shape.heightfield | `parry/src/shape/shared_shape.rs` |
 | method `make_mut` | parry::shape | missing | Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed. | `parry/src/shape/shared_shape.rs` |
 | method `new` | parry::shape | missing | `T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`). | `parry/src/shape/shared_shape.rs` |
-| method `polyline` | parry::shape | missing | `ColliderBuilder::polyline` / `PolylineTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
+| method `polyline` | parry::shape | ported | Mapped to Shape.polyline | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_hull` | parry::shape | missing | `RoundShape { inner_shape: ConvexPolygon::from_convex_hull(points)?, border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_polyline` | parry::shape | missing | `RoundShape { inner_shape: ConvexPolygon::from_convex_polyline(points)?, border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
-| method `round_cuboid` | parry::shape | missing | `RoundShape { inner_shape: Cuboid::new(..), border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
-| method `round_triangle` | parry::shape | missing | `RoundShape { inner_shape: Triangle::new(..), border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
-| method `segment` | parry::shape | missing | `Segment::new(a, b).into()`. | `parry/src/shape/shared_shape.rs` |
-| method `triangle` | parry::shape | missing | `Triangle::new(a, b, c).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_hull` | parry::shape | ported | Mapped to Shape.round_convex_hull | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_polyline` | parry::shape | ported | Mapped to Shape.round_convex_polyline | `parry/src/shape/shared_shape.rs` |
+| method `round_cuboid` | parry::shape | ported | Mapped to Shape.round_cuboid | `parry/src/shape/shared_shape.rs` |
+| method `round_triangle` | parry::shape | ported | Mapped to Shape.round_triangle | `parry/src/shape/shared_shape.rs` |
+| method `segment` | parry::shape | ported | Mapped to Shape.segment | `parry/src/shape/shared_shape.rs` |
+| method `triangle` | parry::shape | ported | Mapped to Shape.triangle | `parry/src/shape/shared_shape.rs` |
 | method `trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `trimesh_with_flags` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `voxelized_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
@@ -4441,7 +4441,7 @@ Cairo-only public items not matched to upstream: **1513**.
 |---|---:|---|---|
 | [Query completion](#wp-query-completion) | 120 | standard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 55 | mechanical | AP triage |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 50 | standard | shape interface |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 33 | standard | shape interface |
 | [Collider API completion](#wp-collider-api-completion) | 10 | mechanical | DB/EV |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 8 | standard | P1/SL/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
@@ -4598,7 +4598,7 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 55 public items.
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 50 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 33 public items.
 
 - **Aabb** method `scaled_wrt_center` (`parry/src/bounding_volume/aabb.rs`)
 - **Ball** method `scaled` (`parry/src/shape/ball.rs`)
@@ -4620,30 +4620,13 @@ Tier: standard. Depends/context: shape interface. Estimate: 50 public items.
 - **Polyline** impl `PointQueryWithLocation` (`parry/src/query/point/point_composite_shape.rs`)
 - **Polyline** impl `RayCast` (`parry/src/query/ray/ray_composite_shape.rs`)
 - **SharedShape** impl `Debug` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `ball` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `capsule` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `capsule_x` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `capsule_y` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `compound` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_hull` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_polyline` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `convex_polyline_unmodified` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `cuboid` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `halfspace` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `heightfield` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `make_mut` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `new` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `polyline` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `round_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `round_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_convex_hull` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_convex_polyline` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_cuboid` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_triangle` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `segment` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `triangle` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_mesh` (`parry/src/shape/shared_shape.rs`)
@@ -4807,6 +4790,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Alternatives** method `collect_peek` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `collect_single_loop` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `collect_world` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `compute_aabb_outlined` (`crates/rapier_geometry2d/src/shape/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_bucketed` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_by_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_dict` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
@@ -4923,8 +4907,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **AxesMask** method `intersection` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `is_empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `union` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **Ball** method `cast_local_ray_and_get_normal_ball` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
-- ... 1313 more
+- ... 1315 more
 
 ## Embedded Rust inventory
 
