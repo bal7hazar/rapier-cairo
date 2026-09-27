@@ -8,6 +8,12 @@ Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 1
 linear scan from ~50 parts (1.87M vs 2.13M gas at 50, 6.80M vs 8.20M at 200). Existing pairs pay +2 steps per pair per
 step for the group check (level windows +107 to +139 steps on ≈ 2M).
 
+## Program size (CS2 #193, 2026-09-27)
+
+A game-shaped executable's program (felts): full step 565,378; `BasicStepConfig` 231,196 (−59.1 %; no joints −29.4 %,
+no composites −11.1 %, no sensors −6.8 %, basic dispatcher −1.4 %). Basic vs full: −1,612 Cairo steps per step,
+results bit-identical. Details: `docs/research/class-size.md` §7.
+
 ## SF1 #191 (contact-separation rebase, 2026-09-27; results change)
 
 Exact Cairo steps, before → after: `cuboid_stack10` 421,484 → 421,780; `mixed_pile8` 403,413 → 402,755;

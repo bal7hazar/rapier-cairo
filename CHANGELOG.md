@@ -23,6 +23,11 @@ pairs pay +170 to +235 steps per step (≈ 0.15 %).
   alpha.4, results bit-identical (#189).
 
 ### Added
+- Configurable step: `WorldTrait::{step_with, step_with_force_events_with, step_with_ccd_with,
+  step_with_ccd_and_force_events_with}::<C: StepConfig>`; `DefaultStepConfig` (what `World::step` & co. use) and
+  `BasicStepConfig` (ball / cuboid / convex polygon / half-space, no sensors / composites / joints: a game program
+  −59.1 % smaller, bit-identical results, −1,612 Cairo steps per step); a world using a disabled feature panics at the
+  step that meets it (ADR 0001 entry 37) (#193).
 - `Compound` shapes (posed convex parts) with every query, per-part contact manifolds against every supported shape,
   mass properties (`MassPropertiesTrait::from_compound`), CCD, `ColliderBuilder::compound` (ADR 0001 entry 36) (#187).
 

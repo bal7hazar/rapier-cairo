@@ -61,6 +61,7 @@ pub mod prelude {
     pub use rapier_math::rot2::{Rot2, Rot2Trait};
     pub use crate::dispatcher::DefaultDispatcher;
     pub use crate::pipeline::ccd::{CCDSolver, CCDSolverTrait};
+    pub use crate::pipeline::config::{BasicStepConfig, DefaultStepConfig, StepConfig};
     pub use crate::pipeline::facade::{
         CollisionPipeline, CollisionPipelineTrait, PhysicsPipeline, PhysicsPipelineTrait,
     };
