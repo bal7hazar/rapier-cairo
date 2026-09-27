@@ -20,6 +20,7 @@ mod scenes;
 mod sensors;
 mod sh1;
 mod sh2a;
+mod sh2b;
 mod shape_casts;
 mod shape_queries;
 mod sleep_impact;
@@ -713,6 +714,11 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
     );
     files.extend(
         sh2a::files(vectors)
+            .into_iter()
+            .map(|(name, content)| (&*Box::leak(name.into_boxed_str()), content)),
+    );
+    files.extend(
+        sh2b::files(vectors)
             .into_iter()
             .map(|(name, content)| (&*Box::leak(name.into_boxed_str()), content)),
     );

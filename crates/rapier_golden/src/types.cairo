@@ -13,6 +13,8 @@ pub use sh2a::{
     CompositeAabbCase, CompositeManifoldCase, CompositePairCase, CompositePointCase, CompositeRaw,
     CompositeRayCase, PartManifoldRaw,
 };
+pub mod sh2b;
+pub use sh2b::{CompoundManifoldCase, CompoundRaw, CompoundShapeMassCase, OtherRaw, PairManifoldRaw};
 
 /// A 2D vector.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
