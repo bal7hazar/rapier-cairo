@@ -8,21 +8,23 @@ Upstream target: rapier-rs `0.35.3+4` 2D plus parry `0.31.1` public items Rapier
 
 Statuses: `ported` means the same public name or a documented owner/name mapping exists in Cairo; `partial` is reserved for split owners; `missing` is the default; `excluded` uses only the closed reasons below.
 
-Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `f32/f64 conversions and approx traits`.
+Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`.
 
 ## Coverage summary
 
-| Module | Ported | Partial | Missing | Excluded | Items | Coverage |
-|---|---:|---:|---:|---:|---:|---:|
-| control | 0 | 0 | 47 | 0 | 47 | 0.0% |
-| dynamics | 554 | 0 | 172 | 466 | 1192 | 76.3% |
-| geometry | 209 | 0 | 90 | 18 | 317 | 69.9% |
-| parry::bounding_volume | 85 | 0 | 4 | 30 | 119 | 95.5% |
-| parry::mass_properties | 18 | 0 | 1 | 7 | 26 | 94.7% |
-| parry::query | 218 | 0 | 88 | 118 | 424 | 71.2% |
-| parry::shape | 199 | 0 | 66 | 119 | 384 | 75.1% |
-| pipeline | 77 | 0 | 12 | 69 | 158 | 86.5% |
-| **total** | **1360** | **0** | **480** | **827** | **2667** | **73.9%** |
+Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including `solver / island internals not exposed`).
+
+| Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| control | 0 | 0 | 47 | 0 | 47 | 0.0% | 0.0% |
+| dynamics | 554 | 0 | 36 | 602 | 1192 | 76.3% | 93.9% |
+| geometry | 209 | 0 | 84 | 24 | 317 | 69.9% | 71.3% |
+| parry::bounding_volume | 85 | 0 | 4 | 30 | 119 | 95.5% | 95.5% |
+| parry::mass_properties | 18 | 0 | 1 | 7 | 26 | 94.7% | 94.7% |
+| parry::query | 218 | 0 | 73 | 133 | 424 | 71.2% | 74.9% |
+| parry::shape | 200 | 0 | 65 | 119 | 384 | 75.5% | 75.5% |
+| pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
+| **total** | **1361** | **0** | **320** | **986** | **2667** | **74.0%** | **81.0%** |
 
 Cairo-only public items not matched to upstream: **1490**.
 
@@ -97,15 +99,15 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): AngularLimitParams, AngularLimitParamsTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| type `AngularLimitParams` | dynamics | missing | Not found on Cairo candidate(s): AngularLimitParams, AngularLimitParamsTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `new` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| type `AngularLimitParams` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
 
 ## AnyJointConstraintMut
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `writeback_impulses` | dynamics | missing | Not found on Cairo candidate(s): AnyJointConstraintMut, AnyJointConstraintMutTrait. | `rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs` |
-| type `AnyJointConstraintMut` | dynamics | missing | Not found on Cairo candidate(s): AnyJointConstraintMut, AnyJointConstraintMutTrait. | `rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs` |
+| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs` |
+| type `AnyJointConstraintMut` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs` |
 
 ## AxesMask
 
@@ -193,13 +195,13 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `as_query_pipeline` | pipeline | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `as_query_pipeline_mut` | pipeline | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/pipeline/query_pipeline.rs` |
-| method `new` | geometry | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
-| method `set_aabb` | geometry | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
-| method `update` | geometry | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/geometry/broad_phase_bvh/update.rs` |
-| method `with_optimization_strategy` | geometry | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
-| type `BroadPhaseBvh` | geometry | missing | Not found on Cairo candidate(s): broad_phase. | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
+| method `as_query_pipeline` | pipeline | excluded | solver / island internals not exposed | `rapier/src/pipeline/query_pipeline.rs` |
+| method `as_query_pipeline_mut` | pipeline | excluded | solver / island internals not exposed | `rapier/src/pipeline/query_pipeline.rs` |
+| method `new` | geometry | excluded | solver / island internals not exposed | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
+| method `set_aabb` | geometry | excluded | solver / island internals not exposed | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
+| method `update` | geometry | excluded | solver / island internals not exposed | `rapier/src/geometry/broad_phase_bvh/update.rs` |
+| method `with_optimization_strategy` | geometry | excluded | solver / island internals not exposed | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
+| type `BroadPhaseBvh` | geometry | excluded | solver / island internals not exposed | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
 
 ## BroadPhasePairEvent
 
@@ -211,7 +213,7 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `BvhOptimizationStrategy` | geometry | missing | Not found on Cairo candidate(s): BvhOptimizationStrategy, BvhOptimizationStrategyTrait. | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
+| type `BvhOptimizationStrategy` | geometry | excluded | solver / island internals not exposed | `rapier/src/geometry/broad_phase_bvh/mod.rs` |
 
 ## CCDSolver
 
@@ -594,8 +596,8 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
-| type `CompositeShapeCompositeShapeContactManifoldsWorkspace` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
+| method `new` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
+| type `CompositeShapeCompositeShapeContactManifoldsWorkspace` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
 
 ## CompositeShapeRef
 
@@ -619,8 +621,8 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs` |
-| type `CompositeShapeShapeContactManifoldsWorkspace` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs` |
+| method `new` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs` |
+| type `CompositeShapeShapeContactManifoldsWorkspace` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs` |
 
 ## Compound
 
@@ -696,31 +698,31 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `generic_solve` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
-| method `generic_warmstart` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| method `solve_pair` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| method `solve_restitution` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `generic_solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
+| method `generic_warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
+| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `solve_pair` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `solve_restitution` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
 | method `total_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| method `zero` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintNormalPart, ContactConstraintNormalPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `zero` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
 
 ## ContactConstraintTangentPart
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `generic_solve` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintTangentPart, ContactConstraintTangentPartTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
-| method `generic_warmstart` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintTangentPart, ContactConstraintTangentPartTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintTangentPart, ContactConstraintTangentPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `generic_solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
+| method `generic_warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
+| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
 | method `total_impulse` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintTangentPart, ContactConstraintTangentPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| method `zero` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintTangentPart, ContactConstraintTangentPartTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| method `zero` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
 
 ## ContactConstraintsSet
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): ContactConstraintsSet, ContactConstraintsSetTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs` |
+| method `new` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs` |
 
 ## ContactData
 
@@ -784,10 +786,10 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Clone` | parry::query | missing | Not found on Cairo candidate(s): ContactManifoldsWorkspace, ContactManifoldsWorkspaceTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
-| impl `From<T>` | parry::query | missing | Not found on Cairo candidate(s): ContactManifoldsWorkspace, ContactManifoldsWorkspaceTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| impl `Clone` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| impl `From<T>` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
 | impl `Serialize` | parry::query | excluded | serde/rkyv/bytemuck | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
-| type `ContactManifoldsWorkspace` | parry::query | missing | Not found on Cairo candidate(s): ContactManifoldsWorkspace, ContactManifoldsWorkspaceTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| type `ContactManifoldsWorkspace` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
 
 ## ContactModificationContext
 
@@ -827,37 +829,37 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFriction, ContactWithCoulombFrictionTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFriction, ContactWithCoulombFrictionTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| method `writeback_impulses` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFriction, ContactWithCoulombFrictionTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
 
 ## ContactWithCoulombFrictionBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `apply_restitution` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFrictionBuilder, ContactWithCoulombFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| method `generate` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFrictionBuilder, ContactWithCoulombFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| method `has_bouncy_seed` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFrictionBuilder, ContactWithCoulombFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFrictionBuilder, ContactWithCoulombFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| method `update_rhs_wo_bias` | dynamics | missing | Not found on Cairo candidate(s): ContactWithCoulombFrictionBuilder, ContactWithCoulombFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `apply_restitution` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `has_bouncy_seed` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| method `update_rhs_wo_bias` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
 
 ## ContactWithTwistFriction
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFriction, ContactWithTwistFrictionTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFriction, ContactWithTwistFrictionTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `writeback_impulses` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFriction, ContactWithTwistFrictionTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
 
 ## ContactWithTwistFrictionBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `apply_restitution` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFrictionBuilder, ContactWithTwistFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `generate` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFrictionBuilder, ContactWithTwistFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `has_bouncy_seed` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFrictionBuilder, ContactWithTwistFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFrictionBuilder, ContactWithTwistFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `update_rhs_wo_bias` | dynamics | missing | Not found on Cairo candidate(s): ContactWithTwistFrictionBuilder, ContactWithTwistFrictionBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `apply_restitution` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `has_bouncy_seed` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| method `update_rhs_wo_bias` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
 
 ## ConvexPolygon
 
@@ -892,8 +894,8 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): CoulombContactPointInfos, CoulombContactPointInfosTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
-| type `CoulombContactPointInfos` | dynamics | missing | Not found on Cairo candidate(s): CoulombContactPointInfos, CoulombContactPointInfosTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| impl `Default` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
+| type `CoulombContactPointInfos` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
 
 ## CsoPoint
 
@@ -1115,23 +1117,23 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `generic_solve_group` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
-| method `generic_warmstart_group` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
-| method `invalid` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `remove_cfm_and_bias_from_rhs` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `warmstart` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `writeback_impulses` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraint, GenericContactConstraintTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `generic_solve_group` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
+| method `generic_warmstart_group` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs` |
+| method `invalid` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `remove_cfm_and_bias_from_rhs` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
 
 ## GenericContactConstraintBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `apply_restitution` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraintBuilder, GenericContactConstraintBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `generate` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraintBuilder, GenericContactConstraintBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `has_bouncy_seed` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraintBuilder, GenericContactConstraintBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `invalid` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraintBuilder, GenericContactConstraintBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): GenericContactConstraintBuilder, GenericContactConstraintBuilderTrait. | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `apply_restitution` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `has_bouncy_seed` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `invalid` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs` |
 
 ## GenericJoint
 
@@ -1210,19 +1212,19 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
-| method `invalid` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
-| method `lock_axes` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
-| method `remove_bias_from_rhs` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
-| method `solve` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
-| method `writeback_impulses` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
-| type `GenericJointConstraint` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraint, GenericJointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| impl `Default` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| method `invalid` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| method `lock_axes` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| method `remove_bias_from_rhs` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
+| type `GenericJointConstraint` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs` |
 
 ## GenericJointConstraintBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `GenericJointConstraintBuilder` | dynamics | missing | Not found on Cairo candidate(s): GenericJointConstraintBuilder, GenericJointConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| type `GenericJointConstraintBuilder` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 
 ## GraphPos
 
@@ -1268,15 +1270,15 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
-| type `HeightFieldCompositeShapeContactManifoldsWorkspace` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
+| method `new` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
+| type `HeightFieldCompositeShapeContactManifoldsWorkspace` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
 
 ## HeightFieldShapeContactManifoldsWorkspace
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs` |
-| type `HeightFieldShapeContactManifoldsWorkspace` | parry::query | missing | SH2a: no workspace; previous manifolds are matched by sub-shape ids. | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs` |
+| method `new` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs` |
+| type `HeightFieldShapeContactManifoldsWorkspace` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs` |
 
 ## Heightfield
 
@@ -1441,9 +1443,9 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `bodies` | dynamics | missing | Not found on Cairo candidate(s): Island, IslandTrait. | `rapier/src/dynamics/island_manager/island.rs` |
-| method `len` | dynamics | missing | Not found on Cairo candidate(s): Island, IslandTrait. | `rapier/src/dynamics/island_manager/island.rs` |
-| method `singleton` | dynamics | missing | Not found on Cairo candidate(s): Island, IslandTrait. | `rapier/src/dynamics/island_manager/island.rs` |
+| method `bodies` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/island.rs` |
+| method `len` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/island.rs` |
+| method `singleton` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/island.rs` |
 
 ## IslandManager
 
@@ -1452,9 +1454,9 @@ Cairo-only public items not matched to upstream: **1490**.
 | method `active_bodies` | dynamics | ported | Mapped to World.active_bodies | `rapier/src/dynamics/island_manager/manager.rs` |
 | method `new` | dynamics | ported | Mapped to World.new | `rapier/src/dynamics/island_manager/manager.rs` |
 | method `num_active_bodies` | dynamics | ported | Mapped to World.num_active_bodies | `rapier/src/dynamics/island_manager/manager.rs` |
-| method `persistent_island_of` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands, World, WorldTrait. | `rapier/src/dynamics/island_manager/manager.rs` |
+| method `persistent_island_of` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/manager.rs` |
 | method `wake_up` | dynamics | ported | Mapped to World.wake_up | `rapier/src/dynamics/island_manager/sleep.rs` |
-| type `IslandManager` | dynamics | missing | Not found on Cairo candidate(s): pipeline::islands, World, WorldTrait. | `rapier/src/dynamics/island_manager/manager.rs` |
+| type `IslandManager` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/manager.rs` |
 
 ## JointAxesMask
 
@@ -1474,12 +1476,12 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `remove_bias_from_rhs` | dynamics | missing | Not found on Cairo candidate(s): JointConstraint, JointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| method `remove_bias_from_rhs` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 | method `solve` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
-| method `solve_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraint, JointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): JointConstraint, JointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| method `solve_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 | method `warmstart` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
-| method `warmstart_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraint, JointConstraintTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| method `warmstart_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 | method `writeback_impulses` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 | type `JointConstraint` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 
@@ -1487,10 +1489,10 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `generate` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintBuilder, JointConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintBuilder, JointConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
-| method `update_warmstart_seeds` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintBuilder, JointConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
-| type `JointConstraintBuilder` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintBuilder, JointConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
+| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
+| method `update_warmstart_seeds` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
+| type `JointConstraintBuilder` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs` |
 
 ## JointConstraintBuilderSimd
 
@@ -1505,35 +1507,35 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `finalize_constraints` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `finalize_generic_constraints` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `limit_angular` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `limit_angular_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `limit_linear` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `limit_linear_coupled` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `limit_linear_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `finalize_constraints` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `finalize_generic_constraints` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `limit_angular` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `limit_angular_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `limit_linear` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `limit_linear_coupled` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `limit_linear_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 | method `lock_angular` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `lock_angular_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `lock_jacobians_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `lock_angular_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `lock_jacobians_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 | method `lock_linear` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `lock_linear_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `motor_angular` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `motor_angular_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `motor_linear` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `motor_linear_coupled` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `motor_linear_generic` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `lock_linear_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `motor_angular` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `motor_angular_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `motor_linear` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `motor_linear_coupled` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `motor_linear_generic` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
-| method `recentered_angle` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintHelper, JointConstraintHelperTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
+| method `recentered_angle` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
 | type `JointConstraintHelper` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs` |
 
 ## JointConstraintsSet
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `iter_constraints_mut` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintsSet, JointConstraintsSetTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintsSet, JointConstraintsSetTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
-| method `writeback_impulses` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintsSet, JointConstraintsSetTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
-| type `JointConstraintsSet` | dynamics | missing | Not found on Cairo candidate(s): JointConstraintsSet, JointConstraintsSetTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
+| method `iter_constraints_mut` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
+| method `new` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
+| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
+| type `JointConstraintsSet` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs` |
 
 ## JointEnabled
 
@@ -1545,18 +1547,18 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `generate` | dynamics | missing | Not found on Cairo candidate(s): JointGenericExternalConstraintBuilder, JointGenericExternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): JointGenericExternalConstraintBuilder, JointGenericExternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| type `JointGenericExternalConstraintBuilder` | dynamics | missing | Not found on Cairo candidate(s): JointGenericExternalConstraintBuilder, JointGenericExternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| type `JointGenericExternalConstraintBuilder` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 
 ## JointGenericInternalConstraintBuilder
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `generate` | dynamics | missing | Not found on Cairo candidate(s): JointGenericInternalConstraintBuilder, JointGenericInternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `num_constraints` | dynamics | missing | Not found on Cairo candidate(s): JointGenericInternalConstraintBuilder, JointGenericInternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `update` | dynamics | missing | Not found on Cairo candidate(s): JointGenericInternalConstraintBuilder, JointGenericInternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| type `JointGenericInternalConstraintBuilder` | dynamics | missing | Not found on Cairo candidate(s): JointGenericInternalConstraintBuilder, JointGenericInternalConstraintBuilderTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `num_constraints` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| type `JointGenericInternalConstraintBuilder` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 
 ## JointLimits
 
@@ -1577,9 +1579,9 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `fill_jacobians` | dynamics | missing | Not found on Cairo candidate(s): JointSolverBody, JointSolverBodyTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
-| method `invalid` | dynamics | missing | Not found on Cairo candidate(s): JointSolverBody, JointSolverBodyTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
-| type `JointSolverBody` | dynamics | missing | Not found on Cairo candidate(s): JointSolverBody, JointSolverBodyTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| method `fill_jacobians` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| method `invalid` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| type `JointSolverBody` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 
 ## KinematicCharacterController
 
@@ -1594,7 +1596,7 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `LinkOrBodyRef` | dynamics | missing | Not found on Cairo candidate(s): LinkOrBodyRef, LinkOrBodyRefTrait. | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
+| type `LinkOrBodyRef` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs` |
 
 ## LockedAxes
 
@@ -1671,8 +1673,8 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): MotorParameters, MotorParametersTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
-| type `MotorParameters` | dynamics | missing | Not found on Cairo candidate(s): MotorParameters, MotorParametersTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| impl `Default` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| type `MotorParameters` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 
 ## Multibody
 
@@ -1958,28 +1960,28 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `apply_impulse_joint_event` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `assert_consistent` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `begin_sleep_scan` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `body_island` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `bootstrap` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `clear_pending_split_of` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/global_split.rs` |
-| method `contact_edge_removed` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `contact_link_loc` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `ensure_body` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `finish_sleep_scan` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `link_contact` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `link_joint` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `mark_island_sleeping` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `observe_body_for_sleep` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `remove_body` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `remove_body_raw` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `run_pending_split` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/global_split.rs` |
-| method `schedule_split` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/global_split.rs` |
-| method `split_allowed` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `split_island_now` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/global_split.rs` |
-| method `unlink_contact` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
-| method `unlink_joint` | dynamics | missing | Not found on Cairo candidate(s): PersistentIslands, PersistentIslandsTrait. | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `apply_impulse_joint_event` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `assert_consistent` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `begin_sleep_scan` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `body_island` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `bootstrap` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `clear_pending_split_of` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/global_split.rs` |
+| method `contact_edge_removed` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `contact_link_loc` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `ensure_body` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `finish_sleep_scan` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `link_contact` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `link_joint` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `mark_island_sleeping` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `observe_body_for_sleep` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `remove_body` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `remove_body_raw` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `run_pending_split` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/global_split.rs` |
+| method `schedule_split` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/global_split.rs` |
+| method `split_allowed` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `split_island_now` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/global_split.rs` |
+| method `unlink_contact` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
+| method `unlink_joint` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/island_manager/persistent.rs` |
 | method `unlink_soft_body_attachments` | dynamics | excluded | soft bodies | `rapier/src/dynamics/island_manager/persistent.rs` |
 | method `unlink_soft_body_proxy_chain` | dynamics | excluded | soft bodies | `rapier/src/dynamics/island_manager/persistent.rs` |
 | method `update_multibody_chain` | dynamics | excluded | multibody | `rapier/src/dynamics/island_manager/persistent.rs` |
@@ -3032,40 +3034,40 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Debug` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| impl `Debug` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | impl `Serialize` | parry::shape | excluded | serde/rkyv/bytemuck | `parry/src/shape/shared_shape.rs` |
-| method `ball` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `capsule` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `capsule_x` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `capsule_y` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `ball` | parry::shape | missing | `Ball::new(radius).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `capsule` | parry::shape | missing | `Capsule::new(a, b, radius).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `capsule_x` | parry::shape | missing | `Capsule::new_x(half_height, radius).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `capsule_y` | parry::shape | missing | `Capsule::new_y(half_height, radius).into()`. | `parry/src/shape/shared_shape.rs` |
 | method `compound` | parry::shape | missing | `ColliderBuilder::compound` / `CompoundTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
-| method `convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_polyline` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_polyline_unmodified` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `cuboid` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `halfspace` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `convex_hull` | parry::shape | missing | `ConvexPolygon::from_convex_hull(points).into()` (gift wrap, <= 8 vertices, MH1/CW). | `parry/src/shape/shared_shape.rs` |
+| method `convex_polyline` | parry::shape | missing | `ConvexPolygon::from_convex_polyline(points).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `convex_polyline_unmodified` | parry::shape | missing | `ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant. | `parry/src/shape/shared_shape.rs` |
+| method `cuboid` | parry::shape | missing | `Cuboid::new(half_extents).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `halfspace` | parry::shape | missing | `HalfSpace::new(normal).into()`. | `parry/src/shape/shared_shape.rs` |
 | method `heightfield` | parry::shape | missing | `ColliderBuilder::heightfield` / `HeightFieldTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
-| method `make_mut` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `new` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `make_mut` | parry::shape | missing | Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed. | `parry/src/shape/shared_shape.rs` |
+| method `new` | parry::shape | missing | `T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`). | `parry/src/shape/shared_shape.rs` |
 | method `polyline` | parry::shape | missing | `ColliderBuilder::polyline` / `PolylineTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_polyline` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_cuboid` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_triangle` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `segment` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `triangle` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_hull` | parry::shape | missing | `RoundShape { inner_shape: ConvexPolygon::from_convex_hull(points)?, border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_polyline` | parry::shape | missing | `RoundShape { inner_shape: ConvexPolygon::from_convex_polyline(points)?, border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
+| method `round_cuboid` | parry::shape | missing | `RoundShape { inner_shape: Cuboid::new(..), border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
+| method `round_triangle` | parry::shape | missing | `RoundShape { inner_shape: Triangle::new(..), border_radius }.into()`. | `parry/src/shape/shared_shape.rs` |
+| method `segment` | parry::shape | missing | `Segment::new(a, b).into()`. | `parry/src/shape/shared_shape.rs` |
+| method `triangle` | parry::shape | missing | `Triangle::new(a, b, c).into()`. | `parry/src/shape/shared_shape.rs` |
 | method `trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `trimesh_with_flags` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
-| method `voxelized_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `voxelized_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `voxelized_mesh` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `voxelized_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `voxelized_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `voxelized_mesh` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `voxels` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `voxels_from_points` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
-| type `SharedShape` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| type `SharedShape` | parry::shape | ported | Mapped to Shape.Shape | `parry/src/shape/shared_shape.rs` |
 
 ## SimdAabb
 
@@ -3880,8 +3882,8 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `init_and_solve` | dynamics | missing | Not found on Cairo candidate(s): StagedIslandSolver, StagedIslandSolverTrait. | `rapier/src/dynamics/solver/staged_island_solver/init.rs` |
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): StagedIslandSolver, StagedIslandSolverTrait. | `rapier/src/dynamics/solver/staged_island_solver/mod.rs` |
+| method `init_and_solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/staged_island_solver/init.rs` |
+| method `new` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/staged_island_solver/mod.rs` |
 
 ## SubShapeId
 
@@ -4131,8 +4133,8 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): TwistContactPointInfos, TwistContactPointInfosTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| type `TwistContactPointInfos` | dynamics | missing | Not found on Cairo candidate(s): TwistContactPointInfos, TwistContactPointInfosTrait. | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| impl `Default` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
+| type `TwistContactPointInfos` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
 
 ## TypedCompositeShape
 
@@ -4153,7 +4155,7 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `TypedWorkspaceData` | parry::query | missing | Not found on Cairo candidate(s): TypedWorkspaceData, TypedWorkspaceDataTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| type `TypedWorkspaceData` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
 
 ## Unsupported
 
@@ -4329,15 +4331,15 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `as_typed_workspace_data` | parry::query | missing | Not found on Cairo candidate(s): WorkspaceData, WorkspaceDataTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
-| method `clone_dyn` | parry::query | missing | Not found on Cairo candidate(s): WorkspaceData, WorkspaceDataTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
-| trait `WorkspaceData` | parry::query | missing | Not found on Cairo candidate(s): WorkspaceData, WorkspaceDataTrait. | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| method `as_typed_workspace_data` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| method `clone_dyn` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
+| trait `WorkspaceData` | parry::query | excluded | solver / island internals not exposed | `parry/src/query/contact_manifolds/contact_manifolds_workspace.rs` |
 
 ## WritebackId
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `WritebackId` | dynamics | missing | Not found on Cairo candidate(s): WritebackId, WritebackIdTrait. | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
+| type `WritebackId` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs` |
 
 ## dynamics
 
@@ -4345,17 +4347,17 @@ Cairo-only public items not matched to upstream: **1490**.
 |---|---|---|---|---|
 | const `SOFT_BODY_MAX_CONSTRAINT_PARTICLES` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body.rs` |
 | function `initial_rest_angle` | dynamics | excluded | soft bodies | `rapier/src/dynamics/soft_body/soft_body_elements.rs` |
-| function `joint_data_num_constraints` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs` |
-| function `joint_num_constraints` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs` |
-| function `reset_buffer` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/mod.rs` |
-| function `reset_buffer_reusing` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/mod.rs` |
-| function `solve` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| function `solve_pair` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
-| function `solve_restitution` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| function `joint_data_num_constraints` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs` |
+| function `joint_num_constraints` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs` |
+| function `reset_buffer` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/mod.rs` |
+| function `reset_buffer_reusing` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/mod.rs` |
+| function `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| function `solve_pair` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| function `solve_restitution` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
 | function `unit_joint_friction_constraint` | dynamics | excluded | multibody | `rapier/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs` |
 | function `unit_joint_limit_constraint` | dynamics | excluded | multibody | `rapier/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs` |
 | function `unit_joint_motor_constraint` | dynamics | excluded | multibody | `rapier/src/dynamics/joint/multibody_joint/unit_multibody_joint.rs` |
-| function `warmstart` | dynamics | missing | Not found on Cairo candidate(s): dynamics. | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
+| function `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs` |
 
 ## geometry
 
@@ -4567,22 +4569,22 @@ Cairo-only public items not matched to upstream: **1490**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 191 | standard | QP queries |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 61 | mechanical | AP triage |
-| [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 55 | standard | shape interface |
-| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
+| [Query completion](#wp-query-completion) | 123 | standard | QP queries |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 58 | mechanical | AP triage |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 50 | standard | shape interface |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
 | [Collider API completion](#wp-collider-api-completion) | 11 | mechanical | DB/EV |
+| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 8 | standard | P1/SL/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 7 | standard | SE sensors |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 4 | hard | QP queries |
+| [Joint API completion](#wp-joint-api-completion) | 4 | standard | JL/RJ |
 | [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 2 | standard | geometry |
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 191 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 123 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4596,29 +4598,10 @@ Tier: standard. Depends/context: QP queries. Estimate: 191 public items.
 - **Aabb** method `project_on_axis` (`parry/src/bounding_volume/aabb.rs`)
 - **BoundingSphere** impl `PointQuery` (`parry/src/query/point/point_bounding_sphere.rs`)
 - **BoundingSphere** impl `RayCast` (`parry/src/query/ray/ray_bounding_sphere.rs`)
-- **BroadPhaseBvh** method `as_query_pipeline` (`rapier/src/pipeline/query_pipeline.rs`)
-- **BroadPhaseBvh** method `as_query_pipeline_mut` (`rapier/src/pipeline/query_pipeline.rs`)
 - **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
 - **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **CompositeShapeCompositeShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs`)
-- **CompositeShapeCompositeShapeContactManifoldsWorkspace** type `CompositeShapeCompositeShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs`)
-- **CompositeShapeShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs`)
-- **CompositeShapeShapeContactManifoldsWorkspace** type `CompositeShapeShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs`)
 - **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
-- **ContactConstraintNormalPart** method `generic_solve` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs`)
-- **ContactConstraintNormalPart** method `generic_warmstart` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs`)
-- **ContactConstraintNormalPart** method `solve` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintNormalPart** method `solve_pair` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintNormalPart** method `solve_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintNormalPart** method `warmstart` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintNormalPart** method `zero` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintTangentPart** method `generic_solve` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs`)
-- **ContactConstraintTangentPart** method `generic_warmstart` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs`)
-- **ContactConstraintTangentPart** method `solve` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintTangentPart** method `warmstart` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintTangentPart** method `zero` (`rapier/src/dynamics/solver/contact_constraint/contact_constraint_element.rs`)
-- **ContactConstraintsSet** method `new` (`rapier/src/dynamics/solver/contact_constraint/contact_constraints_set.rs`)
 - **ContactData** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactId** type `ContactId` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
@@ -4627,9 +4610,6 @@ Tier: standard. Depends/context: QP queries. Estimate: 191 public items.
 - **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
 - **ContactManifoldData** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactManifoldData** method `solver_contact_world_points` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactManifoldsWorkspace** impl `Clone` (`parry/src/query/contact_manifolds/contact_manifolds_workspace.rs`)
-- **ContactManifoldsWorkspace** impl `From<T>` (`parry/src/query/contact_manifolds/contact_manifolds_workspace.rs`)
-- **ContactManifoldsWorkspace** type `ContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_workspace.rs`)
 - **ContactPair** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `clear` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `find_deepest_contact` (`rapier/src/geometry/contact_pair.rs`)
@@ -4641,36 +4621,57 @@ Tier: standard. Depends/context: QP queries. Estimate: 191 public items.
 - **ContactPair** method `total_impulse` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `total_impulse_magnitude` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactRef** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
-- **ContactWithCoulombFriction** method `solve` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFriction** method `warmstart` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFriction** method `writeback_impulses` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFrictionBuilder** method `update` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithCoulombFrictionBuilder** method `update_rhs_wo_bias` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **ContactWithTwistFriction** method `solve` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFriction** method `warmstart` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFriction** method `writeback_impulses` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFrictionBuilder** method `apply_restitution` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFrictionBuilder** method `generate` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFrictionBuilder** method `has_bouncy_seed` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFrictionBuilder** method `update` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **ContactWithTwistFrictionBuilder** method `update_rhs_wo_bias` (`rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs`)
-- **CoulombContactPointInfos** impl `Default` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **CoulombContactPointInfos** type `CoulombContactPointInfos` (`rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs`)
-- **GenericContactConstraint** method `generic_solve_group` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs`)
-- **GenericContactConstraint** method `generic_warmstart_group` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint_element.rs`)
-- **GenericContactConstraint** method `invalid` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs`)
-- **GenericContactConstraint** method `remove_cfm_and_bias_from_rhs` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs`)
-- **GenericContactConstraint** method `solve` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs`)
-- ... 111 more
+- **GraphPos** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
+- **NarrowPhase** method `contact_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `contact_pair_at_index` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `contact_pair_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `contact_pairs` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `contact_pairs_with` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `contact_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `query_dispatcher` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NarrowPhase** method `with_query_dispatcher` (`rapier/src/geometry/narrow_phase/mod.rs`)
+- **NormalConstraints** method `project_local_normal` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** method `project_local_normal1` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** method `project_local_normal2` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** method `project_local_normal_mut` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** trait `NormalConstraints` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraintsPair** method `project_local_normals` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraintsPair** trait `NormalConstraintsPair` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **PairContacts** type `PairContacts` (`rapier/src/geometry/contact_pair.rs`)
+- **PersistentQueryDispatcher** method `contact_manifold_convex_convex` (`parry/src/query/query_dispatcher.rs`)
+- **PersistentQueryDispatcher** method `contact_manifolds` (`parry/src/query/query_dispatcher.rs`)
+- **PersistentQueryDispatcher** trait `PersistentQueryDispatcher` (`parry/src/query/query_dispatcher.rs`)
+- **PhysicsWorld** method `contact_pairs` (`rapier/src/pipeline/physics_world.rs`)
+- **PhysicsWorld** method `contact_pairs_with` (`rapier/src/pipeline/physics_world.rs`)
+- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
+- **PolygonalFeature** method `face_face_contacts` (`parry/src/shape/polygonal_feature2d.rs`)
+- **PolygonalFeature** method `face_vertex_contacts` (`parry/src/shape/polygonal_feature2d.rs`)
+- **QueryDispatcher** method `chain` (`parry/src/query/query_dispatcher.rs`)
+- **QueryDispatcherChain** type `QueryDispatcherChain` (`parry/src/query/query_dispatcher.rs`)
+- **QueryPipelineMut** method `as_ref` (`rapier/src/pipeline/query_pipeline.rs`)
+- **QueryPipelineMut** type `QueryPipelineMut` (`rapier/src/pipeline/query_pipeline.rs`)
+- **RigidPairContacts** method `has_any_active_contact` (`rapier/src/geometry/contact_pair.rs`)
+- **RigidPairContacts** method `solver_manifolds` (`rapier/src/geometry/contact_pair.rs`)
+- **RigidPairContacts** type `RigidPairContacts` (`rapier/src/geometry/contact_pair.rs`)
+- **Segment** method `canonical_split` (`parry/src/query/split/split_segment.rs`)
+- **Segment** method `from_array` (`parry/src/shape/segment.rs`)
+- **Segment** method `local_split` (`parry/src/query/split/split_segment.rs`)
+- **ShapeDistance** impl `From<Real>` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** method `new` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** method `swapped` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** method `with_subshapes` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** type `ShapeDistance` (`parry/src/query/distance/distance.rs`)
+- **SoftContactImpulse** type `SoftContactImpulse` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
+- **SoftDetectionCtx** method `motion_margin` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
+- **SoftDetectionCtx** method `pieces_of_one_body` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
+- **SoftEdgeCandidate** type `SoftEdgeCandidate` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
+- **SoftPairContacts** method `disable_all` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
+- ... 43 more
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 61 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 58 public items.
 
-- **BvhOptimizationStrategy** type `BvhOptimizationStrategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
 - **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
@@ -4729,78 +4730,10 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 61 public items.
 - **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
 - **TypedShape** impl `Debug` (`parry/src/shape/shape.rs`)
 - **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
-- **dynamics** function `reset_buffer` (`rapier/src/dynamics/solver/mod.rs`)
-- **dynamics** function `reset_buffer_reusing` (`rapier/src/dynamics/solver/mod.rs`)
-
-### WP: Joint API completion
-
-Tier: standard. Depends/context: JL/RJ. Estimate: 61 public items.
-
-- **AngularLimitParams** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **AngularLimitParams** type `AngularLimitParams` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **AnyJointConstraintMut** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs`)
-- **AnyJointConstraintMut** type `AnyJointConstraintMut` (`rapier/src/dynamics/solver/joint_constraint/any_joint_constraint.rs`)
-- **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **GenericJointConstraint** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `lock_axes` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `remove_bias_from_rhs` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `solve` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraint** type `GenericJointConstraint` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint.rs`)
-- **GenericJointConstraintBuilder** type `GenericJointConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-- **JointConstraint** method `remove_bias_from_rhs` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **JointConstraint** method `solve_generic` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **JointConstraint** method `update` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **JointConstraint** method `warmstart_generic` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **JointConstraintBuilder** method `generate` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
-- **JointConstraintBuilder** method `update` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
-- **JointConstraintBuilder** method `update_warmstart_seeds` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
-- **JointConstraintBuilder** type `JointConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `finalize_constraints` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `finalize_generic_constraints` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `limit_angular` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `limit_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `limit_linear` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `limit_linear_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `limit_linear_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `lock_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `lock_jacobians_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `lock_linear_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `motor_angular` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `motor_angular_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `motor_linear` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `motor_linear_coupled` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintHelper** method `motor_linear_generic` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointConstraintHelper** method `recentered_angle` (`rapier/src/dynamics/solver/joint_constraint/joint_constraint_helper.rs`)
-- **JointConstraintsSet** method `iter_constraints_mut` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
-- **JointConstraintsSet** method `new` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
-- **JointConstraintsSet** method `writeback_impulses` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
-- **JointConstraintsSet** type `JointConstraintsSet` (`rapier/src/dynamics/solver/joint_constraint/joint_constraints_set.rs`)
-- **JointGenericExternalConstraintBuilder** method `generate` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointGenericExternalConstraintBuilder** method `update` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointGenericExternalConstraintBuilder** type `JointGenericExternalConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointGenericInternalConstraintBuilder** method `generate` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointGenericInternalConstraintBuilder** method `num_constraints` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointGenericInternalConstraintBuilder** method `update` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointGenericInternalConstraintBuilder** type `JointGenericInternalConstraintBuilder` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointSolverBody** method `fill_jacobians` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **JointSolverBody** method `invalid` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **JointSolverBody** type `JointSolverBody` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **LinkOrBodyRef** type `LinkOrBodyRef` (`rapier/src/dynamics/solver/joint_constraint/generic_joint_constraint_builder.rs`)
-- **MotorParameters** impl `Default` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **MotorParameters** type `MotorParameters` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **PersistentIslands** method `apply_impulse_joint_event` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `link_joint` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `unlink_joint` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **WritebackId** type `WritebackId` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
-- **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 55 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 50 public items.
 
 - **Aabb** method `scaled_wrt_center` (`parry/src/bounding_volume/aabb.rs`)
 - **Ball** method `scaled` (`parry/src/shape/ball.rs`)
@@ -4817,10 +4750,6 @@ Tier: standard. Depends/context: shape interface. Estimate: 55 public items.
 - **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
 - **ConvexPolygon** method `from_convex_polyline_unmodified` (`parry/src/shape/convex_polygon.rs`)
 - **ConvexPolygon** method `scaled` (`parry/src/shape/convex_polygon.rs`)
-- **HeightFieldCompositeShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
-- **HeightFieldCompositeShapeContactManifoldsWorkspace** type `HeightFieldCompositeShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
-- **HeightFieldShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs`)
-- **HeightFieldShapeContactManifoldsWorkspace** type `HeightFieldShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs`)
 - **Heightfield** impl `PointQueryWithLocation` (`parry/src/query/point/point_heightfield.rs`)
 - **Heightfield** impl `RayCast` (`parry/src/query/ray/ray_heightfield.rs`)
 - **Polyline** impl `PointQueryWithLocation` (`parry/src/query/point/point_composite_shape.rs`)
@@ -4853,50 +4782,9 @@ Tier: standard. Depends/context: shape interface. Estimate: 55 public items.
 - **SharedShape** method `voxelized_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_mesh` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** type `SharedShape` (`parry/src/shape/shared_shape.rs`)
 - **TrianglePseudoNormals** type `TrianglePseudoNormals` (`parry/src/shape/triangle_pseudo_normals.rs`)
 - **parry::query** function `contact_manifold_cuboid_triangle` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
 - **parry::query** function `contact_manifold_cuboid_triangle_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
-
-### WP: Pipeline and world facade
-
-Tier: standard. Depends/context: P1/SL/EV. Estimate: 35 public items.
-
-- **BroadPhaseBvh** method `new` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **BroadPhaseBvh** method `set_aabb` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **BroadPhaseBvh** method `update` (`rapier/src/geometry/broad_phase_bvh/update.rs`)
-- **BroadPhaseBvh** method `with_optimization_strategy` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **BroadPhaseBvh** type `BroadPhaseBvh` (`rapier/src/geometry/broad_phase_bvh/mod.rs`)
-- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
-- **Island** method `bodies` (`rapier/src/dynamics/island_manager/island.rs`)
-- **Island** method `len` (`rapier/src/dynamics/island_manager/island.rs`)
-- **Island** method `singleton` (`rapier/src/dynamics/island_manager/island.rs`)
-- **IslandManager** method `persistent_island_of` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **IslandManager** type `IslandManager` (`rapier/src/dynamics/island_manager/manager.rs`)
-- **NarrowPhase** impl `Default` (`rapier/src/geometry/narrow_phase/mod.rs`)
-- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
-- **PersistentIslands** method `assert_consistent` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `begin_sleep_scan` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `body_island` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `bootstrap` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `clear_pending_split_of` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PersistentIslands** method `ensure_body` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `finish_sleep_scan` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `mark_island_sleeping` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `observe_body_for_sleep` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `remove_body` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `remove_body_raw` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `run_pending_split` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PersistentIslands** method `schedule_split` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PersistentIslands** method `split_allowed` (`rapier/src/dynamics/island_manager/persistent.rs`)
-- **PersistentIslands** method `split_island_now` (`rapier/src/dynamics/island_manager/global_split.rs`)
-- **PhysicsPipeline** method `quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **PhysicsWorld** method `quarantine` (`rapier/src/pipeline/physics_world.rs`)
-- **Quarantine** method `bodies` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** method `is_empty` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** type `Quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **StagedIslandSolver** method `init_and_solve` (`rapier/src/dynamics/solver/staged_island_solver/init.rs`)
-- **StagedIslandSolver** method `new` (`rapier/src/dynamics/solver/staged_island_solver/mod.rs`)
 
 ### WP: Vehicle and PID controllers
 
@@ -4971,6 +4859,19 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 11 public items.
 - **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
 - **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
 
+### WP: Pipeline and world facade
+
+Tier: standard. Depends/context: P1/SL/EV. Estimate: 8 public items.
+
+- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
+- **NarrowPhase** impl `Default` (`rapier/src/geometry/narrow_phase/mod.rs`)
+- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
+- **PhysicsPipeline** method `quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **PhysicsWorld** method `quarantine` (`rapier/src/pipeline/physics_world.rs`)
+- **Quarantine** method `bodies` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **Quarantine** method `is_empty` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+- **Quarantine** type `Quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
+
 ### WP: Sensors and intersection events
 
 Tier: standard. Depends/context: SE sensors. Estimate: 7 public items.
@@ -5002,6 +4903,15 @@ Tier: hard. Depends/context: QP queries. Estimate: 4 public items.
 - **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
 - **parry::query** function `cast_shapes_nonlinear_halfspace_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
 - **parry::query** function `cast_shapes_nonlinear_support_map_halfspace` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
+
+### WP: Joint API completion
+
+Tier: standard. Depends/context: JL/RJ. Estimate: 4 public items.
+
+- **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
+- **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
+- **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
+- **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
 
 ### WP: Mass, AABB, and shape helpers
 
