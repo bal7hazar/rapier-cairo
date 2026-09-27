@@ -165,8 +165,9 @@ pub fn cast_shapes_local(
         ) => Some(cast_shapes_ball_ball(pos12, vel12, b1, b2, options)),
         (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
         (
-            _, Shape::HeightField(_),
+            _, Shape::Compound(_),
         ) => super::composite::cast_shapes_composite(pos12, vel12, shape1, shape2, options),
         (
             Shape::HalfSpace(h), _,
@@ -190,8 +191,9 @@ pub(crate) fn cast_shapes_local_outlined(
         ) => Some(cast_shapes_ball_ball(pos12, vel12, b1, b2, options)),
         (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
         (
-            _, Shape::HeightField(_),
+            _, Shape::Compound(_),
         ) => super::composite::cast_shapes_composite(pos12, vel12, shape1, shape2, options),
         (
             Shape::HalfSpace(h), _,

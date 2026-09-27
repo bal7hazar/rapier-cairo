@@ -22,7 +22,8 @@
 //!
 //! # Deviations
 //!
-//! * Composite–composite pairs are unsupported (`None`): upstream's
+//! * Compound pairs (SH2b, every pair with a compound, composite or not) are in [`compound`].
+//! * Composite–composite pairs without a compound are unsupported (`None`): upstream's
 //!   `contact_manifolds_{composite_shape_composite_shape, heightfield_composite_shape}` are not
 //!   ported (the parts would need segment–segment manifolds on both sides; level geometry is
 //!   fixed, and fixed–fixed pairs never reach the narrow phase).
@@ -64,7 +65,7 @@ pub fn contact_manifold_part(
 }
 
 /// The previous manifold of sub-shapes `(subshape1, subshape2)` in `previous`, or a fresh one.
-fn previous_or_new(
+pub(crate) fn previous_or_new(
     previous: Span<ContactManifold>, subshape1: u32, subshape2: u32,
 ) -> ContactManifold {
     for m in previous {
@@ -99,7 +100,8 @@ fn contact_parts(shape: Shape, aabb: Aabb) -> Array<(u32, Shape)> {
 /// Parry `contact_manifolds` for a pair with exactly one composite shape (see the module
 /// documentation): one manifold per part, ascending part index, each updated from its previous
 /// manifold in `previous` (any order). `pos12` is the pose of `shape2` in the frame of `shape1`.
-/// `None` when neither or both shapes are composite.
+/// A compound pair goes to [`compound`] (SH2b); two composites are `None` unless one is a
+/// compound, and `None` when neither shape is composite.
 /// #### Panics
 /// * The panics of the part generators and of `Pose2::inverse` (composite second).
 pub fn contact_manifolds_composite(
@@ -107,7 +109,26 @@ pub fn contact_manifolds_composite(
 ) -> Option<Array<ContactManifold>> {
     let (first, second) = (shape1.is_composite(), shape2.is_composite());
     if first == second {
+        if first {
+            return compound::contact_manifolds_composite_pair(
+                pos12, shape1, shape2, prediction, previous,
+            );
+        }
         return None;
+    }
+    if let Shape::Compound(c) = shape1 {
+        return Some(
+            compound::contact_manifolds_compound_shape(
+                pos12, @c.unbox(), shape2, prediction, previous, false,
+            ),
+        );
+    }
+    if let Shape::Compound(c) = shape2 {
+        return Some(
+            compound::contact_manifolds_compound_shape(
+                pos12.inverse(), @c.unbox(), shape1, prediction, previous, true,
+            ),
+        );
     }
     let mut out = array![];
     if first {
@@ -146,5 +167,6 @@ pub(crate) fn composite_unsupported(ref manifold: ContactManifold) -> bool {
     false
 }
 
+pub mod compound;
 #[cfg(test)]
 mod tests;

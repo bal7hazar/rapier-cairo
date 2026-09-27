@@ -27,6 +27,7 @@
 pub mod ball;
 pub mod capsule;
 pub mod composite;
+pub mod compound;
 pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;

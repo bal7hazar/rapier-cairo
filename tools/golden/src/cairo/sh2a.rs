@@ -8,7 +8,7 @@ use super::{boolean, const_name, id, konst, load, pose, raw, vec2, zero_vec2, Mo
 use serde_json::Value;
 use std::path::Path;
 
-const PART: usize = 12;
+pub(super) const PART: usize = 12;
 
 const TYPES: [&str; 26] = [
     "CapsuleRaw",
@@ -39,11 +39,11 @@ const TYPES: [&str; 26] = [
     "Vec2Raw",
 ];
 
-fn lit(s: &str) -> Node {
+pub(super) fn lit(s: &str) -> Node {
     Node::Lit(s.into())
 }
 
-fn zero() -> Node {
+pub(super) fn zero() -> Node {
     lit("0")
 }
 
@@ -52,13 +52,13 @@ fn types(uses_other: bool) -> Vec<&'static str> {
 }
 
 /// `supported` and `value` of an optional answer, `(false, default)` when unsupported.
-fn opt<'a>(v: &'a Value) -> (bool, &'a Value) {
+pub(super) fn opt<'a>(v: &'a Value) -> (bool, &'a Value) {
     (v["supported"].as_bool().unwrap(), &v["value"])
 }
 
 /// The constants of the composite shapes of `json["composites"]` (prefix `prefix`) and the
 /// builder `name(index) -> CompositeRaw`.
-fn composites_module(json: &Value, prefix: &str, name: &str, body: &mut String) {
+pub(super) fn composites_module(json: &Value, prefix: &str, name: &str, body: &mut String) {
     let mut arms = String::new();
     for (i, c) in json.as_array().unwrap().iter().enumerate() {
         let shape = &c["shape"];
@@ -115,7 +115,7 @@ fn composites_module(json: &Value, prefix: &str, name: &str, body: &mut String) 
     ));
 }
 
-fn contact_point(p: &Value) -> Node {
+pub(super) fn contact_point(p: &Value) -> Node {
     let fid = |v: &Value| Node::Lit(format!("0x{:08x}", v["packed"].as_u64().unwrap()));
     Node::Struct(
         "ContactPointRaw",
@@ -129,7 +129,7 @@ fn contact_point(p: &Value) -> Node {
     )
 }
 
-fn empty_point() -> Node {
+pub(super) fn empty_point() -> Node {
     Node::Struct(
         "ContactPointRaw",
         vec![
@@ -192,7 +192,7 @@ fn manifold_case(c: &Value) -> Node {
     )
 }
 
-fn point_case(c: &Value) -> Node {
+pub(super) fn point_case(c: &Value) -> Node {
     let e = &c["expected"];
     Node::Struct(
         "CompositePointCase",
@@ -210,7 +210,7 @@ fn point_case(c: &Value) -> Node {
     )
 }
 
-fn ray_case(c: &Value) -> Node {
+pub(super) fn ray_case(c: &Value) -> Node {
     let e = &c["expected"];
     Node::Struct(
         "CompositeRayCase",
@@ -227,7 +227,7 @@ fn ray_case(c: &Value) -> Node {
     )
 }
 
-fn contact_answer(prediction: &Value, v: &Value, supported: bool) -> Node {
+pub(super) fn contact_answer(prediction: &Value, v: &Value, supported: bool) -> Node {
     let some = supported && v["some"].as_bool().unwrap();
     let f = |k: &str| if some { vec2(&v[k]) } else { zero_vec2() };
     Node::Struct(
@@ -244,7 +244,7 @@ fn contact_answer(prediction: &Value, v: &Value, supported: bool) -> Node {
     )
 }
 
-fn closest(margin: &Value, v: &Value, supported: bool) -> Node {
+pub(super) fn closest(margin: &Value, v: &Value, supported: bool) -> Node {
     let kind = if supported { v["kind"].as_u64().unwrap() } else { 0 };
     let f = |k: &str| if supported && kind == 1 { vec2(&v[k]) } else { zero_vec2() };
     Node::Struct(
@@ -253,7 +253,7 @@ fn closest(margin: &Value, v: &Value, supported: bool) -> Node {
     )
 }
 
-fn cast_hit(v: &Value, supported: bool) -> Node {
+pub(super) fn cast_hit(v: &Value, supported: bool) -> Node {
     let some = supported && v["some"].as_bool().unwrap();
     let f = |k: &str| if some { vec2(&v[k]) } else { zero_vec2() };
     Node::Struct(
@@ -270,7 +270,7 @@ fn cast_hit(v: &Value, supported: bool) -> Node {
     )
 }
 
-fn pair_case(c: &Value) -> Node {
+pub(super) fn pair_case(c: &Value) -> Node {
     let e = &c["expected"];
     let (is, iv) = opt(&e["intersects"]);
     let (ds, dv) = opt(&e["distance"]);
@@ -321,7 +321,7 @@ fn aabb_case(c: &Value) -> Node {
 }
 
 /// One family (`cases` of `json[key]`) as an index module `name` and its parts `name/part<i>`.
-fn family(
+pub(super) fn family(
     file: &'static str,
     json: &Value,
     key: &str,

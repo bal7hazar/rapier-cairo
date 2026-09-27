@@ -39,15 +39,9 @@
 //! the closed enum but half-space–half-space. Deriving the answer from this module's contact
 //! generators at zero prediction costs 1.4 to 20 times more gas (`intersection::alternatives`).
 //!
-//! # Composite shapes
-//!
-//! A polyline or heightfield pair (SH2a, one manifold per part) is "unsupported" in both tables;
-//! [`composite::contact_manifolds_composite`] computes its manifolds.
-//!
-//! # Deferred
-//!
-//! Compound and triangle-mesh shapes, `ContactManifoldsWorkspace`, normal constraints, and the
-//! generic PFM–PFM generator.
+//! A composite pair (polyline, heightfield: SH2a; compound: SH2b; one manifold per part) is
+//! "unsupported" in both tables: [`composite::contact_manifolds_composite`] computes its
+//! manifolds. Deferred: triangle meshes, `ContactManifoldsWorkspace`, normal constraints.
 //!
 //! # Candidates
 //!
@@ -190,8 +184,8 @@ pub fn contact_manifold(
             }
             true
         },
-        (Shape::Ball(_), Shape::Polyline(_)) |
-        (Shape::Ball(_), Shape::HeightField(_)) => composite_unsupported(ref manifold),
+        (Shape::Ball(_), Shape::Polyline(_)) | (Shape::Ball(_), Shape::HeightField(_)) |
+        (Shape::Ball(_), Shape::Compound(_)) => composite_unsupported(ref manifold),
         (
             Shape::Ball(ball1), _,
         ) => {
@@ -214,8 +208,8 @@ pub fn contact_manifold(
             }
             true
         },
-        (Shape::Polyline(_), Shape::Ball(_)) |
-        (Shape::HeightField(_), Shape::Ball(_)) => composite_unsupported(ref manifold),
+        (Shape::Polyline(_), Shape::Ball(_)) | (Shape::HeightField(_), Shape::Ball(_)) |
+        (Shape::Compound(_), Shape::Ball(_)) => composite_unsupported(ref manifold),
         (
             _, Shape::Ball(ball2),
         ) => {
@@ -426,9 +420,10 @@ pub fn contact_manifold(
         (Shape::RoundTriangle(_), Shape::Polyline(_)) |
         (Shape::RoundTriangle(_), Shape::HeightField(_)) |
         (Shape::RoundConvexPolygon(_), Shape::Polyline(_)) |
-        (
-            Shape::RoundConvexPolygon(_), Shape::HeightField(_),
-        ) => composite_unsupported(ref manifold),
+        (Shape::RoundConvexPolygon(_), Shape::HeightField(_)) |
+        (Shape::Triangle(_), Shape::Compound(_)) | (Shape::RoundCuboid(_), Shape::Compound(_)) |
+        (Shape::RoundTriangle(_), Shape::Compound(_)) |
+        (Shape::RoundConvexPolygon(_), Shape::Compound(_)) => composite_unsupported(ref manifold),
         (Shape::Triangle(_), _) | (Shape::RoundCuboid(_), _) | (Shape::RoundTriangle(_), _) |
         (
             Shape::RoundConvexPolygon(_), _,
@@ -446,9 +441,10 @@ pub fn contact_manifold(
         (Shape::Polyline(_), Shape::RoundTriangle(_)) |
         (Shape::HeightField(_), Shape::RoundTriangle(_)) |
         (Shape::Polyline(_), Shape::RoundConvexPolygon(_)) |
-        (
-            Shape::HeightField(_), Shape::RoundConvexPolygon(_),
-        ) => composite_unsupported(ref manifold),
+        (Shape::HeightField(_), Shape::RoundConvexPolygon(_)) |
+        (Shape::Compound(_), Shape::Triangle(_)) | (Shape::Compound(_), Shape::RoundCuboid(_)) |
+        (Shape::Compound(_), Shape::RoundTriangle(_)) |
+        (Shape::Compound(_), Shape::RoundConvexPolygon(_)) => composite_unsupported(ref manifold),
         (
             _, Shape::Triangle(t2),
         ) => {
@@ -498,7 +494,8 @@ pub fn contact_manifold(
             true
         },
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => composite_unsupported(ref manifold),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => composite_unsupported(ref manifold),
         _ => {
             manifold.clear();
             false
@@ -565,8 +562,8 @@ pub fn contact_manifold_step(
             contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
             true
         },
-        (Shape::Ball(_), Shape::Polyline(_)) |
-        (Shape::Ball(_), Shape::HeightField(_)) => composite_unsupported(ref manifold),
+        (Shape::Ball(_), Shape::Polyline(_)) | (Shape::Ball(_), Shape::HeightField(_)) |
+        (Shape::Ball(_), Shape::Compound(_)) => composite_unsupported(ref manifold),
         (
             Shape::Ball(ball1), _,
         ) => {
@@ -581,8 +578,8 @@ pub fn contact_manifold_step(
             contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
             true
         },
-        (Shape::Polyline(_), Shape::Ball(_)) |
-        (Shape::HeightField(_), Shape::Ball(_)) => composite_unsupported(ref manifold),
+        (Shape::Polyline(_), Shape::Ball(_)) | (Shape::HeightField(_), Shape::Ball(_)) |
+        (Shape::Compound(_), Shape::Ball(_)) => composite_unsupported(ref manifold),
         (
             _, Shape::Ball(ball2),
         ) => {
@@ -730,9 +727,10 @@ pub fn contact_manifold_step(
         (Shape::RoundTriangle(_), Shape::Polyline(_)) |
         (Shape::RoundTriangle(_), Shape::HeightField(_)) |
         (Shape::RoundConvexPolygon(_), Shape::Polyline(_)) |
-        (
-            Shape::RoundConvexPolygon(_), Shape::HeightField(_),
-        ) => composite_unsupported(ref manifold),
+        (Shape::RoundConvexPolygon(_), Shape::HeightField(_)) |
+        (Shape::Triangle(_), Shape::Compound(_)) | (Shape::RoundCuboid(_), Shape::Compound(_)) |
+        (Shape::RoundTriangle(_), Shape::Compound(_)) |
+        (Shape::RoundConvexPolygon(_), Shape::Compound(_)) => composite_unsupported(ref manifold),
         (Shape::Triangle(_), _) | (Shape::RoundCuboid(_), _) | (Shape::RoundTriangle(_), _) |
         (
             Shape::RoundConvexPolygon(_), _,
@@ -746,9 +744,10 @@ pub fn contact_manifold_step(
         (Shape::Polyline(_), Shape::RoundTriangle(_)) |
         (Shape::HeightField(_), Shape::RoundTriangle(_)) |
         (Shape::Polyline(_), Shape::RoundConvexPolygon(_)) |
-        (
-            Shape::HeightField(_), Shape::RoundConvexPolygon(_),
-        ) => composite_unsupported(ref manifold),
+        (Shape::HeightField(_), Shape::RoundConvexPolygon(_)) |
+        (Shape::Compound(_), Shape::Triangle(_)) | (Shape::Compound(_), Shape::RoundCuboid(_)) |
+        (Shape::Compound(_), Shape::RoundTriangle(_)) |
+        (Shape::Compound(_), Shape::RoundConvexPolygon(_)) => composite_unsupported(ref manifold),
         (
             _, Shape::Triangle(t2),
         ) => {
@@ -780,7 +779,8 @@ pub fn contact_manifold_step(
             true
         },
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => composite_unsupported(ref manifold),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => composite_unsupported(ref manifold),
         _ => {
             manifold.clear();
             false

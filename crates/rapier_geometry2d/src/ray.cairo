@@ -28,6 +28,7 @@ pub mod ball;
 pub mod capsule;
 pub mod cast;
 pub mod composite;
+pub mod compound;
 pub mod convex_polygon;
 pub mod cuboid;
 pub mod halfspace;
@@ -183,10 +184,11 @@ pub fn cast_local_ray_and_get_normal(
     }
 }
 
-/// The round-shape and composite (SH2a) arms of the two inlined dispatchers, out of line (`None`
+/// The round-shape and composite (SH2a, SH2b) arms of the two inlined dispatchers, out of line
+/// (`None`
 /// for any other shape, which the dispatchers never pass).
 #[inline(never)]
-fn cast_local_ray_and_get_normal_rounded(
+pub(crate) fn cast_local_ray_and_get_normal_rounded(
     shape: Shape, ray: Ray, max_time_of_impact: Fixed, solid: bool,
 ) -> Option<RayIntersection> {
     match shape {
@@ -209,6 +211,9 @@ fn cast_local_ray_and_get_normal_rounded(
             @s.unbox(), ray, max_time_of_impact, solid,
         ),
         Shape::HeightField(s) => composite::cast_local_ray_and_get_normal_heightfield(
+            @s.unbox(), ray, max_time_of_impact, solid,
+        ),
+        Shape::Compound(s) => compound::cast_local_ray_and_get_normal_compound(
             @s.unbox(), ray, max_time_of_impact, solid,
         ),
         _ => None,

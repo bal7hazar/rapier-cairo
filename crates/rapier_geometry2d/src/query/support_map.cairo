@@ -93,6 +93,7 @@ pub fn local_support_point_toward(shape: Shape, dir: Vec2) -> Vec2 {
         ),
         Shape::Polyline(_) => core::panic_with_felt252(super::errors::NOT_SUPPORT_MAP),
         Shape::HeightField(_) => core::panic_with_felt252(super::errors::NOT_SUPPORT_MAP),
+        Shape::Compound(_) => core::panic_with_felt252(super::errors::NOT_SUPPORT_MAP),
     }
 }
 

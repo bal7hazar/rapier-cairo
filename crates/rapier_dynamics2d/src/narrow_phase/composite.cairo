@@ -28,7 +28,11 @@
 //!
 //! * `NarrowPhaseTrait::contact_pair` answers the group's first entry (a manifold with solver
 //!   contacts when there is one), upstream the pair with all its manifolds.
-//! * A pair of two composites has no manifold (see `rapier_geometry2d::dispatch::composite`).
+//! * A pair of two composites has no manifold unless one is a compound (see
+//!   `rapier_geometry2d::dispatch::composite`).
+//! * A compound's manifolds are in its parts' frames, as upstream's; the part's pose, which
+//!   upstream stores in the manifold (`subshape_pos1` / `subshape_pos2`), is read back from the
+//!   compound ([`part_collider`]) when the solver contacts are built.
 
 use core::num::traits::DivRem;
 use fixed::Fixed;
@@ -36,7 +40,8 @@ use rapier_core::collider::CollisionEventFlagsTrait;
 use rapier_core::interaction_groups::{InteractionGroups, InteractionTestMode};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::dispatch::composite::contact_manifolds_composite;
-use rapier_geometry2d::shape::ShapeTrait;
+use rapier_geometry2d::shape::{CompoundTrait, ShapeTrait};
+use rapier_math::pose2::Pose2Trait;
 use crate::events::{CollisionEvent, PairEventStatusTrait, started, stopped};
 use super::{
     CoefficientCombineRuleTrait, ContactPair, PairCollider, SOLVER_COMPUTE_RIGID_IMPULSES,
@@ -126,8 +131,20 @@ fn composite_pair_inner(
     let mut solved = array![];
     let mut first: Option<u32> = None;
     let mut k: u32 = 0;
+    let posed = co1.shape.as_compound().is_some() || co2.shape.as_compound().is_some();
     for m in manifolds {
-        let m = solver_data_composite(prediction, co1, co2, m, true, solver_ok);
+        let m = if posed {
+            solver_data_composite(
+                prediction,
+                part_collider(co1, m.subshape1),
+                part_collider(co2, m.subshape2),
+                m,
+                true,
+                solver_ok,
+            )
+        } else {
+            solver_data_composite(prediction, co1, co2, m, true, solver_ok)
+        };
         if first.is_none() && m.data.num_solver_contacts != 0 {
             first = Some(k);
         }
@@ -179,6 +196,16 @@ fn composite_pair_inner(
         n += 1;
     }
     Some((group.span(), event, skip))
+}
+
+/// `co` seen from part `subshape` of its compound (SH2b): the pose composed with the part's
+/// (upstream's world pose `co.pos * manifold.subshape_pos`), so that the part-frame manifold's
+/// points and normal land in world space; `co` itself for any other shape.
+fn part_collider(co: PairCollider, subshape: u32) -> PairCollider {
+    match co.shape.as_compound() {
+        Some(c) => PairCollider { pose: co.pose.mul((@c).part_pose(subshape)), ..co },
+        None => co,
+    }
 }
 
 const TWO: NonZero<u8> = 2;

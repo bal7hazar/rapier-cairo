@@ -38,7 +38,7 @@ pub enum Composite {
     HeightField { heights: Vec<Q>, scale: QVec, removed: Vec<usize> },
 }
 
-fn qv(x: f64, y: f64) -> QVec {
+pub(crate) fn qv(x: f64, y: f64) -> QVec {
     QVec::snap(x, y)
 }
 
@@ -112,7 +112,7 @@ impl Composite {
     }
 
     /// The largest surface height over `[x0, x1]` (placement of a shape resting above).
-    fn top_over(&self, x0: f64, x1: f64) -> f64 {
+    pub(crate) fn top_over(&self, x0: f64, x1: f64) -> f64 {
         let s = self.surface();
         let mut top = f64::MIN;
         for w in s.windows(2) {
@@ -156,15 +156,15 @@ pub fn composites() -> Vec<(&'static str, Composite)> {
     ]
 }
 
-fn composite(name: &str) -> Composite {
+pub(crate) fn composite(name: &str) -> Composite {
     composites().into_iter().find(|(n, _)| *n == name).unwrap().1
 }
 
-fn index_of(name: &str) -> usize {
+pub(crate) fn index_of(name: &str) -> usize {
     composites().iter().position(|(n, _)| *n == name).unwrap()
 }
 
-fn b(s: ShapeSpec) -> Sh1Shape {
+pub(crate) fn b(s: ShapeSpec) -> Sh1Shape {
     Sh1Shape::Base(s)
 }
 
@@ -181,12 +181,12 @@ fn convexes() -> Vec<(&'static str, Sh1Shape)> {
     ]
 }
 
-fn inverse(p: QPose) -> QPose {
+pub(crate) fn inverse(p: QPose) -> QPose {
     let inv = p.p().inverse();
     QPose::new(QVec::snap(inv.translation.x, inv.translation.y), QRot { re: Q::snap(inv.rotation.re), im: Q::snap(inv.rotation.im) })
 }
 
-fn json_opt<T>(r: Result<T, query::Unsupported>, f: impl Fn(T) -> Value) -> Value {
+pub(crate) fn json_opt<T>(r: Result<T, query::Unsupported>, f: impl Fn(T) -> Value) -> Value {
     match r {
         Ok(v) => json!({ "supported": true, "value": f(v) }),
         Err(_) => json!({ "supported": false, "value": Value::Null }),
@@ -354,7 +354,7 @@ fn rays() -> Vec<Value> {
 }
 
 /// `ShapeCastStatus` as its declaration index in the port.
-fn status_index(s: query::ShapeCastStatus) -> u8 {
+pub(crate) fn status_index(s: query::ShapeCastStatus) -> u8 {
     match s {
         query::ShapeCastStatus::OutOfIterations => 0,
         query::ShapeCastStatus::Converged => 1,
@@ -363,7 +363,7 @@ fn status_index(s: query::ShapeCastStatus) -> u8 {
     }
 }
 
-fn closest_json(c: ClosestPoints) -> Value {
+pub(crate) fn closest_json(c: ClosestPoints) -> Value {
     match c {
         ClosestPoints::Intersecting => json!({ "kind": 0 }),
         ClosestPoints::WithinMargin(a, b) => json!({ "kind": 1, "p1": jvec(a), "p2": jvec(b) }),
@@ -481,7 +481,7 @@ pub fn composite_queries() -> Value {
 // ---------------------------------------------------------------------------------------------
 
 #[derive(Default)]
-struct Collector(Mutex<Vec<CollisionEvent>>);
+pub(crate) struct Collector(pub(crate) Mutex<Vec<CollisionEvent>>);
 
 impl EventHandler for Collector {
     fn handle_collision_event(&self, _: &RigidBodySet, _: &ColliderSet, event: CollisionEvent, _: Option<&ContactPair>) {

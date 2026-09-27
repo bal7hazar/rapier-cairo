@@ -31,9 +31,10 @@ rapier_dynamics2d::narrow_phase::benches::gas_step2_merge_stack_2 2662526
 rapier_dynamics2d::narrow_phase::benches::gas_step2_merge_stack_32 42940446
 rapier_dynamics2d::narrow_phase::benches::gas_step2_merge_stack_8 10300724
 rapier_dynamics2d::narrow_phase::composite::tests::gas_baseline 13620
-rapier_dynamics2d::narrow_phase::composite::tests::gas_group_step_box_on_heightfield 3713013
-rapier_dynamics2d::narrow_phase::composite::tests::test_group_entries_and_events_per_collider_pair 9641406
-rapier_dynamics2d::narrow_phase::composite::tests::test_group_lead_is_a_touching_manifold 5505782
+rapier_dynamics2d::narrow_phase::composite::tests::gas_group_step_box_on_heightfield 3737793
+rapier_dynamics2d::narrow_phase::composite::tests::test_compound_solver_contacts_in_world_space 12045020
+rapier_dynamics2d::narrow_phase::composite::tests::test_group_entries_and_events_per_collider_pair 9715746
+rapier_dynamics2d::narrow_phase::composite::tests::test_group_lead_is_a_touching_manifold 5555242
 rapier_dynamics2d::narrow_phase::one_way::tests::gas_baseline 14120
 rapier_dynamics2d::narrow_phase::one_way::tests::gas_filter 200930
 rapier_dynamics2d::narrow_phase::one_way::tests::gas_filter_world 208650

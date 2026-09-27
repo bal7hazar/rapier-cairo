@@ -5,7 +5,9 @@
 //! overlap is retried with a ball of `CORE_FRACTION * min_extent` about the moving shape's
 //! centroid.
 //!
-//! 2D branches, as upstream: a polyline (its `ORIENTED` flag enables the one-sided early-out:
+//! 2D branches, as upstream: a compound (SH2b: each part's proxy swept at its world pose; parts
+//! without a proxy, half-spaces, skipped), a polyline (its `ORIENTED` flag enables the one-sided
+//! early-out:
 //! a segment is skipped when the centroid starts behind it, or ends in front of it by more than
 //! the core distance after moving less than that towards it) and a heightfield (two-sided unless
 //! the caller asks for `one_sided`).
@@ -17,7 +19,7 @@ use fixed::{Fixed, ZERO};
 use glam::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::aabb::{Aabb, AabbTrait};
-use crate::shape::{HeightFieldTrait, PolylineTrait, Segment, Shape};
+use crate::shape::{CompoundTrait, HeightFieldTrait, PolylineTrait, Segment, Shape};
 use super::{
     Sweep, SweepToiOutput, SweepToiStatus, SweepTrait, ToiProxy, ToiProxyTrait,
     sweep_time_of_impact,
@@ -73,6 +75,27 @@ fn toi_against_element(ref ctx: Context, segment: Segment, element_sweep: Sweep)
     }
 }
 
+/// Upstream `toi_against_element` on a compound part's proxy: [`toi_against_element`] with any
+/// proxy (a copy, so that the segment path keeps its code).
+fn toi_against_proxy(ref ctx: Context, element: ToiProxy, element_sweep: Sweep) {
+    let output = sweep_time_of_impact(
+        element, element_sweep, ctx.fast.proxy, ctx.fast.sweep, ctx.max_fraction, ctx.linear_slop,
+    );
+    if ZERO < output.fraction && output.fraction < ctx.max_fraction {
+        ctx.max_fraction = output.fraction;
+        ctx.best = Some(output);
+    } else if output.fraction == ZERO {
+        let fallback = ToiProxyTrait::point(ctx.fast.local_centroid, ctx.fallback_radius);
+        let output = sweep_time_of_impact(
+            element, element_sweep, fallback, ctx.fast.sweep, ctx.max_fraction, ctx.linear_slop,
+        );
+        if ZERO < output.fraction && output.fraction < ctx.max_fraction {
+            ctx.max_fraction = output.fraction;
+            ctx.best = Some(output);
+        }
+    }
+}
+
 /// Upstream `one_sided_early_out` (2D): `true` when the one-sided `segment` cannot stop the
 /// motion (see the module documentation).
 fn one_sided_early_out(ctx: @Context, segment: Segment) -> bool {
@@ -94,7 +117,8 @@ fn one_sided_early_out(ctx: @Context, segment: Segment) -> bool {
 /// Upstream `sweep_time_of_impact_composite` for the 2D polyline and heightfield: the earliest
 /// accepted impact of the moving shape `fast` against the stationary `composite` at
 /// `composite_pose` (`Separated` at `max_fraction` when none), `None` for a shape that is not a
-/// polyline or a heightfield. `target_is_sensor` only matters in 3D upstream and is ignored.
+/// polyline, a heightfield or a compound. `target_is_sensor` only matters in 3D upstream and is
+/// ignored.
 /// #### Panics
 /// * The panics of [`sweep_time_of_impact`].
 pub fn sweep_time_of_impact_composite(
@@ -139,6 +163,21 @@ pub fn sweep_time_of_impact_composite(
             for (_, segment) in h.unbox().elements_in_local_aabb(local_aabb) {
                 if !one_sided_early_out(@ctx, segment) {
                     toi_against_element(ref ctx, segment, composite_sweep);
+                }
+            }
+        },
+        Shape::Compound(c) => {
+            let c = c.unbox();
+            let shapes = c.shapes();
+            for id in c.parts_in_aabb(local_aabb) {
+                let (part_pose, part) = *shapes.at(id);
+                // Parts without a proxy (half-spaces) are skipped, as upstream; a compound has no
+                // composite part.
+                if let Some(proxy) = ToiProxyTrait::from_shape(part) {
+                    let sweep = SweepTrait::constant(
+                        composite_pose.mul(part_pose), Vec2 { x: ZERO, y: ZERO },
+                    );
+                    toi_against_proxy(ref ctx, proxy, sweep);
                 }
             }
         },

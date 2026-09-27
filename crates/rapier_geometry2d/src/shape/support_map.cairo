@@ -126,6 +126,7 @@ pub impl ShapeSupportMap of SupportMap<Shape> {
             Shape::HeightField(_) => core::panic_with_felt252(
                 crate::query::errors::NOT_SUPPORT_MAP,
             ),
+            Shape::Compound(_) => core::panic_with_felt252(crate::query::errors::NOT_SUPPORT_MAP),
         }
     }
     fn local_support_point_toward(self: Shape, dir: Vec2) -> Vec2 {

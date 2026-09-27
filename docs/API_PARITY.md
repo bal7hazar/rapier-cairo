@@ -16,15 +16,15 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 |---|---:|---:|---:|---:|---:|---:|
 | control | 0 | 0 | 47 | 0 | 47 | 0.0% |
 | dynamics | 554 | 0 | 172 | 466 | 1192 | 76.3% |
-| geometry | 208 | 0 | 91 | 18 | 317 | 69.6% |
+| geometry | 209 | 0 | 90 | 18 | 317 | 69.9% |
 | parry::bounding_volume | 85 | 0 | 4 | 30 | 119 | 95.5% |
-| parry::mass_properties | 17 | 0 | 2 | 7 | 26 | 89.5% |
-| parry::query | 214 | 0 | 92 | 118 | 424 | 69.9% |
-| parry::shape | 190 | 0 | 75 | 119 | 384 | 71.7% |
+| parry::mass_properties | 18 | 0 | 1 | 7 | 26 | 94.7% |
+| parry::query | 218 | 0 | 88 | 118 | 424 | 71.2% |
+| parry::shape | 199 | 0 | 66 | 119 | 384 | 75.1% |
 | pipeline | 77 | 0 | 12 | 69 | 158 | 86.5% |
-| **total** | **1345** | **0** | **495** | **827** | **2667** | **73.1%** |
+| **total** | **1360** | **0** | **480** | **827** | **2667** | **73.9%** |
 
-Cairo-only public items not matched to upstream: **1387**.
+Cairo-only public items not matched to upstream: **1443**.
 
 ## Aabb
 
@@ -381,7 +381,7 @@ Cairo-only public items not matched to upstream: **1387**.
 | method `capsule_x` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `capsule_y` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `collision_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `compound` | geometry | missing | Compound shapes: lot SH2b. | `rapier/src/geometry/collider.rs` |
+| method `compound` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_skin` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `converted_trimesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
@@ -626,22 +626,22 @@ Cairo-only public items not matched to upstream: **1387**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `DEFAULT_WELD_TOLERANCE` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| impl `PointQuery` | parry::query | missing | Compound shapes: lot SH2b. | `parry/src/query/point/point_composite_shape.rs` |
-| impl `RayCast` | parry::query | missing | Compound shapes: lot SH2b. | `parry/src/query/ray/ray_composite_shape.rs` |
-| impl `Shape` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/shape.rs` |
-| method `aabbs` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `bvh` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
+| const `DEFAULT_WELD_TOLERANCE` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_composite_shape.rs` |
+| impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_composite_shape.rs` |
+| impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `aabbs` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
+| method `bvh` | parry::shape | missing | SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`). | `parry/src/shape/compound.rs` |
 | method `decompose_trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/compound.rs` |
-| method `flags` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `local_aabb` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `local_bounding_sphere` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `new` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `part_normal_constraints` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `set_flags` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `shapes` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| method `with_flags` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
-| type `Compound` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
+| method `flags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| method `local_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
+| method `local_bounding_sphere` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
+| method `new` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
+| method `part_normal_constraints` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| method `set_flags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| method `shapes` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
+| method `with_flags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| type `Compound` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 
 ## CompoundEdgeCone
 
@@ -653,13 +653,13 @@ Cairo-only public items not matched to upstream: **1387**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CompoundFlags` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound.rs` |
+| type `CompoundFlags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
 
 ## CompoundPseudoNormals
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CompoundPseudoNormals` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/compound_pseudo_normals.rs` |
+| type `CompoundPseudoNormals` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound_pseudo_normals.rs` |
 
 ## ConjugateGradient
 
@@ -1614,7 +1614,7 @@ Cairo-only public items not matched to upstream: **1387**.
 | impl `SubAssign<MassProperties>` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties.rs` |
 | method `from_ball` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_ball.rs` |
 | method `from_capsule` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_capsule.rs` |
-| method `from_compound` | parry::mass_properties | missing | Compound shapes: lot SH2b. | `parry/src/mass_properties/mass_properties_compound.rs` |
+| method `from_compound` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_compound.rs` |
 | method `from_convex_polygon` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_convex_polygon.rs` |
 | method `from_cuboid` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_cuboid.rs` |
 | method `from_triangle` | parry::mass_properties | ported | Same public name. | `parry/src/mass_properties/mass_properties_triangle.rs` |
@@ -2933,8 +2933,8 @@ Cairo-only public items not matched to upstream: **1387**.
 | method `as_capsule` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_capsule_mut` | parry::shape | ported | Mapped to Shape.as_capsule | `parry/src/shape/shape.rs` |
 | method `as_composite_shape` | parry::shape | ported | Mapped to Shape.is_composite | `parry/src/shape/shape.rs` |
-| method `as_compound` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/shape.rs` |
-| method `as_compound_mut` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/shape.rs` |
+| method `as_compound` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `as_compound_mut` | parry::shape | ported | Mapped to Shape.as_compound | `parry/src/shape/shape.rs` |
 | method `as_convex_polygon` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_convex_polygon_mut` | parry::shape | ported | Mapped to Shape.as_convex_polygon | `parry/src/shape/shape.rs` |
 | method `as_cuboid` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -3038,7 +3038,7 @@ Cairo-only public items not matched to upstream: **1387**.
 | method `capsule` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `capsule_x` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `capsule_y` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `compound` | parry::shape | missing | Compound shapes: lot SH2b. | `parry/src/shape/shared_shape.rs` |
+| method `compound` | parry::shape | missing | `ColliderBuilder::compound` / `CompoundTrait::new(..).into()` (no `SharedShape`). | `parry/src/shape/shared_shape.rs` |
 | method `convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
 | method `convex_hull` | parry::shape | missing | Not found on Cairo candidate(s): SharedShape, SharedShapeTrait. | `parry/src/shape/shared_shape.rs` |
@@ -4417,19 +4417,19 @@ Cairo-only public items not matched to upstream: **1387**.
 | function `cast_shapes_support_map_halfspace` | parry::query | ported | Mapped to Halfspace.cast_shapes_support_map_halfspace | `parry/src/query/shape_cast/shape_cast_halfspace_support_map.rs` |
 | function `cast_shapes_support_map_support_map` | parry::query | ported | Mapped to SupportMap.cast_shapes_support_map_support_map | `parry/src/query/shape_cast/shape_cast_support_map_support_map.rs` |
 | function `cast_shapes_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/shape_cast/shape_cast_voxels_shape.rs` |
-| function `clip_aabb_line` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/clip/clip_aabb_line.rs` |
-| function `clip_halfspace_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/clip/clip_halfspace_polygon.rs` |
-| function `clip_segment_segment` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/clip/clip_segment_segment.rs` |
-| function `clip_segment_segment_with_normal` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/clip/clip_segment_segment.rs` |
+| function `clip_aabb_line` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/clip/clip_aabb_line.rs` |
+| function `clip_halfspace_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/clip/clip_halfspace_polygon.rs` |
+| function `clip_segment_segment` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/clip/clip_segment_segment.rs` |
+| function `clip_segment_segment_with_normal` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/clip/clip_segment_segment.rs` |
 | function `closest_points` | parry::query | ported | Mapped to Query.closest_points | `parry/src/query/closest_points/closest_points_shape_shape.rs` |
 | function `closest_points_ball_ball` | parry::query | ported | Mapped to Ball.closest_points_ball_ball | `parry/src/query/closest_points/closest_points_ball_ball.rs` |
 | function `closest_points_composite_shape_shape` | parry::query | ported | Mapped to Composite.closest_points_composite | `parry/src/query/closest_points/closest_points_composite_shape_shape.rs` |
 | function `closest_points_cuboid_cuboid` | parry::query | ported | Mapped to Cuboid.closest_points_cuboid_cuboid | `parry/src/query/closest_points/closest_points_cuboid_cuboid.rs` |
 | function `closest_points_cuboid_triangle` | parry::query | ported | Mapped to Cuboid.closest_points_cuboid_triangle | `parry/src/query/closest_points/closest_points_cuboid_triangle.rs` |
 | function `closest_points_halfspace_support_map` | parry::query | ported | Mapped to Halfspace.closest_points_halfspace_support_map | `parry/src/query/closest_points/closest_points_halfspace_support_map.rs` |
-| function `closest_points_line_line` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/closest_points/closest_points_line_line.rs` |
-| function `closest_points_line_line_parameters` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/closest_points/closest_points_line_line.rs` |
-| function `closest_points_line_line_parameters_eps` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/closest_points/closest_points_line_line.rs` |
+| function `closest_points_line_line` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/closest_points/closest_points_line_line.rs` |
+| function `closest_points_line_line_parameters` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/closest_points/closest_points_line_line.rs` |
+| function `closest_points_line_line_parameters_eps` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/closest_points/closest_points_line_line.rs` |
 | function `closest_points_segment_segment` | parry::query | ported | Mapped to Segment.closest_points_segment_segment, ClosestPoints.closest_points_segment_segment | `parry/src/query/closest_points/closest_points_segment_segment.rs` |
 | function `closest_points_segment_segment_with_locations` | parry::query | ported | Mapped to ClosestPoints.closest_points_segment_segment_with_locations | `parry/src/query/closest_points/closest_points_segment_segment.rs` |
 | function `closest_points_shape_composite_shape` | parry::query | ported | Mapped to Composite.closest_points_composite | `parry/src/query/closest_points/closest_points_composite_shape_shape.rs` |
@@ -4444,25 +4444,25 @@ Cairo-only public items not matched to upstream: **1387**.
 | function `contact_cuboid_cuboid` | parry::query | ported | Mapped to Cuboid.contact_cuboid_cuboid | `parry/src/query/contact/contact_cuboid_cuboid.rs` |
 | function `contact_halfspace_support_map` | parry::query | ported | Mapped to Halfspace.contact_halfspace_support_map | `parry/src/query/contact/contact_halfspace_support_map.rs` |
 | function `contact_heightfield_shape` | parry::query | ported | Mapped to Composite.contact_composite | `parry/src/query/contact/contact_heightfield_shape.rs` |
-| function `contact_manifold_ball_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_ball_ball.rs` |
-| function `contact_manifold_ball_ball_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_ball_ball.rs` |
-| function `contact_manifold_capsule_capsule` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_capsule_capsule.rs` |
-| function `contact_manifold_capsule_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_capsule_capsule.rs` |
-| function `contact_manifold_convex_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
-| function `contact_manifold_convex_ball_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
-| function `contact_manifold_cuboid_capsule` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
-| function `contact_manifold_cuboid_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
-| function `contact_manifold_cuboid_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
-| function `contact_manifold_cuboid_cuboid_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
-| function `contact_manifold_cuboid_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs` |
-| function `contact_manifold_cuboid_triangle_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs` |
-| function `contact_manifold_halfspace_pfm` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` |
-| function `contact_manifold_halfspace_pfm_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` |
-| function `contact_manifold_pfm_pfm` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
-| function `contact_manifold_pfm_pfm_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
-| function `contact_manifolds_composite_shape_composite_shape` | parry::query | missing | SH2a: composite–composite pairs unsupported (fixed level geometry). | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
+| function `contact_manifold_ball_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_ball_ball.rs` |
+| function `contact_manifold_ball_ball_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_ball_ball.rs` |
+| function `contact_manifold_capsule_capsule` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_capsule_capsule.rs` |
+| function `contact_manifold_capsule_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_capsule_capsule.rs` |
+| function `contact_manifold_convex_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
+| function `contact_manifold_convex_ball_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
+| function `contact_manifold_cuboid_capsule` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
+| function `contact_manifold_cuboid_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
+| function `contact_manifold_cuboid_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
+| function `contact_manifold_cuboid_cuboid_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
+| function `contact_manifold_cuboid_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs` |
+| function `contact_manifold_cuboid_triangle_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs` |
+| function `contact_manifold_halfspace_pfm` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` |
+| function `contact_manifold_halfspace_pfm_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` |
+| function `contact_manifold_pfm_pfm` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
+| function `contact_manifold_pfm_pfm_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
+| function `contact_manifolds_composite_shape_composite_shape` | parry::query | ported | Mapped to Compound.contact_manifolds_composite_pair | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
 | function `contact_manifolds_composite_shape_shape` | parry::query | ported | Mapped to Composite.contact_manifolds_composite | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs` |
-| function `contact_manifolds_heightfield_composite_shape` | parry::query | missing | SH2a: composite–composite pairs unsupported (fixed level geometry). | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
+| function `contact_manifolds_heightfield_composite_shape` | parry::query | ported | Mapped to Compound.contact_manifolds_composite_pair | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
 | function `contact_manifolds_heightfield_shape` | parry::query | ported | Mapped to Composite.contact_manifolds_composite | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs` |
 | function `contact_manifolds_heightfield_shape_shapes` | parry::query | ported | Mapped to Composite.contact_manifolds_composite | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs` |
 | function `contact_manifolds_trimesh_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/contact_manifolds/contact_manifolds_trimesh_shape.rs` |
@@ -4482,7 +4482,7 @@ Cairo-only public items not matched to upstream: **1387**.
 | function `contact_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/contact/contact_support_map_support_map.rs` |
 | function `cuboid_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_cuboid.rs` |
 | function `cuboid_support_map_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_support_map.rs` |
-| function `detect_proximity_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/intersection_test/intersection_test_polygon_polygon.rs` |
+| function `detect_proximity_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/intersection_test/intersection_test_polygon_polygon.rs` |
 | function `directional_distance` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
 | function `distance` | parry::query | ported | Mapped to Query.distance | `parry/src/query/distance/distance.rs` |
 | function `distance_ball_ball` | parry::query | ported | Mapped to Ball.distance_ball_ball | `parry/src/query/distance/distance_ball_ball.rs` |
@@ -4498,7 +4498,7 @@ Cairo-only public items not matched to upstream: **1387**.
 | function `evaluate` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `find_min_separation` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `force_fixed_axis` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
-| function `generate_contacts_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs` |
+| function `generate_contacts_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs` |
 | function `intersection_test` | parry::query | ported | Mapped to Query.intersection_test, Intersection.intersection_test | `parry/src/query/intersection_test/intersection_test.rs` |
 | function `intersection_test_aabb_segment` | parry::query | ported | Mapped to Intersection.intersection_test_aabb_segment | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
 | function `intersection_test_aabb_triangle` | parry::query | ported | Mapped to Intersection.intersection_test_aabb_triangle | `parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs` |
@@ -4520,7 +4520,7 @@ Cairo-only public items not matched to upstream: **1387**.
 | function `intersection_test_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/intersection_test/intersection_test_voxels_shape.rs` |
 | function `intersection_test_voxels_shape_shapes` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/intersection_test/intersection_test_voxels_shape.rs` |
 | function `line_toi_with_halfspace` | parry::query | ported | Mapped to Halfspace.line_toi_with_halfspace | `parry/src/query/ray/ray_halfspace.rs` |
-| function `local_point_projection_on_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait. | `parry/src/query/point/point_support_map.rs` |
+| function `local_point_projection_on_support_map` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/point/point_support_map.rs` |
 | function `local_ray_intersection_with_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/ray/ray_support_map.rs` |
 | function `point_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_point.rs` |
 | function `project_origin` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
@@ -4567,10 +4567,10 @@ Cairo-only public items not matched to upstream: **1387**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 192 | standard | QP queries |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 69 | standard | shape interface |
+| [Query completion](#wp-query-completion) | 191 | standard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 61 | mechanical | AP triage |
 | [Joint API completion](#wp-joint-api-completion) | 61 | standard | JL/RJ |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 55 | standard | shape interface |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 35 | standard | P1/SL/EV |
 | [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 35 | standard | control crate policy |
 | [Character controller](#wp-character-controller) | 12 | standard | phase 3 |
@@ -4582,7 +4582,7 @@ Cairo-only public items not matched to upstream: **1387**.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 192 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 191 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4664,81 +4664,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 192 public items.
 - **GenericContactConstraint** method `invalid` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs`)
 - **GenericContactConstraint** method `remove_cfm_and_bias_from_rhs` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs`)
 - **GenericContactConstraint** method `solve` (`rapier/src/dynamics/solver/contact_constraint/generic_contact_constraint.rs`)
-- ... 112 more
-
-### WP: Additional 2D shapes
-
-Tier: standard. Depends/context: shape interface. Estimate: 69 public items.
-
-- **Aabb** method `scaled_wrt_center` (`parry/src/bounding_volume/aabb.rs`)
-- **Ball** method `scaled` (`parry/src/shape/ball.rs`)
-- **Capsule** method `scaled` (`parry/src/shape/capsule.rs`)
-- **ColliderBuilder** method `compound` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `round_convex_decomposition` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `round_convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
-- **Compound** const `DEFAULT_WELD_TOLERANCE` (`parry/src/shape/compound.rs`)
-- **Compound** impl `PointQuery` (`parry/src/query/point/point_composite_shape.rs`)
-- **Compound** impl `RayCast` (`parry/src/query/ray/ray_composite_shape.rs`)
-- **Compound** impl `Shape` (`parry/src/shape/shape.rs`)
-- **Compound** method `aabbs` (`parry/src/shape/compound.rs`)
-- **Compound** method `bvh` (`parry/src/shape/compound.rs`)
-- **Compound** method `flags` (`parry/src/shape/compound.rs`)
-- **Compound** method `local_aabb` (`parry/src/shape/compound.rs`)
-- **Compound** method `local_bounding_sphere` (`parry/src/shape/compound.rs`)
-- **Compound** method `new` (`parry/src/shape/compound.rs`)
-- **Compound** method `part_normal_constraints` (`parry/src/shape/compound.rs`)
-- **Compound** method `set_flags` (`parry/src/shape/compound.rs`)
-- **Compound** method `shapes` (`parry/src/shape/compound.rs`)
-- **Compound** method `with_flags` (`parry/src/shape/compound.rs`)
-- **Compound** type `Compound` (`parry/src/shape/compound.rs`)
-- **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
-- **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
-- **ConvexPolygon** method `from_convex_polyline_unmodified` (`parry/src/shape/convex_polygon.rs`)
-- **ConvexPolygon** method `scaled` (`parry/src/shape/convex_polygon.rs`)
-- **HeightFieldCompositeShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
-- **HeightFieldCompositeShapeContactManifoldsWorkspace** type `HeightFieldCompositeShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
-- **HeightFieldShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs`)
-- **HeightFieldShapeContactManifoldsWorkspace** type `HeightFieldShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs`)
-- **Heightfield** impl `PointQueryWithLocation` (`parry/src/query/point/point_heightfield.rs`)
-- **Heightfield** impl `RayCast` (`parry/src/query/ray/ray_heightfield.rs`)
-- **MassProperties** method `from_compound` (`parry/src/mass_properties/mass_properties_compound.rs`)
-- **Polyline** impl `PointQueryWithLocation` (`parry/src/query/point/point_composite_shape.rs`)
-- **Polyline** impl `RayCast` (`parry/src/query/ray/ray_composite_shape.rs`)
-- **Shape** method `as_compound` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_compound_mut` (`parry/src/shape/shape.rs`)
-- **SharedShape** impl `Debug` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `ball` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `capsule` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `capsule_x` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `capsule_y` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `compound` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_decomposition` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_hull` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_polyline` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_polyline_unmodified` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `cuboid` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `halfspace` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `heightfield` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `make_mut` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `new` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `polyline` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_convex_hull` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_convex_polyline` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_cuboid` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `round_triangle` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `segment` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `triangle` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `voxelized_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `voxelized_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `voxelized_mesh` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** type `SharedShape` (`parry/src/shape/shared_shape.rs`)
-- **TrianglePseudoNormals** type `TrianglePseudoNormals` (`parry/src/shape/triangle_pseudo_normals.rs`)
-- **parry::query** function `contact_manifold_cuboid_triangle` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
-- **parry::query** function `contact_manifold_cuboid_triangle_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
-- **parry::query** function `contact_manifolds_heightfield_composite_shape` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
+- ... 111 more
 
 ### WP: API polish and miscellaneous parity
 
@@ -4871,6 +4797,66 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 61 public items.
 - **PersistentIslands** method `unlink_joint` (`rapier/src/dynamics/island_manager/persistent.rs`)
 - **WritebackId** type `WritebackId` (`rapier/src/dynamics/solver/joint_constraint/joint_velocity_constraint.rs`)
 - **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
+
+### WP: Additional 2D shapes
+
+Tier: standard. Depends/context: shape interface. Estimate: 55 public items.
+
+- **Aabb** method `scaled_wrt_center` (`parry/src/bounding_volume/aabb.rs`)
+- **Ball** method `scaled` (`parry/src/shape/ball.rs`)
+- **Capsule** method `scaled` (`parry/src/shape/capsule.rs`)
+- **ColliderBuilder** method `round_convex_decomposition` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `round_convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
+- **Compound** const `DEFAULT_WELD_TOLERANCE` (`parry/src/shape/compound.rs`)
+- **Compound** method `bvh` (`parry/src/shape/compound.rs`)
+- **Compound** method `flags` (`parry/src/shape/compound.rs`)
+- **Compound** method `part_normal_constraints` (`parry/src/shape/compound.rs`)
+- **Compound** method `set_flags` (`parry/src/shape/compound.rs`)
+- **Compound** method `with_flags` (`parry/src/shape/compound.rs`)
+- **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
+- **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
+- **ConvexPolygon** method `from_convex_polyline_unmodified` (`parry/src/shape/convex_polygon.rs`)
+- **ConvexPolygon** method `scaled` (`parry/src/shape/convex_polygon.rs`)
+- **HeightFieldCompositeShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
+- **HeightFieldCompositeShapeContactManifoldsWorkspace** type `HeightFieldCompositeShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs`)
+- **HeightFieldShapeContactManifoldsWorkspace** method `new` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs`)
+- **HeightFieldShapeContactManifoldsWorkspace** type `HeightFieldShapeContactManifoldsWorkspace` (`parry/src/query/contact_manifolds/contact_manifolds_heightfield_shape.rs`)
+- **Heightfield** impl `PointQueryWithLocation` (`parry/src/query/point/point_heightfield.rs`)
+- **Heightfield** impl `RayCast` (`parry/src/query/ray/ray_heightfield.rs`)
+- **Polyline** impl `PointQueryWithLocation` (`parry/src/query/point/point_composite_shape.rs`)
+- **Polyline** impl `RayCast` (`parry/src/query/ray/ray_composite_shape.rs`)
+- **SharedShape** impl `Debug` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `ball` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `capsule` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `capsule_x` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `capsule_y` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `compound` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `convex_decomposition` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `convex_hull` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `convex_polyline` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `convex_polyline_unmodified` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `cuboid` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `halfspace` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `heightfield` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `make_mut` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `new` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `polyline` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `round_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `round_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `round_convex_hull` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `round_convex_polyline` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `round_cuboid` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `round_triangle` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `segment` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `triangle` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `voxelized_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `voxelized_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** method `voxelized_mesh` (`parry/src/shape/shared_shape.rs`)
+- **SharedShape** type `SharedShape` (`parry/src/shape/shared_shape.rs`)
+- **TrianglePseudoNormals** type `TrianglePseudoNormals` (`parry/src/shape/triangle_pseudo_normals.rs`)
+- **parry::query** function `contact_manifold_cuboid_triangle` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
+- **parry::query** function `contact_manifold_cuboid_triangle_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
 
 ### WP: Pipeline and world facade
 
@@ -5226,7 +5212,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Ball** method `local_support_point` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `local_support_point_toward` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `mass_properties` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- ... 1187 more
+- ... 1243 more
 
 ## Embedded Rust inventory
 

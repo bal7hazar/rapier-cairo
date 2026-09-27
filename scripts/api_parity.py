@@ -243,8 +243,10 @@ OWNER_ALIASES.update({
     # QY1: Parry's free `query::` functions live in `rapier_geometry2d::query` (top level, and the
     # per-pair kernel files `query/{ball,cuboid,segment,halfspace,support_map}.cairo`), next to
     # the older `closest_points` / `dispatch` / `ray` kernels whose files carry those owners.
+    # SH2b: the compound pairs are free functions of `{point,ray,query/composite,dispatch/composite}/
+    # compound.cairo` (owner `Compound`).
     "parry::query": ("Query", "Ball", "Cuboid", "Segment", "Halfspace", "SupportMap",
-                     "ClosestPoints", "dispatch", "Intersection", "Composite"),
+                     "ClosestPoints", "dispatch", "Intersection", "Composite", "Compound"),
     # Parry's `ContactManifold` persistence methods are the `ManifoldTrait` of `manifold.cairo`.
     "ContactManifold": ("ContactManifold", "Manifold"),
     # MH1: the frozen `FeatureId` struct is Parry's packed `PackedFeatureId` (one `u32`); Parry's
@@ -291,6 +293,10 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("Polyline", "update_vertices"): ("set_vertices",),
     ("Shape", "as_polyline_mut"): ("as_polyline",), ("Shape", "as_heightfield_mut"): ("as_heightfield",),
     ("Shape", "as_composite_shape"): ("is_composite",),
+    # SH2b: the compound pairs of the manifold dispatcher (`dispatch/composite/compound.cairo`).
+    ("parry::query", "contact_manifolds_composite_shape_composite_shape"): ("contact_manifolds_composite_pair",),
+    ("parry::query", "contact_manifolds_heightfield_composite_shape"): ("contact_manifolds_composite_pair",),
+    ("Shape", "as_compound_mut"): ("as_compound",),
     ("PhysicsWorld", "new"): ("new",), ("PhysicsWorld", "step"): ("step",),
     ("PhysicsWorld", "contact_pair"): ("contact_pair",), ("PhysicsPipeline", "step"): ("step",),
     ("QueryPipeline", "cast_ray"): ("cast_ray",),
@@ -781,9 +787,6 @@ def find_matches(item: Item, cairo: set[tuple[str, str, str]]) -> list[tuple[str
 # Items knowingly left missing, with the lot that owns them (instead of the generic "not found").
 MISSING_REASONS: dict[tuple[str, str], str] = {
     # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
-    **{("parry::query", n): "SH2a: composite–composite pairs unsupported (fixed level geometry)." for n in (
-        "contact_manifolds_composite_shape_composite_shape",
-        "contact_manifolds_heightfield_composite_shape")},
     # SH2a: no persistent workspace: the previous manifolds are matched by sub-shape ids.
     **{(t, n): "SH2a: no workspace; previous manifolds are matched by sub-shape ids." for t in (
         "CompositeShapeShapeContactManifoldsWorkspace",
@@ -800,15 +803,15 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
         ("Polyline", "RayCast"), ("Heightfield", "RayCast"))},
     ("Heightfield", "PointQueryWithLocation"): "SH2a: upstream's heightfield location is unused by Rapier; `project_local_point_heightfield_part` returns the cell.",
     ("Polyline", "PointQueryWithLocation"): "SH2a: free function `project_local_point_and_get_location_polyline` (no trait impl).",
-    **{(o, n): "Compound shapes: lot SH2b." for o, n in (
-        ("Compound", "PointQuery"), ("Compound", "RayCast"), ("Compound", "Shape"),
-        ("Compound", "DEFAULT_WELD_TOLERANCE"), ("Compound", "aabbs"), ("Compound", "bvh"),
-        ("Compound", "flags"), ("Compound", "local_aabb"), ("Compound", "local_bounding_sphere"),
-        ("Compound", "new"), ("Compound", "part_normal_constraints"), ("Compound", "set_flags"),
-        ("Compound", "shapes"), ("Compound", "with_flags"), ("Compound", "Compound"),
-        ("CompoundFlags", "CompoundFlags"), ("CompoundPseudoNormals", "CompoundPseudoNormals"),
-        ("ColliderBuilder", "compound"), ("SharedShape", "compound"), ("Shape", "as_compound"),
-        ("Shape", "as_compound_mut"), ("MassProperties", "from_compound"))},
+    # SH2b: parry 0.31's `CompoundFlags::FIX_INTERNAL_EDGES` (pseudo-normals of the parts' outlines)
+    # postdates the golden pin (parry2d-f64 0.30.2): no reference to port it against.
+    **{(o, n): "SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2)." for o, n in (
+        ("Compound", "DEFAULT_WELD_TOLERANCE"), ("Compound", "flags"),
+        ("Compound", "part_normal_constraints"), ("Compound", "set_flags"),
+        ("Compound", "with_flags"), ("CompoundFlags", "CompoundFlags"),
+        ("CompoundPseudoNormals", "CompoundPseudoNormals"))},
+    ("Compound", "bvh"): "SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`).",
+    ("SharedShape", "compound"): "`ColliderBuilder::compound` / `CompoundTrait::new(..).into()` (no `SharedShape`).",
     ("SharedShape", "polyline"): "`ColliderBuilder::polyline` / `PolylineTrait::new(..).into()` (no `SharedShape`).",
     ("SharedShape", "heightfield"): "`ColliderBuilder::heightfield` / `HeightFieldTrait::new(..).into()` (no `SharedShape`).",
     # CC1: upstream compiles no nonlinear half-space kernel (commented out of its `mod.rs` and of

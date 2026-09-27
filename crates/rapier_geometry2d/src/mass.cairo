@@ -204,6 +204,18 @@ pub impl MassPropertiesImpl of MassPropertiesTrait {
         Zero::<MassProperties>::zero()
     }
 
+    /// The sum of the parts' mass properties, each moved by its pose (upstream `from_compound`:
+    /// `shapes.map(|s| s.1.mass_properties(density).transform_by(&s.0)).sum()`, in part order).
+    fn from_compound(density: Fixed, shapes: Span<(Pose2, crate::shape::Shape)>) -> MassProperties {
+        let mut total = Zero::<MassProperties>::zero();
+        for part in shapes {
+            let (pose, shape) = *part;
+            total = total
+                + crate::shape::compound::part_mass_properties(shape, density).transform_by(pose);
+        }
+        total
+    }
+
     /// `1 / inv_mass`, `0` for an infinite mass.
     #[inline(always)]
     fn mass(self: MassProperties) -> Fixed {

@@ -367,6 +367,7 @@ pub fn project_local_point_composite(shape: Shape, pt: Vec2, solid: bool) -> Poi
     match shape {
         Shape::Polyline(s) => project_local_point_polyline(@s.unbox(), pt, solid),
         Shape::HeightField(s) => project_local_point_heightfield(@s.unbox(), pt, solid),
+        Shape::Compound(s) => super::compound::project_local_point_compound(@s.unbox(), pt, solid),
         _ => PointProjectionTrait::new(false, pt),
     }
 }
@@ -379,6 +380,9 @@ pub fn project_local_point_and_get_feature_composite(
     match shape {
         Shape::Polyline(s) => project_local_point_and_get_feature_polyline(@s.unbox(), pt),
         Shape::HeightField(s) => project_local_point_and_get_feature_heightfield(@s.unbox(), pt),
+        Shape::Compound(s) => super::compound::project_local_point_and_get_feature_compound(
+            @s.unbox(), pt,
+        ),
         _ => (PointProjectionTrait::new(false, pt), FEATURE_UNKNOWN),
     }
 }
@@ -389,6 +393,9 @@ pub fn distance_to_local_point_composite(shape: Shape, pt: Vec2, solid: bool) ->
     match shape {
         Shape::Polyline(s) => distance_to_local_point_polyline(@s.unbox(), pt, solid),
         Shape::HeightField(s) => distance_to_local_point_heightfield(@s.unbox(), pt, solid),
+        Shape::Compound(s) => super::compound::distance_to_local_point_compound(
+            @s.unbox(), pt, solid,
+        ),
         _ => ZERO,
     }
 }
@@ -398,6 +405,7 @@ pub fn distance_to_local_point_composite(shape: Shape, pt: Vec2, solid: bool) ->
 pub fn contains_local_point_composite(shape: Shape, pt: Vec2) -> bool {
     match shape {
         Shape::Polyline(s) => contains_local_point_polyline(@s.unbox(), pt),
+        Shape::Compound(s) => super::compound::contains_local_point_compound(@s.unbox(), pt),
         _ => false,
     }
 }

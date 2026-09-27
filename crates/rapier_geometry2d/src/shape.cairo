@@ -12,17 +12,21 @@
 //! boxed variants too; their queries live with the other shapes' (point, ray, shape-pair tables)
 //! and their contact manifolds in `crate::dispatch::composite` (one manifold per sub-shape).
 //!
-//! Deferred: compounds (SH2b) and `scaled` on `Shape`.
+//! The [`Compound`] of work package SH2b (convex parts, each with its pose) is a boxed variant
+//! too; it answers every query through its parts, as the other composites.
+//!
+//! Deferred: `scaled` on `Shape`.
 //!
 //! The payloads wider than the capsule (triangle, round triangle, round polygon, polyline,
-//! heightfield) are boxed like the polygon, so that a `Shape` stays six felts; the round cuboid
-//! (three felts) is stored inline.
+//! heightfield, compound) are boxed like the polygon, so that a `Shape` stays six felts; the round
+//! cuboid (three felts) is stored inline.
 
 pub mod convex_polygon;
 use convex_polygon::{BoxedConvexPolygonPartialEq, BoxedConvexPolygonSerde};
 pub use convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
 pub mod ball;
 pub mod capsule;
+pub mod compound;
 pub mod cuboid;
 pub mod halfspace;
 pub mod heightfield;
@@ -41,6 +45,8 @@ use crate::feature_id::{FeatureId, SubShapeId};
 use crate::mass::MassProperties;
 pub use crate::shape::ball::{Ball, BallTrait};
 pub use crate::shape::capsule::{Capsule, CapsuleTrait};
+use crate::shape::compound::{BoxedCompoundPartialEq, BoxedCompoundSerde};
+pub use crate::shape::compound::{Compound, CompoundTrait};
 pub use crate::shape::cuboid::{Cuboid, CuboidTrait};
 pub use crate::shape::halfspace::{HalfSpace, HalfSpaceTrait};
 use crate::shape::heightfield::{BoxedHeightFieldPartialEq, BoxedHeightFieldSerde};
@@ -77,6 +83,7 @@ pub enum ShapeType {
     RoundConvexPolygon,
     Polyline,
     HeightField,
+    Compound,
 }
 
 /// A collision shape in its local frame.
@@ -85,7 +92,8 @@ pub enum ShapeType {
 /// cheapest `match` branch) and every old variant keeps its relative position, hence the code
 /// layout of the old `match` arms (see `crate::dispatch`). Serialization keeps the tags of the
 /// six original variants (`0..=5`) and gives the SH1 ones `6..=9` ([`ShapeSerde`]). The SH2a
-/// composites follow the SH1 variants (tags `10` and `11`).
+/// composites follow the SH1 variants (tags `10` and `11`), the SH2b compound follows them
+/// (tag `12`).
 #[derive(Copy, Drop, PartialEq, Debug)]
 pub enum Shape {
     Ball: Ball,
@@ -101,6 +109,8 @@ pub enum Shape {
     Polyline: Box<Polyline>,
     /// Boxed: height and status spans (SH2a).
     HeightField: Box<HeightField>,
+    /// Boxed: part, part-box spans and the union box (SH2b).
+    Compound: Box<Compound>,
     Cuboid: Cuboid,
     Capsule: Capsule,
     Segment: Segment,
@@ -137,6 +147,7 @@ pub impl ShapeSerde of Serde<Shape> {
             },
             Shape::Polyline(x) => serialize_polyline(x, ref output),
             Shape::HeightField(x) => serialize_heightfield(x, ref output),
+            Shape::Compound(x) => serialize_compound(x, ref output),
             Shape::Cuboid(x) => {
                 Serde::serialize(@1, ref output);
                 Serde::serialize(x, ref output);
@@ -206,7 +217,14 @@ fn serialize_heightfield(x: @Box<HeightField>, ref output: Array<felt252>) {
     Serde::serialize(x, ref output);
 }
 
-/// The SH2a tags (`10`, `11`) of [`ShapeSerde::deserialize`], out of line from
+/// The compound arm of [`ShapeSerde::serialize`] (tag `12`), out of line.
+#[inline(never)]
+fn serialize_compound(x: @Box<Compound>, ref output: Array<felt252>) {
+    Serde::serialize(@12, ref output);
+    Serde::serialize(x, ref output);
+}
+
+/// The SH2a and SH2b tags (`10` to `12`) of [`ShapeSerde::deserialize`], out of line from
 /// [`deserialize_sh1`]; `None` for any other tag.
 #[inline(never)]
 fn deserialize_sh2a(idx: felt252, ref serialized: Span<felt252>) -> Option<Shape> {
@@ -214,6 +232,8 @@ fn deserialize_sh2a(idx: felt252, ref serialized: Span<felt252>) -> Option<Shape
         Some(Shape::Polyline(Serde::deserialize(ref serialized)?))
     } else if idx == 11 {
         Some(Shape::HeightField(Serde::deserialize(ref serialized)?))
+    } else if idx == 12 {
+        Some(Shape::Compound(Serde::deserialize(ref serialized)?))
     } else {
         None
     }
@@ -237,6 +257,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::RoundConvexPolygon(_) => ShapeType::RoundConvexPolygon,
             Shape::Polyline(_) => ShapeType::Polyline,
             Shape::HeightField(_) => ShapeType::HeightField,
+            Shape::Compound(_) => ShapeType::Compound,
         }
     }
 
@@ -255,6 +276,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::RoundConvexPolygon(s) => s.unbox().to_round().compute_local_aabb(),
             Shape::Polyline(s) => s.unbox().local_aabb(),
             Shape::HeightField(s) => s.unbox().local_aabb(),
+            Shape::Compound(s) => s.unbox().local_aabb(),
         }
     }
 
@@ -316,6 +338,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::RoundConvexPolygon(s) => s.unbox().to_round().local_bounding_sphere(),
             Shape::Polyline(s) => s.unbox().local_bounding_sphere(),
             Shape::HeightField(s) => s.unbox().local_bounding_sphere(),
+            Shape::Compound(s) => s.unbox().local_bounding_sphere(),
         }
     }
 
@@ -356,6 +379,7 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::HalfSpace(_) => None,
             Shape::Polyline(_) => None,
             Shape::HeightField(_) => None,
+            Shape::Compound(_) => None,
             _ => Some(self),
         }
     }
@@ -386,7 +410,7 @@ pub impl ShapeImpl of ShapeTrait {
     }
 
     /// Is the shape known to be convex (upstream `is_convex`)? Every shape of the closed set
-    /// is (a half-space too) but the composite polyline and heightfield.
+    /// is (a half-space too) but the composite polyline, heightfield and compound.
     #[inline(always)]
     fn is_convex(self: Shape) -> bool {
         match self {
@@ -402,16 +426,19 @@ pub impl ShapeImpl of ShapeTrait {
             Shape::RoundConvexPolygon(_) => true,
             Shape::Polyline(_) => false,
             Shape::HeightField(_) => false,
+            Shape::Compound(_) => false,
         }
     }
 
     /// `true` for the composite shapes (upstream `as_composite_shape().is_some()` plus the
-    /// heightfield, which upstream dispatches on its own): the polyline and the heightfield.
+    /// heightfield, which upstream dispatches on its own): the polyline, the heightfield and the
+    /// compound.
     #[inline(always)]
     fn is_composite(self: Shape) -> bool {
         match self {
             Shape::Polyline(_) => true,
             Shape::HeightField(_) => true,
+            Shape::Compound(_) => true,
             _ => false,
         }
     }
@@ -428,6 +455,14 @@ pub impl ShapeImpl of ShapeTrait {
     fn as_heightfield(self: Shape) -> Option<HeightField> {
         match self {
             Shape::HeightField(s) => Some(s.unbox()),
+            _ => None,
+        }
+    }
+
+    /// The wrapped `Compound`, `None` for any other shape (upstream `as_compound`).
+    fn as_compound(self: Shape) -> Option<Compound> {
+        match self {
+            Shape::Compound(s) => Some(s.unbox()),
             _ => None,
         }
     }
@@ -531,6 +566,7 @@ fn sh1_aabb(shape: Shape, pose: Pose2) -> (Vec2, Vec2) {
         Shape::RoundConvexPolygon(s) => s.unbox().compute_aabb_cached(pose),
         Shape::Polyline(s) => s.unbox().aabb(pose),
         Shape::HeightField(s) => s.unbox().aabb(pose),
+        Shape::Compound(s) => s.unbox().aabb(pose),
         _ => Aabb { mins: pose.translation, maxs: pose.translation },
     };
     (aabb.mins, aabb.maxs)
@@ -546,6 +582,7 @@ fn sh1_mass_properties(shape: Shape, density: Fixed) -> (MassProperties, bool) {
         Shape::RoundCuboid(s) => s.mass_properties(density),
         Shape::RoundTriangle(s) => s.unbox().mass_properties(density),
         Shape::RoundConvexPolygon(s) => s.unbox().to_round().mass_properties(density),
+        Shape::Compound(s) => s.unbox().mass_properties(density),
         _ => Default::default(),
     };
     (props, true)
@@ -636,6 +673,14 @@ pub impl HeightFieldIntoShape of Into<HeightField, Shape> {
     #[inline(always)]
     fn into(self: HeightField) -> Shape {
         Shape::HeightField(BoxTrait::new(self))
+    }
+}
+
+/// Upstream `impl Shape for Compound` (boxed, as the variant).
+pub impl CompoundIntoShape of Into<Compound, Shape> {
+    #[inline(always)]
+    fn into(self: Compound) -> Shape {
+        Shape::Compound(BoxTrait::new(self))
     }
 }
 

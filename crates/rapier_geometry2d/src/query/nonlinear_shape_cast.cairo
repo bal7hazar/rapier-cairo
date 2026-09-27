@@ -185,7 +185,8 @@ pub impl NonlinearShapeCastModeImpl of NonlinearShapeCastModeTrait {
 /// The thickness under which a shape may tunnel (upstream `Shape::ccd_thickness`): the radius
 /// of a ball or capsule, the smallest half extent of a cuboid or of a polygon's local box, zero
 /// for a segment, a triangle, a polyline or a heightfield, the inner value plus the border for a
-/// round shape, and upstream's `f32::MAX` (saturated to `fixed::MAX`) for a half-space.
+/// round shape, the smallest of its parts' for a compound, and upstream's `f32::MAX` (saturated to
+/// `fixed::MAX`) for a half-space.
 pub fn ccd_thickness(shape: Shape) -> Fixed {
     match shape {
         Shape::Ball(s) => s.radius,
@@ -203,12 +204,14 @@ pub fn ccd_thickness(shape: Shape) -> Fixed {
         },
         Shape::Polyline(_) => ZERO,
         Shape::HeightField(_) => ZERO,
+        Shape::Compound(s) => compound_ccd_thickness(@s.unbox()),
     }
 }
 
 /// The smallest rotation after which a shape may touch with a new contact (upstream
 /// `Shape::ccd_angular_thickness`): `pi` for a ball or a half-space, `pi / 4` for a convex
-/// polygon (round or not), a polyline or a heightfield, `pi / 2` otherwise.
+/// polygon (round or not), a polyline or a heightfield, `fixed::MAX` for a compound (upstream folds
+/// its parts' with `max` from `Real::MAX`), `pi / 2` otherwise.
 pub fn ccd_angular_thickness(shape: Shape) -> Fixed {
     match shape {
         Shape::Ball(_) => PI,
@@ -217,8 +220,23 @@ pub fn ccd_angular_thickness(shape: Shape) -> Fixed {
         Shape::RoundConvexPolygon(_) => FRAC_PI_4,
         Shape::Polyline(_) => FRAC_PI_4,
         Shape::HeightField(_) => FRAC_PI_4,
+        // Upstream folds `max` from `Real::MAX`: always the maximum.
+        Shape::Compound(_) => fixed::MAX,
         _ => FRAC_PI_2,
     }
+}
+
+/// The smallest `ccd_thickness` of the parts (upstream: folded with `min` from `Real::MAX`).
+fn compound_ccd_thickness(compound: @crate::shape::Compound) -> Fixed {
+    let mut out = fixed::MAX;
+    for part in crate::shape::CompoundTrait::shapes(compound) {
+        let (_, shape) = *part;
+        let t = ccd_thickness(shape);
+        if t < out {
+            out = t;
+        }
+    }
+    out
 }
 
 #[inline(always)]

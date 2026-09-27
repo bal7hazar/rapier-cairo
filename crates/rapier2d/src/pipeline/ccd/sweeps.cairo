@@ -7,7 +7,11 @@
 //! which does not support the half-space (`cast_shapes_nonlinear` answers `Unsupported`): such a
 //! pair never hits, here as upstream, and is skipped before any cast. The composite shapes (SH2a)
 //! are never swept as the fast shape (no proxy, upstream `shape_never_ccd_swept`) and are swept
-//! against part by part as targets (`cast_composite`, upstream `TargetKind::Composite`).
+//! against part by part as targets (`cast_composite`, upstream `TargetKind::Composite`). A compound
+//! (SH2b) is swept part by part as the fast shape (upstream `FastShapeKind::Compound`: one
+//! [`FastCollider`] per part here, so the body's earliest impact is the smallest over parts and
+//! targets, visited part-major where upstream visits them target-major; a pair's pseudo hits merge
+//! into one) and as a target through the composite sweep.
 
 use fixed::{Fixed, ONE, ZERO};
 use glam::Vec2;
@@ -26,7 +30,7 @@ use rapier_geometry2d::query::sweep::composite::{
 use rapier_geometry2d::query::sweep::{
     Sweep, SweepToiStatus, SweepTrait, ToiProxy, ToiProxyTrait, sweep_time_of_impact,
 };
-use rapier_geometry2d::shape::{Shape, ShapeTrait};
+use rapier_geometry2d::shape::{CompoundTrait, Shape, ShapeTrait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 
 /// Upstream `parry::query::sweep_toi::CORE_FRACTION` (`1/4`): the radius of the core ball of the
@@ -214,6 +218,18 @@ pub fn fast_colliders(
             continue;
         }
         let Some(proxy) = ToiProxyTrait::from_shape(collider.shape) else {
+            if let Shape::Compound(_) = collider.shape {
+                compound_fast_colliders(
+                    ref out,
+                    *handle,
+                    collider,
+                    parent.pos_wrt_parent,
+                    start,
+                    end,
+                    local_com,
+                    sensor,
+                );
+            }
             continue;
         };
         let s = start * parent.pos_wrt_parent;
@@ -242,6 +258,79 @@ pub fn fast_colliders(
     out
 }
 
+/// The fast colliders of a compound collider (SH2b, upstream `FastShapeKind::Compound`): one per
+/// part with a point-cloud proxy (half-spaces skipped), each swept from `start * pos_wrt_parent *
+/// part_pose` to the end pose alike about the centre of mass in the part's frame, with the part as
+/// its shape (its centroid and thickness for the core-ball retry) and the whole collider's swept
+/// box and handle.
+#[inline(never)]
+fn compound_fast_colliders(
+    ref out: Array<FastCollider>,
+    handle: Handle,
+    collider: Collider,
+    pos_wrt_parent: Pose2,
+    start: Pose2,
+    end: Pose2,
+    local_com: Vec2,
+    sensor: bool,
+) {
+    let Some(compound) = collider.shape.as_compound() else {
+        return;
+    };
+    let s = start * pos_wrt_parent;
+    let e = end * pos_wrt_parent;
+    let lc = pos_wrt_parent.inverse_transform_point(local_com);
+    let swept_aabb = collider.shape.compute_aabb(s).merged(collider.shape.compute_aabb(e));
+    for part in compound.shapes() {
+        let (part_pose, part_shape) = *part;
+        let Some(proxy) = ToiProxyTrait::from_shape(part_shape) else {
+            continue;
+        };
+        out
+            .append(
+                FastCollider {
+                    handle,
+                    proxy,
+                    sweep: SweepTrait::from_poses(
+                        s * part_pose, e * part_pose, part_pose.inverse_transform_point(lc),
+                    ),
+                    swept_aabb,
+                    sensor,
+                    collision_groups: collider.flags.collision_groups,
+                    solver_groups: collider.flags.solver_groups,
+                    active_events: collider.flags.active_events,
+                    shape: part_shape,
+                    start: s,
+                    pos_wrt_parent,
+                },
+            );
+    }
+}
+
+/// Appends `hit`, or lowers the fraction of the pair's earlier hit (a compound's parts are one
+/// fast collider each; upstream reports one pseudo hit per collider pair, its parts' earliest).
+fn append_pseudo(ref pseudo: Array<PseudoHit>, hit: PseudoHit) {
+    let mut found = false;
+    for old in pseudo.span() {
+        if *old.ch1 == hit.ch1 && *old.ch2 == hit.ch2 {
+            found = true;
+        }
+    }
+    if !found {
+        pseudo.append(hit);
+        return;
+    }
+    let mut merged = array![];
+    for old in pseudo.span() {
+        let mut old = *old;
+        if old.ch1 == hit.ch1 && old.ch2 == hit.ch2 && hit.fraction < old.fraction {
+            old.fraction = hit.fraction;
+        }
+        merged.append(old);
+    }
+    pseudo = merged;
+}
+
 /// The accepted impact fraction of `fast` against a target (upstream `cast_sub_shape` for a
 /// proxy target): a solid pair stops only at `0 < fraction < max_fraction`, retrying an initial
 /// overlap (fraction 0) with the core ball of radius `CORE_FRACTION · min_extent` about the
@@ -257,8 +346,8 @@ pub fn cast_pair(
 ) -> Option<Fixed> {
     let Some(target_proxy) = ToiProxyTrait::from_shape(shape2) else {
         return match shape2 {
-            Shape::Polyline(_) |
-            Shape::HeightField(_) => cast_composite(
+            Shape::Polyline(_) | Shape::HeightField(_) |
+            Shape::Compound(_) => cast_composite(
                 fast, shape2, pose2, max_fraction, linear_slop, is_pseudo,
             ),
             _ => None,
@@ -377,16 +466,16 @@ pub fn sweep_body(
             if let Some(hit) =
                 cast_pair(fc, *target.shape, *target.pose, fraction, linear_slop, is_pseudo) {
                 if is_pseudo {
-                    pseudo
-                        .append(
-                            PseudoHit {
-                                ch1: *fc.handle,
-                                ch2: *target.handle,
-                                fraction: hit,
-                                start1: *fc.start,
-                                pos_wrt_parent1: *fc.pos_wrt_parent,
-                            },
-                        );
+                    append_pseudo(
+                        ref pseudo,
+                        PseudoHit {
+                            ch1: *fc.handle,
+                            ch2: *target.handle,
+                            fraction: hit,
+                            start1: *fc.start,
+                            pos_wrt_parent1: *fc.pos_wrt_parent,
+                        },
+                    );
                 } else {
                     fraction = hit;
                 }
