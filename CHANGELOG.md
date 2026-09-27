@@ -22,6 +22,11 @@ whether simulation results changed.
   `RigidBodyBuilder::{ccd_enabled, soft_ccd_prediction}`, `enable_ccd` / `is_ccd_enabled` / `is_ccd_active`; upstream's
   automatic CCD for fast bodies is off by default (`CCDSolverTrait::set_automatic`, ADR 0001 entries 33–34). A
   `CCDSolver` serializes only its switch: recreate it with the same setting after `from_state` (#182).
+- Composite shapes: `Polyline` (flags, oriented polylines, pseudo-normals) and the 2D `HeightField` as new `Shape`
+  variants with every query (per-part sub-shape ids through `*_part` functions), contact manifolds per part against
+  every convex shape (events and force events per collider pair), shape casts and CCD against them,
+  `ColliderBuilder::{polyline, polyline_with_flags, oriented_polyline, heightfield}` (ADR 0001 entry 35). Existing
+  pairs pay +2 Cairo steps per pair per step for the composite group check (#184).
 
 ## 0.1.0-alpha.4 — 2026-09-26
 

@@ -39,7 +39,9 @@ pub use query::{
 };
 pub use ray::RayCast;
 pub use shape::convex_polygon::{ConvexPolygon, ConvexPolygonTrait};
+pub use shape::heightfield::{HeightField, HeightFieldCellStatus, HeightFieldTrait};
 pub use shape::polygonal_feature_map::PolygonalFeatureMap;
+pub use shape::polyline::{Polyline, PolylineFlags, PolylineFlagsTrait, PolylineTrait};
 pub use shape::round_shape::{
     RoundConvexPolygon, RoundCuboid, RoundShape, RoundShapeTrait, RoundTriangle,
 };
