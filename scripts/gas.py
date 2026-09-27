@@ -163,7 +163,13 @@ def main() -> None:
     if args.command == "snapshot":
         if args.filter:
             touched = {module_of(n) for n in new}
-            kept = {n: v for n, v in old.items() if module_of(n) in touched and args.filter not in n}
+            # A run of the filter is authoritative for the entries it matches (a test that no longer runs is
+            # dropped). A `--from-log` log may be partial (a test-name-filtered snforge run), so it only adds or
+            # updates entries: nothing absent from the log is dropped (KC1, #202: a partial log emptied data.snap).
+            kept = {
+                n: v for n, v in old.items()
+                if module_of(n) in touched and (args.filter not in n or (args.from_log and n not in new))
+            }
             new = {**kept, **new}
         files = write_snapshot(new, only_present=bool(args.filter))
         print(f"wrote {len(new)} entries to {len(files)} file(s) under {GAS_DIR.relative_to(ROOT)}/")

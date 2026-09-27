@@ -665,7 +665,7 @@ def module_for(crate: str, rel: str) -> str:
 def module_tree(src: Path) -> set[Path]:
     """The source files reachable from `src/lib.rs` through `mod name;` declarations: a file nobody declares (Parry's
     `shape/polygon.rs`) is dead code and not part of the API."""
-    decl = re.compile(r"(?m)^\s*(?:#\[[^\]]*\]\s*)*(?:pub(?:\([^)]*\))?\s+)?mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*;")
+    decl = re.compile(r"(?m)^\s*((?:#\[[^\]]*\]\s*)*)(?:pub(?:\([^)]*\))?\s+)?mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*;")
     seen: set[Path] = set()
     todo = [src / "lib.rs"]
     while todo:
@@ -674,8 +674,14 @@ def module_tree(src: Path) -> set[Path]:
             continue
         seen.add(path)
         here = path.parent if path.name in ("lib.rs", "mod.rs") else path.parent / path.stem
-        for m in decl.finditer(mask_comments(path.read_text())):
-            for child in (here / f"{m.group(1)}.rs", here / m.group(1) / "mod.rs"):
+        raw = path.read_text()
+        for m in decl.finditer(mask_comments(raw)):
+            # A module declared behind a dim3-only cfg (rapier's `ray_cast_vehicle_controller`) is not 2D API; the
+            # attribute is read from the raw text (masking blanks its string literals).
+            attrs = raw[m.start(1):m.end(1)]
+            if "dim3" in attrs and "dim2" not in attrs:
+                continue
+            for child in (here / f"{m.group(2)}.rs", here / m.group(2) / "mod.rs"):
                 if child.is_file():
                     todo.append(child)
                     break

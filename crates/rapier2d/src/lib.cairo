@@ -62,6 +62,11 @@ pub mod prelude {
     pub use rapier_geometry2d::shape::triangle::{Triangle, TriangleTrait};
     pub use rapier_math::pose2::{Pose2, Pose2Trait};
     pub use rapier_math::rot2::{Rot2, Rot2Trait};
+    pub use crate::control::{
+        CharacterAutostep, CharacterCollision, CharacterLength, CharacterLengthTrait,
+        EffectiveCharacterMovement, KinematicCharacterController, KinematicCharacterControllerTrait,
+        PdController, PdControllerTrait, PdErrors, PidController, PidControllerTrait,
+    };
     pub use crate::dispatcher::DefaultDispatcher;
     pub use crate::pipeline::ccd::{CCDSolver, CCDSolverTrait};
     pub use crate::pipeline::config::{BasicStepConfig, DefaultStepConfig, StepConfig};

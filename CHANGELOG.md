@@ -13,6 +13,10 @@ whether simulation results changed.
   a flight step (11,918 → 11,367) and −6,853 on a pile10 impact step (398,167 → 391,314).
 
 ### Added
+- Controllers (`rapier2d::control`, in the prelude): `PdController`, `PidController`, `PdErrors` and the kinematic
+  character controller (`KinematicCharacterController::move_shape` → `EffectiveCharacterMovement` + `CharacterCollision`s,
+  `solve_character_collision_impulses`, `CharacterLength`, `CharacterAutostep`) on the shape casts; nothing of it
+  enters a `BasicStepConfig` program or moves a step (#202).
 - `rapier2d::prelude` exports the body field selectors `BodyPose`, `BodySleeping`, `BodyLinvel`, `BodyAngvel` (for
   `RigidBodySetTrait::get_field`).
 
