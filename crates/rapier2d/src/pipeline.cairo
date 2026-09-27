@@ -64,12 +64,16 @@
 //! CCD (work package CC2) runs in [`ccd::step_with_ccd`], around this step, not in [`step`]: a
 //! world stepped by [`step`] keeps the Cairo steps of a world without CCD.
 //!
+//! Configurable step (work package CS2, [`config`]): [`step_with`] /
+//! [`step_with_force_events_with`]
+//! take a [`StepConfig`] (contact dispatcher, sensor, composite and joint strategies), so that a
+//! program compiles only what its worlds use; [`step`] is `step_with::<DefaultStepConfig>`.
+//!
 //! Deviations from upstream: [`step`] runs no CCD (see above); islands are rebuilt
 //! when an awake body can fall asleep or touches a sleeping one (upstream persists them, see
 //! `islands`); no user hooks; a body whose enabled state changes does not propagate it to its
 //! colliders (disable the colliders).
 
-use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, HALF};
 use glam::Vec2;
 use rapier_core::Handle;
@@ -79,19 +83,14 @@ use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, Ri
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
-use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait, JointEnabled};
 use rapier_dynamics2d::narrow_phase::{
-    ContactPair, NarrowPhase, PairCollider, compute_contacts_from_scratch,
+    ContactPair, PairCollider, compute_contacts_from_scratch_with,
 };
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
-use rapier_dynamics2d::solver::island::{
-    FreeBodySolverTrait, SolvedIsland, SolvedIslandTrait, SolverInputTrait, solve_island_input,
-};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
 use rapier_geometry2d::shape::ShapeTrait;
-use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
 
 pub mod active_set;
@@ -116,6 +115,11 @@ use free_path::{
     body_info, collision_proxies_from_entries_with_events, collision_scratch, no_body_info,
     solve_and_advance_free,
 };
+pub mod config;
+pub use config::{BasicStepConfig, DefaultStepConfig, StepConfig};
+mod fused;
+pub(crate) use fused::{active_joints, solve_and_advance_sleeping_with};
+pub use fused::{solve_and_advance, solve_and_advance_sleeping};
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
 pub mod islands;
@@ -159,7 +163,7 @@ pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colli
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    step_internal::<Array<CollisionEvent>, CollisionOnly>(ref world)
+    step_internal::<Array<CollisionEvent>, CollisionOnly, DefaultStepConfig>(ref world)
 }
 
 /// Same step, also returning post-solver normal-force events in ascending pair order.
@@ -168,14 +172,35 @@ pub fn step(ref world: World) -> Array<CollisionEvent> {
 pub fn step_with_force_events(
     ref world: World,
 ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-    step_internal::<(Array<CollisionEvent>, Array<ContactForceEvent>), WithForces>(ref world)
+    step_internal::<
+        (Array<CollisionEvent>, Array<ContactForceEvent>), WithForces, DefaultStepConfig,
+    >(ref world)
 }
 
-fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T {
+/// [`step`] compiled with the dispatcher and strategies of `C` (CS2, [`config`]): with
+/// `DefaultStepConfig` it is [`step`]; a configuration of no-op strategies leaves their code
+/// out of the program. Same results as [`step`] on the worlds `C` supports.
+///
+/// # Panics
+/// As [`step`], and when the world uses a feature `C` disables (see [`config`]).
+pub fn step_with<impl C: StepConfig>(ref world: World) -> Array<CollisionEvent> {
+    step_internal::<Array<CollisionEvent>, CollisionOnly, C>(ref world)
+}
+
+/// [`step_with_force_events`] compiled with `C`, as [`step_with`]. Panics as [`step_with`].
+pub fn step_with_force_events_with<impl C: StepConfig>(
+    ref world: World,
+) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+    step_internal::<(Array<CollisionEvent>, Array<ContactForceEvent>), WithForces, C>(ref world)
+}
+
+pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
+    ref world: World,
+) -> T {
     if active_set::usable(ref world) {
-        return active_set::sparse_step::<T, Output>(ref world);
+        return active_set::sparse_step::<T, Output, C>(ref world);
     }
-    let no_joints = world.impulse_joints.len() == 0;
+    let no_joints = C::Joints::joint_free(@world.impulse_joints);
     let (snapshot, mut infos, entries, census, fresh) = user_changes_bodies_for_step(
         ref world.bodies,
         ref world.colliders,
@@ -211,6 +236,7 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
                 world.integration_parameters.dt,
                 ref world.narrow_phase,
                 ref world.colliders,
+                C::Composites::ENABLED,
             );
         }
         let (fresh_infos, _) = body_infos(entries);
@@ -233,10 +259,10 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         world.narrow_phase.pairs = active;
         dormant = asleep;
     }
-    let events = compute_contacts_from_scratch::<
-        DefaultDispatcher,
+    let events = compute_contacts_from_scratch_with::<
+        C::Dispatcher, C::Sensors, C::Composites,
     >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
-    let joint_entries = world.impulse_joints.to_array();
+    let joint_entries = C::Joints::entries(ref world.impulse_joints);
     let (entries, sleeping, woken) = if fresh.is_empty() {
         update_islands(
             ref world.bodies,
@@ -263,7 +289,9 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
         dormant = asleep;
     }
-    solve_and_advance_sleeping(
+    solve_and_advance_sleeping_with::<
+        C::Joints,
+    >(
         world.gravity,
         world.integration_parameters,
         ref world.bodies,
@@ -282,6 +310,7 @@ fn step_internal<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T
         world.integration_parameters.dt,
         ref world.narrow_phase,
         ref world.colliders,
+        C::Composites::ENABLED,
     );
     // BT2: with a sleeping body, the next step can skip the sleeping bodies (`active_set`); BT4:
     // also after a wake-up (the next step clears the `SLEEP` flags it left).
@@ -610,187 +639,6 @@ pub(crate) fn advance_body_with_snapshot(
             }
         }
     }
-}
-
-/// The joints of `entries` that are not dormant (`ordering::dormant_of`: both bodies fixed,
-/// absent or asleep, one asleep): the solver input when a body sleeps.
-pub(crate) fn active_joints(
-    joints: Span<(Handle, ImpulseJoint)>, entries: Span<(Handle, RigidBody)>,
-) -> Array<(Handle, ImpulseJoint)> {
-    let mut out = array![];
-    for entry in joints {
-        let (_, joint) = entry;
-        let (s1, s2) = link_status(entries, Some(*joint.body1), Some(*joint.body2));
-        if !dormant_of(s1, s2) {
-            out.append(*entry);
-        }
-    }
-    out
-}
-
-/// Stages 3 and 4 fused (work package OI), with the same results as [`solve`] then
-/// [`advance_with_snapshot`]: only the bodies a touching manifold or an enabled joint references
-/// enter the `SolverBodyStore`; every other body is solved alone by `FreeBodySolverTrait::solve`
-/// (bit-identical: nothing else acts on it), and each moving body is written once, after its
-/// velocities, `next_position`, position, world mass properties and collider poses.
-/// `entries` and `snapshot` are the bodies and colliders as [`user_changes_bodies`] left them.
-/// [`solve_and_advance_sleeping`] on the whole pair list (split around the solver when a body
-/// sleeps).
-pub fn solve_and_advance(
-    gravity: Vec2,
-    params: IntegrationParameters,
-    ref bodies: RigidBodySet,
-    ref colliders: ColliderSet,
-    ref narrow_phase: NarrowPhase,
-    ref impulse_joints: ImpulseJointSet,
-    entries: Span<(Handle, RigidBody)>,
-    snapshot: Span<(Handle, Collider)>,
-) {
-    let sleeping = any_sleeping(entries);
-    let mut dormant = array![];
-    if sleeping {
-        let (active, asleep) = split_dormant(narrow_phase.pairs.span(), entries);
-        narrow_phase.pairs = active;
-        dormant = asleep;
-    }
-    let joint_entries = impulse_joints.to_array();
-    solve_and_advance_sleeping(
-        gravity,
-        params,
-        ref bodies,
-        ref colliders,
-        ref narrow_phase,
-        ref impulse_joints,
-        entries,
-        snapshot,
-        joint_entries.span(),
-        sleeping,
-    );
-    if !dormant.is_empty() {
-        narrow_phase.pairs = merge_pairs(narrow_phase.pairs.span(), dormant.span());
-    }
-}
-
-/// [`solve_and_advance`] on the active pairs of `narrow_phase` (the dormant pairs of sleeping
-/// bodies split out by the caller) and the given joint entries. `sleeping` tells whether any
-/// body of `entries` sleeps (after [`update_islands`]): then dormant joints are left out, the
-/// sleeping bodies a constraint references enter the store as immovable copies, and sleeping
-/// bodies are neither advanced nor written; with `false` the stage is the pre-SL one.
-pub fn solve_and_advance_sleeping(
-    gravity: Vec2,
-    params: IntegrationParameters,
-    ref bodies: RigidBodySet,
-    ref colliders: ColliderSet,
-    ref narrow_phase: NarrowPhase,
-    ref impulse_joints: ImpulseJointSet,
-    entries: Span<(Handle, RigidBody)>,
-    snapshot: Span<(Handle, Collider)>,
-    joint_entries: Span<(Handle, ImpulseJoint)>,
-    sleeping: bool,
-) {
-    let mut constrained: Felt252Dict<bool> = Default::default();
-    let mut first = array![];
-    let mut last = array![];
-    let mut flags = array![];
-    for pair in narrow_phase.pairs.span() {
-        if *pair.manifold.data.num_solver_contacts != 0 {
-            let manifold = *pair.manifold;
-            if let Some(h) = manifold.data.rigid_body1 {
-                constrained.insert(h.into(), true);
-            }
-            if let Some(h) = manifold.data.rigid_body2 {
-                constrained.insert(h.into(), true);
-            }
-            let fixed_last = fixed_last_flag(
-                entries, manifold.data.rigid_body1, manifold.data.rigid_body2,
-            );
-            flags.append(fixed_last);
-            if fixed_last {
-                last.append(manifold);
-            } else {
-                first.append(manifold);
-            }
-        }
-    }
-    let n_first = first.len();
-    first.append_span(last.span());
-    let manifolds = first;
-    let joint_entries = if sleeping {
-        active_joints(joint_entries, entries).span()
-    } else {
-        joint_entries
-    };
-    let mut joints = joint_values(joint_entries);
-    for joint in joints.span() {
-        if *joint.data.enabled == JointEnabled::Enabled {
-            constrained.insert((*joint.body1).into(), true);
-            constrained.insert((*joint.body2).into(), true);
-        }
-    }
-    let any = !manifolds.is_empty() || !joints.is_empty();
-    // BT4: the members gathered straight into the solver input (no `SolverBodyStore`, no copy
-    // of the entries), their flags kept for the write-back walk.
-    let mut input = SolverInputTrait::new();
-    let mut member_flags = array![];
-    let mut has_free = false;
-    if any {
-        let dt = params.substep_dt();
-        for (handle, body) in entries {
-            let member = constrained.get((*handle).into());
-            member_flags.append(member);
-            if member {
-                if sleeping && *body.activation.sleeping {
-                    input.push(*handle, immovable(*body), gravity, dt);
-                } else {
-                    input.push(*handle, *body, gravity, dt);
-                }
-            } else if moving(body) {
-                has_free = true;
-            }
-        }
-    }
-    // With no manifold and no joint, `solve_island` would only validate the parameters, which
-    // `FreeBodySolverTrait::new` does with the same panics; with constraints it is only built
-    // when a moving body is free.
-    let free = if !any || has_free {
-        FreeBodySolverTrait::new(params, gravity)
-    } else {
-        Default::default()
-    };
-    let mut solved: SolvedIsland = Default::default();
-    if any {
-        solved = solve_island_input(params, input, manifolds.span(), ref joints);
-        if !manifolds.is_empty() {
-            // BT4: the impulses go straight into the pairs (no solved manifold array).
-            narrow_phase
-                .pairs =
-                    scatter_impulses(narrow_phase.pairs.span(), @solved, flags.span(), n_first);
-        }
-        write_joints(joint_entries, joints.span(), ref impulse_joints);
-    }
-    let mut dense: u32 = 0;
-    let mut member_flags = member_flags.span();
-    for (handle, body) in entries {
-        let member = match member_flags.pop_front() {
-            Some(member) => *member,
-            None => false,
-        };
-        if moving(body) {
-            let body = if member {
-                let mut body = *body;
-                solved.write_body(dense, ref body);
-                body
-            } else {
-                free.solve(*handle, *body)
-            };
-            advance_body_with_snapshot(*handle, body, ref bodies, ref colliders, snapshot, params);
-        }
-        if member {
-            dense += 1;
-        }
-    }
-    bodies.mark_modified();
-    colliders.mark_modified();
 }
 
 #[cfg(test)]

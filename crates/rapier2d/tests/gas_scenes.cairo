@@ -9,6 +9,7 @@
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam::Vec2;
 use rapier2d::pipeline::ccd::{CCDSolver, CCDSolverTrait};
+use rapier2d::pipeline::config::BasicStepConfig;
 use rapier2d::world::{World, WorldTrait};
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
@@ -280,6 +281,37 @@ fn probe(id: felt252, size: u32, warmup: u32, measured: u32) {
             size
         },
     );
+    let _ = opaque(world.colliders.len());
+}
+
+/// [`probe`] with the game-shaped step (CS2, `step_with::<BasicStepConfig>`) on the scenes of
+/// basic shapes; a copy, so that [`probe`]'s exact steps do not move.
+#[inline(never)]
+fn probe_basic(id: felt252, size: u32, warmup: u32, measured: u32) {
+    let mut world = scene(id, size);
+    let mut k = 0;
+    while k != warmup + measured {
+        let _ = world.step_with::<BasicStepConfig>();
+        k += 1;
+    }
+    let (pairs, points) = count_active_pairs(@world);
+    assert_eq!(pairs, expected_pairs(id, size));
+    assert!(points >= pairs);
+    let _ = opaque(world.colliders.len());
+}
+
+/// [`probe_basic`] with `World::step`: the full step under the same harness.
+#[inline(never)]
+fn probe_full(id: felt252, size: u32, warmup: u32, measured: u32) {
+    let mut world = scene(id, size);
+    let mut k = 0;
+    while k != warmup + measured {
+        let _ = world.step();
+        k += 1;
+    }
+    let (pairs, points) = count_active_pairs(@world);
+    assert_eq!(pairs, expected_pairs(id, size));
+    assert!(points >= pairs);
     let _ = opaque(world.colliders.len());
 }
 
@@ -627,4 +659,47 @@ fn gas_setup_ccd_auto_pendulum_chain3() {
 #[test]
 fn gas_step_ccd_auto_pendulum_chain3() {
     probe_auto(opaque('pend'), opaque(3), WARMUP_PENDULUM + 1);
+}
+
+// CS2: the game-shaped step on the P3 scenes of basic shapes, against the full step under the
+// same harness (`steps_basic_*` vs `steps_full_*`; `--tracked-resource cairo-steps`).
+
+#[test]
+fn steps_basic_free_fall8() {
+    probe_basic(opaque('free'), opaque(8), WARMUP_FREE_FALL, 1);
+}
+
+#[test]
+fn steps_basic_balls_halfspace8() {
+    probe_basic(opaque('balls'), opaque(8), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_basic_cuboid_stack5() {
+    probe_basic(opaque('stack'), opaque(5), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_basic_cuboid_stack10() {
+    probe_basic(opaque('stack'), opaque(10), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_full_free_fall8() {
+    probe_full(opaque('free'), opaque(8), WARMUP_FREE_FALL, 1);
+}
+
+#[test]
+fn steps_full_balls_halfspace8() {
+    probe_full(opaque('balls'), opaque(8), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_full_cuboid_stack5() {
+    probe_full(opaque('stack'), opaque(5), WARMUP_CONTACTS, 1);
+}
+
+#[test]
+fn steps_full_cuboid_stack10() {
+    probe_full(opaque('stack'), opaque(10), WARMUP_CONTACTS, 1);
 }

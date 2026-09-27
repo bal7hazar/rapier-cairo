@@ -58,6 +58,7 @@ use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
 use crate::pipeline::active_set::ActiveSet;
 use crate::pipeline::ccd::CCDSolver;
+use crate::pipeline::config::StepConfig;
 use crate::queries::{QueryFilter, QueryPipeline, QueryPipelineTrait};
 
 /// Versioned save / restore ([`WorldTrait::to_state`], [`WorldTrait::from_state`]).
@@ -465,6 +466,26 @@ pub impl WorldImpl of WorldTrait {
         crate::pipeline::step_with_force_events(ref self)
     }
 
+    /// [`WorldTrait::step`] compiled with the contact dispatcher and strategies of `C`
+    /// (`crate::pipeline::config`): `step_with::<DefaultStepConfig>` is `step`; a configuration
+    /// with no-op strategies (e.g. `BasicStepConfig`) leaves the joint solver, the sensor tests,
+    /// the composite manifolds and the other shapes' generators out of the program, with the
+    /// same results on the worlds it supports.
+    ///
+    /// # Panics
+    /// As `step`, and when the world uses a feature `C` disables (a joint, a sensor pair, a
+    /// composite pair, a shape outside `C`'s dispatcher).
+    fn step_with<impl C: StepConfig>(ref self: World) -> Array<CollisionEvent> {
+        crate::pipeline::step_with::<C>(ref self)
+    }
+
+    /// [`WorldTrait::step_with_force_events`] compiled with `C`, as [`WorldTrait::step_with`].
+    fn step_with_force_events_with<impl C: StepConfig>(
+        ref self: World,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        crate::pipeline::step_with_force_events_with::<C>(ref self)
+    }
+
     /// [`WorldTrait::step`] with continuous collision detection (upstream `PhysicsWorld::step`
     /// with its `ccd_solver`): fast `ccd_enabled` bodies (every fast dynamic body when
     /// `ccd_solver` is automatic) are stopped at their first impact. See
@@ -478,6 +499,21 @@ pub impl WorldImpl of WorldTrait {
         ref self: World, ref ccd_solver: CCDSolver,
     ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
         crate::pipeline::ccd::step_with_ccd_and_force_events(ref self, ref ccd_solver)
+    }
+
+    /// [`WorldTrait::step_with_ccd`] compiled with `C`, as [`WorldTrait::step_with`].
+    fn step_with_ccd_with<impl C: StepConfig>(
+        ref self: World, ref ccd_solver: CCDSolver,
+    ) -> Array<CollisionEvent> {
+        crate::pipeline::ccd::step_with_ccd_with::<C>(ref self, ref ccd_solver)
+    }
+
+    /// [`WorldTrait::step_with_ccd_and_force_events`] compiled with `C`, as
+    /// [`WorldTrait::step_with`].
+    fn step_with_ccd_and_force_events_with<impl C: StepConfig>(
+        ref self: World, ref ccd_solver: CCDSolver,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        crate::pipeline::ccd::step_with_ccd_and_force_events_with::<C>(ref self, ref ccd_solver)
     }
 
     /// The collider hit first by `ray` and its time of impact, strictly below `max_toi`

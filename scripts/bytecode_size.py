@@ -3,7 +3,8 @@
 Starknet limits, and where the CASM felts of a class go.
 
 usage:
-  scripts/bytecode_size.py [table]    build crates/rapier_sink (release), print the size table
+  scripts/bytecode_size.py [table]    build crates/rapier_sink (release) and its executable programs,
+                                      print the size tables
   scripts/bytecode_size.py snapshot   same, then write gas/bytecode.size
   scripts/bytecode_size.py check      same, then diff against gas/bytecode.size; exit 1 on ANY difference
   scripts/bytecode_size.py attribution [--class C] [--depth N] [--top K] [--strategy S] [--cut LABEL=REGEX ...]
@@ -22,6 +23,12 @@ Measured quantities, per contract (see the `LIMITS` block for their source):
                 debug info, which a declare transaction does not carry)
   casm_bytes    compact JSON of the compiled class
 The build is deterministic for a given toolchain (`.tool-versions`), so the check uses equality.
+
+Programs (CS2): `crates/rapier_sink/programs/lib.cairo` (with `crates/rapier_sink/src/scene.cairo`)
+built as a temporary package with one `[[target.executable]]` per function of `PROGRAMS`
+(`enable-gas = false`, release profile), outside the workspace:
+  program_felts  length of `program.bytecode` in `<name>.executable.json`: what a proof of the
+                 program hashes (the bootloader's program hash)
 
 Attribution: the compiled class splits its bytecode into `bytecode_segment_lengths`, one segment
 per Sierra function in program order (then one for the constants); the dev profile keeps the
@@ -50,6 +57,12 @@ PACKAGE = "rapier_sink"
 SNAPSHOT = ROOT / "gas" / "bytecode.size"
 METRICS = ["sierra_felts", "casm_felts", "sierra_bytes", "casm_bytes"]
 HEADER = "# contract: " + " ".join(METRICS)
+PROGRAMS_PACKAGE = "rapier_sink_programs"
+# The executable fixtures (`crates/rapier_sink/programs/lib.cairo`): the game world stepped with
+# force events under each step configuration; `full` minus the others gives each strategy's share.
+PROGRAMS = ["full", "basic", "no_joints", "no_sensors", "no_composites", "basic_dispatcher"]
+PROGRAM_HEADER = "# program: program_felts"
+PROGRAM_PREFIX = "program."
 
 # Starknet limits. Source: https://docs.starknet.io/learn/cheatsheets/chain-info (Starknet v0.14.2
 # on Mainnet, v0.14.3 on Sepolia, read 2026-09-21 by glam-cairo R1) and the sequencer that
@@ -176,19 +189,24 @@ def print_table(rows, title):
 
 
 def read_snapshot():
-    snap = {}
+    """-> ({contract: {metric: int}}, {program: {"program_felts": int}})"""
+    snap, progs = {}, {}
     if not SNAPSHOT.exists():
-        return snap
+        return snap, progs
     for line in SNAPSHOT.read_text().splitlines():
         if not line or line.startswith("#"):
             continue
         name, vals = line.split(":", 1)
-        snap[name] = dict(zip(METRICS, map(int, vals.split())))
-    return snap
+        if name.startswith(PROGRAM_PREFIX):
+            progs[name[len(PROGRAM_PREFIX):]] = {"program_felts": int(vals)}
+        else:
+            snap[name] = dict(zip(METRICS, map(int, vals.split())))
+    return snap, progs
 
 
-def write_snapshot(rows):
+def write_snapshot(rows, progs):
     lines = [HEADER] + [f"{n}: " + " ".join(str(rows[n][m]) for m in METRICS) for n in sorted(rows)]
+    lines += [PROGRAM_HEADER] + [f"{PROGRAM_PREFIX}{n}: {progs[n]['program_felts']}" for n in PROGRAMS]
     SNAPSHOT.write_text("\n".join(lines) + "\n")
     print(f"wrote {SNAPSHOT.relative_to(ROOT)}", file=sys.stderr)
 
@@ -196,6 +214,43 @@ def write_snapshot(rows):
 def fixtures():
     scarb(ROOT, ["build", "-p", PACKAGE], profile="release")
     return measure(ROOT / "target" / "release", PACKAGE)
+
+
+def programs_package(work):
+    """The executable fixtures as a standalone package (its own workspace) in `work`."""
+    (work / "src").mkdir()
+    shutil.copy(ROOT / "crates" / PACKAGE / "programs" / "lib.cairo", work / "src" / "lib.cairo")
+    shutil.copy(ROOT / "crates" / PACKAGE / "src" / "scene.cairo", work / "src" / "scene.cairo")
+    pins = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]
+    deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam")]
+    deps.append(f'rapier2d = {{ path = "{(ROOT / "crates" / "rapier2d").as_posix()}" }}')
+    targets = "".join(f'[[target.executable]]\nname = "{n}"\n'
+                      f'function = "{PROGRAMS_PACKAGE}::{n}"\n\n' for n in PROGRAMS)
+    (work / "Scarb.toml").write_text(
+        f'[package]\nname = "{PROGRAMS_PACKAGE}"\nversion = "0.1.0"\nedition = "2024_07"\n\n'
+        "[dependencies]\n" + "\n".join(deps) + '\ncairo_execute = "2.19.4"\n\n' + targets
+        + "[cairo]\nenable-gas = false\n")
+
+
+def programs():
+    """-> {program: {"program_felts": int}} of the executable fixtures (release profile)."""
+    with tempfile.TemporaryDirectory(prefix="bytecode_programs_") as tmp:
+        work = Path(tmp)
+        programs_package(work)
+        scarb(work, ["build"], "  (executable fixtures)", profile="release")
+        target = work / "target" / "release"
+        return {n: {"program_felts": len(json.loads((target / f"{n}.executable.json").read_text())
+                                         ["program"]["bytecode"])} for n in PROGRAMS}
+
+
+def print_programs(progs):
+    full = progs["full"]["program_felts"]
+    print("\n### executable programs (game world, `step_with_force_events` configurations)\n")
+    print("| program | program felts | vs `full` |")
+    print("|---|--:|--:|")
+    for n in PROGRAMS:
+        felts = progs[n]["program_felts"]
+        print(f"| `{n}` | {felts:,} | {felts - full:+,} ({100 * (felts - full) / full:+.1f} %) |")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -354,19 +409,26 @@ def main():
 
     rows = fixtures()
     print_table(rows, "rapier_sink fixtures (release profile)")
+    progs = programs()
+    print_programs(progs)
     if a.cmd == "snapshot":
-        write_snapshot(rows)
+        write_snapshot(rows, progs)
     elif a.cmd == "check":
-        snap, bad = read_snapshot(), []
+        (snap, snap_progs), bad = read_snapshot(), []
         for name in sorted(set(rows) | set(snap)):
             new, old = rows.get(name), snap.get(name)
             if new != old:
                 bad.append(f"{name}: {old} -> {new}")
+        for name in sorted(set(progs) | set(snap_progs)):
+            new, old = progs.get(name), snap_progs.get(name)
+            if new != old:
+                bad.append(f"{PROGRAM_PREFIX}{name}: {old} -> {new}")
         if bad:
             print("\n".join(bad), file=sys.stderr)
             sys.exit(f"bytecode size mismatch ({len(bad)}). Run `scripts/bytecode_size.py snapshot` "
                      "and commit gas/bytecode.size.")
-        print(f"\nbytecode size snapshot OK ({len(rows)} contracts)", file=sys.stderr)
+        print(f"\nbytecode size snapshot OK ({len(rows)} contracts, {len(progs)} programs)",
+              file=sys.stderr)
 
 
 if __name__ == "__main__":

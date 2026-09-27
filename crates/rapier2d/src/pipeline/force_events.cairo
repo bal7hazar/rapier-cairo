@@ -6,6 +6,7 @@ use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent, ContactForceEventTrait};
+use rapier_dynamics2d::narrow_phase::strategies::errors;
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::shape::ShapeTrait;
@@ -13,12 +14,15 @@ use rapier_geometry2d::shape::ShapeTrait;
 
 /// Specialize only the return shape: both modes execute the same stages and event bookkeeping.
 pub(crate) trait StepOutput<T> {
+    /// The step's output. `groups`: composite pairs are grouped (CS2: a constant of the step's
+    /// `CompositeStrategy`, so that the other collection pass is not compiled).
     fn finish(
         events: Array<CollisionEvent>,
         enabled: bool,
         dt: Fixed,
         ref narrow: NarrowPhase,
         ref colliders: ColliderSet,
+        groups: bool,
     ) -> T;
     /// `output` with `events` appended to its collision events (CC2: the CCD pass's sensor
     /// events).
@@ -35,9 +39,10 @@ pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
         dt: Fixed,
         ref narrow: NarrowPhase,
         ref colliders: ColliderSet,
+        groups: bool,
     ) -> Array<CollisionEvent> {
         if enabled {
-            let _ = collect(dt, ref narrow, ref colliders);
+            let _ = collect_either(groups, dt, ref narrow, ref colliders);
         }
         events
     }
@@ -65,8 +70,9 @@ pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactFo
         dt: Fixed,
         ref narrow: NarrowPhase,
         ref colliders: ColliderSet,
+        groups: bool,
     ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-        let forces = dispatch(enabled, dt, ref narrow, ref colliders);
+        let forces = dispatch(enabled, dt, ref narrow, ref colliders, groups);
         (events, forces)
     }
 
@@ -93,10 +99,10 @@ pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactFo
 /// Inlined dispatch with only the changed sets crossing the branch merge.
 #[inline(always)]
 pub(crate) fn dispatch(
-    enabled: bool, dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
+    enabled: bool, dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet, groups: bool,
 ) -> Array<ContactForceEvent> {
     if enabled {
-        collect(dt, ref narrow, ref colliders)
+        collect_either(groups, dt, ref narrow, ref colliders)
     } else {
         array![]
     }
@@ -252,6 +258,37 @@ pub(crate) fn composite_group(
 pub fn collect(
     dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
 ) -> Array<ContactForceEvent> {
+    collect_body(dt, ref narrow, ref colliders, true)
+}
+
+/// [`collect`] for a world without composite colliders (CS2, `NoComposites`: the narrow phase
+/// rejected every composite pair): the group-aware pass is not compiled.
+///
+/// # Panics
+/// As [`collect`], and `'Narrow phase: no composites'` on a pair with a composite collider.
+pub fn collect_convex(
+    dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
+) -> Array<ContactForceEvent> {
+    collect_body(dt, ref narrow, ref colliders, false)
+}
+
+/// [`collect`] when `groups` (a constant after inlining), [`collect_convex`] otherwise.
+#[inline(always)]
+fn collect_either(
+    groups: bool, dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
+) -> Array<ContactForceEvent> {
+    if groups {
+        collect(dt, ref narrow, ref colliders)
+    } else {
+        collect_convex(dt, ref narrow, ref colliders)
+    }
+}
+
+/// The body of [`collect`] (`groups`, a constant after inlining) and [`collect_convex`].
+#[inline(always)]
+fn collect_body(
+    dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet, groups: bool,
+) -> Array<ContactForceEvent> {
     let inv_dt = if dt == ZERO {
         ZERO
     } else {
@@ -278,6 +315,9 @@ pub fn collect(
         pairs.append(pair);
     }
     if composite {
+        if !groups {
+            core::panic_with_felt252(errors::COMPOSITE);
+        }
         // Back to the composite pair: `rest` starts after it.
         let all = narrow.pairs.span();
         let start = all.len() - rest.len() - 1;

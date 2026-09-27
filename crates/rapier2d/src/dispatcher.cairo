@@ -38,6 +38,7 @@
 use fixed::Fixed;
 use rapier_dynamics2d::narrow_phase::ContactDispatcher;
 use rapier_geometry2d::contact::ContactManifold;
+use rapier_geometry2d::dispatch::basic::contact_manifold_step_basic;
 use rapier_geometry2d::dispatch::contact_manifold_step;
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
@@ -62,6 +63,27 @@ pub impl DefaultDispatcher of ContactDispatcher {
         ref manifold: ContactManifold,
     ) -> bool {
         contact_manifold_step(pos12, shape1, shape2, prediction, ref manifold)
+    }
+}
+
+/// The dispatcher of balls, cuboids, convex polygons and half-spaces (CS2): the same results
+/// and generators as [`DefaultDispatcher`] on those pairs, through
+/// `rapier_geometry2d::dispatch::basic::contact_manifold_step_basic`, so that a step using it
+/// (`crate::pipeline::config::BasicStepConfig`) does not compile the other shapes' generators.
+///
+/// # Panics
+/// As [`DefaultDispatcher`], and `'Dispatch: not a basic shape'` when a pair with another shape
+/// reaches it (use [`DefaultDispatcher`] for such a world).
+pub impl BasicShapesDispatcher of ContactDispatcher {
+    #[inline(always)]
+    fn contact_manifold(
+        pos12: Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        ref manifold: ContactManifold,
+    ) -> bool {
+        contact_manifold_step_basic(pos12, shape1, shape2, prediction, ref manifold)
     }
 }
 

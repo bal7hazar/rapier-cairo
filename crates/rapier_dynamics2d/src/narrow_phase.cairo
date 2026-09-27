@@ -108,14 +108,14 @@ mod alternatives;
 mod benches;
 
 pub mod composite;
-use composite::composite_pair_step;
 pub mod process;
 pub use process::{pair_transition, previous_state, process_pair, update_manifold};
 pub mod intersections;
 #[cfg(test)]
 pub(crate) mod mock;
-use intersections::intersection_pair_step;
 pub mod one_way;
+pub mod strategies;
+use strategies::{CompositeManifolds, CompositeStrategy, IntersectionStrategy, SensorIntersections};
 #[cfg(test)]
 mod tests;
 
@@ -440,6 +440,26 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
     pairs: Span<(u32, u32)>,
     ref colliders: ColliderSet,
 ) -> Array<CollisionEvent> {
+    compute_contacts_from_scratch_with::<
+        D, SensorIntersections, CompositeManifolds,
+    >(ref self, prediction, scratch, pairs, ref colliders)
+}
+
+/// [`compute_contacts_from_scratch`] with the sensor pairs handled by `S` and the pairs `D` does
+/// not support by `K` (CS2, `strategies`): a program compiles only the strategies it names.
+///
+/// # Panics
+/// As [`compute_contacts_from_scratch`], and as `S` and `K` (`strategies::NoSensors`,
+/// `strategies::NoComposites`).
+pub fn compute_contacts_from_scratch_with<
+    impl D: ContactDispatcher, impl S: IntersectionStrategy, impl K: CompositeStrategy,
+>(
+    ref self: NarrowPhase,
+    prediction: Fixed,
+    scratch: Span<PairCollider>,
+    pairs: Span<(u32, u32)>,
+    ref colliders: ColliderSet,
+) -> Array<CollisionEvent> {
     let previous = self.pairs.span();
     let fresh_pair = ContactPairTrait::new(Default::default(), Default::default());
     let fresh = BoxTrait::new(@fresh_pair);
@@ -452,7 +472,7 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
         let co2 = *scratch.at(*j);
         if !(co1.solid && co2.solid) {
             if (co1.solid || co1.sensor) && (co2.solid || co2.sensor) {
-                intersection_pair_step(
+                S::intersection_pair(
                     co1,
                     co2,
                     previous,
@@ -512,7 +532,7 @@ pub fn compute_contacts_from_scratch<impl D: ContactDispatcher>(
         // the unsupported branch with its group of manifolds (`composite`).
         if !supported {
             if let Some((group, event, skip)) =
-                composite_pair_step(prediction, co1, co2, previous, cursor, ref manifold) {
+                K::composite_pair(prediction, co1, co2, previous, cursor, ref manifold) {
                 current.append_span(group);
                 if let Some(event) = event {
                     transitions.append(event);

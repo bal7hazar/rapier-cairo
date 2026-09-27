@@ -12,6 +12,7 @@
 //! and the state round trips. Run with `--tracked-resource cairo-steps`.
 
 use core::poseidon::poseidon_hash_span;
+use rapier2d::pipeline::config::BasicStepConfig;
 use rapier2d::prelude::{
     CONTACT_FORCE_EVENTS, ColliderBuilderTrait, Fixed, IntegrationParameters, RigidBodyTrait, Vec2,
     World, WorldTrait,
@@ -186,6 +187,37 @@ fn game(ticks: u32, mode: u32) -> (World, u32) {
     (world, events)
 }
 
+/// [`game`] with the game-shaped step (CS2): `step_with_force_events_with::<BasicStepConfig>`
+/// (`step_with::<BasicStepConfig>` with `PLAIN`). A copy, so that the probes of [`game`] keep
+/// their exact steps.
+fn game_basic(ticks: u32, mode: u32) -> (World, u32) {
+    let (mut world, n, bounds) = load();
+    let mut events = 0;
+    let mut t = 1;
+    while t != ticks + 1 {
+        if mode & PLAIN != 0 {
+            let _ = world.step_with::<BasicStepConfig>();
+        } else {
+            let (_, forces) = world.step_with_force_events_with::<BasicStepConfig>();
+            events += forces.len();
+        }
+        if mode & READS != 0 {
+            let _ = reads(ref world, n);
+        }
+        if mode & DESPAWN != 0 {
+            let _ = despawn(ref world, n, bounds);
+            if t == DESPAWN_TICK {
+                let _ = world.remove_body(handle(DESPAWNED));
+            }
+        }
+        if mode & CHUNKED != 0 && t % CHUNK == 0 {
+            world = round_trip(world);
+        }
+        t += 1;
+    }
+    (world, events)
+}
+
 /// Loads the level (after `ticks` plain ticks) and runs `trips` state round trips, through
 /// `Serde` or not.
 fn trips(ticks: u32, trips: u32, serde: bool) {
@@ -204,6 +236,12 @@ fn trips(ticks: u32, trips: u32, serde: bool) {
 
 fn probe(ticks: u32, mode: u32) {
     let (world, events) = game(opaque(ticks), opaque(mode));
+    let _ = opaque(world.gravity);
+    let _ = opaque(events);
+}
+
+fn probe_basic(ticks: u32, mode: u32) {
+    let (world, events) = game_basic(opaque(ticks), opaque(mode));
     let _ = opaque(world.gravity);
     let _ = opaque(events);
 }
@@ -281,6 +319,41 @@ fn steps_game_serde_trips() {
 fn test_game_digest() {
     let (mut straight, events) = game(IMPACT, READS | DESPAWN);
     let (mut chunked, chunked_events) = game(IMPACT, READS | DESPAWN | CHUNKED);
+    let (bodies, _, _) = level(10);
+    let n = bodies.len();
+    let d = digest(ref straight, n);
+    assert!(d == GAME_DIGEST, "game digest {d}");
+    assert!(events == 51, "force events {events}");
+    assert!(digest(ref chunked, n) == d, "chunked digest");
+    assert!(chunked_events == events, "chunked events");
+}
+
+#[test]
+fn steps_game_basic_step() {
+    probe_basic(IMPACT, PLAIN);
+}
+
+#[test]
+fn steps_game_basic_force() {
+    probe_basic(IMPACT, 0);
+}
+
+#[test]
+fn steps_game_basic_despawn() {
+    probe_basic(IMPACT, READS | DESPAWN);
+}
+
+#[test]
+fn steps_game_basic_chunked() {
+    probe_basic(IMPACT, READS | DESPAWN | CHUNKED);
+}
+
+/// CS2: the game-shaped step ends in the pinned state, with the same force events, straight and
+/// chunked.
+#[test]
+fn test_game_basic_digest() {
+    let (mut straight, events) = game_basic(IMPACT, READS | DESPAWN);
+    let (mut chunked, chunked_events) = game_basic(IMPACT, READS | DESPAWN | CHUNKED);
     let (bodies, _, _) = level(10);
     let n = bodies.len();
     let d = digest(ref straight, n);

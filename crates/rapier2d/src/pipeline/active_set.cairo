@@ -56,20 +56,24 @@ use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
 use rapier_dynamics2d::narrow_phase::{
-    ContactPair, PairCollider, compute_contacts_from_scratch, key_before,
+    ContactPair, PairCollider, compute_contacts_from_scratch_with,
 };
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use rapier_dynamics2d::solver::island::FreeBodySolverTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs_sparse};
 use rapier_geometry2d::shape::ShapeTrait;
-use crate::dispatcher::DefaultDispatcher;
 use crate::world::World;
+use super::config::StepConfig;
 use super::force_events::StepOutput;
 use super::free_path::no_body_info;
 use super::islands::{SleepCensus, SleepCensusTrait, links_awake_to_sleeping};
 use super::ordering::{BODY_SLEEPING, body_status};
-use super::{merge_pairs, solve_and_advance_sleeping, split_dormant, update_islands};
+use super::{merge_pairs, solve_and_advance_sleeping_with, split_dormant, update_islands};
+
+/// The live-pair list helpers of [`sparse_step`].
+mod live;
+use live::{compare_live, merge_live, split_at_positions, write_live};
 
 /// What a step needs to skip the sleeping bodies (see the module documentation). `valid` is
 /// `false` until a step fills it.
@@ -266,32 +270,6 @@ pub(crate) fn rebuild(
     }
 }
 
-/// `live` (ascending key) merged into `dormant` (ascending key, disjoint keys), with the
-/// positions of the `live` pairs in the result.
-fn merge_live(
-    live: Span<ContactPair>, dormant: Span<ContactPair>,
-) -> (Array<ContactPair>, Array<u32>) {
-    let mut live = live;
-    let mut dormant = dormant;
-    let mut out = array![];
-    let mut positions = array![];
-    while let Some(a) = live.pop_front() {
-        while let Some(d) = dormant.get(0) {
-            let d = d.unbox();
-            if key_before(*d.collider1, *d.collider2, *a.collider1, *a.collider2) {
-                out.append(*d);
-                dormant.pop_front().unwrap();
-            } else {
-                break;
-            }
-        }
-        positions.append(out.len());
-        out.append(*a);
-    }
-    out.append_span(dormant);
-    (out, positions)
-}
-
 /// The proxies of `statics` that overlap the bounds of the `dynamic` ones (closed intervals, as
 /// the broad phase): a static proxy outside them overlaps no dynamic proxy, so the sparse broad
 /// phase finds the same pairs, in the same order, on this sub-list (BT4: a sleeping structure
@@ -333,88 +311,6 @@ fn near_statics(
         }
     }
     near.span()
-}
-
-/// Whether `live` has the keys of the pairs of `pairs` at `positions` (ascending), in order, and
-/// whether it has their values too (BT4: the previous step's live pairs are read in place, not
-/// kept as a copy). The value comparison stops at the first difference or touching pair; a
-/// `false` second answer only costs a copy of the list.
-fn compare_live(
-    pairs: Span<ContactPair>, positions: Span<u32>, live: Span<ContactPair>,
-) -> (bool, bool) {
-    if live.len() != positions.len() {
-        return (false, false);
-    }
-    let mut live = live;
-    let mut unchanged = true;
-    for position in positions {
-        let now = live.pop_front().unwrap();
-        let before = pairs.at(*position);
-        if before.collider1 != now.collider1 || before.collider2 != now.collider2 {
-            return (false, false);
-        }
-        // A touching pair got new impulses from the solver: not worth comparing (a pair found
-        // equal is copied all the same).
-        if unchanged && (*now.manifold.data.num_solver_contacts != 0 || before != now) {
-            unchanged = false;
-        }
-    }
-    (true, unchanged)
-}
-
-/// `pairs` with the pair at `positions[k]` replaced by `live[k]` (same count, ascending
-/// positions): one copy of the list.
-fn write_live(
-    pairs: Span<ContactPair>, positions: Span<u32>, live: Span<ContactPair>,
-) -> Array<ContactPair> {
-    let mut out = array![];
-    let mut positions = positions;
-    let mut live = live;
-    let mut next = match positions.pop_front() {
-        Some(p) => *p,
-        None => NO_POSITION,
-    };
-    let mut k: u32 = 0;
-    for pair in pairs {
-        if k == next {
-            out.append(*live.pop_front().unwrap());
-            next = match positions.pop_front() {
-                Some(p) => *p,
-                None => NO_POSITION,
-            };
-        } else {
-            out.append(*pair);
-        }
-        k += 1;
-    }
-    out
-}
-
-/// Past every position of a pair list.
-const NO_POSITION: u32 = 0xffffffff;
-
-/// `pairs` split by `positions` (ascending): the pairs at those positions, and the others.
-fn split_at_positions(
-    pairs: Span<ContactPair>, positions: Span<u32>,
-) -> (Array<ContactPair>, Array<ContactPair>) {
-    let mut live = array![];
-    let mut dormant = array![];
-    let mut positions = positions;
-    let mut k: u32 = 0;
-    for pair in pairs {
-        let is_live = match positions.get(0) {
-            Some(p) => *p.unbox() == k,
-            None => false,
-        };
-        if is_live {
-            positions.pop_front().unwrap();
-            live.append(*pair);
-        } else {
-            dormant.append(*pair);
-        }
-        k += 1;
-    }
-    (live, dormant)
 }
 
 /// The [`PairCollider`] of `collider` for the narrow phase (as `collision_inputs`).
@@ -655,7 +551,9 @@ fn with_referenced(
 
 /// One step of a world whose [`ActiveSet`] is [`usable`] (see the module documentation).
 #[inline(never)]
-pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World) -> T {
+pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
+    ref world: World,
+) -> T {
     let params = world.integration_parameters;
     let mut set = world.active_set.unbox();
     world.active_set = BoxTrait::new(Default::default());
@@ -726,8 +624,8 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
             pairs.append((i, j));
         }
         events =
-            compute_contacts_from_scratch::<
-                DefaultDispatcher,
+            compute_contacts_from_scratch_with::<
+                C::Dispatcher, C::Sensors, C::Composites,
             >(
                 ref world.narrow_phase,
                 prediction,
@@ -784,7 +682,9 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
             world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
             dormant = asleep;
         }
-        solve_and_advance_sleeping(
+        solve_and_advance_sleeping_with::<
+            C::Joints,
+        >(
             world.gravity,
             params,
             ref world.bodies,
@@ -800,7 +700,9 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
         // Nothing moves: only the parameters are validated, as the solver stage does.
         let _ = FreeBodySolverTrait::new(params, world.gravity);
     } else {
-        solve_and_advance_sleeping(
+        solve_and_advance_sleeping_with::<
+            C::Joints,
+        >(
             world.gravity,
             params,
             ref world.bodies,
@@ -814,7 +716,12 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: Wo
         );
     }
     let output = Output::finish(
-        events, set.force_events, params.dt, ref world.narrow_phase, ref world.colliders,
+        events,
+        set.force_events,
+        params.dt,
+        ref world.narrow_phase,
+        ref world.colliders,
+        C::Composites::ENABLED,
     );
     if !still_valid {
         if !dormant.is_empty() {

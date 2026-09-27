@@ -1,6 +1,13 @@
 # contract: sierra_felts casm_felts sierra_bytes casm_bytes
-GameStep: 270081 603213 15645629 13251120
-Sink: 278384 624629 16140699 13672650
+GameStep: 270051 603103 15643767 13249242
+Sink: 278344 624458 16138033 13669947
 StateRoundTrip: 10904 32006 563632 672610
-StateStep: 278464 623584 16052492 13686617
+StateStep: 278436 623474 16050860 13684740
 WorldOnly: 8890 25790 447849 602312
+# program: program_felts
+program.full: 565378
+program.basic: 231196
+program.no_joints: 399172
+program.no_sensors: 526992
+program.no_composites: 502402
+program.basic_dispatcher: 557367

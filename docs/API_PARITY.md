@@ -24,7 +24,7 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | pipeline | 77 | 0 | 12 | 69 | 158 | 86.5% |
 | **total** | **1360** | **0** | **480** | **827** | **2667** | **73.9%** |
 
-Cairo-only public items not matched to upstream: **1451**.
+Cairo-only public items not matched to upstream: **1490**.
 
 ## Aabb
 
@@ -5100,6 +5100,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `compute_contacts_dict` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_metered` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_with` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
+- **Alternatives** method `constrain` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives** method `contact_manifold` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_helpers` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_outlined` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
@@ -5111,6 +5112,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `cuboid_cuboid_upstream_sat` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `distance_exhaustive` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
 - **Alternatives** method `distance_witness` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
+- **Alternatives** method `entries` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives** method `find_pairs_sort_and_prune` (`crates/rapier_geometry2d/src/broad_phase/alternatives.cairo`)
 - **Alternatives** method `find_pairs_sorted_x_then_brute` (`crates/rapier_geometry2d/src/broad_phase/alternatives.cairo`)
 - **Alternatives** method `fixed_inv` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
@@ -5122,6 +5124,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `handle_user_changes_propagate` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `intersect_shape_direct` (`crates/rapier2d/src/queries/alternatives.cairo`)
 - **Alternatives** method `intersection_test_from_contacts` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
+- **Alternatives** method `joint_free` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives** method `literal` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
 - **Alternatives** method `local_world_frame` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `midpoint_two_stage` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
@@ -5129,7 +5132,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `point_polygon_projection` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `position_at_time_branch` (`crates/rapier_geometry2d/src/query/nonlinear_shape_cast/alternatives.cairo`)
 - **Alternatives** method `segment_segment_endpoints` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
-- **Alternatives** method `solve` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
+- **Alternatives** method `solve` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives** method `solve_all_manifolds` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `solve_early_return` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
 - **Alternatives** method `solve_jl` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
@@ -5150,6 +5153,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `user_changes_per_body` (`crates/rapier2d/src/pipeline/kinematic/alternatives.cairo`)
 - **Alternatives** method `user_changes_second_walk` (`crates/rapier2d/src/pipeline/kinematic/alternatives.cairo`)
 - **Alternatives** method `warmstart_public_jl` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
+- **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `CORRUPT_FREE_LIST` (`crates/rapier_core/src/data/arena.cairo`)
@@ -5208,11 +5212,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Ball** method `circle_coefficients` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
 - **Ball** method `circle_normal` (`crates/rapier_geometry2d/src/ray/ball.cairo`)
 - **Ball** method `closest_points_ball_convex_polyhedron` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- **Ball** method `closest_points_convex_polyhedron_ball` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- **Ball** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- **Ball** method `compute_local_aabb` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- **Ball** method `contact_ball_convex_polyhedron` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- ... 1251 more
+- ... 1290 more
 
 ## Embedded Rust inventory
 
