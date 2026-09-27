@@ -7,6 +7,11 @@ whether simulation results changed.
 
 **Results:** unchanged since `0.1.0-alpha.6`.
 
+### Notes
+- Correction to `0.1.0-alpha.6`'s notes: the "−1,612 Cairo steps per step" of `BasicStepConfig` was measured on the P3
+  contact probes (`balls8`, `stack5`, `stack10`); the saving scales with the contact pairs — the game measures −551 on
+  a flight step (11,918 → 11,367) and −6,853 on a pile10 impact step (398,167 → 391,314).
+
 ### Added
 - `rapier2d::prelude` exports the body field selectors `BodyPose`, `BodySleeping`, `BodyLinvel`, `BodyAngvel` (for
   `RigidBodySetTrait::get_field`).

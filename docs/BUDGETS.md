@@ -8,6 +8,14 @@ Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 1
 linear scan from ~50 parts (1.87M vs 2.13M gas at 50, 6.80M vs 8.20M at 200). Existing pairs pay +2 steps per pair per
 step for the group check (level windows +107 to +139 steps on ≈ 2M).
 
+## The game on 0.1.0-alpha.6 (slingfall #35, 2026-09-27)
+
+Six levels pass unchanged; Cairo steps −1.9 % to −4.0 % on its 11 goldens; program 582k → 272k felts
+(`step_with_force_events_with::<BasicStepConfig>`). CS2's saving scales with contact pairs: −551 steps on a flight step
+(11,918 → 11,367), −6,853 on a pile10 impact step (398,167 → 391,314). SF1 (the numeric change) on the owner's pile10
+shot (−1022, −63): the score (5300) still wins, but the collapse settles later — 151 ticks instead of 106, 22.0M steps
+instead of 16.1M. `SlingfallSim` contract class 140,568 Sierra felts (1.72× the limit; the in-class path is closed).
+
 ## Program size (CS2 #193, 2026-09-27)
 
 A game-shaped executable's program (felts): full step 565,378; `BasicStepConfig` 231,196 (−59.1 %; no joints −29.4 %,
