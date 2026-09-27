@@ -1,8 +1,8 @@
 use fixed::{FixedTrait, HALF, ONE, TWO, ZERO};
 use glam::Vec2;
-use rapier_geometry2d::mass::MassProperties;
+use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::{
-    HeightFieldTrait, PolylineFlagsTrait, PolylineTrait, Shape, ShapeTrait,
+    CompoundTrait, HeightFieldTrait, PolylineFlagsTrait, PolylineTrait, Shape, ShapeTrait,
 };
 use rapier_testing::opaque;
 use super::ColliderBuilderTrait;
@@ -60,3 +60,32 @@ fn gas_heightfield_10() {
 
 #[test]
 fn gas_baseline() {}
+
+#[test]
+fn test_compound_constructor() {
+    let bar: Shape = rapier_geometry2d::shape::CuboidTrait::new(v(1, 1)).into();
+    let pose = rapier_math::pose2::Pose2 { translation: v(1, 2), ..Default::default() };
+    let parts = array![(Default::default(), bar), (pose, bar)].span();
+    let c = ColliderBuilderTrait::compound(parts).build();
+    let compound = c.shape.as_compound().unwrap();
+    assert_eq!(compound.shapes(), parts);
+    // The sum of the parts' mass properties, as upstream's `from_compound`.
+    let expected = bar.mass_properties(TWO) + bar.mass_properties(TWO).transform_by(pose);
+    assert_eq!(c.shape.mass_properties(TWO), expected);
+    assert!(c.shape.is_composite() && !c.shape.is_convex());
+}
+
+#[test]
+#[should_panic(expected: 'Compound: no part')]
+fn test_compound_constructor_empty() {
+    let _ = ColliderBuilderTrait::compound(array![].span());
+}
+
+#[test]
+fn gas_compound_2() {
+    let bar: Shape = rapier_geometry2d::shape::CuboidTrait::new(v(1, 1)).into();
+    let pose = rapier_math::pose2::Pose2 { translation: v(1, 2), ..Default::default() };
+    let _ = ColliderBuilderTrait::compound(
+        opaque(array![(Default::default(), bar), (pose, bar)].span()),
+    );
+}

@@ -21,9 +21,9 @@ use rapier_core::collider::{
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};
 use rapier_geometry2d::mass::MassProperties;
 use rapier_geometry2d::shape::{
-    BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, HeightFieldTrait, PolylineFlags,
-    PolylineFlagsTrait, PolylineTrait, RoundConvexPolygon, RoundShape, SegmentTrait, Shape,
-    TriangleTrait,
+    BallTrait, CapsuleTrait, CompoundTrait, CuboidTrait, HalfSpaceTrait, HeightFieldTrait,
+    PolylineFlags, PolylineFlagsTrait, PolylineTrait, RoundConvexPolygon, RoundShape, SegmentTrait,
+    Shape, TriangleTrait,
 };
 use rapier_math::pose2::{IDENTITY, Pose2};
 use rapier_math::rot2::Rot2;
@@ -203,6 +203,14 @@ pub impl ColliderBuilderImpl of ColliderBuilderTrait {
     /// * `'HeightField: < 2 heights'`, `'HeightField: scale.x <= 0'`.
     fn heightfield(heights: Span<Fixed>, scale: Vec2) -> ColliderBuilder {
         Self::new(HeightFieldTrait::new(heights, scale).into())
+    }
+
+    /// The compound of `shapes`, each part placed by its pose in the collider's frame (upstream
+    /// `compound`); its mass properties are the sum of its parts'.
+    /// #### Panics
+    /// * `'Compound: no part'`, `'Compound: nested composite'`.
+    fn compound(shapes: Span<(Pose2, Shape)>) -> ColliderBuilder {
+        Self::new(CompoundTrait::new(shapes).into())
     }
 
     /// A disc of radius `radius`.

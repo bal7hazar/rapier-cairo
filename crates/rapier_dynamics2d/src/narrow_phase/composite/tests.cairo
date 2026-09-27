@@ -150,6 +150,76 @@ fn test_group_lead_is_a_touching_manifold() {
     assert_eq!(np.pairs.span().len(), first.len());
 }
 
+/// A body at `pose` on the fixed heightfield of [`scene`], carrying two boxes: one compound
+/// (`compound`) or two plain colliders at the same part poses.
+fn posed_parts(
+    pose: Pose2, compound: bool,
+) -> (RigidBodySet, ColliderSet, Array<crate::narrow_phase::ContactPair>) {
+    let (mut bodies, mut colliders, _, cuboid) = scene(int(20), int(20));
+    let _ = colliders.remove(cuboid, ref bodies);
+    let body = bodies.insert(RigidBodyTrait::dynamic(pose));
+    let box_: Shape = rapier_geometry2d::shape::CuboidTrait::new(v(HALF, HALF / int(2))).into();
+    let p0 = Pose2 { translation: v(-HALF, ZERO), ..Default::default() };
+    let p1 = Pose2 {
+        translation: v(ONE, ZERO), rotation: rapier_math::rot2::Rot2 { re: ONE, im: ZERO },
+    };
+    if compound {
+        let _ = colliders
+            .insert_with_parent(
+                ColliderBuilderTrait::compound(array![(p0, box_), (p1, box_)].span()).build(),
+                body,
+                ref bodies,
+            );
+    } else {
+        for p in array![p0, p1] {
+            let _ = colliders
+                .insert_with_parent(
+                    ColliderBuilderTrait::new(box_).position_wrt_parent(p).build(),
+                    body,
+                    ref bodies,
+                );
+        }
+    }
+    let mut np = NarrowPhaseTrait::new();
+    let _ = step(ref np, ref bodies, ref colliders);
+    let mut out = array![];
+    for pair in np.pairs.span() {
+        out.append(*pair);
+    }
+    (bodies, colliders, out)
+}
+
+#[test]
+fn test_compound_solver_contacts_in_world_space() {
+    // The body turned by a small angle, resting on the flat ground: each part's manifold is in
+    // the part's frame, its solver contacts in world space; they equal those of the same boxes as
+    // plain colliders (collider pose `body * part`).
+    let turned = Pose2 {
+        translation: v(FixedTrait::from_ratio(1, 3), FixedTrait::from_ratio(1, 8)),
+        rotation: rapier_math::rot2::Rot2 {
+            re: Fixed { raw: 4294443009 }, im: Fixed { raw: 67106816 },
+        },
+    };
+    let (_, _, compound) = posed_parts(turned, true);
+    let (_, _, plain) = posed_parts(turned, false);
+    let mut compound_contacts = array![];
+    for pair in compound.span() {
+        let m = *pair.manifold;
+        if m.data.num_solver_contacts != 0 {
+            compound_contacts.append((m.data.normal, m.data.solver_contacts));
+        }
+    }
+    let mut plain_contacts = array![];
+    for pair in plain.span() {
+        let m = *pair.manifold;
+        if m.data.num_solver_contacts != 0 {
+            plain_contacts.append((m.data.normal, m.data.solver_contacts));
+        }
+    }
+    assert!(compound_contacts.len() >= 2);
+    assert_eq!(compound_contacts, plain_contacts);
+}
+
 #[test]
 fn gas_baseline() {}
 
