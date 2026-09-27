@@ -11,6 +11,11 @@
 //!   point of the contact family, as GJK does, so they are not compared to upstream's);
 //! * hit / miss and status: equal, except the documented cases below.
 //!
+//! CN1's start contacts (the cases after [`CC1_CASES`], `test_shape_cast_starts_golden`): shape 2
+//! `2^-16` from a face of shape 1, into, along and away from it, every answer through the contact
+//! geometry at the start: hit / miss, status and normals equal (`START_NORMAL` = 0), time of impact
+//! within `GJK_TOI`.
+//!
 //! Ambiguous regimes: `touching` and `grazing` (first contact corner against corner or face on
 //! face, where the normal is any member of a family) compare the hit, time and status only.
 //! Documented deviations:
@@ -86,13 +91,17 @@ const NORMAL: u64 = 0x10000;
 const SURFACE: u64 = 4096;
 const UPSTREAM_CONTACT_FAILURES: u32 = 16;
 const SEGMENT_NORMAL_SIGN: u32 = 1;
+/// CC1's cases (28 pairs, five regimes); CN1's start contacts follow.
+const CC1_CASES: u32 = 140;
+/// CN1: the start normals of face contacts, exact as upstream's (raw units; measured maximum 0).
+const START_NORMAL: u64 = 0;
 
 #[test]
 fn test_shape_casts_golden() {
     let opts = shape_casts::OPTIONS.span();
     let mut index: u32 = 0;
     let (mut contact_failures, mut segment_sign, mut compared): (u32, u32, u32) = (0, 0, 0);
-    for c in shape_casts::cases() {
+    for c in shape_casts::cases().slice(0, CC1_CASES) {
         let (s1, s2) = (shape(*c.shape1), shape(*c.shape2));
         let answers = (*c.answers).span();
         let mut k = 0;
@@ -168,4 +177,49 @@ fn test_shape_casts_golden() {
     assert_eq!(contact_failures, UPSTREAM_CONTACT_FAILURES);
     assert_eq!(segment_sign, SEGMENT_NORMAL_SIGN);
     assert!(compared > 300);
+}
+
+#[test]
+fn test_shape_cast_starts_golden() {
+    let opts = shape_casts::OPTIONS.span();
+    let all = shape_casts::cases();
+    let (mut hits, mut worst): (u32, u64) = (0, 0);
+    for c in all.slice(CC1_CASES, all.len() - CC1_CASES) {
+        let (s1, s2) = (shape(*c.shape1), shape(*c.shape2));
+        let answers = (*c.answers).span();
+        let mut k = 0;
+        while k != 5 {
+            let expected: ShapeCastHitRaw = *answers[k];
+            let got = cast_shapes(
+                pose(*c.pos1), v(*c.vel1), s1, pose(*c.pos2), v(*c.vel2), s2, options(*opts[k]),
+            )
+                .unwrap();
+            assert!(got.is_some() == expected.some, "{} opt {} hit {:?}", *c.id, k, got);
+            if let Some(h) = got {
+                hits += 1;
+                assert!(
+                    abs_diff(h.time_of_impact.raw, expected.toi) <= GJK_TOI,
+                    "{} opt {} toi {:?}",
+                    *c.id,
+                    k,
+                    h.time_of_impact,
+                );
+                assert_eq!(status_index(h.status), expected.status, "{} opt {}", *c.id, k);
+                let d = vdiff(h.normal1, expected.normal1);
+                let d2 = vdiff(h.normal2, expected.normal2);
+                let d = if d2 > d {
+                    d2
+                } else {
+                    d
+                };
+                assert!(d <= START_NORMAL, "{} opt {} normal {:?}", *c.id, k, h);
+                if d > worst {
+                    worst = d;
+                }
+            }
+            k += 1;
+        }
+    }
+    assert!(hits > 40);
+    println!("shape cast starts: {} hits, worst normal {} ulps", hits, worst);
 }

@@ -12,6 +12,17 @@ whether simulation results changed.
   contact probes (`balls8`, `stack5`, `stack10`); the saving scales with the contact pairs — the game measures −551 on
   a flight step (11,918 → 11,367) and −6,853 on a pile10 impact step (398,167 → 391,314).
 
+### Changed
+- **Query results (numeric change; the step and CCD are unchanged):** a linear shape cast between support-map shapes
+  that starts touching a face, or within `target_distance` of it (every answer with `t < 1e-4` that reports the
+  contact geometry, on both `stop_at_penetration` paths), now reports the face's exact normal as upstream, where the
+  start witness normal was tilted by the rounding of the closest pair (10 to 20 raw for a ball on a floor, up to 900
+  for two boxes 0.01 apart, 327,680 for two boxes 2^-16 apart). Its witnesses move along the new normal by up to the
+  same amount times the radii; times of impact and statuses are unchanged. `KinematicCharacterController::move_shape`
+  follows: a move exactly parallel to the ground no longer counts as a ground hit (`character_moves/wall_slide` now
+  matches rapier-rs: one collision fewer, `1e-4` lower), and its golden's worst error drops from 900 to 3 raw. Touching
+  starts cost +684 Cairo steps per cast; other casts are unchanged (CN1).
+
 ### Added
 - Controllers (`rapier2d::control`, in the prelude): `PdController`, `PidController`, `PdErrors` and the kinematic
   character controller (`KinematicCharacterController::move_shape` → `EffectiveCharacterMovement` + `CharacterCollision`s,

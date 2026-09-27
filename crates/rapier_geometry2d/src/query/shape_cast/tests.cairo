@@ -11,9 +11,9 @@ use crate::shape::{
     BallTrait, CapsuleTrait, ConvexPolygonTrait, CuboidTrait, HalfSpaceTrait, RoundShapeTrait,
     SegmentTrait, Shape, TriangleTrait,
 };
-use super::alternatives::{cast_conservative_advancement, cso_cast_clipped};
-use super::support_map::cso_cast;
-use super::super::support_map::{local_core, transformed};
+use super::alternatives::{cast_conservative_advancement, cso_cast_clipped, on_face_every_face};
+use super::support_map::{cso_cast, on_face};
+use super::super::support_map::{core_witness, local_core, transformed};
 use super::{
     ShapeCastHit, ShapeCastHitTrait, ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
     cast_shapes, cast_shapes_local, cast_shapes_support_map_support_map,
@@ -488,4 +488,156 @@ fn gas_cast_shapes_world_cuboid_cuboid() {
         opaque(cuboid()),
         opaque(Default::default()),
     );
+}
+
+/// A wide floor (20 x 1): long faces make the rounding of a projection on them visible.
+fn floor() -> Shape {
+    CuboidTrait::new(v(int(10), HALF)).into()
+}
+
+/// The character-shaped start pairs: `(id, shape1, shape2, pos12)`, shape 2 resting on (or within
+/// `START_TD` of) a face of shape 1, at an `x` that rounds.
+fn start_pairs() -> Array<(felt252, Shape, Shape, Pose2)> {
+    let x = ratio(1, 3);
+    array![
+        ('ball-floor', floor(), ball(), at(x, ONE)),
+        ('cub-floor', floor(), cuboid(), at(x, ONE + ratio(1, 400))),
+        ('floor-ball', ball(), floor(), at(-x, -ONE)),
+        ('cap-floor', floor(), capsule(), at(x, ratio(3, 4) + ratio(1, 400))),
+        ('rcub-floor', floor(), round_cuboid(), at(x, ratio(17, 20))),
+        ('tri-floor', floor(), triangle(), at(x, ONE + ratio(1, 400))),
+        ('ball-wall', floor(), ball(), at(int(10) + HALF + ratio(1, 400), ratio(1, 7))),
+        ('ball-turned', floor(), ball(), Pose2Trait::new(v(ratio(-1, 3), ONE), r30())),
+    ]
+}
+
+/// The target distance of the start probes (KC1's offset: `0.01` of a 0.5 half-height).
+const START_TD: Fixed = Fixed { raw: 21474836 };
+
+/// A start on a face: the start witness normal is the face's exact normal, on both
+/// `stop_at_penetration` paths, and a move exactly along the face is not a hit without stopping
+/// at penetration (upstream's `normal · vel >= 0`).
+#[test]
+fn test_start_face_normal_exact() {
+    let up = v(ZERO, ONE);
+    let expected = array![up, up, -up, up, up, up, v(ONE, ZERO), up];
+    let mut expected = expected.span();
+    for (id, g1, g2, pos12) in start_pairs() {
+        let n = *expected.pop_front().unwrap();
+        let into = v(ratio(1, 3), ZERO) - n;
+        let along = v(-n.y, n.x);
+        let stop = options(MAX, START_TD, true, true);
+        let h = cast_shapes_support_map_support_map(pos12, into, g1, g2, stop).expect(id);
+        assert_eq!(h.time_of_impact, ZERO, "{}", id);
+        assert_eq!(h.normal1, n, "{} normal1", id);
+        let n2 = -pos12.rotation.inverse_rotate(n);
+        assert_eq!(h.normal2, n2, "{} normal2", id);
+        let go = options(MAX, START_TD, false, true);
+        let h = cast_shapes_support_map_support_map(pos12, into, g1, g2, go).expect(id);
+        assert_eq!(h.normal1, n, "{} normal1 (no stop)", id);
+        let h = cast_shapes_support_map_support_map(pos12, along, g1, g2, go);
+        assert!(h.is_none(), "{} parallel move hit {:?}", id, h);
+    }
+}
+
+fn probe_start(index: u32, touching: bool) {
+    let (_, g1, g2, pos12) = *start_pairs().span()[index];
+    let pos12 = if touching {
+        pos12
+    } else {
+        Pose2Trait::new(pos12.translation + v(ZERO, TWO), pos12.rotation)
+    };
+    let _ = cast_shapes_support_map_support_map(
+        opaque(pos12),
+        opaque(v(ratio(1, 3), -ONE)),
+        opaque(g1),
+        opaque(g2),
+        opaque(options(MAX, START_TD, false, true)),
+    );
+}
+
+#[test]
+fn gas_cast_start_touching_ball_floor() {
+    probe_start(0, true);
+}
+
+#[test]
+fn gas_cast_start_touching_cuboid_floor() {
+    probe_start(1, true);
+}
+
+#[test]
+fn gas_cast_start_touching_capsule_floor() {
+    probe_start(3, true);
+}
+
+#[test]
+fn gas_cast_start_touching_triangle_floor() {
+    probe_start(5, true);
+}
+
+#[test]
+fn gas_cast_start_apart_ball_floor() {
+    probe_start(0, false);
+}
+
+#[test]
+fn gas_cast_start_apart_cuboid_floor() {
+    probe_start(1, false);
+}
+
+#[test]
+fn gas_cast_start_apart_capsule_floor() {
+    probe_start(3, false);
+}
+
+#[test]
+fn gas_cast_start_apart_triangle_floor() {
+    probe_start(5, false);
+}
+
+/// The two start snaps agree on every start pair (and its apart variant).
+#[test]
+fn test_on_face_alternative_agrees() {
+    for (id, g1, g2, pos12) in start_pairs() {
+        let core1 = local_core(g1);
+        for dy in array![ZERO, TWO] {
+            let pos = Pose2Trait::new(pos12.translation + v(ZERO, dy), pos12.rotation);
+            let core2 = transformed(local_core(g2), pos);
+            let w = core_witness(core1, core2);
+            assert_eq!(on_face(core1, core2, w), on_face_every_face(core1, core2, w), "{}", id);
+        }
+    }
+}
+
+fn probe_on_face(index: u32, every: bool) {
+    let (_, g1, g2, pos12) = *start_pairs().span()[index];
+    let core1 = local_core(opaque(g1));
+    let core2 = transformed(local_core(opaque(g2)), opaque(pos12));
+    let w = core_witness(core1, core2);
+    let _ = if every {
+        on_face_every_face(core1, core2, w)
+    } else {
+        on_face(core1, core2, w)
+    };
+}
+
+#[test]
+fn gas_on_face_cuboid_floor() {
+    probe_on_face(1, false);
+}
+
+#[test]
+fn gas_on_face_every_face_cuboid_floor() {
+    probe_on_face(1, true);
+}
+
+#[test]
+fn gas_on_face_floor_ball() {
+    probe_on_face(2, false);
+}
+
+#[test]
+fn gas_on_face_every_face_floor_ball() {
+    probe_on_face(2, true);
 }

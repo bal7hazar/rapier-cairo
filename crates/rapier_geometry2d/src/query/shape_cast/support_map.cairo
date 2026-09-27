@@ -417,7 +417,7 @@ pub fn cast_shapes_support_map_support_map(
     }
     let geometry = options.compute_impact_geometry_on_penetration || !options.stop_at_penetration;
     if geometry && time_of_impact < TOI_AT_START {
-        let w = start.unwrap_or_else(|| core_witness(core1, core2));
+        let w = on_face(core1, core2, start.unwrap_or_else(|| core_witness(core1, core2)));
         if !options.stop_at_penetration
             && dot_wide(w.normal1.x, w.normal1.y, vel12.x, vel12.y) >= 0 {
             return None;
@@ -470,6 +470,86 @@ pub fn cast_shapes_support_map_support_map(
                 },
             )
         },
+    }
+}
+
+/// The face of `core` whose outward normal (negated when `flip`) is closest to `n`: `(that
+/// normal, the face)`, `None` when no axis leans towards `n`.
+fn closest_face(core: Core, n: Vec2, flip: bool) -> Option<(Vec2, Segment)> {
+    let mut best = ZERO;
+    let mut answer: Option<(Vec2, Segment)> = None;
+    let mut faces = core.faces;
+    for u in core.axes {
+        let f = *faces.pop_front().unwrap();
+        let m = if flip {
+            -*u
+        } else {
+            *u
+        };
+        let d = dot(m, n);
+        if d > best {
+            best = d;
+            answer = Some((m, f));
+        }
+    }
+    answer
+}
+
+/// Whether `p` lies in the outer slab of the face `f` of normal `m`: strictly above its line
+/// (`height > 0`) and within four ulps of its span.
+pub fn in_slab(m: Vec2, f: Segment, p: Vec2, height: Fixed) -> bool {
+    if height <= ZERO {
+        return false;
+    }
+    let e = along(m);
+    let s = dot(p - f.a, e);
+    let len = dot(f.b - f.a, e);
+    let (lo, hi) = if len < ZERO {
+        (len, ZERO)
+    } else {
+        (ZERO, len)
+    };
+    s >= lo - SLACK && s <= hi + SLACK
+}
+
+/// The start witness `w` of the two cores with the exact normal of the face it meets (CN1).
+///
+/// The disjoint branch of `core_witness` normalises the rounded closest pair: on a long face the
+/// rounding of the projection tilts the normal by a few ulps over the core distance (10 to 20
+/// raw for a ball on a floor, up to 900 for two boxes 0.01 apart), where upstream's GJK answers
+/// the face normal exactly. The closest point of one core lies in the outer slab of a face of the
+/// other exactly when the closest pair meets that face, along its normal: the face of core1
+/// closest in direction to `w.normal1` is tested with core2's point, then the face of core2 with
+/// core1's. On a match the normal is the face's, the points are pushed out by the radii along it
+/// and the distance is kept. Overlapping cores (the SAT axis already) and the other pairs (vertex
+/// against vertex) keep `w`.
+pub fn on_face(core1: Core, core2: Core, w: Witness) -> Witness {
+    let (r1, r2) = (core1.radius, core2.radius);
+    if w.dist + r1 + r2 <= ZERO {
+        return w;
+    }
+    // Exact: `point1 = p1 + n r1` was rounded once, the same product is subtracted.
+    let n = w.normal1;
+    let p1 = w.point1 - n.mul_scalar(r1);
+    let p2 = w.point2 + n.mul_scalar(r2);
+    let mut normal: Option<Vec2> = None;
+    if let Some((m, f)) = closest_face(core1, n, false) {
+        if in_slab(m, f, p2, dot(p2 - f.a, m)) {
+            normal = Some(m);
+        }
+    }
+    if normal.is_none() {
+        if let Some((m, f)) = closest_face(core2, n, true) {
+            if in_slab(m, f, p1, dot(f.a - p1, m)) {
+                normal = Some(m);
+            }
+        }
+    }
+    match normal {
+        Some(m) => Witness {
+            point1: p1 + m.mul_scalar(r1), point2: p2 - m.mul_scalar(r2), normal1: m, dist: w.dist,
+        },
+        None => w,
     }
 }
 

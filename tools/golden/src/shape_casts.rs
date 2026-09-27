@@ -2,7 +2,8 @@
 //!
 //! * `shape_casts`: `query::cast_shapes` (linear motions) on every pair of the closed shape set
 //!   (SH1's triangle and round shapes included) and the unsupported half-space pair, five regimes
-//!   each, answered under five option sets ([`OPTIONS`]);
+//!   each, answered under five option sets ([`OPTIONS`]), then CN1's start contacts
+//!   (`crate::cn1`);
 //! * `nonlinear_shape_casts`: `query::cast_shapes_nonlinear` (rotating motions) on the same pairs,
 //!   five regimes each, with `stop_at_penetration` true and false;
 //! * `sweep_toi`: `query::sweep_toi::sweep_time_of_impact` (the swept proxies of Rapier's CCD) on
@@ -208,7 +209,7 @@ fn status(s: ShapeCastStatus) -> &'static str {
     }
 }
 
-fn hit_json(hit: Option<ShapeCastHit>) -> Value {
+pub(crate) fn hit_json(hit: Option<ShapeCastHit>) -> Value {
     match hit {
         None => Value::Null,
         Some(h) => json!({
@@ -222,7 +223,7 @@ fn hit_json(hit: Option<ShapeCastHit>) -> Value {
     }
 }
 
-fn options(o: &Opt) -> ShapeCastOptions {
+pub(crate) fn options(o: &Opt) -> ShapeCastOptions {
     ShapeCastOptions {
         max_time_of_impact: o.1.map(|r| Q(r).f()).unwrap_or(f64::MAX),
         target_distance: Q(o.2).f(),
@@ -389,7 +390,7 @@ pub fn shape_casts() -> Value {
     json!({
         "family": "shape_casts",
         "options": OPTIONS.iter().map(options_json).collect::<Vec<_>>(),
-        "cases": cases().iter().map(linear).collect::<Vec<_>>(),
+        "cases": cases().iter().map(linear).chain(crate::cn1::start_cases()).collect::<Vec<_>>(),
     })
 }
 
