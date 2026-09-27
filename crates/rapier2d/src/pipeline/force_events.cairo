@@ -6,8 +6,9 @@ use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent, ContactForceEventTrait};
-use rapier_dynamics2d::narrow_phase::composite::group_len;
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
+use rapier_geometry2d::contact::ContactManifold;
+use rapier_geometry2d::shape::ShapeTrait;
 
 
 /// Specialize only the return shape: both modes execute the same stages and event bookkeeping.
@@ -111,7 +112,7 @@ pub(crate) fn gas_wallet() {
     }
 }
 
-fn threshold(collider: Collider) -> Fixed {
+pub(crate) fn threshold(collider: Collider) -> Fixed {
     if collider.flags.active_events.contains(CONTACT_FORCE_EVENTS) {
         collider.contact_force_event_threshold
     } else {
@@ -119,60 +120,122 @@ fn threshold(collider: Collider) -> Fixed {
     }
 }
 
-/// The force event of the composite group of `len` entries starting at `pairs[start]` (upstream
+/// Running sums of a composite group's force event (see [`group_event`]).
+#[derive(Copy, Drop)]
+struct GroupForce {
+    total_force: Vec2,
+    total: Fixed,
+    max: Fixed,
+    max_direction: Vec2,
+    any: bool,
+}
+
+/// Adds the impulses of manifold `m` to `acc` when it has solver contacts (and solver flags).
+#[inline(always)]
+fn accumulate(ref acc: GroupForce, m: ContactManifold) {
+    if m.data.num_solver_contacts == 0 || m.data.solver_flags.bits == 0 {
+        return;
+    }
+    acc.any = true;
+    let [a, b] = m.points;
+    let first = if m.num_points != 0 {
+        a.data.impulse
+    } else {
+        ZERO
+    };
+    let second = if m.num_points > 1 {
+        b.data.impulse
+    } else {
+        ZERO
+    };
+    acc.total = acc.total + first + second;
+    acc.total_force = acc.total_force + m.data.normal.mul_scalar(first + second);
+    let strongest = first.max(second);
+    if strongest > acc.max {
+        acc.max = strongest;
+        acc.max_direction = m.data.normal;
+    }
+}
+
+/// The force event of the composite group made of `lead` and its `members` (upstream
 /// `ContactForceEvent::from_contact_pair` over the pair's manifolds): the manifolds with solver
 /// contacts (and solver flags) contribute their points' impulses along their normal; the strongest
 /// point gives `max_force_*`. `None` when no manifold contributes (the pair is not in contact).
-fn group_event(
-    dt: Fixed, inv_dt: Fixed, pairs: Span<ContactPair>, start: u32, len: u32,
+pub(crate) fn group_event(
+    inv_dt: Fixed, lead: @ContactPair, members: Span<ContactPair>,
 ) -> Option<ContactForceEvent> {
-    let lead = pairs.at(start);
-    let mut total_force: Vec2 = Default::default();
-    let mut total = ZERO;
-    let mut max = ZERO;
-    let mut max_direction: Vec2 = Default::default();
-    let mut any = false;
-    let mut i = start;
-    while i != start + len {
-        let m = *pairs.at(i).manifold;
-        i += 1;
-        if m.data.num_solver_contacts == 0 || m.data.solver_flags.bits == 0 {
-            continue;
-        }
-        any = true;
-        let [a, b] = m.points;
-        let first = if m.num_points != 0 {
-            a.data.impulse
-        } else {
-            ZERO
-        };
-        let second = if m.num_points > 1 {
-            b.data.impulse
-        } else {
-            ZERO
-        };
-        total = total + first + second;
-        total_force = total_force + m.data.normal.mul_scalar(first + second);
-        let strongest = first.max(second);
-        if strongest > max {
-            max = strongest;
-            max_direction = m.data.normal;
-        }
+    let mut acc = GroupForce {
+        total_force: Default::default(),
+        total: ZERO,
+        max: ZERO,
+        max_direction: Default::default(),
+        any: false,
+    };
+    accumulate(ref acc, *lead.manifold);
+    for member in members {
+        accumulate(ref acc, *member.manifold);
     }
-    if !any {
+    if !acc.any {
         return None;
     }
     Some(
         ContactForceEvent {
             collider1: *lead.collider1,
             collider2: *lead.collider2,
-            total_force: total_force.mul_scalar(inv_dt),
-            total_force_magnitude: total * inv_dt,
-            max_force_direction: max_direction,
-            max_force_magnitude: max * inv_dt,
+            total_force: acc.total_force.mul_scalar(inv_dt),
+            total_force_magnitude: acc.total * inv_dt,
+            max_force_direction: acc.max_direction,
+            max_force_magnitude: acc.max * inv_dt,
             started: *lead.event_status.bits & 2 == 0,
         },
     )
+}
+
+/// The entries of `rest` that follow `lead` in its composite group (same collider pair).
+fn members_len(lead: @ContactPair, rest: Span<ContactPair>) -> u32 {
+    let mut n: u32 = 0;
+    for next in rest {
+        if !(*next.collider1 == *lead.collider1 && *next.collider2 == *lead.collider2) {
+            break;
+        }
+        n += 1;
+    }
+    n
+}
+
+/// The composite branch of [`collect`] for the enabled pair `pair`, whose collider has a
+/// composite shape, followed by `rest`: when its group has more than one entry, appends the
+/// group's event (if above `limit`), the lead with its updated status and the members, advances
+/// `rest` past them and returns `true`; `false` (nothing done) for a one-entry group, which takes
+/// the convex path.
+#[inline(never)]
+pub(crate) fn composite_group(
+    inv_dt: Fixed,
+    limit: Fixed,
+    pair: ContactPair,
+    ref rest: Span<ContactPair>,
+    ref pairs: Array<ContactPair>,
+    ref events: Array<ContactForceEvent>,
+) -> bool {
+    let n = members_len(@pair, rest);
+    if n == 0 {
+        return false;
+    }
+    let members = rest.slice(0, n);
+    rest = rest.slice(n, rest.len() - n);
+    let mut pair = pair;
+    match group_event(inv_dt, @pair, members) {
+        Some(event) => if event.total_force_magnitude > limit {
+            events.append(event);
+            pair.event_status.bits = pair.event_status.bits | 2;
+        } else {
+            pair.event_status.bits = pair.event_status.bits & 253;
+        },
+        None => { pair.event_status.bits = pair.event_status.bits & 253; },
+    }
+    pairs.append(pair);
+    pairs.append_span(members);
+    true
 }
 
 /// Emits normal-force events after impulse writeback, preserving the collision-event bit.
@@ -181,6 +244,11 @@ fn group_event(
 /// Only enabled sides contribute thresholds (minimum when both enable); strict `>`.
 /// `dt == 0` means zero force, as upstream's safe inverse. Division rounds nearest-even.
 /// Panics on fixed overflow. Called only when a collider has enabled force events.
+///
+/// Cost (RG1): the loop is `0.1.0-alpha.4`'s, plus a composite-shape test on the enabled pairs;
+/// at the first enabled pair with a composite collider it hands the rest of the list to the
+/// group-aware [`collect_groups`] (out of line), so a world without composite colliders pays no
+/// group bookkeeping.
 pub fn collect(
     dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
 ) -> Array<ContactForceEvent> {
@@ -191,72 +259,100 @@ pub fn collect(
     };
     let mut events = array![];
     let mut pairs = array![];
-    let span = narrow.pairs.span();
-    let mut k: u32 = 0;
-    // Entries left in the current composite group (their force is the lead's event).
-    let mut members: u32 = 0;
-    for old in span {
+    let mut rest = narrow.pairs.span();
+    let mut composite = false;
+    while let Some(old) = rest.pop_front() {
         let mut pair = *old;
-        k += 1;
-        if members != 0 {
-            members -= 1;
-            pairs.append(pair);
-            continue;
-        }
-        let group = group_len(span, k - 1);
         let co1 = colliders.get(pair.collider1).unwrap();
         let co2 = colliders.get(pair.collider2).unwrap();
         if (co1.flags.active_events | co2.flags.active_events).contains(CONTACT_FORCE_EVENTS) {
+            if co1.shape.is_composite() || co2.shape.is_composite() {
+                composite = true;
+                break;
+            }
             let limit = threshold(co1).min(threshold(co2));
-            if group != 1 {
-                // SH2a: one event per collider pair, over every manifold of the group.
-                members = group - 1;
-                match group_event(dt, inv_dt, span, k - 1, group) {
-                    Some(event) => if event.total_force_magnitude > limit {
-                        events.append(event);
-                        pair.event_status.bits = pair.event_status.bits | 2;
-                    } else {
-                        pair.event_status.bits = pair.event_status.bits & 253;
-                    },
-                    None => { pair.event_status.bits = pair.event_status.bits & 253; },
-                }
-                pairs.append(pair);
-                continue;
-            }
-            let magnitude = if pair.manifold.data.num_solver_contacts == 0
-                || pair.manifold.data.solver_flags.bits == 0 {
-                ZERO
-            } else {
-                let [a, b] = pair.manifold.points;
-                let first = if pair.manifold.num_points != 0 {
-                    a.data.impulse
-                } else {
-                    ZERO
-                };
-                let second = if pair.manifold.num_points > 1 {
-                    b.data.impulse
-                } else {
-                    ZERO
-                };
-                (first + second) * inv_dt
-            };
-            if magnitude > limit
-                && pair.manifold.data.num_solver_contacts != 0
-                && pair.manifold.data.solver_flags.bits != 0 {
-                events.append(ContactForceEventTrait::from_contact_pair(dt, @pair, magnitude));
-                pair.event_status.bits = pair.event_status.bits | 2;
-            } else {
-                pair.event_status.bits = pair.event_status.bits & 253;
-            }
-        } else {
-            members = group - 1;
+            convex_event(dt, inv_dt, limit, ref pair, ref events);
         }
         // Upstream visits only enabled force-event pairs. Preserve inactive bookkeeping,
         // including when some unrelated collider keeps the global collection pass enabled.
         pairs.append(pair);
     }
+    if composite {
+        // Back to the composite pair: `rest` starts after it.
+        let all = narrow.pairs.span();
+        let start = all.len() - rest.len() - 1;
+        collect_groups(
+            dt, inv_dt, all.slice(start, rest.len() + 1), ref pairs, ref events, ref colliders,
+        );
+    }
     narrow.pairs = pairs;
     events
+}
+
+/// The force event of the one-entry pair `pair`, if its force is above `limit`, and its status
+/// bit (the convex path of [`collect`] and [`collect_groups`]).
+#[inline(always)]
+pub(crate) fn convex_event(
+    dt: Fixed,
+    inv_dt: Fixed,
+    limit: Fixed,
+    ref pair: ContactPair,
+    ref events: Array<ContactForceEvent>,
+) {
+    let magnitude = if pair.manifold.data.num_solver_contacts == 0
+        || pair.manifold.data.solver_flags.bits == 0 {
+        ZERO
+    } else {
+        let [a, b] = pair.manifold.points;
+        let first = if pair.manifold.num_points != 0 {
+            a.data.impulse
+        } else {
+            ZERO
+        };
+        let second = if pair.manifold.num_points > 1 {
+            b.data.impulse
+        } else {
+            ZERO
+        };
+        (first + second) * inv_dt
+    };
+    if magnitude > limit
+        && pair.manifold.data.num_solver_contacts != 0
+        && pair.manifold.data.solver_flags.bits != 0 {
+        events.append(ContactForceEventTrait::from_contact_pair(dt, @pair, magnitude));
+        pair.event_status.bits = pair.event_status.bits | 2;
+    } else {
+        pair.event_status.bits = pair.event_status.bits & 253;
+    }
+}
+
+/// [`collect`] from the entry `rest[0]` on, composite groups included: appends to `pairs` and
+/// `events`. A disabled composite group's entries go through the loop one by one, each disabled
+/// and left unchanged.
+#[inline(never)]
+fn collect_groups(
+    dt: Fixed,
+    inv_dt: Fixed,
+    rest: Span<ContactPair>,
+    ref pairs: Array<ContactPair>,
+    ref events: Array<ContactForceEvent>,
+    ref colliders: ColliderSet,
+) {
+    let mut rest = rest;
+    while let Some(old) = rest.pop_front() {
+        let mut pair = *old;
+        let co1 = colliders.get(pair.collider1).unwrap();
+        let co2 = colliders.get(pair.collider2).unwrap();
+        if (co1.flags.active_events | co2.flags.active_events).contains(CONTACT_FORCE_EVENTS) {
+            let limit = threshold(co1).min(threshold(co2));
+            if (co1.shape.is_composite() || co2.shape.is_composite())
+                && composite_group(inv_dt, limit, pair, ref rest, ref pairs, ref events) {
+                continue;
+            }
+            convex_event(dt, inv_dt, limit, ref pair, ref events);
+        }
+        pairs.append(pair);
+    }
 }
 
 #[cfg(test)]
@@ -442,3 +538,6 @@ mod tests {
 
 #[cfg(test)]
 mod alternatives;
+
+#[cfg(test)]
+mod collect_tests;
