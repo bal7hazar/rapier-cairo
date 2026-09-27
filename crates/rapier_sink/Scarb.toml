@@ -19,6 +19,7 @@ starknet = "2.19.4"
 [dev-dependencies]
 snforge_std.workspace = true
 assert_macros.workspace = true
+rapier_testing.workspace = true
 
 [[target.starknet-contract]]
 sierra = true

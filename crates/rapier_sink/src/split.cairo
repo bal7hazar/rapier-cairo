@@ -96,7 +96,6 @@ pub mod BasicGameStep {
 #[starknet::contract]
 pub mod ContactClass {
     use rapier2d::dispatcher::BasicShapesDispatcher;
-    use rapier2d::pipeline::config::ContactDispatcher;
     use rapier2d::prelude::{Fixed, Pose2, Shape};
     use rapier_geometry2d::contact::ContactManifold;
 

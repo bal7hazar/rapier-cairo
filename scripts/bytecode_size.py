@@ -63,6 +63,9 @@ PROGRAMS_PACKAGE = "rapier_sink_programs"
 PROGRAMS = ["full", "basic", "no_joints", "no_sensors", "no_composites", "basic_dispatcher"]
 PROGRAM_HEADER = "# program: program_felts"
 PROGRAM_PREFIX = "program."
+# The workspace crates `crates/rapier_sink/src` uses (its `[dependencies]`), as path dependencies of
+# the attribution's temporary package.
+SINK_CRATES = ["rapier2d", "rapier_geometry2d"]
 
 # Starknet limits. Source: https://docs.starknet.io/learn/cheatsheets/chain-info (Starknet v0.14.2
 # on Mainnet, v0.14.3 on Sepolia, read 2026-09-21 by glam-cairo R1) and the sequencer that
@@ -267,7 +270,7 @@ def temp_package(work, strategy):
     shutil.copytree(ROOT / "crates" / PACKAGE / "src", work / "src")
     pins = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]
     deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam")]
-    deps.append(f'rapier2d = {{ path = "{(ROOT / "crates" / "rapier2d").as_posix()}" }}')
+    deps += [f'{c} = {{ path = "{(ROOT / "crates" / c).as_posix()}" }}' for c in SINK_CRATES]
     cairo = f"\n[cairo]\ninlining-strategy = {strategy_toml(strategy)}\n" if strategy else ""
     (work / "Scarb.toml").write_text(
         f'[package]\nname = "{PACKAGE}"\nversion = "0.1.0"\nedition = "2024_07"\n\n'
