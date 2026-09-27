@@ -12,8 +12,8 @@ up); CC1's report (#180) and ADR 0001 entries 30–32 (exact Minkowski ray-cast 
 ## 2. Scope (file allowlist)
 `crates/rapier_geometry2d/src/query/{shape_cast.cairo,shape_cast/**,support_map.cairo,support_map/**}`, their tests,
 `crates/rapier2d/tests/control_golden.cairo` (re-judge `wall_slide` strictly), the harness `tools/golden/src/**` only to
-add start-contact cases to the `shape_casts` family in a new file (existing vectors byte-identical), and the snapshots
-that move. Forbidden: the step, CCD's sweep (`query/sweep/**`: read-only unless the same defect lives there — then say so
+add start-contact cases to the `shape_casts` family in a new file (existing vectors byte-identical), `CHANGELOG.md`
+(one entry under `## Unreleased`, see §3), and the snapshots that move. Forbidden: the step, CCD's sweep (`query/sweep/**`: read-only unless the same defect lives there — then say so
 under Escalations), `Scarb.toml`/`lib.cairo`.
 
 ## 3. Expected result
@@ -23,12 +23,21 @@ polygon faces, round shapes), the start witness normal is the exact face normal,
 its band or improves. Queries only: the step and CCD results do not change (prove it: P3, level, game-shaped probes and
 the CCD golden scenes identical in results and exact Cairo steps; `gas/bytecode.size`'s `program.*` unchanged).
 
+Programme conditions (decision 2026-09-27), all in the PR:
+1. Step untouched: before / after table of the exact Cairo steps and results of every step probe (P3 contact scenes,
+   level windows, `game_path` `steps_game_*`) and the CCD scenes, all identical; `BasicStepConfig` program size identical.
+2. Cast cost: before / after exact Cairo steps of the cast probes, touching **and** non-touching starts, per shape pair.
+   If the exact normal costs steps on non-touching casts, say so first thing under Escalations with the figure (parity
+   yields only when it costs steps: the orchestrator decides before merging); prefer a fix confined to the touching path.
+3. `CHANGELOG.md` `## Unreleased` states the numeric change: shape-cast results (start witness normal) and KC results
+   for touching starts; the goldens / expectations that move are regenerated from the harness, never hand-edited.
+
 ## 4. Definition of done
 Crate-scoped local gate only (AGENTS §6; foreground, through `scripts/build-shims/`): `scarb fmt --workspace`; `scarb lint
 -p` / `scarb build -p` / `snforge test -p` on rapier_geometry2d and rapier2d; snapshots with `--from-log`; `python3
 scripts/bytecode_size.py check`. Never a workspace-wide run. Rebase on `origin/main` before the PR. Conventional commits
 + trailer; push; `gh pr create --base main --title "<what ships>" --body-file …`; `gh pr checks --watch` until green;
-never merge; `REPORT.md` (Summary · Cause · Fix · Golden before / after · Step / CCD unchanged proof · PR URL). Memory rules
+never merge; `REPORT.md` (Summary · Cause · Fix · Golden before / after · Cast cost table · Step / CCD unchanged proof · Escalations · PR URL). Memory rules
 apply.
 
 ## 5. Work autonomously, do not ask questions, do not widen the scope.

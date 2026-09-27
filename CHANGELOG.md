@@ -17,6 +17,9 @@ whether simulation results changed.
   character controller (`KinematicCharacterController::move_shape` → `EffectiveCharacterMovement` + `CharacterCollision`s,
   `solve_character_collision_impulses`, `CharacterLength`, `CharacterAutostep`) on the shape casts; nothing of it
   enters a `BasicStepConfig` program or moves a step (#202).
+- `ShapeTrait` constructors, as upstream's `SharedShape::*`: `ball`, `cuboid`, `capsule`, `capsule_x`, `capsule_y`,
+  `segment`, `halfspace`, `triangle`, `round_cuboid`, `round_triangle`, `convex_hull`, `round_convex_hull`,
+  `convex_polyline`, `round_convex_polyline`, `polyline`, `heightfield`, `compound` (#204).
 - `rapier2d::prelude` exports the body field selectors `BodyPose`, `BodySleeping`, `BodyLinvel`, `BodyAngvel` (for
   `RigidBodySetTrait::get_field`).
 
