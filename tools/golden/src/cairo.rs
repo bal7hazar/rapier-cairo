@@ -18,6 +18,7 @@ mod levels;
 mod polygons;
 mod scenes;
 mod sensors;
+mod sf1;
 mod sh1;
 mod sh2a;
 mod sh2b;
@@ -698,6 +699,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("sensor_trigger", sensors::sensor_trigger(vectors)),
         ("shape_queries", shape_queries::shape_queries(vectors)),
         ("ccd_scenes", ccd_scenes::ccd_scenes(vectors)),
+        ("tilted_landing", sf1::tilted_landing(vectors)),
     ];
     files.extend(polygons::manifold_files(vectors));
     files.extend(scenes::generate(vectors));

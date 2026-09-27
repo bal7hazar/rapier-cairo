@@ -434,13 +434,14 @@ fn generate_element(
         impulse_accumulator: -ti,
         ..Default::default(),
     };
-    // Both local anchors freeze the same world point, so the base separation is `sc.dist`.
+    let local_p1 = local_anchor(b1, world1, point, dp1);
+    let local_p2 = local_anchor(b2, world2, point, dp2);
     ContactConstraintElement {
         normal_part: n,
         tangent_part: t,
-        local_p1: local_anchor(b1, world1, point, dp1),
-        local_p2: local_anchor(b2, world2, point, dp2),
-        dist: sc.dist,
+        local_p1,
+        local_p2,
+        dist: rebase(sc.dist, b1.position, b2.position, local_p1, local_p2, dir),
         restitution_seed: seed,
         contact_id: cid.try_into().unwrap(),
         tangent_velocity: sc.tangent_velocity,
@@ -461,6 +462,20 @@ pub(crate) fn midpoint(sc: SolverContact, dir: Vec2, com1: Vec2, com2: Vec2) -> 
         x: wide_from(s.x).sub(wide_mul(dir.x, shift)).mul(HALF).narrow(),
         y: wide_from(s.y).sub(wide_mul(dir.y, shift)).mul(HALF).narrow(),
     }
+}
+
+/// Upstream's base separation (`two_body_constraint.rs`, `infos.dist`: "rebased so the
+/// per-substep tracking `info.dist + (p1 - p2)·n` is a pure delta from the build-time poses"):
+/// `sc.dist` minus the separation of the two local anchors transformed back by the build-time
+/// poses, so that `update_element` at those poses gives exactly `sc.dist`. Both anchors freeze
+/// the same world point, so that separation is zero in exact arithmetic, but the floored round
+/// trip (`inverse_rotate` then `transform_point`) leaves a few raw, biased low (SF1): kept, it
+/// moved exact-zero gaps onto the soft side of the `dist <= 0` switch.
+#[inline(always)]
+pub(crate) fn rebase(
+    dist: Fixed, pose1: Pose2, pose2: Pose2, local_p1: Vec2, local_p2: Vec2, dir: Vec2,
+) -> Fixed {
+    dist - dot(pose1.transform_point(local_p1) - pose2.transform_point(local_p2), dir)
 }
 
 /// The frozen point in the solver body's frame: world coordinates for the world (identity

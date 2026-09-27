@@ -35,7 +35,7 @@ const TYPES: [&str; 19] = [
 
 /// The constants of the compounds of `json` (an array of `{ "shape": compound }`, prefix `prefix`)
 /// and the builder `name(index) -> CompoundRaw`.
-fn compounds_module(json: &Value, prefix: &str, name: &str, body: &mut String) {
+pub(super) fn compounds_module(json: &Value, prefix: &str, name: &str, body: &mut String) {
     let mut arms = String::new();
     for (i, c) in json.as_array().unwrap().iter().enumerate() {
         let parts: Vec<Node> = c["shape"]["parts"]
