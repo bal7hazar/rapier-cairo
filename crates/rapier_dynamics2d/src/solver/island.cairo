@@ -246,7 +246,8 @@ pub fn solve_island_input(
     while substep != params.num_solver_iterations {
         sb.add_forces(steps);
         rows = rebuild_joints(ref sb, builders.span(), rows.span(), params, substep != 0);
-        let update = if substep != 0 && params.num_internal_stabilization_iterations != 0 {
+        // SF1: the first substep reuses the separations generation seeded at these poses.
+        let update = if substep == 0 || params.num_internal_stabilization_iterations != 0 {
             5
         } else {
             0
@@ -356,8 +357,9 @@ fn run<B, +DenseBodiesTrait<B>, +Destruct<B>>(
     while substep != params.num_solver_iterations {
         sb.add_forces(steps);
         rows = rebuild_joints(ref sb, builders.span(), rows.span(), params, substep != 0);
-        // BT3: after the first substep, a refresh (stage 2) ran on the current poses.
-        let update = if substep != 0 && params.num_internal_stabilization_iterations != 0 {
+        // BT3: after the first substep, a refresh (stage 2) ran on the current poses; SF1: the
+        // first substep reuses the separations generation seeded at the build-time poses.
+        let update = if substep == 0 || params.num_internal_stabilization_iterations != 0 {
             5
         } else {
             0

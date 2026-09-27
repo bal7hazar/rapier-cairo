@@ -35,6 +35,7 @@ mod sensors;
 mod sleep_diagnostics;
 mod slope_diagnostics;
 mod stack_diagnostics;
+mod tilted_landing;
 
 /// Position / rotation tolerance per step, in ulps (`2^12`); velocities get twice as much.
 const TOL_PER_STEP: u64 = 4096;
@@ -464,13 +465,12 @@ fn test_box_slope_stick() {
     replay("box_slope_stick", scenes::BOX_SLOPE_STICK, 0, 120, Judge::Samples, NONE);
 }
 
-/// GS: samples 4–8 exceed the tolerance (step 4: vy 514 352 ulp for 32 768 allowed), then the
-/// trace reconverges (step 120: 2479 / 1431 ulp). Cause: at step 4 substep 1 a speculative
-/// contact closed by the previous substep has a gap of exactly `0` in Q32.32, which the port
-/// solves softly (`dist <= 0`), while upstream's f64 residue came out `> 0` (rigid). Solving that
-/// one row rigidly passes every sample (`slope_diagnostics::test_slide_zero_gap_counterfactual`).
+/// Passes since SF1 (step 4: 5 / 1 ulp on translation, 154 on angular velocity; step 110:
+/// 1975 / 1142). GS had samples 4–8 beyond the band: at step 4 substep 1 a speculative contact
+/// closed by the previous substep refreshed at a gap of exactly `0` (soft) where upstream's f64
+/// residue is `> 0` (rigid); that zero was the anchors' floored round trip, which the frozen
+/// separation is now rebased on (`slope_diagnostics`).
 #[test]
-#[ignore]
 fn test_box_slope_slide() {
     replay("box_slope_slide", scenes::BOX_SLOPE_SLIDE, 0, 120, Judge::Samples, NONE);
 }

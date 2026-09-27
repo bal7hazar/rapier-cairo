@@ -20,11 +20,14 @@ use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_core::integration_parameters::spring::{SpringCoefficients, SpringCoefficientsTrait};
 use rapier_geometry2d::contact::{ContactManifold, NEW_CONTACT_BIT, SolverContact, TrackedContact};
 use rapier_math::math_ext::inv;
+use rapier_math::pose2::Pose2;
 use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::super::super::super::body::{SolverBody, SolverVel, WORLD};
 use super::super::super::super::contact::element::{jv, tangent};
 use super::super::super::super::contact::errors;
-use super::{Bank, BankPoint, Frozen, FrozenPoint, Hot, HotPoint, Row, State, Weights};
+use super::{
+    Bank, BankPoint, Frozen, FrozenPoint, Hot, HotPoint, Row, State, Weights, separation, transform,
+};
 
 /// `ContactConstraintsSetTrait::generate` then the split of every active constraint, in one
 /// pass, with the step's constants computed once: same constraints, checks and panics as
@@ -200,11 +203,11 @@ fn split_manifold(
     let [sc0, sc1] = *m.data.solver_contacts;
     let [p0, p1] = *m.points;
     let (fa, ha, ba, cid0) = split_point(
-        sc0, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2,
+        sc0, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2, inv_dt,
     );
     let (fb, hb, bb) = if count == 2 {
         let (fb, hb, bb, cid1) = split_point(
-            sc1, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2,
+            sc1, num_points, p0, p1, restitution, dir, t, im_sum, e1, e2, inv_dt,
         );
         assert(cid1 != cid0, errors::CONTACT_ID);
         (fb, hb, bb)
@@ -301,6 +304,29 @@ fn local_anchor(e: End, point: Vec2, dp: Vec2) -> Vec2 {
     }
 }
 
+/// The separations the first update would read at the build-time poses from anchors that freeze
+/// the same point, `separation(a, b, dir, t, 0)`: zero in exact arithmetic, a few raw after the
+/// floored round trip (SF1). A world endpoint's anchor is its world point (the sweeps read the
+/// identity pose for it), a body's is transformed by its build-time pose (centre of mass,
+/// rotation), with `transform`, the sweeps' own rounding. `contact::rebase` subtracts the normal
+/// one from the frozen separation.
+#[inline(always)]
+fn round_trip(
+    e1: End, e2: End, local_p1: Vec2, local_p2: Vec2, dir: Vec2, t: Vec2,
+) -> (Fixed, Fixed) {
+    let a = if e1.world {
+        local_p1
+    } else {
+        transform(Pose2 { translation: e1.com, rotation: e1.rotation }, local_p1)
+    };
+    let b = if e2.world {
+        local_p2
+    } else {
+        transform(Pose2 { translation: e2.com, rotation: e2.rotation }, local_p2)
+    };
+    separation(a, b, dir, t, ZERO)
+}
+
 /// `generate_element` then `frozen_point` / `hot_point`; also returns the tracked point id.
 #[inline(always)]
 fn split_point(
@@ -314,6 +340,7 @@ fn split_point(
     im_sum: Vec2,
     e1: End,
     e2: End,
+    inv_dt: Fixed,
 ) -> (FrozenPoint, HotPoint, BankPoint, u8) {
     let is_new = sc.contact_id >= NEW_CONTACT_BIT;
     let cid = if is_new {
@@ -341,19 +368,109 @@ fn split_point(
     };
     let (tg1, tg2, tig1, tig2, tr) = coefficients(t, dp1, dp2, im_sum, e1.ii, e2.ii);
     let cid: u8 = cid.try_into().unwrap();
+    let local_p1 = local_anchor(e1, point, dp1);
+    let local_p2 = local_anchor(e2, point, dp2);
+    let (n0, t0) = round_trip(e1, e2, local_p1, local_p2, dir, t);
+    // SF1: the first substep's separations, as a refresh leaves them for the reusing update
+    // (stage 5, the first substep's since SF1): exactly `sc.dist` on the rebased base, the
+    // tangent one, and the unbiased rhs `max(0, dist) * inv_dt`.
+    let rhs = if sc.dist > ZERO {
+        sc.dist * inv_dt
+    } else {
+        ZERO
+    };
     (
         FrozenPoint {
             n: Row { g1, g2, ig1, ig2, r },
             t: Row { g1: tg1, g2: tg2, ig1: tig1, ig2: tig2, r: tr },
-            local_p1: local_anchor(e1, point, dp1),
-            local_p2: local_anchor(e2, point, dp2),
-            dist: sc.dist,
+            local_p1,
+            local_p2,
+            dist: sc.dist - n0,
             t_rhs_wo_bias: ZERO,
             seed,
             contact_id: cid,
         },
-        HotPoint { impulse: ni, rhs: ZERO, cfm: ZERO, t_impulse: ti, t_rhs: ZERO },
-        BankPoint { acc: -ni, t_acc: -ti, dist: ZERO, t_dist: ZERO },
+        HotPoint { impulse: ni, rhs, cfm: ZERO, t_impulse: ti, t_rhs: ZERO },
+        BankPoint { acc: -ni, t_acc: -ti, dist: sc.dist, t_dist: t0 },
         cid,
     )
+}
+
+/// The endpoint of the rebase probes: a world endpoint when `world`, else a body at
+/// `(com, rotation)`.
+#[cfg(test)]
+fn probe_end(world: bool, com: Vec2, rotation: Rot2) -> End {
+    End {
+        im: Default::default(),
+        ii: ZERO,
+        rotation: if world {
+            Default::default()
+        } else {
+            rotation
+        },
+        vel: Default::default(),
+        com,
+        world,
+    }
+}
+
+/// `round_trip` on raw endpoint scalars (`split::tests::gas_round_trip_*`).
+#[cfg(test)]
+pub(crate) fn probe_round_trip(
+    world1: bool,
+    com1: Vec2,
+    rot1: Rot2,
+    com2: Vec2,
+    rot2: Rot2,
+    local_p1: Vec2,
+    local_p2: Vec2,
+    dir: Vec2,
+) -> (Fixed, Fixed) {
+    let (e1, e2) = (probe_end(world1, com1, rot1), probe_end(false, com2, rot2));
+    round_trip(e1, e2, local_p1, local_p2, dir, tangent(dir))
+}
+
+/// `alternatives::round_trip_via_pose` on the same scalars.
+#[cfg(test)]
+pub(crate) fn probe_round_trip_via_pose(
+    world1: bool,
+    com1: Vec2,
+    rot1: Rot2,
+    com2: Vec2,
+    rot2: Rot2,
+    local_p1: Vec2,
+    local_p2: Vec2,
+    dir: Vec2,
+) -> (Fixed, Fixed) {
+    let (e1, e2) = (probe_end(world1, com1, rot1), probe_end(false, com2, rot2));
+    alternatives::round_trip_via_pose(e1, e2, local_p1, local_p2, dir, tangent(dir))
+}
+
+/// Rejected SF1 candidates, kept for re-ranking:
+///
+/// * `round_trip_via_pose` (`split::tests::gas_round_trip_*`, same values): both anchors through
+///   `Pose2Trait::transform_point` and the two dots of their difference, a world endpoint through
+///   the identity pose instead of being skipped;
+/// * the frozen separation rebased alone, the first substep running the full update (stage 0) on
+///   the build-time poses instead of reusing the separations generation seeds: +0.34 % to
+///   +1.05 % exact Cairo steps on the P3 contact scenes and level windows against main
+///   (`steps_step_cuboid_stack10` 421,484 → 425,908, `steps_impact_level10` 2,685,306 →
+///   2,705,397), the seeded form −0.20 % to +0.07 % (421,780 and 2,685,623).
+#[cfg(test)]
+pub(crate) mod alternatives {
+    use rapier_math::pose2::Pose2Trait;
+    use super::super::super::super::super::contact::element::dot;
+    use super::{End, Fixed, Pose2, Vec2};
+
+    pub(crate) fn round_trip_via_pose(
+        e1: End, e2: End, local_p1: Vec2, local_p2: Vec2, dir: Vec2, t: Vec2,
+    ) -> (Fixed, Fixed) {
+        let pose = |e: End| if e.world {
+            Default::default()
+        } else {
+            Pose2 { translation: e.com, rotation: e.rotation }
+        };
+        let d = pose(e1).transform_point(local_p1) - pose(e2).transform_point(local_p2);
+        (dot(d, dir), dot(d, t))
+    }
 }

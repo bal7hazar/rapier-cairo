@@ -1,10 +1,12 @@
 //! Lifecycle, input-contract and numerical regression checks.
 #[cfg(test)]
 mod tests {
+    use fixed::wide::dot2;
     use fixed::{FixedTrait, HALF, MAX, ONE, TWO, ZERO};
     use glam::Vec2;
     use rapier_core::data::handle::Handle;
     use rapier_core::integration_parameters::IntegrationParametersTrait;
+    use rapier_core::integration_parameters::spring::SpringCoefficientsTrait;
     use rapier_geometry2d::contact::{ContactManifoldTrait, NEW_CONTACT_BIT, SolverContact};
     use rapier_math::math_ext::gcross_vv;
     use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -74,9 +76,52 @@ mod tests {
         assert_eq!(e.local_p1, point);
         let back = b.position.transform_point(e.local_p2) - point;
         assert!(back.x.abs() <= FixedTrait::from_raw(4) && back.y.abs() <= FixedTrait::from_raw(4));
-        assert_eq!(e.dist, sc.dist);
+        // SF1: the base separation is rebased on the anchors' round trip (2 raw here), so the
+        // separation rebuilt at the build-time poses is exactly the contact's.
+        let rebuilt = e.local_p1 - b.position.transform_point(e.local_p2);
+        assert_eq!(e.dist, FixedTrait::from_raw(-21474834));
+        assert_eq!(e.dist + dot2(rebuilt.x, c.dir1.x, rebuilt.y, c.dir1.y), sc.dist);
         let arm = point - b.position.translation;
         assert_eq!(e.normal_part.gcross2, gcross_vv(arm.x, arm.y, -c.dir1.x, -c.dir1.y));
+    }
+
+    // SF1 regression: the first substep solves a row rigidly exactly when the contact's gap is
+    // positive (upstream's `dist <= 0` switch), whatever the anchors' round trip; before the
+    // rebase, a +1 raw gap on this turned body came out at -1 and was solved softly.
+    #[test]
+    fn test_first_update_keeps_the_gap_sign() {
+        let (m0, mut bs, p) = fixture(1);
+        let mut b = bs.pop_front().unwrap();
+        b
+            .position =
+                Pose2 {
+                    translation: raw(858993459, 4294967296),
+                    rotation: Rot2 {
+                        re: FixedTrait::from_raw(3719550787), im: FixedTrait::from_raw(2147483648),
+                    },
+                };
+        bs.append(b);
+        let soft = p.static_contact_softness.coefficients(p.substep_dt());
+        let mut cases = array![(1_i64, true), (0, false), (-1, false)].span();
+        while let Some((gap, rigid)) = cases.pop_front() {
+            let mut m = m0;
+            let [mut sc, sc1] = m.data.solver_contacts;
+            sc.anchor1 = raw(0, 21474836);
+            sc.anchor2 = raw(-2147483648, -4294967296);
+            sc.dist = FixedTrait::from_raw(*gap);
+            m.data.solver_contacts = [sc, sc1];
+            let mut c = ContactConstraintTrait::generate(m, bs.span(), p, p.substep_dt());
+            c.update(p, bs.span(), m);
+            let [e, _] = c.elements;
+            let n = e.normal_part;
+            if *rigid {
+                assert_eq!(n.cfm_factor, ONE);
+                assert_eq!(n.rhs, sc.dist * c.inv_dt);
+            } else {
+                assert_eq!(n.cfm_factor, soft.cfm_factor);
+                assert_eq!(n.rhs_wo_bias, ZERO);
+            }
+        }
     }
 
     #[test]

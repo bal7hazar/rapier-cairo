@@ -5,6 +5,11 @@
 //! normal row to rigid when its refreshed gap is `> 0`, and a speculative contact that the
 //! previous substep closed exactly sits at a gap of `0` in Q32.32 but at an f64 rounding residue
 //! of either sign upstream.
+//!
+//! SF1: that zero gap was the anchors' floored round trip (`inverse_rotate` at generation, then
+//! `transform_point` at each substep), biased low by a few raw. Since the frozen separation is
+//! rebased on that round trip (upstream's `infos.dist`), the slide's refreshed gap stays positive,
+//! the engine passes every sample and the counterfactual has no row left to flip.
 use glam::Vec2Trait;
 use rapier2d::pipeline;
 use rapier2d::prelude::{RigidBodyTrait, Vec2, World, WorldTrait};
@@ -201,7 +206,7 @@ fn diagnostic_step(ref world: World, zero_rigid: bool, verbose: bool) -> u32 {
 #[test]
 fn test_slope_first_steps() {
     for (scene, want_engine, want_cf) in array![
-        (scenes::BOX_SLOPE_STICK, 0_u32, 0_u32), (scenes::BOX_SLOPE_SLIDE, 5, 0),
+        (scenes::BOX_SLOPE_STICK, 0_u32, 0_u32), (scenes::BOX_SLOPE_SLIDE, 0, 0),
     ] {
         for zero_rigid in array![false, true] {
             println!("scene {} zero_rigid {}", scene.id, zero_rigid);
@@ -254,7 +259,8 @@ fn assert_first_geometry(m: ContactManifold) {
     }
 }
 
-/// The whole slide trace under the zero-gap counterfactual: every sample within tolerance.
+/// The whole slide trace under the zero-gap counterfactual: every sample within tolerance. Since
+/// SF1 no refreshed gap is exactly zero any more (the engine's own trace passes).
 #[test]
 fn test_slide_zero_gap_counterfactual() {
     let scene = scenes::BOX_SLOPE_SLIDE;
@@ -282,6 +288,6 @@ fn test_slide_zero_gap_counterfactual() {
         stats.vy.ulps,
         stats.w.ulps,
     );
-    assert!(flips != 0);
+    assert_eq!(flips, 0);
     assert_eq!(stats.violations, 0, "zero-gap counterfactual recovers all samples");
 }

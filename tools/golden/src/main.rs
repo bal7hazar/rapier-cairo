@@ -24,6 +24,7 @@ mod sat2d;
 mod scenes;
 mod segment_segment;
 mod sensor_trigger;
+mod sf1;
 mod sh1;
 mod sh2a;
 mod sh2b;
@@ -76,7 +77,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 29] = [
+        let families: [Family; 30] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -106,6 +107,7 @@ fn main() {
             ("compound_contacts", sh2b::compound_contacts),
             ("compound_queries", sh2b::compound_queries),
             ("compound_scenes", sh2b::compound_scenes),
+            ("tilted_landing", sf1::tilted_landing),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

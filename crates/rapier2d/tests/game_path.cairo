@@ -36,9 +36,10 @@ const DESPAWN_TICK: u32 = 27;
 const FORCE_THRESHOLD: i64 = 0x400000000;
 
 /// `digest` of the level after `IMPACT` ticks with reads and despawns, measured on
-/// `0.1.0-alpha.4` (1213fbb) and every commit up to RG1.
+/// `0.1.0-alpha.4` (1213fbb) and every commit up to RG1; re-pinned by SF1 (rebased frozen contact
+/// separations; before: 3326…5775).
 const GAME_DIGEST: felt252 =
-    332673458243490246487711983385191775029115546424054024567050619248828935775;
+    2022157671005519863083205651691126028746519623184051613454076122783391620987;
 
 /// `mode` bits.
 const READS: u32 = 1;
@@ -274,7 +275,8 @@ fn steps_game_serde_trips() {
 }
 
 /// The chunked run ends in the same state as the straight one, with the same force events, and
-/// both are pinned bit for bit (the digest and event count measured on `0.1.0-alpha.4`).
+/// both are pinned bit for bit (the digest and event count measured on `0.1.0-alpha.4`, the digest
+/// re-pinned by SF1).
 #[test]
 fn test_game_digest() {
     let (mut straight, events) = game(IMPACT, READS | DESPAWN);
