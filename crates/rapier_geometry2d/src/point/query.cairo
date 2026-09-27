@@ -37,6 +37,10 @@ use super::composite::{
     project_local_point_and_get_feature_polyline, project_local_point_heightfield,
     project_local_point_polyline,
 };
+use super::compound::{
+    contains_local_point_compound, distance_to_local_point_compound_shape,
+    project_local_point_and_get_feature_compound_shape, project_local_point_compound_shape,
+};
 use super::convex_polygon::{
     contains_local_point_convex_polygon, distance_to_local_point_convex_polygon,
     project_local_point_and_get_feature_convex_polygon, project_local_point_convex_polygon,
@@ -366,6 +370,7 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             },
             Shape::Polyline(s) => project_local_point_polyline(@s.unbox(), pt, solid),
             Shape::HeightField(s) => project_local_point_heightfield(@s.unbox(), pt, solid),
+            Shape::Compound(_) => project_local_point_compound_shape(self, pt, solid),
         }
     }
     #[inline(always)]
@@ -395,6 +400,7 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             Shape::HeightField(s) => project_local_point_and_get_feature_heightfield(
                 @s.unbox(), pt,
             ),
+            Shape::Compound(_) => project_local_point_and_get_feature_compound_shape(self, pt),
         }
     }
     #[inline(always)]
@@ -420,6 +426,7 @@ pub impl ShapePointQuery of PointQuery<Shape> {
             },
             Shape::Polyline(s) => distance_to_local_point_polyline(@s.unbox(), pt, solid),
             Shape::HeightField(s) => distance_to_local_point_heightfield(@s.unbox(), pt, solid),
+            Shape::Compound(_) => distance_to_local_point_compound_shape(self, pt, solid),
         }
     }
     #[inline(always)]
@@ -457,6 +464,7 @@ fn contains_local_point_sh1(shape: Shape, pt: Vec2) -> u8 {
                 contains_local_point_round(s.inner_shape, s.border_radius, pt)
             },
             Shape::Polyline(s) => contains_local_point_polyline(@s.unbox(), pt),
+            Shape::Compound(s) => contains_local_point_compound(@s.unbox(), pt),
             _ => false,
         };
         pending = false;

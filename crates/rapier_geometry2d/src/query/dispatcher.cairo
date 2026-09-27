@@ -58,7 +58,8 @@ pub fn distance(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<Fixed> {
     match (shape1, shape2) {
         (Shape::Ball(b1), Shape::Ball(b2)) => Some(distance_ball_ball(b1, pos12.translation, b2)),
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => distance_composite(pos12, shape1, shape2),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => distance_composite(pos12, shape1, shape2),
         (Shape::Ball(b1), _) => Some(distance_ball_convex_polyhedron(pos12, b1, shape2)),
         (_, Shape::Ball(b2)) => Some(distance_convex_polyhedron_ball(pos12, shape1, b2)),
         (Shape::Cuboid(c1), Shape::Cuboid(c2)) => Some(distance_cuboid_cuboid(pos12, c1, c2)),
@@ -77,7 +78,8 @@ pub(crate) fn distance_outlined(pos12: Pose2, shape1: Shape, shape2: Shape) -> O
     match (shape1, shape2) {
         (Shape::Ball(b1), Shape::Ball(b2)) => Some(distance_ball_ball(b1, pos12.translation, b2)),
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => distance_composite(pos12, shape1, shape2),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => distance_composite(pos12, shape1, shape2),
         (Shape::Ball(b1), _) => Some(distance_ball_convex_polyhedron(pos12, b1, shape2)),
         (_, Shape::Ball(b2)) => Some(distance_convex_polyhedron_ball(pos12, shape1, b2)),
         (Shape::Cuboid(c1), Shape::Cuboid(c2)) => Some(distance_cuboid_cuboid(pos12, c1, c2)),
@@ -103,7 +105,8 @@ pub fn closest_points(
             Shape::Ball(b1), Shape::Ball(b2),
         ) => Some(closest_points_ball_ball(pos12, b1, b2, max_dist)),
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => closest_points_composite(pos12, shape1, shape2, max_dist),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => closest_points_composite(pos12, shape1, shape2, max_dist),
         (
             Shape::Ball(b1), _,
         ) => Some(closest_points_ball_convex_polyhedron(pos12, b1, shape2, max_dist)),
@@ -138,7 +141,8 @@ pub(crate) fn closest_points_outlined(
             Shape::Ball(b1), Shape::Ball(b2),
         ) => Some(closest_points_ball_ball(pos12, b1, b2, max_dist)),
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => closest_points_composite(pos12, shape1, shape2, max_dist),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => closest_points_composite(pos12, shape1, shape2, max_dist),
         (
             Shape::Ball(b1), _,
         ) => Some(closest_points_ball_convex_polyhedron(pos12, b1, shape2, max_dist)),
@@ -173,7 +177,8 @@ pub fn contact(
     match (shape1, shape2) {
         (Shape::Ball(b1), Shape::Ball(b2)) => Some(contact_ball_ball(pos12, b1, b2, prediction)),
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => contact_composite(pos12, shape1, shape2, prediction),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => contact_composite(pos12, shape1, shape2, prediction),
         (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
         (
             Shape::HalfSpace(h), _,
@@ -196,7 +201,8 @@ pub(crate) fn contact_outlined(
     match (shape1, shape2) {
         (Shape::Ball(b1), Shape::Ball(b2)) => Some(contact_ball_ball(pos12, b1, b2, prediction)),
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => contact_composite(pos12, shape1, shape2, prediction),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => contact_composite(pos12, shape1, shape2, prediction),
         (Shape::HalfSpace(_), Shape::HalfSpace(_)) => None,
         (
             Shape::HalfSpace(h), _,

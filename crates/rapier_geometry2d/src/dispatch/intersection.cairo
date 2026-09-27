@@ -92,7 +92,8 @@ pub fn intersection_test(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<b
         (_, Shape::Ball(b2)) => point_query_ball(shape1, pos12.translation, b2.radius),
         // SH2a: after the balls (point queries), as upstream's dispatcher.
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => intersection_test_composite(pos12, shape1, shape2),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => intersection_test_composite(pos12, shape1, shape2),
         (Shape::HalfSpace(h1), _) => halfspace_convex(pos12, h1, shape2),
         (_, Shape::HalfSpace(h2)) => halfspace_convex(pos12.inverse(), h2, shape1),
         (Shape::Cuboid(c1), Shape::Capsule(c2)) => Some(cuboid_capsule(pos12, c1, c2)),
@@ -141,7 +142,8 @@ pub(crate) fn intersection_test_outlined(
         (_, Shape::Ball(b2)) => point_query_ball(shape1, pos12.translation, b2.radius),
         // SH2a: after the balls (point queries), as upstream's dispatcher.
         (Shape::Polyline(_), _) | (_, Shape::Polyline(_)) | (Shape::HeightField(_), _) |
-        (_, Shape::HeightField(_)) => intersection_test_composite(pos12, shape1, shape2),
+        (_, Shape::HeightField(_)) | (Shape::Compound(_), _) |
+        (_, Shape::Compound(_)) => intersection_test_composite(pos12, shape1, shape2),
         (Shape::HalfSpace(h1), _) => halfspace_convex(pos12, h1, shape2),
         (_, Shape::HalfSpace(h2)) => halfspace_convex(pos12.inverse(), h2, shape1),
         (Shape::Cuboid(c1), Shape::Capsule(c2)) => Some(cuboid_capsule(pos12, c1, c2)),
@@ -217,8 +219,8 @@ fn point_sh1(shape: Shape, center: Vec2, radius: Fixed) -> bool {
             let s = s.unbox();
             contains_local_point_round(s.inner_shape, s.border_radius + radius, center)
         },
-        Shape::Polyline(_) |
-        Shape::HeightField(_) => {
+        Shape::Polyline(_) | Shape::HeightField(_) |
+        Shape::Compound(_) => {
             let proj = project_local_point_composite(shape, center, true);
             let d = center - proj.point;
             proj.is_inside || is_norm2_le(d.x, d.y, radius)

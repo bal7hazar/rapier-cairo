@@ -132,7 +132,7 @@ fn empty_box() -> Aabb {
 }
 
 /// The implicit tree over `boxes` (one per segment): `(nodes, leaf_base)`.
-fn build_tree(boxes: Span<Aabb>) -> (Span<Aabb>, u32) {
+pub(crate) fn build_tree(boxes: Span<Aabb>) -> (Span<Aabb>, u32) {
     let n = boxes.len();
     if n == 0 {
         // An empty polyline: a zero root box, so that its AABB stays representable.

@@ -33,7 +33,9 @@ use rapier_math::math_ext::norm2::norm2_sq_wide;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::aabb::{Aabb, AabbTrait};
-use crate::shape::{HeightField, HeightFieldTrait, Polyline, PolylineTrait, Shape, ShapeTrait};
+use crate::shape::{
+    CompoundTrait, HeightField, HeightFieldTrait, Polyline, PolylineTrait, Shape, ShapeTrait,
+};
 use super::nonlinear_shape_cast::{NonlinearRigidMotion, cast_shapes_nonlinear};
 use super::shape_cast::{ShapeCastHit, ShapeCastHitTrait, ShapeCastOptions};
 use super::{ClosestPoints, ClosestPointsTrait, Contact, ContactTrait};
@@ -73,6 +75,15 @@ pub fn parts_in_aabb(shape: Shape, aabb: Aabb) -> Array<(u32, Shape)> {
     match shape {
         Shape::Polyline(p) => polyline_parts_in_aabb(@p.unbox(), aabb),
         Shape::HeightField(h) => heightfield_parts_in_aabb(@h.unbox(), aabb),
+        Shape::Compound(c) => {
+            let c = c.unbox();
+            let mut out = array![];
+            for id in c.parts_in_aabb(aabb) {
+                let (_, part) = c.part(id);
+                out.append((id, part));
+            }
+            out
+        },
         _ => array![],
     }
 }
@@ -90,6 +101,16 @@ pub fn parts(shape: Shape) -> Array<(u32, Shape)> {
                 if let Some(seg) = h.segment_at(i) {
                     out.append((i, Shape::Segment(seg)));
                 }
+                i += 1;
+            }
+            out
+        },
+        Shape::Compound(c) => {
+            let mut out = array![];
+            let mut i: u32 = 0;
+            for part in c.unbox().shapes() {
+                let (_, shape) = *part;
+                out.append((i, shape));
                 i += 1;
             }
             out
@@ -144,7 +165,11 @@ pub fn intersection_test_composite(pos12: Pose2, shape1: Shape, shape2: Shape) -
             }
             Some(false)
         },
-        (_, Shape::Polyline(_)) => intersection_test_composite(pos12.inverse(), shape2, shape1),
+        (
+            Shape::Compound(c1), _,
+        ) => Some(compound::intersection_test_compound_part(@c1.unbox(), pos12, shape2).is_some()),
+        (_, Shape::Polyline(_)) |
+        (_, Shape::Compound(_)) => intersection_test_composite(pos12.inverse(), shape2, shape1),
         _ => None,
     }
 }
@@ -168,7 +193,13 @@ pub fn distance_composite(pos12: Pose2, shape1: Shape, shape2: Shape) -> Option<
             }
             Some(best)
         },
-        (_, Shape::Polyline(_)) => distance_composite(pos12.inverse(), shape2, shape1),
+        (
+            Shape::Compound(c1), _,
+        ) => Some(
+            compound::distance_or_max(compound::distance_compound_part(@c1.unbox(), pos12, shape2)),
+        ),
+        (_, Shape::Polyline(_)) |
+        (_, Shape::Compound(_)) => distance_composite(pos12.inverse(), shape2, shape1),
         _ => None,
     }
 }
@@ -209,7 +240,16 @@ pub fn closest_points_composite(
             Some(best)
         },
         (
-            _, Shape::Polyline(_),
+            Shape::Compound(c1), _,
+        ) => Some(
+            match compound::closest_points_compound_part(@c1.unbox(), pos12, shape2, max_dist) {
+                Some((_, pts)) => pts,
+                None => ClosestPoints::Disjoint,
+            },
+        ),
+        (_, Shape::Polyline(_)) |
+        (
+            _, Shape::Compound(_),
         ) => Some(closest_points_composite(pos12.inverse(), shape2, shape1, max_dist)?.flipped()),
         _ => None,
     }
@@ -274,7 +314,16 @@ pub fn contact_composite(
             )
         },
         (
-            _, Shape::Polyline(_),
+            Shape::Compound(c1), _,
+        ) => Some(
+            match compound::contact_compound_part(@c1.unbox(), pos12, shape2, prediction) {
+                Some((_, c)) => Some(c),
+                None => None,
+            },
+        ),
+        (_, Shape::Polyline(_)) |
+        (
+            _, Shape::Compound(_),
         ) => Some(
             match contact_composite(pos12.inverse(), shape2, shape1, prediction)? {
                 Some(c) => Some(c.flipped()),
@@ -409,7 +458,16 @@ pub fn cast_shapes_composite(
             Some(best)
         },
         (
-            _, Shape::Polyline(_),
+            Shape::Compound(c1), _,
+        ) => Some(
+            match compound::cast_shapes_compound_part(@c1.unbox(), pos12, vel12, shape2, options) {
+                Some((_, hit)) => Some(hit),
+                None => None,
+            },
+        ),
+        (_, Shape::Polyline(_)) |
+        (
+            _, Shape::Compound(_),
         ) => {
             let vel21 = -pos12.rotation.inverse_rotate(vel12);
             Some(
@@ -454,7 +512,18 @@ pub fn cast_shapes_nonlinear_composite(
             Some(best)
         },
         (
-            _, Shape::Polyline(_),
+            Shape::Compound(c1), _,
+        ) => Some(
+            match compound::cast_shapes_nonlinear_compound_part(
+                motion1, @c1.unbox(), motion2, shape2, start_time, end_time, stop_at_penetration,
+            ) {
+                Some((_, hit)) => Some(hit),
+                None => None,
+            },
+        ),
+        (_, Shape::Polyline(_)) |
+        (
+            _, Shape::Compound(_),
         ) => Some(
             match cast_shapes_nonlinear_composite(
                 motion2, shape2, motion1, shape1, start_time, end_time, stop_at_penetration,
@@ -467,5 +536,6 @@ pub fn cast_shapes_nonlinear_composite(
     }
 }
 
+pub mod compound;
 #[cfg(test)]
 mod tests;

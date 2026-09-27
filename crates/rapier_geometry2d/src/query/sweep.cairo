@@ -173,6 +173,7 @@ pub impl ToiProxyImpl of ToiProxyTrait {
             Shape::HalfSpace(_) => None,
             Shape::Polyline(_) => None,
             Shape::HeightField(_) => None,
+            Shape::Compound(_) => None,
         }
     }
 
