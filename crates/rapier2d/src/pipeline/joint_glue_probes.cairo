@@ -1,5 +1,5 @@
 //! Probes of the joint glue of the step (`joint_values`, `write_joints`).
-use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
+use rapier_dynamics2d::joint::{ImpulseJointSetTrait, RevoluteJointBuilderTrait};
 use rapier_testing::opaque;
 use super::*;
 #[inline(always)]

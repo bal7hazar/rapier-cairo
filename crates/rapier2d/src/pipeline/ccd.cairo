@@ -88,8 +88,11 @@ use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::world::World;
 use super::active_set::ActiveSet;
+use super::config::{DefaultStepConfig, StepConfig};
 use super::force_events::{CollisionOnly, StepOutput, WithForces};
 use super::{active_set, moving};
+mod configured;
+pub use configured::{step_with_ccd_and_force_events_with, step_with_ccd_with};
 pub mod sweeps;
 pub mod targets;
 use sweeps::{
@@ -698,7 +701,7 @@ pub fn step_with_ccd(ref world: World, ref ccd_solver: CCDSolver) -> Array<Colli
         ccd_solver.settle(ref world);
         return output;
     }
-    step_ccd::<Array<CollisionEvent>, CollisionOnly>(ref world, ref ccd_solver)
+    step_ccd::<Array<CollisionEvent>, CollisionOnly, DefaultStepConfig>(ref world, ref ccd_solver)
 }
 
 /// [`step_with_ccd`] that also returns the post-solver contact-force events of every substep.
@@ -715,23 +718,25 @@ pub fn step_with_ccd_and_force_events(
         return output;
     }
     step_ccd::<
-        (Array<CollisionEvent>, Array<ContactForceEvent>), WithForces,
+        (Array<CollisionEvent>, Array<ContactForceEvent>), WithForces, DefaultStepConfig,
     >(ref world, ref ccd_solver)
 }
 
 /// Upstream's substep loop (`PhysicsPipeline::step`, `substep.rs`) around the regular step, for
 /// a world with bodies to examine (the entry points take the regular step directly otherwise).
-fn step_ccd<T, impl Output: StepOutput<T>, +Drop<T>>(ref world: World, ref solver: CCDSolver) -> T {
+fn step_ccd<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
+    ref world: World, ref solver: CCDSolver,
+) -> T {
     let params = world.integration_parameters;
     let mut remaining_time = params.dt;
     let mut remaining = params.max_ccd_substeps;
     let dt = next_dt(ref solver, ref world, ref remaining_time, ref remaining, params.min_ccd_dt);
-    let mut output = substep::<T, Output>(ref world, ref solver, dt);
+    let mut output = substep::<T, Output, C>(ref world, ref solver, dt);
     while remaining != 0 {
         let dt = next_dt(
             ref solver, ref world, ref remaining_time, ref remaining, params.min_ccd_dt,
         );
-        let step = substep::<T, Output>(ref world, ref solver, dt);
+        let step = substep::<T, Output, C>(ref world, ref solver, dt);
         output = Output::merge(output, step);
     }
     world.integration_parameters = params;
@@ -779,12 +784,12 @@ fn next_dt(
 
 /// One substep of `dt`: the start poses, the regular step, then the continuous pass; its sensor
 /// events follow the step's.
-fn substep<T, impl Output: StepOutput<T>, +Drop<T>>(
+fn substep<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
     ref world: World, ref solver: CCDSolver, dt: Fixed,
 ) -> T {
     world.integration_parameters.dt = dt;
     let starts = solver.starts(ref world);
-    let step = super::step_internal::<T, Output>(ref world);
+    let step = super::step_internal::<T, Output, C>(ref world);
     let events = solver.solve_continuous(ref world, starts.span());
     Output::with_events(step, events)
 }

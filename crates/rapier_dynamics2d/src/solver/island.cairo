@@ -18,7 +18,7 @@ use sweeps::array_joint::joints;
 #[cfg(test)]
 use sweeps::contact::contacts;
 use sweeps::split::{BankPoint, Frozen, FrozenPoint, HotPoint, SweepBodies, SweepBodiesTrait};
-use sweeps::{prepare_joints, rebuild_joints, split};
+use sweeps::{JointBuilder, prepare_joints, rebuild_joints, split};
 use crate::joint::ImpulseJoint;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};
 use crate::rigid_body_set::RigidBody;
@@ -28,6 +28,7 @@ use super::body_store::{
 };
 #[cfg(test)]
 use super::contact::ContactConstraintsSetTrait;
+use super::joint::JointConstraint;
 
 /// Invalid timestep/velocity cap. Parameter and fixed-point panics otherwise propagate.
 pub mod errors {
@@ -208,7 +209,149 @@ impl CollectedDense of DenseBodiesTrait<Collected> {
 /// bodies taken from `input` instead of a `SolverBodyStore` and the contact impulses returned per
 /// manifold instead of written into a manifold array (the pipeline writes them into its pairs).
 /// `manifolds` are the frozen contact set in solve order; `joint_set` as in `solve_island`.
+#[inline(always)]
 pub fn solve_island_input(
+    params: IntegrationParameters,
+    input: SolverInput,
+    manifolds: Span<ContactManifold>,
+    ref joint_set: Array<ImpulseJoint>,
+) -> SolvedIsland {
+    solve_input::<WithJoints>(params, input, manifolds, ref joint_set)
+}
+
+/// [`solve_island_input`] with no joint (CS2): the joint solver is not compiled into a program
+/// that calls only this one. Same stages, arithmetic, panics and results as
+/// [`solve_island_input`] with an empty `joint_set`.
+pub fn solve_island_input_contacts(
+    params: IntegrationParameters, input: SolverInput, manifolds: Span<ContactManifold>,
+) -> SolvedIsland {
+    let mut none = array![];
+    solve_input::<WithoutJoints>(params, input, manifolds, ref none)
+}
+
+/// The joint stages of [`solve_island_input`]: the impulse-joint solver ([`WithJoints`]) or
+/// nothing ([`WithoutJoints`], every stage of an empty joint set skipped).
+trait IslandJoints {
+    fn prepare(
+        joint_set: Span<ImpulseJoint>, initial: Span<SolverBody>, steps: Span<BodyStep>,
+    ) -> Array<JointBuilder>;
+    /// The stages of a solve without contact constraint (`empty::run`).
+    fn without_contacts(
+        params: IntegrationParameters,
+        ref bodies: DenseBodies,
+        steps: Span<BodyStep>,
+        builders: Span<JointBuilder>,
+        ref joint_set: Array<ImpulseJoint>,
+        dt: Fixed,
+        max_lin: Fixed,
+        max_ang: Fixed,
+    );
+    fn rebuild(
+        ref sb: SweepBodies,
+        builders: Span<JointBuilder>,
+        rows: Span<JointConstraint>,
+        params: IntegrationParameters,
+        reuse: bool,
+    ) -> Array<JointConstraint>;
+    fn sweep(ref rows: Array<JointConstraint>, ref sb: SweepBodies, biased: bool, warmstart: bool);
+    fn write(rows: Span<JointConstraint>, ref joint_set: Array<ImpulseJoint>);
+}
+
+impl WithJoints of IslandJoints {
+    #[inline(always)]
+    fn prepare(
+        joint_set: Span<ImpulseJoint>, initial: Span<SolverBody>, steps: Span<BodyStep>,
+    ) -> Array<JointBuilder> {
+        prepare_joints(joint_set, initial, steps)
+    }
+
+    #[inline(always)]
+    fn without_contacts(
+        params: IntegrationParameters,
+        ref bodies: DenseBodies,
+        steps: Span<BodyStep>,
+        builders: Span<JointBuilder>,
+        ref joint_set: Array<ImpulseJoint>,
+        dt: Fixed,
+        max_lin: Fixed,
+        max_ang: Fixed,
+    ) {
+        empty::run(params, ref bodies, steps, builders, ref joint_set, dt, max_lin, max_ang);
+    }
+
+    #[inline(always)]
+    fn rebuild(
+        ref sb: SweepBodies,
+        builders: Span<JointBuilder>,
+        rows: Span<JointConstraint>,
+        params: IntegrationParameters,
+        reuse: bool,
+    ) -> Array<JointConstraint> {
+        rebuild_joints(ref sb, builders, rows, params, reuse)
+    }
+
+    #[inline(always)]
+    fn sweep(ref rows: Array<JointConstraint>, ref sb: SweepBodies, biased: bool, warmstart: bool) {
+        joints(ref rows, ref sb, biased, warmstart);
+    }
+
+    #[inline(always)]
+    fn write(rows: Span<JointConstraint>, ref joint_set: Array<ImpulseJoint>) {
+        sweeps::write_joints(rows, ref joint_set);
+    }
+}
+
+impl WithoutJoints of IslandJoints {
+    #[inline(always)]
+    fn prepare(
+        joint_set: Span<ImpulseJoint>, initial: Span<SolverBody>, steps: Span<BodyStep>,
+    ) -> Array<JointBuilder> {
+        array![]
+    }
+
+    /// `empty::run` with no joint row: forces and integration per substep, then damping.
+    #[inline(always)]
+    fn without_contacts(
+        params: IntegrationParameters,
+        ref bodies: DenseBodies,
+        steps: Span<BodyStep>,
+        builders: Span<JointBuilder>,
+        ref joint_set: Array<ImpulseJoint>,
+        dt: Fixed,
+        max_lin: Fixed,
+        max_ang: Fixed,
+    ) {
+        let mut substep = 0;
+        while substep != params.num_solver_iterations {
+            add_forces(ref bodies, steps);
+            integrate(ref bodies, steps, dt, max_lin, max_ang);
+            substep += 1;
+        }
+        damp(ref bodies, steps, params.dt);
+    }
+
+    #[inline(always)]
+    fn rebuild(
+        ref sb: SweepBodies,
+        builders: Span<JointBuilder>,
+        rows: Span<JointConstraint>,
+        params: IntegrationParameters,
+        reuse: bool,
+    ) -> Array<JointConstraint> {
+        array![]
+    }
+
+    #[inline(always)]
+    fn sweep(
+        ref rows: Array<JointConstraint>, ref sb: SweepBodies, biased: bool, warmstart: bool,
+    ) {}
+
+    #[inline(always)]
+    fn write(rows: Span<JointConstraint>, ref joint_set: Array<ImpulseJoint>) {}
+}
+
+/// The body of [`solve_island_input`] and [`solve_island_input_contacts`].
+fn solve_input<impl J: IslandJoints>(
     params: IntegrationParameters,
     input: SolverInput,
     manifolds: Span<ContactManifold>,
@@ -230,11 +373,13 @@ pub fn solve_island_input(
     } else {
         split::generation::generate(manifolds, initial, params, dt)
     };
-    let builders = prepare_joints(joint_set.span(), initial, steps);
+    let builders = J::prepare(joint_set.span(), initial, steps);
     if frozen.is_empty() {
         // No contact constraint: the joint-only stages on the dense store, as `solve_island`.
         let mut bodies: DenseBodies = DenseBodiesTrait::new(initial);
-        empty::run(params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang);
+        J::without_contacts(
+            params, ref bodies, steps, builders.span(), ref joint_set, dt, max_lin, max_ang,
+        );
         return SolvedIsland {
             bodies: snapshot(ref bodies).span(), steps, impulses: array![].span(),
         };
@@ -245,7 +390,7 @@ pub fn solve_island_input(
     let mut substep = 0;
     while substep != params.num_solver_iterations {
         sb.add_forces(steps);
-        rows = rebuild_joints(ref sb, builders.span(), rows.span(), params, substep != 0);
+        rows = J::rebuild(ref sb, builders.span(), rows.span(), params, substep != 0);
         // SF1: the first substep reuses the separations generation seeded at these poses.
         let update = if substep == 0 || params.num_internal_stabilization_iterations != 0 {
             5
@@ -255,14 +400,14 @@ pub fn solve_island_input(
         split::contacts(ref state, frozen, ref sb, params, update);
         let mut i = 0;
         while i != params.num_internal_pgs_iterations {
-            joints(ref rows, ref sb, true, params.warmstart_joints && i == 0);
+            J::sweep(ref rows, ref sb, true, params.warmstart_joints && i == 0);
             split::contacts(ref state, frozen, ref sb, params, 1);
             i += 1;
         }
         sb.integrate(steps, dt, max_lin, max_ang);
         let mut i = 0;
         while i != params.num_internal_stabilization_iterations {
-            joints(ref rows, ref sb, false, false);
+            J::sweep(ref rows, ref sb, false, false);
             split::contacts(ref state, frozen, ref sb, params, if i == 0 {
                 2
             } else {
@@ -274,7 +419,7 @@ pub fn solve_island_input(
     }
     split::contacts(ref state, frozen, ref sb, params, 4);
     let impulses = impulses_of(frozen, @state, manifolds.len());
-    sweeps::write_joints(rows.span(), ref joint_set);
+    J::write(rows.span(), ref joint_set);
     sb.damp(steps, params.dt);
     let mut out = Collected { bodies: array![] };
     sb.finish(ref out);

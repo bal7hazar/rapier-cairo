@@ -790,6 +790,7 @@ pub fn contact_manifold_step(
 
 #[cfg(test)]
 pub mod alternatives;
+pub mod basic;
 pub mod composite;
 pub mod intersection;
 pub use intersection::intersection_test;
