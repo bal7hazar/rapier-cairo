@@ -444,8 +444,11 @@ OWNER_ALIASES.update({
     # the older `closest_points` / `dispatch` / `ray` kernels whose files carry those owners.
     # SH2b: the compound pairs are free functions of `{point,ray,query/composite,dispatch/composite}/
     # compound.cairo` (owner `Compound`).
+    # After CN1: the contact-manifold generators (`contact_generators/*.cairo`, owner
+    # `ContactGenerators`) and the clipping kernels (`clip.cairo`) are Parry's `query::` free functions too.
     "parry::query": ("Query", "Ball", "Cuboid", "Segment", "Halfspace", "SupportMap",
-                     "ClosestPoints", "dispatch", "Intersection", "Composite", "Compound"),
+                     "ClosestPoints", "dispatch", "Intersection", "Composite", "Compound",
+                     "ContactGenerators", "Clip"),
     # Parry's `ContactManifold` persistence methods are the `ManifoldTrait` of `manifold.cairo`.
     "ContactManifold": ("ContactManifold", "Manifold"),
     # MH1: the frozen `FeatureId` struct is Parry's packed `PackedFeatureId` (one `u32`); Parry's
@@ -794,6 +797,8 @@ def cairo_owner_from_path(path: Path) -> str:
     if "query" in parts[:-1] and stem in (
             "shape_cast", "nonlinear_shape_cast", "sweep", "proxy", "ball_ball"):
         return "Query"
+    if "contact_generators" in parts[:-1]:
+        return "ContactGenerators"
     return {
         "aabb": "Aabb",
         "world": "World",
