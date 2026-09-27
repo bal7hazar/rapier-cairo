@@ -16,15 +16,15 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| control | 31 | 0 | 16 | 0 | 47 | 66.0% | 66.0% |
-| dynamics | 554 | 0 | 36 | 602 | 1192 | 76.3% | 93.9% |
-| geometry | 209 | 0 | 84 | 24 | 317 | 69.9% | 71.3% |
-| parry::bounding_volume | 85 | 0 | 4 | 30 | 119 | 95.5% | 95.5% |
-| parry::mass_properties | 18 | 0 | 1 | 7 | 26 | 94.7% | 94.7% |
-| parry::query | 218 | 0 | 73 | 133 | 424 | 71.2% | 74.9% |
-| parry::shape | 217 | 0 | 48 | 119 | 384 | 81.9% | 81.9% |
+| control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
+| dynamics | 554 | 0 | 36 | 592 | 1182 | 77.4% | 93.9% |
+| geometry | 209 | 0 | 82 | 24 | 315 | 70.4% | 71.8% |
+| parry::bounding_volume | 85 | 0 | 4 | 6 | 95 | 95.5% | 95.5% |
+| parry::mass_properties | 18 | 0 | 1 | 5 | 24 | 94.7% | 94.7% |
+| parry::query | 218 | 0 | 67 | 122 | 407 | 72.7% | 76.5% |
+| parry::shape | 217 | 0 | 44 | 119 | 380 | 83.1% | 83.1% |
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
-| **total** | **1409** | **0** | **272** | **986** | **2667** | **76.6%** | **83.8%** |
+| **total** | **1409** | **0** | **244** | **939** | **2592** | **78.2%** | **85.2%** |
 
 Cairo-only public items not matched to upstream: **1515**.
 
@@ -843,24 +843,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
 | method `update_rhs_wo_bias` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs` |
 
-## ContactWithTwistFriction
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `solve` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `warmstart` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `writeback_impulses` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-
-## ContactWithTwistFrictionBuilder
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `apply_restitution` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `generate` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `has_bouncy_seed` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `update` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| method `update_rhs_wo_bias` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-
 ## ConvexPolygon
 
 | Item | Module | Status | Detail | Source |
@@ -882,13 +864,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `scaled` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
 | method `support_feature_id_toward` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | type `ConvexPolygon` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
-
-## ConvexPolyhedron
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `bounding_sphere` | parry::bounding_volume | excluded | dim3-only | `parry/src/bounding_volume/bounding_sphere_convex.rs` |
-| method `local_bounding_sphere` | parry::bounding_volume | excluded | dim3-only | `parry/src/bounding_volume/bounding_sphere_convex.rs` |
 
 ## CoulombContactPointInfos
 
@@ -1014,17 +989,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | type `DilatedShape` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/special_support_maps.rs` |
-
-## DynamicRayCastVehicleController
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `add_wheel` | control | missing | Not found on Cairo candidate(s): DynamicRayCastVehicleController, DynamicRayCastVehicleControllerTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `new` | control | missing | Not found on Cairo candidate(s): DynamicRayCastVehicleController, DynamicRayCastVehicleControllerTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `update_vehicle` | control | missing | Not found on Cairo candidate(s): DynamicRayCastVehicleController, DynamicRayCastVehicleControllerTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `wheels` | control | missing | Not found on Cairo candidate(s): DynamicRayCastVehicleController, DynamicRayCastVehicleControllerTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `wheels_mut` | control | missing | Not found on Cairo candidate(s): DynamicRayCastVehicleController, DynamicRayCastVehicleControllerTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| type `DynamicRayCastVehicleController` | control | missing | Not found on Cairo candidate(s): DynamicRayCastVehicleController, DynamicRayCastVehicleControllerTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
 
 ## EPA
 
@@ -2182,15 +2146,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `project_point_and_get_location_with_max_dist` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | trait `PointQueryWithLocation` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 
-## Polygon
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `aabb` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-| method `new` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-| method `vertices` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-| type `Polygon` | parry::shape | missing | Not found on Cairo candidate(s): Polygon, PolygonTrait. | `parry/src/shape/polygon.rs` |
-
 ## PolygonalFeature
 
 | Item | Module | Status | Detail | Source |
@@ -2410,12 +2365,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `intersects_local_ray` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
 | method `intersects_ray` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
 | trait `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
-
-## RayCastInfo
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| type `RayCastInfo` | control | missing | Not found on Cairo candidate(s): RayCastInfo, RayCastInfoTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
 
 ## RayCullingMode
 
@@ -3068,33 +3017,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `voxels` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `voxels_from_points` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | type `SharedShape` | parry::shape | ported | Mapped to Shape.Shape | `parry/src/shape/shared_shape.rs` |
-
-## SimdAabb
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| impl `From<[T; N]>` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| impl `Serialize` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `cast_local_ray` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `center` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `contains` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `contains_local_point` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `dilate_by_factor` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `distance_to_local_point` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `distance_to_origin` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `extract` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `half_extents` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `intersects` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `intersects_permutations` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `loosen` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `new_invalid` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `radius` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `replace` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `scaled` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `splat` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `to_merged_aabb` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| method `transform_by` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
-| type `SimdAabb` | parry::bounding_volume | excluded | SIMD/parallel | `parry/src/bounding_volume/simd_aabb.rs` |
 
 ## SimdRay
 
@@ -4001,8 +3923,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `append` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `bounding_sphere` | parry::bounding_volume | excluded | trimesh/voxels/3D heightfield | `parry/src/bounding_volume/bounding_sphere_trimesh.rs` |
 | method `bvh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
-| method `canonical_intersection_with_plane` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
-| method `canonical_split` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
 | method `cast_local_ray_with_culling` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/ray/ray_trimesh.rs` |
 | method `cast_ray_with_culling` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/ray/ray_trimesh.rs` |
 | method `connected_component_meshes` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
@@ -4012,22 +3932,15 @@ Cairo-only public items not matched to upstream: **1515**.
 | method `from_polygon` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `heap_memory_size` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `indices` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
-| method `intersection_with_aabb` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
-| method `intersection_with_cuboid` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
-| method `intersection_with_local_cuboid` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
-| method `intersection_with_local_plane` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
-| method `intersection_with_plane` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
 | method `is_backface` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `local_aabb` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `local_bounding_sphere` | parry::bounding_volume | excluded | trimesh/voxels/3D heightfield | `parry/src/bounding_volume/bounding_sphere_trimesh.rs` |
-| method `local_split` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
 | method `new` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `num_triangles` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `reverse` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `scaled` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `set_flags` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `set_vertices` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
-| method `split` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/split/split_trimesh.rs` |
 | method `topology` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `total_memory_size` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
 | method `transform_vertices` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/trimesh.rs` |
@@ -4128,13 +4041,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | type `TrianglePseudoNormals` | parry::shape | missing | Not found on Cairo candidate(s): TrianglePseudoNormals, TrianglePseudoNormalsTrait. | `parry/src/shape/triangle_pseudo_normals.rs` |
-
-## TwistContactPointInfos
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| impl `Default` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
-| type `TwistContactPointInfos` | dynamics | excluded | solver / island internals not exposed | `rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs` |
 
 ## TypedCompositeShape
 
@@ -4303,30 +4209,6 @@ Cairo-only public items not matched to upstream: **1515**.
 |---|---|---|---|---|
 | impl `From<[T; N]>` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/contact_manifolds/contact_manifolds_voxels_shape.rs` |
 
-## Wheel
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `axle` | control | missing | Not found on Cairo candidate(s): Wheel, WheelTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `center` | control | missing | Not found on Cairo candidate(s): Wheel, WheelTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `raycast_info` | control | missing | Not found on Cairo candidate(s): Wheel, WheelTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `suspension` | control | missing | Not found on Cairo candidate(s): Wheel, WheelTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| type `Wheel` | control | missing | Not found on Cairo candidate(s): Wheel, WheelTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-
-## WheelContactPoint
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| method `calc_rolling_friction` | control | missing | Not found on Cairo candidate(s): WheelContactPoint, WheelContactPointTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| method `new` | control | missing | Not found on Cairo candidate(s): WheelContactPoint, WheelContactPointTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-
-## WheelTuning
-
-| Item | Module | Status | Detail | Source |
-|---|---|---|---|---|
-| impl `Default` | control | missing | Not found on Cairo candidate(s): WheelTuning, WheelTuningTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-| type `WheelTuning` | control | missing | Not found on Cairo candidate(s): WheelTuning, WheelTuningTrait. | `rapier/src/control/ray_cast_vehicle_controller.rs` |
-
 ## WorkspaceData
 
 | Item | Module | Status | Detail | Source |
@@ -4364,8 +4246,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | const `NEW_CONTACT_BIT` | geometry | missing | Not found on Cairo candidate(s): geometry. | `rapier/src/geometry/contact_pair.rs` |
-| function `collider_set_parent_depenetration` | geometry | missing | Not found on Cairo candidate(s): geometry. | `rapier/src/geometry/narrow_phase/test.rs` |
-| function `collider_set_parent_no_self_intersection` | geometry | missing | Not found on Cairo candidate(s): geometry. | `rapier/src/geometry/narrow_phase/test.rs` |
 | function `is_bouncy` | geometry | missing | Not found on Cairo candidate(s): geometry. | `rapier/src/geometry/contact_pair.rs` |
 | function `is_bouncy_simd` | geometry | excluded | SIMD/parallel | `rapier/src/geometry/contact_pair.rs` |
 
@@ -4389,9 +4269,7 @@ Cairo-only public items not matched to upstream: **1515**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | function `convex_polygon_area_and_center_of_mass` | parry::mass_properties | missing | Not found on Cairo candidate(s): parry::mass_properties. | `parry/src/mass_properties/mass_properties_convex_polygon.rs` |
-| function `tetrahedron_unit_inertia_tensor_wrt_point` | parry::mass_properties | excluded | trimesh/voxels/3D heightfield | `parry/src/mass_properties/mass_properties_trimesh3d.rs` |
 | function `trimesh_area_and_center_of_mass` | parry::mass_properties | excluded | trimesh/voxels/3D heightfield | `parry/src/mass_properties/mass_properties_trimesh2d.rs` |
-| function `trimesh_signed_volume_and_center_of_mass` | parry::mass_properties | excluded | trimesh/voxels/3D heightfield | `parry/src/mass_properties/mass_properties_trimesh3d.rs` |
 
 ## parry::query
 
@@ -4407,10 +4285,8 @@ Cairo-only public items not matched to upstream: **1515**.
 | function `cast_shapes_heightfield_shape` | parry::query | ported | Mapped to Composite.cast_shapes_composite | `parry/src/query/shape_cast/shape_cast_heightfield_shape.rs` |
 | function `cast_shapes_nonlinear` | parry::query | ported | Mapped to Query.cast_shapes_nonlinear | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast.rs` |
 | function `cast_shapes_nonlinear_composite_shape_shape` | parry::query | ported | Mapped to Composite.cast_shapes_nonlinear_composite | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
-| function `cast_shapes_nonlinear_halfspace_support_map` | parry::query | missing | Not compiled upstream (commented out); the pair is unsupported, as upstream. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
 | function `cast_shapes_nonlinear_shape_composite_shape` | parry::query | ported | Mapped to Composite.cast_shapes_nonlinear_composite | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
 | function `cast_shapes_nonlinear_shape_voxels` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs` |
-| function `cast_shapes_nonlinear_support_map_halfspace` | parry::query | missing | Not compiled upstream (commented out); the pair is unsupported, as upstream. | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs` |
 | function `cast_shapes_nonlinear_support_map_support_map` | parry::query | ported | Mapped to SupportMap.cast_shapes_nonlinear_support_map_support_map | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_support_map_support_map.rs` |
 | function `cast_shapes_nonlinear_voxels_shape` | parry::query | excluded | trimesh/voxels/3D heightfield | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs` |
 | function `cast_shapes_shape_composite_shape` | parry::query | ported | Mapped to Composite.cast_shapes_composite | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
@@ -4452,8 +4328,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | function `contact_manifold_capsule_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_capsule_capsule.rs` |
 | function `contact_manifold_convex_ball` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
 | function `contact_manifold_convex_ball_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_convex_ball.rs` |
-| function `contact_manifold_cuboid_capsule` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
-| function `contact_manifold_cuboid_capsule_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs` |
 | function `contact_manifold_cuboid_cuboid` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
 | function `contact_manifold_cuboid_cuboid_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs` |
 | function `contact_manifold_cuboid_triangle` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs` |
@@ -4484,7 +4358,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | function `contact_support_map_support_map_with_params` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/contact/contact_support_map_support_map.rs` |
 | function `cuboid_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_cuboid.rs` |
 | function `cuboid_support_map_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_support_map.rs` |
-| function `detect_proximity_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/intersection_test/intersection_test_polygon_polygon.rs` |
 | function `directional_distance` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/gjk/gjk.rs` |
 | function `distance` | parry::query | ported | Mapped to Query.distance | `parry/src/query/distance/distance.rs` |
 | function `distance_ball_ball` | parry::query | ported | Mapped to Ball.distance_ball_ball | `parry/src/query/distance/distance_ball_ball.rs` |
@@ -4500,7 +4373,6 @@ Cairo-only public items not matched to upstream: **1515**.
 | function `evaluate` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `find_min_separation` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 | function `force_fixed_axis` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
-| function `generate_contacts_polygon_polygon` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait. | `parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs` |
 | function `intersection_test` | parry::query | ported | Mapped to Query.intersection_test, Intersection.intersection_test | `parry/src/query/intersection_test/intersection_test.rs` |
 | function `intersection_test_aabb_segment` | parry::query | ported | Mapped to Intersection.intersection_test_aabb_segment | `parry/src/query/intersection_test/intersection_test_cuboid_segment.rs` |
 | function `intersection_test_aabb_triangle` | parry::query | ported | Mapped to Intersection.intersection_test_aabb_triangle | `parry/src/query/intersection_test/intersection_test_cuboid_triangle.rs` |
@@ -4532,12 +4404,10 @@ Cairo-only public items not matched to upstream: **1515**.
 | function `ray_toi_with_ball` | parry::query | ported | Mapped to Ball.ray_toi_with_ball | `parry/src/query/ray/ray_ball.rs` |
 | function `ray_toi_with_halfspace` | parry::query | ported | Mapped to Halfspace.ray_toi_with_halfspace | `parry/src/query/ray/ray_halfspace.rs` |
 | function `segment_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_segment.rs` |
-| function `segment_triangle_find_local_separating_edge_twoway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_triangle_segment.rs` |
 | function `support_map_support_map_compute_separation` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_support_map_support_map.rs` |
 | function `sweep_time_of_impact` | parry::query | ported | Mapped to Query.sweep_time_of_impact | `parry/src/query/sweep_toi/sweep_toi.rs` |
 | function `sweep_time_of_impact_composite` | parry::query | ported | Mapped to Composite.sweep_time_of_impact_composite | `parry/src/query/sweep_toi/composite.rs` |
 | function `triangle_cuboid_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_triangle.rs` |
-| function `triangle_segment_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_triangle_segment.rs` |
 | function `triangle_support_map_find_local_separating_normal_oneway` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sat/sat_cuboid_triangle.rs` |
 | function `uses_edge_axis` | parry::query | excluded | EPA/GJK internals not exposed | `parry/src/query/sweep_toi/separation.rs` |
 
@@ -4569,21 +4439,20 @@ Cairo-only public items not matched to upstream: **1515**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 123 | standard | QP queries |
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 58 | mechanical | AP triage |
+| [Query completion](#wp-query-completion) | 120 | standard | QP queries |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 55 | mechanical | AP triage |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 33 | standard | shape interface |
-| [Vehicle and PID controllers](#wp-vehicle-and-pid-controllers) | 16 | standard | control crate policy |
-| [Collider API completion](#wp-collider-api-completion) | 11 | mechanical | DB/EV |
+| [Collider API completion](#wp-collider-api-completion) | 10 | mechanical | DB/EV |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 8 | standard | P1/SL/EV |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 7 | standard | SE sensors |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
-| [CCD and shape casts](#wp-ccd-and-shape-casts) | 4 | hard | QP queries |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 5 | standard | SE sensors |
 | [Joint API completion](#wp-joint-api-completion) | 4 | standard | JL/RJ |
-| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 2 | standard | geometry |
+| [CCD and shape casts](#wp-ccd-and-shape-casts) | 2 | hard | QP queries |
+| [Mass, AABB, and shape helpers](#wp-mass-aabb-and-shape-helpers) | 1 | standard | geometry |
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 123 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 120 public items.
 
 - **Aabb** method `canonical_split` (`parry/src/query/split/split_aabb.rs`)
 - **Aabb** method `clip_line` (`parry/src/query/clip/clip_aabb_line.rs`)
@@ -4665,11 +4534,11 @@ Tier: standard. Depends/context: QP queries. Estimate: 123 public items.
 - **SoftDetectionCtx** method `pieces_of_one_body` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
 - **SoftEdgeCandidate** type `SoftEdgeCandidate` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
 - **SoftPairContacts** method `disable_all` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- ... 43 more
+- ... 40 more
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 58 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 55 public items.
 
 - **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
@@ -4689,9 +4558,6 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 58 public items.
 - **InteractionGraph** method `raw_graph` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionsWithMut** type `InteractionsWithMut` (`rapier/src/geometry/interaction_graph.rs`)
-- **Polygon** method `new` (`parry/src/shape/polygon.rs`)
-- **Polygon** method `vertices` (`parry/src/shape/polygon.rs`)
-- **Polygon** type `Polygon` (`parry/src/shape/polygon.rs`)
 - **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
 - **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
 - **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
@@ -4768,30 +4634,9 @@ Tier: standard. Depends/context: shape interface. Estimate: 33 public items.
 - **parry::query** function `contact_manifold_cuboid_triangle` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
 - **parry::query** function `contact_manifold_cuboid_triangle_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_cuboid_triangle.rs`)
 
-### WP: Vehicle and PID controllers
-
-Tier: standard. Depends/context: control crate policy. Estimate: 16 public items.
-
-- **DynamicRayCastVehicleController** method `add_wheel` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **DynamicRayCastVehicleController** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **DynamicRayCastVehicleController** method `update_vehicle` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **DynamicRayCastVehicleController** method `wheels` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **DynamicRayCastVehicleController** method `wheels_mut` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **DynamicRayCastVehicleController** type `DynamicRayCastVehicleController` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **RayCastInfo** type `RayCastInfo` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **Wheel** method `axle` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **Wheel** method `center` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **Wheel** method `raycast_info` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **Wheel** method `suspension` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **Wheel** type `Wheel` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **WheelContactPoint** method `calc_rolling_friction` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **WheelContactPoint** method `new` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **WheelTuning** impl `Default` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-- **WheelTuning** type `WheelTuning` (`rapier/src/control/ray_cast_vehicle_controller.rs`)
-
 ### WP: Collider API completion
 
-Tier: mechanical. Depends/context: DB/EV. Estimate: 11 public items.
+Tier: mechanical. Depends/context: DB/EV. Estimate: 10 public items.
 
 - **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
@@ -4803,7 +4648,6 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 11 public items.
 - **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
 - **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
 - **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **geometry** function `collider_set_parent_depenetration` (`rapier/src/geometry/narrow_phase/test.rs`)
 
 ### WP: Pipeline and world facade
 
@@ -4818,18 +4662,6 @@ Tier: standard. Depends/context: P1/SL/EV. Estimate: 8 public items.
 - **Quarantine** method `is_empty` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
 - **Quarantine** type `Quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
 
-### WP: Sensors and intersection events
-
-Tier: standard. Depends/context: SE sensors. Estimate: 7 public items.
-
-- **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
-- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
-- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
-- **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
-- **geometry** function `collider_set_parent_no_self_intersection` (`rapier/src/geometry/narrow_phase/test.rs`)
-- **parry::query** function `detect_proximity_polygon_polygon` (`parry/src/query/intersection_test/intersection_test_polygon_polygon.rs`)
-
 ### WP: Rigid-body API completion
 
 Tier: mechanical. Depends/context: KD/SL. Estimate: 6 public items.
@@ -4841,14 +4673,15 @@ Tier: mechanical. Depends/context: KD/SL. Estimate: 6 public items.
 - **RigidBodySet** impl `Index<data::Index>` (`rapier/src/dynamics/rigid_body_set.rs`)
 - **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
 
-### WP: CCD and shape casts
+### WP: Sensors and intersection events
 
-Tier: hard. Depends/context: QP queries. Estimate: 4 public items.
+Tier: standard. Depends/context: SE sensors. Estimate: 5 public items.
 
-- **Shape** method `ccd_angular_thickness` (`parry/src/shape/shape.rs`)
-- **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
-- **parry::query** function `cast_shapes_nonlinear_halfspace_support_map` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
-- **parry::query** function `cast_shapes_nonlinear_support_map_halfspace` (`parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs`)
+- **IntersectResult** type `IntersectResult` (`parry/src/query/split/split.rs`)
+- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
+- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
+- **Segment** method `local_split_and_get_intersection` (`parry/src/query/split/split_segment.rs`)
 
 ### WP: Joint API completion
 
@@ -4859,11 +4692,17 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 4 public items.
 - **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
 - **parry::mass_properties** function `convex_polygon_area_and_center_of_mass` (`parry/src/mass_properties/mass_properties_convex_polygon.rs`)
 
+### WP: CCD and shape casts
+
+Tier: hard. Depends/context: QP queries. Estimate: 2 public items.
+
+- **Shape** method `ccd_angular_thickness` (`parry/src/shape/shape.rs`)
+- **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
+
 ### WP: Mass, AABB, and shape helpers
 
-Tier: standard. Depends/context: geometry. Estimate: 2 public items.
+Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 
-- **Polygon** method `aabb` (`parry/src/shape/polygon.rs`)
 - **parry::bounding_volume** function `local_aabb` (`parry/src/bounding_volume/aabb_support_map.rs`)
 
 ## Cairo public items without upstream match
@@ -8262,62 +8101,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_coulomb_friction.rs"
   },
   {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "solve",
-    "owner": "ContactWithTwistFriction",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "warmstart",
-    "owner": "ContactWithTwistFriction",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "writeback_impulses",
-    "owner": "ContactWithTwistFriction",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "apply_restitution",
-    "owner": "ContactWithTwistFrictionBuilder",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "generate",
-    "owner": "ContactWithTwistFrictionBuilder",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "has_bouncy_seed",
-    "owner": "ContactWithTwistFrictionBuilder",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "update",
-    "owner": "ContactWithTwistFrictionBuilder",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "method",
-    "module": "dynamics",
-    "name": "update_rhs_wo_bias",
-    "owner": "ContactWithTwistFrictionBuilder",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
     "kind": "impl",
     "module": "parry::query",
     "name": "PointQuery",
@@ -8435,20 +8218,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "ConvexPolygon",
     "owner": "ConvexPolygon",
     "source": "parry/src/shape/convex_polygon.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "bounding_sphere",
-    "owner": "ConvexPolyhedron",
-    "source": "parry/src/bounding_volume/bounding_sphere_convex.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "local_bounding_sphere",
-    "owner": "ConvexPolyhedron",
-    "source": "parry/src/bounding_volume/bounding_sphere_convex.rs"
   },
   {
     "kind": "impl",
@@ -8834,48 +8603,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "DilatedShape",
     "owner": "DilatedShape",
     "source": "parry/src/query/gjk/special_support_maps.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "add_wheel",
-    "owner": "DynamicRayCastVehicleController",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "new",
-    "owner": "DynamicRayCastVehicleController",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "update_vehicle",
-    "owner": "DynamicRayCastVehicleController",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "wheels",
-    "owner": "DynamicRayCastVehicleController",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "wheels_mut",
-    "owner": "DynamicRayCastVehicleController",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "type",
-    "module": "control",
-    "name": "DynamicRayCastVehicleController",
-    "owner": "DynamicRayCastVehicleController",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
   },
   {
     "kind": "method",
@@ -13645,34 +13372,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "source": "parry/src/query/point/point_query.rs"
   },
   {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "aabb",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "new",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::shape",
-    "name": "vertices",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
-    "kind": "type",
-    "module": "parry::shape",
-    "name": "Polygon",
-    "owner": "Polygon",
-    "source": "parry/src/shape/polygon.rs"
-  },
-  {
     "kind": "impl",
     "module": "parry::shape",
     "name": "Default",
@@ -14651,13 +14350,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "RayCast",
     "owner": "RayCast",
     "source": "parry/src/query/ray/ray.rs"
-  },
-  {
-    "kind": "type",
-    "module": "control",
-    "name": "RayCastInfo",
-    "owner": "RayCastInfo",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
   },
   {
     "kind": "type",
@@ -17787,160 +17479,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "SharedShape",
     "owner": "SharedShape",
     "source": "parry/src/shape/shared_shape.rs"
-  },
-  {
-    "kind": "impl",
-    "module": "parry::bounding_volume",
-    "name": "From<[T; N]>",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "impl",
-    "module": "parry::bounding_volume",
-    "name": "Serialize",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "cast_local_ray",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "center",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "contains",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "contains_local_point",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "dilate_by_factor",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "distance_to_local_point",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "distance_to_origin",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "extract",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "half_extents",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "intersects",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "intersects_permutations",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "loosen",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "new_invalid",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "radius",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "replace",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "scaled",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "splat",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "to_merged_aabb",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::bounding_volume",
-    "name": "transform_by",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
-  },
-  {
-    "kind": "type",
-    "module": "parry::bounding_volume",
-    "name": "SimdAabb",
-    "owner": "SimdAabb",
-    "source": "parry/src/bounding_volume/simd_aabb.rs"
   },
   {
     "kind": "method",
@@ -21172,20 +20710,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "method",
     "module": "parry::query",
-    "name": "canonical_intersection_with_plane",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "canonical_split",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
     "name": "cast_local_ray_with_culling",
     "owner": "TriMesh",
     "source": "parry/src/query/ray/ray_trimesh.rs"
@@ -21248,41 +20772,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   },
   {
     "kind": "method",
-    "module": "parry::query",
-    "name": "intersection_with_aabb",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "intersection_with_cuboid",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "intersection_with_local_cuboid",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "intersection_with_local_plane",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "intersection_with_plane",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
-  },
-  {
-    "kind": "method",
     "module": "parry::shape",
     "name": "is_backface",
     "owner": "TriMesh",
@@ -21301,13 +20790,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "local_bounding_sphere",
     "owner": "TriMesh",
     "source": "parry/src/bounding_volume/bounding_sphere_trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "local_split",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
   },
   {
     "kind": "method",
@@ -21350,13 +20832,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "set_vertices",
     "owner": "TriMesh",
     "source": "parry/src/shape/trimesh.rs"
-  },
-  {
-    "kind": "method",
-    "module": "parry::query",
-    "name": "split",
-    "owner": "TriMesh",
-    "source": "parry/src/query/split/split_trimesh.rs"
   },
   {
     "kind": "method",
@@ -21742,20 +21217,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "TrianglePseudoNormals",
     "owner": "TrianglePseudoNormals",
     "source": "parry/src/shape/triangle_pseudo_normals.rs"
-  },
-  {
-    "kind": "impl",
-    "module": "dynamics",
-    "name": "Default",
-    "owner": "TwistContactPointInfos",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
-  },
-  {
-    "kind": "type",
-    "module": "dynamics",
-    "name": "TwistContactPointInfos",
-    "owner": "TwistContactPointInfos",
-    "source": "rapier/src/dynamics/solver/contact_constraint/contact_with_twist_friction.rs"
   },
   {
     "kind": "method",
@@ -22368,69 +21829,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   },
   {
     "kind": "method",
-    "module": "control",
-    "name": "axle",
-    "owner": "Wheel",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "center",
-    "owner": "Wheel",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "raycast_info",
-    "owner": "Wheel",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "suspension",
-    "owner": "Wheel",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "type",
-    "module": "control",
-    "name": "Wheel",
-    "owner": "Wheel",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "calc_rolling_friction",
-    "owner": "WheelContactPoint",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
-    "module": "control",
-    "name": "new",
-    "owner": "WheelContactPoint",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "impl",
-    "module": "control",
-    "name": "Default",
-    "owner": "WheelTuning",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "type",
-    "module": "control",
-    "name": "WheelTuning",
-    "owner": "WheelTuning",
-    "source": "rapier/src/control/ray_cast_vehicle_controller.rs"
-  },
-  {
-    "kind": "method",
     "module": "parry::query",
     "name": "as_typed_workspace_data",
     "owner": "WorkspaceData",
@@ -22558,20 +21956,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "geometry",
-    "name": "collider_set_parent_depenetration",
-    "owner": "geometry",
-    "source": "rapier/src/geometry/narrow_phase/test.rs"
-  },
-  {
-    "kind": "function",
-    "module": "geometry",
-    "name": "collider_set_parent_no_self_intersection",
-    "owner": "geometry",
-    "source": "rapier/src/geometry/narrow_phase/test.rs"
-  },
-  {
-    "kind": "function",
-    "module": "geometry",
     "name": "is_bouncy",
     "owner": "geometry",
     "source": "rapier/src/geometry/contact_pair.rs"
@@ -22663,23 +22047,9 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::mass_properties",
-    "name": "tetrahedron_unit_inertia_tensor_wrt_point",
-    "owner": "parry::mass_properties",
-    "source": "parry/src/mass_properties/mass_properties_trimesh3d.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::mass_properties",
     "name": "trimesh_area_and_center_of_mass",
     "owner": "parry::mass_properties",
     "source": "parry/src/mass_properties/mass_properties_trimesh2d.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::mass_properties",
-    "name": "trimesh_signed_volume_and_center_of_mass",
-    "owner": "parry::mass_properties",
-    "source": "parry/src/mass_properties/mass_properties_trimesh3d.rs"
   },
   {
     "kind": "const",
@@ -22754,13 +22124,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "cast_shapes_nonlinear_halfspace_support_map",
-    "owner": "parry::query",
-    "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "cast_shapes_nonlinear_shape_composite_shape",
     "owner": "parry::query",
     "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs"
@@ -22771,13 +22134,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "cast_shapes_nonlinear_shape_voxels",
     "owner": "parry::query",
     "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_voxels_shape.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "cast_shapes_nonlinear_support_map_halfspace",
-    "owner": "parry::query",
-    "source": "parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_halfspace_support_map.rs"
   },
   {
     "kind": "function",
@@ -23069,20 +22425,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "contact_manifold_cuboid_capsule",
-    "owner": "parry::query",
-    "source": "parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "contact_manifold_cuboid_capsule_shapes",
-    "owner": "parry::query",
-    "source": "parry/src/query/contact_manifolds/contact_manifolds_cuboid_capsule.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "contact_manifold_cuboid_cuboid",
     "owner": "parry::query",
     "source": "parry/src/query/contact_manifolds/contact_manifolds_cuboid_cuboid.rs"
@@ -23293,13 +22635,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "detect_proximity_polygon_polygon",
-    "owner": "parry::query",
-    "source": "parry/src/query/intersection_test/intersection_test_polygon_polygon.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "directional_distance",
     "owner": "parry::query",
     "source": "parry/src/query/gjk/gjk.rs"
@@ -23401,13 +22736,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "force_fixed_axis",
     "owner": "parry::query",
     "source": "parry/src/query/sweep_toi/separation.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "generate_contacts_polygon_polygon",
-    "owner": "parry::query",
-    "source": "parry/src/query/contact_manifolds/polygon_polygon_contact_generator.rs"
   },
   {
     "kind": "function",
@@ -23629,13 +22957,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
   {
     "kind": "function",
     "module": "parry::query",
-    "name": "segment_triangle_find_local_separating_edge_twoway",
-    "owner": "parry::query",
-    "source": "parry/src/query/sat/sat_triangle_segment.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
     "name": "support_map_support_map_compute_separation",
     "owner": "parry::query",
     "source": "parry/src/query/sat/sat_support_map_support_map.rs"
@@ -23660,13 +22981,6 @@ Updated only by `python3 scripts/api_parity.py --refresh --rapier <checkout> --p
     "name": "triangle_cuboid_find_local_separating_normal_oneway",
     "owner": "parry::query",
     "source": "parry/src/query/sat/sat_cuboid_triangle.rs"
-  },
-  {
-    "kind": "function",
-    "module": "parry::query",
-    "name": "triangle_segment_find_local_separating_normal_oneway",
-    "owner": "parry::query",
-    "source": "parry/src/query/sat/sat_triangle_segment.rs"
   },
   {
     "kind": "function",
