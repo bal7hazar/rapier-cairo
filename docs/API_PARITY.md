@@ -24,7 +24,7 @@ Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/paralle
 | pipeline | 77 | 0 | 12 | 69 | 158 | 86.5% |
 | **total** | **1360** | **0** | **480** | **827** | **2667** | **73.9%** |
 
-Cairo-only public items not matched to upstream: **1443**.
+Cairo-only public items not matched to upstream: **1451**.
 
 ## Aabb
 
@@ -5085,7 +5085,15 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Alternatives** method `cast_shape_direct` (`crates/rapier2d/src/queries/shape_casts/alternatives.cairo`)
 - **Alternatives** method `cast_shape_nonlinear_direct` (`crates/rapier2d/src/queries/shape_casts/alternatives.cairo`)
 - **Alternatives** method `closest_pair_exhaustive` (`crates/rapier_geometry2d/src/query/support_map/alternatives.cairo`)
+- **Alternatives** method `collect_abort` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_alpha4` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_alpha4_pop` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_by_value` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_gated_scan` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_group_scan` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `collect_if_enabled` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_peek` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `collect_single_loop` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `collect_world` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_bucketed` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `compute_contacts_by_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
@@ -5204,15 +5212,7 @@ Tier: standard. Depends/context: geometry. Estimate: 2 public items.
 - **Ball** method `compute_aabb` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `compute_local_aabb` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
 - **Ball** method `contact_ball_convex_polyhedron` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- **Ball** method `contact_convex_polyhedron_ball` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- **Ball** method `contains_local_point_ball` (`crates/rapier_geometry2d/src/point/ball.cairo`)
-- **Ball** method `distance_ball_convex_polyhedron` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- **Ball** method `distance_convex_polyhedron_ball` (`crates/rapier_geometry2d/src/query/ball.cairo`)
-- **Ball** method `distance_to_local_point_ball` (`crates/rapier_geometry2d/src/point/ball.cairo`)
-- **Ball** method `local_support_point` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- **Ball** method `local_support_point_toward` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- **Ball** method `mass_properties` (`crates/rapier_geometry2d/src/shape/ball.cairo`)
-- ... 1243 more
+- ... 1251 more
 
 ## Embedded Rust inventory
 
