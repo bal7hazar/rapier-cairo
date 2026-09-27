@@ -94,6 +94,8 @@ dependencies = [
  "fixed",
  "glam",
  "rapier2d",
+ "rapier_geometry2d",
+ "snforge_std",
 ]
 
 [[package]]
