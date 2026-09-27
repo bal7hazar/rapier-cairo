@@ -11,6 +11,7 @@ mod ccd_scenes;
 mod clip2d;
 mod intersection_tests;
 mod jsonfmt;
+mod kc1;
 mod leaf;
 mod level_scenes;
 mod manifolds;
@@ -77,7 +78,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 30] = [
+        let families: [Family; 32] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -108,6 +109,8 @@ fn main() {
             ("compound_queries", sh2b::compound_queries),
             ("compound_scenes", sh2b::compound_scenes),
             ("tilted_landing", sf1::tilted_landing),
+            ("pid_corrections", kc1::pid_corrections),
+            ("character_moves", kc1::character_moves),
         ];
         for (name, generate) in families {
             let value = with_header(generate());
