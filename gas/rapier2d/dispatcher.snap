@@ -10,4 +10,4 @@ rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_ball_ball 117630
 rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_cuboid_cuboid 557390
 rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_halfspace_cuboid 315720
 rapier2d::dispatcher::tests::test_matches_dispatch_on_every_arm 128698210
-rapier2d::dispatcher::tests::test_unsupported_pairs_match_dispatch 1265290
+rapier2d::dispatcher::tests::test_unsupported_pairs_match_dispatch 1265690

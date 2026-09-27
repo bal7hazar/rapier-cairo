@@ -244,7 +244,7 @@ OWNER_ALIASES.update({
     # per-pair kernel files `query/{ball,cuboid,segment,halfspace,support_map}.cairo`), next to
     # the older `closest_points` / `dispatch` / `ray` kernels whose files carry those owners.
     "parry::query": ("Query", "Ball", "Cuboid", "Segment", "Halfspace", "SupportMap",
-                     "ClosestPoints", "dispatch", "Intersection"),
+                     "ClosestPoints", "dispatch", "Intersection", "Composite"),
     # Parry's `ContactManifold` persistence methods are the `ManifoldTrait` of `manifold.cairo`.
     "ContactManifold": ("ContactManifold", "Manifold"),
     # MH1: the frozen `FeatureId` struct is Parry's packed `PackedFeatureId` (one `u32`); Parry's
@@ -252,9 +252,45 @@ OWNER_ALIASES.update({
     "PackedFeatureId": ("FeatureId",),
     "parry::bounding_volume": ("BoundingVolume",),
     "TypedShape": ("Shape",),
+    # SH2a: the composite queries are free functions of `{point,ray,query,dispatch}/composite.cairo`
+    # and `query/sweep/composite.cairo` (owner `Composite`), over `Shape::{Polyline, HeightField}`.
+    "Heightfield": ("HeightField", "Heightfield", "Composite"),
+    "Polyline": ("Polyline", "Composite"),
+    "CompositeShapeRef": ("Composite",),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
+    # SH2a: one free function per query serves both composite kinds and both argument orders
+    # (`*_composite`, the composite shape first or second); `CompositeShapeRef`'s methods are
+    # the same functions; `*_mut` accessors are the copy-out reads (values, not references).
+    **{("parry::query", f"{q}_{pair}"): (f"{q}_composite",) for q in (
+        "cast_shapes", "closest_points", "contact", "distance", "intersection_test")
+        for pair in ("composite_shape_shape", "shape_composite_shape", "heightfield_shape",
+                     "shape_heightfield")},
+    **{("parry::query", f"cast_shapes_nonlinear_{pair}"): ("cast_shapes_nonlinear_composite",)
+       for pair in ("composite_shape_shape", "shape_composite_shape")},
+    **{("parry::query", n): ("contact_manifolds_composite",) for n in (
+        "contact_manifolds_composite_shape_shape", "contact_manifolds_heightfield_shape",
+        "contact_manifolds_heightfield_shape_shapes")},
+    ("CompositeShapeRef", "cast_local_ray"): ("cast_local_ray_polyline", "cast_local_ray_heightfield"),
+    ("CompositeShapeRef", "cast_local_ray_and_get_normal"): (
+        "cast_local_ray_and_get_normal_polyline", "cast_local_ray_and_get_normal_heightfield"),
+    ("CompositeShapeRef", "cast_shape"): ("cast_shapes_composite",),
+    ("CompositeShapeRef", "cast_shape_nonlinear"): ("cast_shapes_nonlinear_composite",),
+    ("CompositeShapeRef", "closest_points_to_shape"): ("closest_points_composite",),
+    ("CompositeShapeRef", "contact_with_shape"): ("contact_composite",),
+    ("CompositeShapeRef", "distance_to_shape"): ("distance_composite",),
+    ("CompositeShapeRef", "intersects_shape"): ("intersection_test_composite",),
+    ("CompositeShapeRef", "contains_local_point"): ("contains_local_point_composite",),
+    ("CompositeShapeRef", "project_local_point"): ("project_local_point_composite",),
+    ("CompositeShapeRef", "project_local_point_and_get_feature"): (
+        "project_local_point_and_get_feature_composite",),
+    ("CompositeShapeRef", "project_local_point_and_get_location"): (
+        "project_local_point_and_get_location_polyline",),
+    ("Heightfield", "map_elements_in_local_aabb"): ("elements_in_local_aabb",),
+    ("Polyline", "update_vertices"): ("set_vertices",),
+    ("Shape", "as_polyline_mut"): ("as_polyline",), ("Shape", "as_heightfield_mut"): ("as_heightfield",),
+    ("Shape", "as_composite_shape"): ("is_composite",),
     ("PhysicsWorld", "new"): ("new",), ("PhysicsWorld", "step"): ("step",),
     ("PhysicsWorld", "contact_pair"): ("contact_pair",), ("PhysicsPipeline", "step"): ("step",),
     ("QueryPipeline", "cast_ray"): ("cast_ray",),
@@ -744,14 +780,37 @@ def find_matches(item: Item, cairo: set[tuple[str, str, str]]) -> list[tuple[str
 
 # Items knowingly left missing, with the lot that owns them (instead of the generic "not found").
 MISSING_REASONS: dict[tuple[str, str], str] = {
-    # CC1: composite shapes (and their casts and sweeps) are lot SH2.
-    **{("CompositeShapeRef", n): "Composite shapes: lot SH2." for n in ("cast_shape", "cast_shape_nonlinear")},
-    **{("parry::query", n): "Composite shapes: lot SH2." for n in (
-        "cast_shapes_composite_shape_shape", "cast_shapes_shape_composite_shape",
-        "cast_shapes_heightfield_shape", "cast_shapes_shape_heightfield",
-        "cast_shapes_nonlinear_composite_shape_shape", "cast_shapes_nonlinear_shape_composite_shape",
-        "sweep_time_of_impact_composite", "CORE_FRACTION")},
-    ("SweepCompositeFastShape", "SweepCompositeFastShape"): "Composite shapes: lot SH2.",
+    # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
+    **{("parry::query", n): "SH2a: composite–composite pairs unsupported (fixed level geometry)." for n in (
+        "contact_manifolds_composite_shape_composite_shape",
+        "contact_manifolds_heightfield_composite_shape")},
+    # SH2a: no persistent workspace: the previous manifolds are matched by sub-shape ids.
+    **{(t, n): "SH2a: no workspace; previous manifolds are matched by sub-shape ids." for t in (
+        "CompositeShapeShapeContactManifoldsWorkspace",
+        "CompositeShapeCompositeShapeContactManifoldsWorkspace",
+        "HeightFieldShapeContactManifoldsWorkspace",
+        "HeightFieldCompositeShapeContactManifoldsWorkspace") for n in (t, "new")},
+    # SH2a: the closed `Shape` enum replaces the `CompositeShape` traits (match on the variant).
+    **{(t, n): "SH2a: closed `Shape` enum; composite dispatch matches `Polyline` / `HeightField`." for t, n in (
+        ("CompositeShape", "CompositeShape"), ("CompositeShape", "bvh"),
+        ("CompositeShape", "is_deformable"), ("CompositeShape", "map_part_at"),
+        ("TypedCompositeShape", "TypedCompositeShape"), ("TypedCompositeShape", "map_typed_part_at"),
+        ("TypedCompositeShape", "map_untyped_part_at"), ("CompositeShapeRef", "CompositeShapeRef"))},
+    **{(o, n): "SH2a: ray casts are `ray::cast_ray*` on the `Shape` (per-kind functions in `ray/composite.cairo`)." for o, n in (
+        ("Polyline", "RayCast"), ("Heightfield", "RayCast"))},
+    ("Heightfield", "PointQueryWithLocation"): "SH2a: upstream's heightfield location is unused by Rapier; `project_local_point_heightfield_part` returns the cell.",
+    ("Polyline", "PointQueryWithLocation"): "SH2a: free function `project_local_point_and_get_location_polyline` (no trait impl).",
+    **{(o, n): "Compound shapes: lot SH2b." for o, n in (
+        ("Compound", "PointQuery"), ("Compound", "RayCast"), ("Compound", "Shape"),
+        ("Compound", "DEFAULT_WELD_TOLERANCE"), ("Compound", "aabbs"), ("Compound", "bvh"),
+        ("Compound", "flags"), ("Compound", "local_aabb"), ("Compound", "local_bounding_sphere"),
+        ("Compound", "new"), ("Compound", "part_normal_constraints"), ("Compound", "set_flags"),
+        ("Compound", "shapes"), ("Compound", "with_flags"), ("Compound", "Compound"),
+        ("CompoundFlags", "CompoundFlags"), ("CompoundPseudoNormals", "CompoundPseudoNormals"),
+        ("ColliderBuilder", "compound"), ("SharedShape", "compound"), ("Shape", "as_compound"),
+        ("Shape", "as_compound_mut"), ("MassProperties", "from_compound"))},
+    ("SharedShape", "polyline"): "`ColliderBuilder::polyline` / `PolylineTrait::new(..).into()` (no `SharedShape`).",
+    ("SharedShape", "heightfield"): "`ColliderBuilder::heightfield` / `HeightFieldTrait::new(..).into()` (no `SharedShape`).",
     # CC1: upstream compiles no nonlinear half-space kernel (commented out of its `mod.rs` and of
     # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
     **{("parry::query", n): "Not compiled upstream (commented out); the pair is unsupported, as upstream." for n in (
