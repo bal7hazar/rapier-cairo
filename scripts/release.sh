@@ -6,7 +6,7 @@
 #   scripts/release.sh package          dry run: package every published crate (--no-verify)
 #   scripts/release.sh publish          publish in dependency order, then tag v<version> and push the tag
 #
-# Published, in this order: rapier_math, rapier_core, rapier_geometry2d, rapier_dynamics2d, rapier2d.
+# Published, in this order: rapier_math, rapier_core, rapier_geometry2d, rapier_dynamics2d, rapier2d, rapier2d_classes.
 # rapier_testing and rapier_golden (test helpers, 28k lines of fixtures) are not published: the crates
 # are packaged from a staged copy of HEAD whose manifests drop [dev-dependencies] (tests are not part
 # of what consumers build). `publish` needs a clean checkout of origin/main and SCARB_REGISTRY_AUTH_TOKEN
@@ -14,7 +14,7 @@
 # ones, so a crate is retried while the registry index catches up.
 set -euo pipefail
 
-CRATES=(rapier_math rapier_core rapier_geometry2d rapier_dynamics2d rapier2d)
+CRATES=(rapier_math rapier_core rapier_geometry2d rapier_dynamics2d rapier2d rapier2d_classes)
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
@@ -35,7 +35,7 @@ case "${1:-}" in
     NEW="${2:?usage: release.sh bump <version>}"
     OLD="$(version)"
     sed -i "/^\[workspace.package\]/,/^\[/s/^version = \"$OLD\"$/version = \"$NEW\"/" Scarb.toml
-    sed -i -E "s/^(rapier_[a-z0-9]+ = \{ path = \"crates\/rapier_[a-z0-9]+\", version = )\"$OLD\"/\1\"$NEW\"/" Scarb.toml
+    sed -i -E "s/^(rapier[a-z0-9_]* = \{ path = \"crates\/rapier[a-z0-9_]*\", version = )\"$OLD\"/\1\"$NEW\"/" Scarb.toml
     echo "workspace $OLD -> $(version)"; grep -n "version = \"$NEW\"" Scarb.toml
     ;;
   package)
