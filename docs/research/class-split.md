@@ -1,4 +1,4 @@
-# Splitting the game's step across declared classes (CS3)
+# Splitting the game's step across declared classes (CS3–CS6)
 
 Toolchain: scarb / Cairo 2.19.4, snforge 0.61.0. Base: `main` at `0c053ea` (after CN1). Class sizes come from
 `scripts/bytecode_size.py` (`table`, `attribution --by phases`, release profile) on the `crates/rapier_sink` fixtures.
@@ -299,6 +299,156 @@ Build it in this order. Each lot keeps results bit-identical, and in process its
   * the caller below 86k;
   * the pile10 reproduction runs no calm rule (a fixed 151 ticks, +2.0 % steps against slingfall).
 
+## 9. CS5: a stage slot per stage, every stage out (#213)
+
+Drawn from CS5's report. CS5 gave `StepConfig` five stage slots (narrow phase's pair loop, broad phase, islands, fused
+solve-and-advance, mass properties) with in-process impls that forward to the stage functions unchanged; CS6 moved them
+to a separate `StageConfig` (section 10). `rapier2d_classes` gained `SolveAdvanceClass` (41,186 Sierra / 70,402 CASM),
+`IslandsClass` (6,497 / 16,908), `BroadPhaseClass` (4,525 / 9,841), `MassClass` (13,297 / 35,686) and a batched contact
+entry point, and the layouts that library-call every stage. Each stage class runs the step's own functions on sets
+rebuilt from compact crossings, handles renumbered densely (ADR 0001 entry 40).
+
+| layout (pile10, 151 ticks) | steps | Δ |
+|---|--:|--:|
+| in process | 22,432,677 | |
+| CS4 (contacts per pair, solve out) | 27,545,488 | +22.8 % |
+| every stage out, contacts per pair (`StagesSplitStep`) | 32,910,544 | +46.7 % |
+| every stage out, contacts batched | 32,927,632 | +46.8 % |
+| every stage out, hybrid solve | 32,578,478 | +45.2 % |
+
+Per call: contact 2,318 steps (1,428 calls), broad phase 2,801 (152), islands 13,741 (67), solve and advance 37,960 (152),
+mass 5,254 (12). Every stage class fits; the caller with every stage out does not: **120,402 CASM** (55,410 Sierra). CS5's
+throwaway lever builds (panicking stubs, sizes only) brought it to 85,882 with CS6's levers 1 and 2 and to 73,369 with the
+force events, the active-set rebuild and the pair loop out; the steps of those three were estimated (+0.4M, ≤ +2.7M,
++3.3M).
+
+## 10. CS6: the caller class under 73,728 felts
+
+Toolchain as above. Base: `main` at `07dc0b7` (after CS5 and its docs). Sizes: `scripts/bytecode_size.py` (release);
+steps: `snforge test -p rapier2d_classes <filter> --include-ignored --tracked-resource cairo-steps --detailed-resources`
+(`tests/{slim,route_b,steps}.cairo`, constant class hashes `PinnedHashes` except where noted). **Gate met:** the caller
+`SlimSplitStep` is **28,413 Sierra / 73,181 CASM** felts and every declared class fits (`bytecode_size.py check`, SNIP-36
+checks included); the shot is bit-identical to in process at every tick (and with user changes mid-shot); in-process users
+are unchanged (section 10.5). **Steps: +65.9 %**, 5 transactions of ≤ 10M: inside the programme's first-shot envelope
+(≤ +75 %, ≤ 5 transactions), above the +25 % target.
+
+### 10.1 The API change undone
+
+`StepConfig` is back to its released shape (0.1.0-alpha.6: dispatcher, sensor / composite / joint strategies). The stage
+slots live in `rapier2d::pipeline::stages::StageConfig`, taken by new entry points `step_with_stages::<C, S>` and
+`step_with_force_events_with_stages::<C, S>` (`WorldTrait` and `pipeline`); `step_with::<C>` is
+`step_with_stages::<C, InProcessStages<C>>`. `InProcessStages<C>` names the in-process impls, built from `C`'s strategies.
+`rapier2d_classes`' CS5 layouts follow as stage configurations (`SplitStages`, `SplitBatchedStages`, `SplitHybridStages`;
+`ContactSolveStepConfig`, CS4's layout, stays a `StepConfig`). Cost: zero (section 10.5).
+
+CS6 adds five members to `StageConfig`, in-process by default: `Shapes: ShapeStage` (proxy bounding boxes;
+`BasicShapeKernels` compiles the four basic shapes only and rejects the others with `'Step: not a basic shape'`),
+`Forces: ForceEventStage`, `Active: ActiveSetStage` (the active-set rebuild), `Free: FreePathStage` (`NoFreePath`: no
+pair-free fast path, the ordinary path gives the same results) and `const KINEMATIC: bool` (`false` rejects a
+position-based kinematic body with `'Step: kinematic disabled'`). The `free_path` switch is a trailing `&& S::Free::ENABLED`
+on the original condition: placed first (or as an `if`, or as a function of the slot), it moved the in-process classes by
++63 to +178 CASM and their steps by a few per step.
+
+### 10.2 Levers 1 and 2, for real
+
+`rapier2d::world::basic_state::BasicWorldState`: `WorldState`'s felts (version 3, no new version), serialized field by
+field with the basic shapes' tags and payloads and no joint entry; `from_basic_state` rejects a joint arena that was ever
+used, `into_basic_state` writes the real arena bookkeeping and rejects a joint (`'State: joints disabled'`). The one-way
+filter lives in `rapier_dynamics2d`'s pair loop (`solver_data_supported`): no configuration can drop it, it leaves with
+the pair loop (lever 5).
+
+| caller (`SlimSplitStep` family), CASM felts | alone reverted | all reverted |
+|---|--:|--:|
+| levers 1 and 2 (`Levers12Step`: free path off, basic shape kernels, no kinematic preparation / `atan2`, basic codec) | 83,573 | 120,402 (`StagesSplitStep`) |
+| free path back | 105,591 (+22,018) | |
+| every shape's bounding box back | 86,939 (+3,366) | |
+| kinematic preparation back | 87,727 (+4,154) | |
+| `WorldState`'s codec back | 90,507 (+6,934) | |
+
+Steps: 32,907,106 on the shot (−3,873 against every stage out: the flight ticks take the ordinary path with the broad
+phase out). The basic codec's round trip is 221 steps cheaper than `WorldState`'s on a stepped level
+(`rapier2d::world::basic_state::tests::gas_*_round_trip`, 479,304 against 479,525).
+
+### 10.3 The remaining ≈ 10k: route (a) against route (b)
+
+**Route (a), stage slots** (`rapier2d_classes`, all measured on the shot):
+
+| caller after | Sierra | CASM | steps | Δ vs in process |
+|---|--:|--:|--:|--:|
+| levers 1 and 2 | 33,361 | 83,573 | 32,907,106 | +46.7 % |
+| + pair loop out (`NarrowPhaseClass`, lever 5) | 29,236 | 75,209 | 37,196,261 | +65.8 % |
+| **+ active-set rebuild out (`ActiveSetClass`, lever 4): shipped `SlimSplitStages`** | **28,413** | **73,181** | **37,219,191** | **+65.9 %** |
+| + force events out (`ForceEventsClass`, lever 3) | 28,211 | 72,609 | 39,619,796 | +76.6 % |
+
+* `NarrowPhaseClass` (11,319 / 23,597) runs the batched narrow phase (`stages::narrow`, whose last pass is now public:
+  `contact_jobs`, `compute_contacts_with_results`) and calls each contact family once per step; the family hashes cross
+  with the call (a declared class cannot be compiled with the game's constants). The pair loop reads the collider set only
+  for the `Stopped` flag of a dropped pair whose `Started` was emitted: the caller sends those pairs' live colliders and the
+  class answers from a set holding exactly them (none on pile10). Crossing: previous pairs, pair colliders (basic shape
+  tags), candidate pairs; back: the pairs and the collision events. **+28,218 steps per call** (152 calls) against the
+  per-pair contact calls.
+* `ActiveSetClass` (4,381 / 10,930) re-runs `active_set::rebuild` on placeholders holding what it reads (five fields of a
+  body, five of a collider, the pairs' handles). One call on the shot (+22,930 steps).
+* `ForceEventsClass` (2,832 / 6,202) re-runs `collect_convex` on placeholders (the colliders' flags and thresholds, eleven
+  fields of each pair) and writes the statuses back: 572 CASM felts for **+2.4M steps**. Measured, not in
+  `SlimSplitStages` (kept as a slot a caller can name).
+
+**Route (b), a second orchestration class** (`rapier2d_classes::orchestrator`, `tests/route_b.cairo`): the caller keeps the
+world between steps (a game's rules run there) and hands it to `OrchestratorClass` at every step, which runs the step
+and returns the world and the force events. The orchestrator reads the stage classes' hashes from the calling contract's
+storage (it cannot be compiled with the game's constants).
+
+| route (b) | Sierra | CASM | steps | Δ |
+|---|--:|--:|--:|--:|
+| orchestrator with levers 1 and 2, pair loop inside (built at `6dabc68`, removed: over Starknet's 81,920) | 33,539 | 84,291 | 47,845,475 | +113.3 % |
+| orchestrator with route (a)'s stages (`OrchestratorClass`) | 28,673 | 73,699 | 51,952,331 | +131.6 % |
+| its caller (`OrchestratedStep`) | 8,375 | 26,855 | | |
+
+* Persisted codec: the world crosses twice per step with the basic codec (the persisted bytes). The codec's round trip
+  alone costs 7,151,663 steps over the shot (`steps_route_b_codec_151` against `steps_basic_151`), 47,365 per tick.
+* In-memory layout: whatever the layout, the same felts must reach the orchestrator and come back. Their transfer alone,
+  without any codec, costs **9,095,752 steps** over the shot (`steps_route_b_echo_151` − `steps_route_b_codec_151`). With
+  the orchestrator's own step (≥ 32.9M, the levers-1-and-2 layout) the floor of any in-memory layout carrying the same
+  felts is ≈ 42.0M, above route (a)'s 37.2M; to beat it, a layout would have to carry fewer than ≈ 47 % of the world's
+  felts (1,422 to 2,978 per crossing on the shot) at zero codec cost. The orchestrator also needs route (a)'s levers to
+  fit.
+* **Route (a) is kept** (−14.7M steps against route (b) at the same sizes).
+
+### 10.4 Per layout: classes, shot, transactions, calldata
+
+Transactions: greedy, 10-tick granularity, ≤ 10M steps each; each pays one world crossing (decode in, encode out: the
+basic codec's measured round trip, 47,365 steps; CS3 / CS5 charged a crossing to both sides of a boundary, hence their
+slightly higher figures). Calldata per transaction: the world in (its felts at the first tick: 2,831 after the settle
+step, 2,978 in flight, 1,839 after the first destructions, 1,422 at the end; the same for every layout and codec), the
+inputs (the step count; route (b) also the orchestrator's hash) and the world out.
+
+| layout | classes (Sierra / CASM felts; Sierra / CASM class bytes) | shot | Δ | transactions (ticks: steps; calldata in + inputs → out) |
+|---|---|--:|--:|---|
+| in process | `BasicGameStep` 133,280 / 274,232; 7.54 / 6.26 MB | 22,432,677 | | 0–80: 9.10M (2,831 + 1 → 1,839); 80–130: 9.51M (1,839 + 1 → 1,422); 130–151: 3.96M (1,422 + 1 → 1,422) |
+| CS4 | `Split4Step` 76,525 / 162,173; 4.22 / 3.66 MB · `ContactBallClass` 14,950 / 41,560; 0.78 / 0.97 MB · `ContactPolygonClass` 14,515 / 57,299; 0.77 / 1.18 MB · `SolverClass` 29,500 / 43,726; 1.63 / 1.11 MB | 27,545,923 | +22.8 % | 0–70: 8.68M (2,831 + 1 → 1,839); 70–110: 9.58M (1,839 + 1 → 1,422); 110–151: 9.43M (1,422 + 1 → 1,422) |
+| CS5, every stage out | `StagesSplitStep` 55,410 / 120,402; 3.03 / 2.61 MB · families as CS4 · `SolveAdvanceClass` 41,186 / 70,402; 2.34 / 1.73 MB · `IslandsClass` 6,497 / 16,908; 0.33 / 0.36 MB · `BroadPhaseClass` 4,525 / 9,841; 0.23 / 0.22 MB · `MassClass` 13,297 / 35,686; 0.69 / 0.87 MB | 32,910,979 | +46.7 % | 0–60: 7.47M (2,831 + 1 → 1,839); 60–90: 8.86M (1,839 + 1 → 1,422); 90–120: 8.25M; 120–151: 8.53M (1,422 + 1 → 1,422) |
+| **CS6 route (a), kept** | **`SlimSplitStep` 28,413 / 73,181; 1.55 / 1.49 MB** · `NarrowPhaseClass` 11,319 / 23,597; 0.55 / 0.50 MB · `ActiveSetClass` 4,381 / 10,930; 0.22 / 0.24 MB · families, solve-and-advance, islands, broad phase, mass as CS5 (`ForceEventsClass` 2,832 / 6,202; 0.13 / 0.14 MB, optional) | **37,219,191** | **+65.9 %** | 0–60: 8.57M (2,831 + 1 → 1,839); 60–80: 6.95M (1,839 + 1 → 1,839); 80–110: 9.28M (1,839 + 1 → 1,422); 110–140: 9.26M; 140–151: 3.40M (1,422 + 1 → 1,422) |
+| CS6 route (b) | `OrchestratedStep` 8,375 / 26,855; 0.44 / 0.56 MB · `OrchestratorClass` 28,673 / 73,699; 1.57 / 1.52 MB · the classes of route (a) | 51,952,331 | +131.6 % | 7 transactions: 0–40: 7.41M (2,831 + 2 → 2,978); 40–60: 8.65M; 60–80: 8.80M; 80–100: 7.78M; 100–120: 7.69M; 120–140: 7.71M; 140–151: 4.24M (1,422 + 2 → 1,422) |
+
+The shot's steps include the settle step and the launch (`steps_*_0`: 291,126 in process, 581,855 route (a)) and the
+class declarations of the test (`steps_install`: 1,533).
+
+### 10.5 In-process users unchanged
+
+`snforge test -p rapier2d --tracked-resource cairo-steps --detailed-resources` before (`main`) and after: all 871
+pre-existing tests have identical steps and builtins except the three `stages::tests::test_batched_*` equality tests of
+the in-process batched narrow phase (+5 to +156 steps: its last pass is now a separate function), which no shipped
+configuration uses. That covers `game_path` (`steps_game_basic_*`), the P3, level, sleep and CCD probes. `program.*`: all
+six identical (`program.basic` 231,196). Class sizes: every pre-existing line of `gas/bytecode.size` identical but
+`StagesBatchedStep` (+33 CASM, the same batched pass).
+
+### 10.6 Open
+
+* The pair loop's crossing (+4.3M steps) is route (a)'s main cost after CS5's stage crossings: `solver_data_supported`
+  rewrites every solver-data field but `user_data`, so the previous pairs could cross as geometry, status, contact count
+  and `user_data` (≈ 37 instead of ≈ 64 felts each); not built (the caller's margin is 547 CASM felts).
+* The caller's margin is thin: CX1's changes to the solve-and-advance and island crossings move the caller's wrappers.
+
 ## Appendix: reproduction
 
 ```
@@ -311,4 +461,9 @@ snforge test -p rapier2d_classes steps_ --include-ignored --tracked-resource cai
 git switch proto/cs3-phase-dispatch
 snforge test -p rapier_sink split4 --tracked-resource cairo-steps --detailed-resources
 python3 scripts/cs3_levers.py
+# CS6: route (a) per lever, route (b), the state felts, the call counts
+snforge test -p rapier2d_classes slim --include-ignored --tracked-resource cairo-steps --detailed-resources
+snforge test -p rapier2d_classes route_b --include-ignored --tracked-resource cairo-steps --detailed-resources
+snforge test -p rapier2d_classes steps_cs4_ --include-ignored --tracked-resource cairo-steps --detailed-resources
+snforge test -p rapier2d_classes test_state_felts --include-ignored
 ```

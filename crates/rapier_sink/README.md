@@ -18,7 +18,10 @@ classes called through `library_call_syscall`): `BasicGameStep` (the game's step
 and out), the contact-generation class `ContactClass`, its caller `SplitNarrowStep` and `Echo` (the
 cost of a bare library call). The supported declared classes (`ContactBallClass`,
 `ContactPolygonClass`, `SolverClass`) live in `crates/rapier2d_classes` (CS4); `src/classes.cairo`
-holds their callers `Split4Step` (`rapier2d_classes::SplitStepConfig`) and `Split3Step`
-(`ContactClass` and `SolverClass`), size fixtures. `tests/` reproduces slingfall's pile10 level and reference shot and
+holds their callers, size fixtures: `Split4Step` (`rapier2d_classes::ContactSolveStepConfig`),
+`Split3Step` (`ContactClass` and `SolverClass`), CS5's `Stages*Step` (every stage out), and CS6's
+`SlimSplitStep` (`SlimSplitStages` with the basic `WorldState` codec: the caller class under the
+declared-class limit, in `DECLARED`), `Levers12Step` (its levers 1 and 2 alone) and
+`OrchestratedStep` (route (b)'s caller). `tests/` reproduces slingfall's pile10 level and reference shot and
 measures each layout in exact Cairo steps (`snforge test -p rapier_sink --tracked-resource
 cairo-steps --detailed-resources`); the analysis is in `docs/research/class-split.md`.
