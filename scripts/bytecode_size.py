@@ -349,14 +349,18 @@ def snip36_problems():
 def print_declared(rows):
     print(f"\n### declared classes (`{CLASSES_PACKAGE}`, limit {DECLARED_LIMIT:,} felts each) and "
           "their caller fixture: sizes, entry-point builtins, syscalls (SNIP-36)\n")
-    print("| class | Sierra felts | × limit | CASM felts | × limit | builtins | syscalls |")
-    print("|---|--:|--:|--:|--:|---|---|")
+    # The margin under the limit of every declared class, so that a PR that eats it is visible in its
+    # CI summary (programme, 2026-09-28: the slim caller's margin is a few dozen felts after CX1).
+    print("| class | Sierra felts | × limit | CASM felts | × limit | margin (Sierra / CASM) | builtins | syscalls |")
+    print("|---|--:|--:|--:|--:|--:|---|---|")
     for name in SNIP36:
         r = rows.get(name)
         if r:
             builtins, syscalls = INTERFACES[name]
+            margin = (f"{DECLARED_LIMIT - r['sierra_felts']:,} / {DECLARED_LIMIT - r['casm_felts']:,}"
+                      if name in DECLARED else "—")
             print(f"| `{name}` | {r['sierra_felts']:,} | {r['sierra_felts'] / DECLARED_LIMIT:.2f} "
-                  f"| {r['casm_felts']:,} | {r['casm_felts'] / DECLARED_LIMIT:.2f} "
+                  f"| {r['casm_felts']:,} | {r['casm_felts'] / DECLARED_LIMIT:.2f} | {margin} "
                   f"| {', '.join(builtins) or '—'} "
                   f"| {', '.join(s.removesuffix('_syscall') for s in syscalls) or '—'} |")
 
