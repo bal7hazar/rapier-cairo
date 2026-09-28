@@ -24,7 +24,15 @@ whether simulation results changed.
   just past the end of a face keeps its corner normal (the face snap forgives an excess of at most `height / 2^30`).
   Touching starts cost +670 Cairo steps per cast; other casts are unchanged (CN1).
 
+### Changed
+- **Breaking for custom `StepConfig` impls (CS5, #213):** `StepConfig` gained five stage slots (solve-and-advance,
+  narrow phase, islands, broad phase, mass) with in-process impls; `DefaultStepConfig` / `BasicStepConfig` users are
+  unaffected (same results, Cairo steps and program). CS6 moves the slots to a separate trait before the next release.
+
 ### Added
+- Stage classes in `rapier2d_classes` (`SolveAdvanceClass`, `IslandsClass`, `BroadPhaseClass`, `MassClass`, a batched
+  contact entry point; each ≤ 73,728 felts) and configurations that library-call every stage; bit-identical to
+  `BasicStepConfig` over the pile10 shot (CS5, #213).
 - `rapier2d_classes` (new crate): the step's contact generation and island solve as declared Starknet classes
   (`ContactBallClass` 39,561, `ContactPolygonClass` 54,634, `SolverClass` 43,726 CASM felts, each ≤ 73,728),
   library-called at the constant hashes of a `ClassHashes` impl through `SplitStepConfig<H>`; bit-identical to
