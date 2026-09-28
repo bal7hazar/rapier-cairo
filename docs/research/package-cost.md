@@ -126,3 +126,12 @@ cheaper. Not recommended.
   registry crates (`fixed`, `glam`, `starknet`) to measure rapier_math's and rapier_core's direct dependencies.
 * Script finding for nalgebra-cairo: `--manifest-path` is passed after `scarb metadata`, which scarb 2.19.4 rejects
   (`unexpected argument '--manifest-path'`); it must precede the subcommand.
+
+## Update (after 0.1.0-alpha.7): gate 2 enforced
+
+The shared script (nalgebra-cairo 7177cf3, copied unchanged) computes each crate's marginal cost itself (a consumer of
+the crate minus a consumer of its direct dependencies together, registry crates included) and judges a facade
+(`facades = ["rapier2d"]` in `consumer_cost.toml`) on gate 3 only; CI enforces gates 1–3. Local run (load ≈ 10 on 8
+vCPU, so the times are noisy; the memory figures are stable), marginal cost: rapier_math 3.0 s / 0.00 GB, rapier_core
+1.1 / 0.10, rapier_geometry2d 3.4 / 0.49, rapier_dynamics2d 1.4 / 0.38, rapier2d_classes 1.9 / 0.09; closures
+`rapier2d` 1.85 GB, `game_classes` 1.93 GB over the baseline. Every gate passes.
