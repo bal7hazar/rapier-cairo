@@ -9,6 +9,8 @@
 //! * `SolverClass`: `solve_island_input_contacts` behind one entry point.
 //! * `SplitSolveStep`: `BasicGameStep` with the solve in `SolverClass` (two classes).
 //! * `Split3Step`: the contact generation in `ContactClass` too (three classes).
+//! * `Split4Step`: the contact generation in `ContactBallClass` / `ContactPolygonClass` and the
+//!   solve in `SolverClass` (four classes).
 
 use core::dict::Felt252Dict;
 use rapier2d::dispatcher::BasicShapesDispatcher;
@@ -19,6 +21,7 @@ use rapier_dynamics2d::solver::island::{SolvedIsland, SolverInput};
 use rapier_geometry2d::contact::ContactManifold;
 use starknet::SyscallResultTrait;
 use starknet::syscalls::library_call_syscall;
+use crate::family::FamilyDispatcher;
 use crate::split::{LibraryCallDispatcher, class_at, errors};
 
 /// Storage slot of the solver class hash (`selector!("solver_class")`).
@@ -88,12 +91,19 @@ pub impl Split3StepConfig of StepConfig {
     impl Joints = LibraryCallSolver;
 }
 
+/// `BasicStepConfig` with the contact generation in the two family classes and the solve in a
+/// third one.
+pub impl Split4StepConfig of StepConfig {
+    impl Dispatcher = FamilyDispatcher;
+    impl Sensors = NoSensors;
+    impl Composites = NoComposites;
+    impl Joints = LibraryCallSolver;
+}
+
 #[starknet::contract]
 pub mod SolverClass {
     use rapier2d::prelude::IntegrationParameters;
-    use rapier_dynamics2d::solver::island::{
-        SolvedIsland, SolverInput, solve_island_input_contacts,
-    };
+    use rapier_dynamics2d::solver::island::{SolvedIsland, SolverInput, solve_island_input_contacts};
     use rapier_geometry2d::contact::ContactManifold;
 
     #[storage]
@@ -165,6 +175,44 @@ pub mod Split3Step {
         let mut i = 0;
         while i != steps {
             let _ = world.step_with_force_events_with::<Split3StepConfig>();
+            i += 1;
+        }
+        world.into_state()
+    }
+}
+
+#[starknet::contract]
+pub mod Split4Step {
+    use rapier2d::prelude::{WorldState, WorldTrait};
+    use starknet::ClassHash;
+    use starknet::storage::StoragePointerWriteAccess;
+    use super::Split4StepConfig;
+
+    #[storage]
+    struct Storage {
+        contact_ball_class: ClassHash,
+        contact_polygon_class: ClassHash,
+        solver_class: ClassHash,
+    }
+
+    #[constructor]
+    fn constructor(
+        ref self: ContractState,
+        contact_ball_class: ClassHash,
+        contact_polygon_class: ClassHash,
+        solver_class: ClassHash,
+    ) {
+        self.contact_ball_class.write(contact_ball_class);
+        self.contact_polygon_class.write(contact_polygon_class);
+        self.solver_class.write(solver_class);
+    }
+
+    #[external(v0)]
+    fn step_state(self: @ContractState, state: WorldState, steps: u32) -> WorldState {
+        let mut world = WorldTrait::from_state(state);
+        let mut i = 0;
+        while i != steps {
+            let _ = world.step_with_force_events_with::<Split4StepConfig>();
             i += 1;
         }
         world.into_state()
