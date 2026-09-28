@@ -75,11 +75,12 @@ PACKAGE = "rapier_sink"
 # The declared classes (CS4): built from their own package, snapshotted with the fixtures (contract
 # names are unique across both packages), each checked against `DECLARED_LIMIT`.
 CLASSES_PACKAGE = "rapier2d_classes"
-DECLARED = ["ContactBallClass", "ContactPolygonClass", "SolverClass"]
+DECLARED = ["ContactBallClass", "ContactPolygonClass", "SolverClass", "SolveAdvanceClass",
+            "IslandsClass", "BroadPhaseClass", "MassClass"]
 DECLARED_LIMIT = 73728
 # SNIP-36 (SN1, 2026-09-28): what the virtual OS fails on and what its prover rejects. Checked on the
-# declared classes and on their caller fixture.
-SNIP36 = DECLARED + ["Split4Step"]
+# declared classes and on their caller fixtures (CS4's layout; CS5's, every stage out, and its variants).
+SNIP36 = DECLARED + ["Split4Step", "StagesSplitStep", "StagesBatchedStep", "StagesHybridStep"]
 REJECTED_BUILTINS = ["ecdsa", "range_check96", "add_mod", "mul_mod"]
 FORBIDDEN_SYSCALLS = ["deploy_syscall", "replace_class_syscall", "get_block_hash_syscall",
                       "meta_tx_v0_syscall"]
@@ -171,7 +172,8 @@ PHASES = [
     ("contact dispatch", r"^rapier_geometry2d::dispatch::|^rapier2d::dispatcher::"),
     ("geometry kernels (SAT, clipping, projections, features)",
      r"^rapier_geometry2d::(sat|clip|point|polygonal_feature|closest_points|manifold|contact)"),
-    ("narrow phase (pair loop, solver contacts)", r"^rapier_dynamics2d::narrow_phase"),
+    ("narrow phase (pair loop, solver contacts)",
+     r"^rapier_dynamics2d::narrow_phase|^rapier2d::pipeline::stages::narrow"),
     ("broad phase (proxies, AABBs, pairs)",
      r"^rapier_geometry2d::(broad_phase|aabb)|^rapier_geometry2d::shape::\S*(aabb|bounding)"
      r"|collision_inputs|collision_proxies|collision_scratch|near_statics"),
@@ -191,6 +193,7 @@ PHASES = [
                                       r"(collider_set|rigid_body_set|collider)|^rapier2d::world"
                                       r"|^core::dict"),
     ("fixed-point and vector maths", r"^fixed::|^glam::|^rapier_math::|^rapier_core::"),
+    ("library-call strategies (crossing, write-back)", r"^rapier2d_classes::"),
     ("fixture (entry points, split dispatchers)", r"^rapier_sink::"),
     ("corelib", r"^core::"),
 ]

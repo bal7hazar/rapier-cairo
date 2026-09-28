@@ -2,8 +2,8 @@
 
 use starknet::ClassHash;
 
-/// Where the split step finds the declared classes it library-calls. A game declares the three
-/// classes of this crate, then compiles its step with an impl of constants:
+/// Where the split step finds the declared classes it library-calls. A game declares the
+/// classes of this crate it uses, then compiles its step with an impl of constants:
 ///
 /// ```cairo
 /// impl GameClasses of ClassHashes {
@@ -24,6 +24,14 @@ pub trait ClassHashes {
     fn contact_polygon() -> ClassHash;
     /// The class hash of `SolverClass` (`crate::solver`).
     fn solver() -> ClassHash;
+    /// The class hash of `SolveAdvanceClass` (`crate::advance`).
+    fn solve_advance() -> ClassHash;
+    /// The class hash of `IslandsClass` (`crate::islands`).
+    fn islands() -> ClassHash;
+    /// The class hash of `BroadPhaseClass` (`crate::broad_phase`).
+    fn broad_phase() -> ClassHash;
+    /// The class hash of `MassClass` (`crate::mass`).
+    fn mass() -> ClassHash;
 }
 
 /// Errors of the library calls.

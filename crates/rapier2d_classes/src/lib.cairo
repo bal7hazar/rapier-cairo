@@ -18,12 +18,23 @@
 //!
 //! Results are bit-identical to `BasicStepConfig`'s (`tests/split.cairo`).
 
+pub mod advance;
+pub mod arena;
+pub mod broad_phase;
 pub mod config;
 pub mod contact;
 pub mod hashes;
+pub mod islands;
+pub mod mass;
 pub mod solver;
 
-pub use config::SplitStepConfig;
-pub use contact::{FamilyDispatcher, ManifoldGeometry};
+pub use advance::{HybridSolveAdvance, LibraryCallSolveAdvance};
+pub use broad_phase::LibraryCallBroadPhase;
+pub use config::{
+    ContactSolveStepConfig, SplitBatchedStepConfig, SplitHybridStepConfig, SplitStepConfig,
+};
+pub use contact::{FamilyBatch, FamilyDispatcher, ManifoldGeometry};
 pub use hashes::ClassHashes;
+pub use islands::LibraryCallIslands;
+pub use mass::LibraryCallMass;
 pub use solver::{LibraryCallSolver, SolverManifold};

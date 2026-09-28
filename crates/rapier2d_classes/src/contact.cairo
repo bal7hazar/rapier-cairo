@@ -9,10 +9,12 @@
 //! whole manifold).
 
 use rapier2d::pipeline::config::ContactDispatcher;
-use rapier2d::prelude::{Fixed, Pose2, Pose2Trait, Shape, Vec2};
-use rapier_geometry2d::contact::{
-    ContactManifold, ContactManifoldData, ContactManifoldTrait, TrackedContact,
+/// The geometry that crosses (CS4), defined with the batched narrow phase (CS5).
+pub use rapier2d::pipeline::stages::narrow::{
+    ContactBatch, ContactJob, ManifoldGeometry, geometry, with_geometry,
 };
+use rapier2d::prelude::{Fixed, Pose2, Pose2Trait, Shape};
+use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::contact_generators::ball_ball::contact_manifold_ball_ball;
 use rapier_geometry2d::contact_generators::convex_ball::{
     contact_manifold_ball_convex, contact_manifold_convex_ball,
@@ -26,38 +28,6 @@ use rapier_geometry2d::dispatch::basic::errors::UNSUPPORTED;
 use starknet::SyscallResultTrait;
 use starknet::syscalls::library_call_syscall;
 use crate::hashes::{ClassHashes, errors};
-
-/// What a contact generator reads and writes of a manifold: [`ContactManifold`] without its
-/// solver data (`data`, which only the narrow phase writes, after the generator).
-#[derive(Copy, Drop, Serde)]
-pub struct ManifoldGeometry {
-    pub points: [TrackedContact; 2],
-    pub num_points: u8,
-    pub local_n1: Vec2,
-    pub local_n2: Vec2,
-    pub subshape1: u32,
-    pub subshape2: u32,
-}
-
-/// `manifold`'s geometry.
-pub fn geometry(manifold: @ContactManifold) -> ManifoldGeometry {
-    ManifoldGeometry {
-        points: *manifold.points,
-        num_points: *manifold.num_points,
-        local_n1: *manifold.local_n1,
-        local_n2: *manifold.local_n2,
-        subshape1: *manifold.subshape1,
-        subshape2: *manifold.subshape2,
-    }
-}
-
-/// The manifold of `geometry` with the solver data `data`.
-pub fn with_geometry(geometry: ManifoldGeometry, data: ContactManifoldData) -> ContactManifold {
-    let ManifoldGeometry {
-        points, num_points, local_n1, local_n2, subshape1, subshape2,
-    } = geometry;
-    ContactManifold { points, num_points, local_n1, local_n2, subshape1, subshape2, data }
-}
 
 /// The pairs with a ball: `contact_manifold_step_basic`'s ball arms. Always `true` (supported).
 ///
@@ -175,11 +145,106 @@ pub impl FamilyDispatcher<impl H: ClassHashes> of ContactDispatcher {
     }
 }
 
+/// A pair with a ball goes to `ContactBallClass`, any other to `ContactPolygonClass`.
+#[inline(always)]
+fn ball_family(shape1: Shape, shape2: Shape) -> bool {
+    match (shape1, shape2) {
+        (Shape::Ball(_), _) | (_, Shape::Ball(_)) => true,
+        _ => false,
+    }
+}
+
+/// One library call of the family class at `class_hash` on `jobs` (not empty).
+fn family_call(
+    class_hash: starknet::ClassHash, prediction: Fixed, jobs: Span<ContactJob>,
+) -> Span<(bool, ManifoldGeometry)> {
+    let mut calldata = array![];
+    prediction.serialize(ref calldata);
+    jobs.serialize(ref calldata);
+    let mut ret = library_call_syscall(class_hash, selector!("contact_batch"), calldata.span())
+        .unwrap_syscall();
+    Serde::deserialize(ref ret).expect(errors::DECODE)
+}
+
+/// The contact generation of a step's batch (the narrow phase's `BatchedNarrowPhase`): one call
+/// of `ContactBallClass` (at `H::contact_ball()`) with the pairs with a ball and one of
+/// `ContactPolygonClass` (at `H::contact_polygon()`) with the others, each skipped when it has no
+/// pair; only the manifolds' geometry crosses, the solver data stays in the caller.
+///
+/// # Panics
+/// `errors::DECODE` when a class returns something else than its result; as the classes (a shape
+/// that is not basic: `UNSUPPORTED`).
+pub impl FamilyBatch<impl H: ClassHashes> of ContactBatch {
+    fn contact_geometries(
+        prediction: Fixed, jobs: Span<ContactJob>,
+    ) -> Span<(bool, ManifoldGeometry)> {
+        let mut ball = array![];
+        let mut polygon = array![];
+        let mut families = array![];
+        for job in jobs {
+            let is_ball = ball_family(*job.shape1, *job.shape2);
+            if is_ball {
+                ball.append(*job);
+            } else {
+                polygon.append(*job);
+            }
+            families.append(is_ball);
+        }
+        if polygon.is_empty() {
+            return family_call(H::contact_ball(), prediction, ball.span());
+        }
+        if ball.is_empty() {
+            return family_call(H::contact_polygon(), prediction, polygon.span());
+        }
+        let mut ball = family_call(H::contact_ball(), prediction, ball.span());
+        let mut polygon = family_call(H::contact_polygon(), prediction, polygon.span());
+        let mut out = array![];
+        for is_ball in families {
+            out
+                .append(
+                    if is_ball {
+                        *ball.pop_front().unwrap()
+                    } else {
+                        *polygon.pop_front().unwrap()
+                    },
+                );
+        }
+        out.span()
+    }
+}
+
+/// [`contact_manifold_ball_family`] on each job of a batch (default solver data, which no
+/// generator reads).
+pub fn ball_batch(prediction: Fixed, jobs: Span<ContactJob>) -> Span<(bool, ManifoldGeometry)> {
+    let mut out = array![];
+    for job in jobs {
+        let mut manifold = with_geometry(*job.geometry, Default::default());
+        let supported = contact_manifold_ball_family(
+            *job.pos12, *job.shape1, *job.shape2, prediction, ref manifold,
+        );
+        out.append((supported, geometry(@manifold)));
+    }
+    out.span()
+}
+
+/// [`contact_manifold_polygon_family`] on each job of a batch.
+pub fn polygon_batch(prediction: Fixed, jobs: Span<ContactJob>) -> Span<(bool, ManifoldGeometry)> {
+    let mut out = array![];
+    for job in jobs {
+        let mut manifold = with_geometry(*job.geometry, Default::default());
+        let supported = contact_manifold_polygon_family(
+            *job.pos12, *job.shape1, *job.shape2, prediction, ref manifold,
+        );
+        out.append((supported, geometry(@manifold)));
+    }
+    out.span()
+}
+
 /// The contact generation of the pairs with a ball.
 #[starknet::contract]
 pub mod ContactBallClass {
     use rapier2d::prelude::{Fixed, Pose2, Shape};
-    use super::{ManifoldGeometry, contact_manifold_ball_family, with_geometry};
+    use super::{ContactJob, ManifoldGeometry, contact_manifold_ball_family, with_geometry};
 
     #[storage]
     struct Storage {}
@@ -201,13 +266,20 @@ pub mod ContactBallClass {
         );
         (supported, super::geometry(@manifold))
     }
+    /// [`super::ball_batch`]: a step's pairs with a ball at once.
+    #[external(v0)]
+    fn contact_batch(
+        self: @ContractState, prediction: Fixed, jobs: Span<ContactJob>,
+    ) -> Span<(bool, ManifoldGeometry)> {
+        super::ball_batch(prediction, jobs)
+    }
 }
 
 /// The contact generation of the pairs of cuboids, convex polygons and half-spaces.
 #[starknet::contract]
 pub mod ContactPolygonClass {
     use rapier2d::prelude::{Fixed, Pose2, Shape};
-    use super::{ManifoldGeometry, contact_manifold_polygon_family, with_geometry};
+    use super::{ContactJob, ManifoldGeometry, contact_manifold_polygon_family, with_geometry};
 
     #[storage]
     struct Storage {}
@@ -228,5 +300,12 @@ pub mod ContactPolygonClass {
             pos12, shape1, shape2, prediction, ref manifold,
         );
         (supported, super::geometry(@manifold))
+    }
+    /// [`super::polygon_batch`]: a step's pairs without a ball at once.
+    #[external(v0)]
+    fn contact_batch(
+        self: @ContractState, prediction: Fixed, jobs: Span<ContactJob>,
+    ) -> Span<(bool, ManifoldGeometry)> {
+        super::polygon_batch(prediction, jobs)
     }
 }
