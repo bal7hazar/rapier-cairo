@@ -43,7 +43,9 @@ measurements needed live on the unmerged branch `proto/cs3-phase-dispatch` (sect
 game's `BasicShapesDispatcher` behind one entry point), `ContactBallClass` / `ContactPolygonClass` (one class per
 shape-pair family), the caller `SplitNarrowStep`, and `Echo` (a bare library call). Proto only (`split_solve.cairo`):
 `SolverClass`, `SplitSolveStep`, `Split3Step`, `Split4Step`. The dispatchers read each class hash from a storage slot of
-the executing contract (under `library_call` the caller's storage).
+the executing contract (under `library_call` the caller's storage). Since CS4, `family.cairo` and its `steps_family_*`
+probes are gone: the family classes, `SolverClass` and their strategies live in `crates/rapier2d_classes` (constant class
+hashes), and `Split3Step` / `Split4Step` are `rapier_sink` fixtures (`src/classes.cairo`).
 
 `crates/rapier_sink/tests/pile10.cairo` rebuilds slingfall's `pile10` level the way slingfall's `GameTrait::new` does:
 level order, dynamic bodies asleep, events on blocks and cores, `settle` (a `dt = 0` step, then back to sleep). It
@@ -227,7 +229,8 @@ None of these was built here.
 
 **`StepConfig` already carries the phase dispatch.** Its `Dispatcher` (`ContactDispatcher`) is the per-pair contact
 phase, and its `Joints` (`JointStrategy::solve`) is the island solve. A contract writes impls that library-call:
-`split::LibraryCallDispatcher`, `family::FamilyDispatcher`, `split_solve::LibraryCallSolver`. A program that names
+`split::LibraryCallDispatcher`, `family::FamilyDispatcher` (since CS4 `rapier2d_classes::FamilyDispatcher`),
+`split_solve::LibraryCallSolver` (since CS4 `rapier2d_classes::LibraryCallSolver`). A program that names
 `BasicStepConfig` compiles exactly what it did. No new generic is needed for these two phases.
 
 The contact impls use only public API and live on `main` (this PR). The solve needs `#[derive(Serde)]` on
@@ -302,6 +305,9 @@ Build it in this order. Each lot keeps results bit-identical, and in process its
 python3 scripts/bytecode_size.py table
 python3 scripts/bytecode_size.py attribution --class BasicGameStep --by phases [--cut LABEL=REGEX ...]
 snforge test -p rapier_sink --tracked-resource cairo-steps --detailed-resources
+# the family layout (CS3's `steps_family_*`, removed from rapier_sink by CS4): the split step of rapier2d_classes
+snforge test -p rapier2d_classes steps_ --include-ignored --tracked-resource cairo-steps --detailed-resources
+# CS3's own family probes: `git switch --detach 8fe9398`, then `snforge test -p rapier_sink family`
 git switch proto/cs3-phase-dispatch
 snforge test -p rapier_sink split4 --tracked-resource cairo-steps --detailed-resources
 python3 scripts/cs3_levers.py

@@ -7,9 +7,10 @@
 //! (`gas/bytecode.size`, checked by CI's `bytecode` job); the analysis is in
 //! `docs/research/class-size.md`. Every input comes from calldata, so that nothing is
 //! constant-folded. The scenes live in `scene`, the contracts in `sink`; the multi-class layouts
-//! of the game's step (CS3, `docs/research/class-split.md`) in `split` and `family`.
+//! of the game's step (CS3, `docs/research/class-split.md`) in `split`, the callers of the
+//! declared classes of `rapier2d_classes` (CS4) in `classes`.
 
-pub mod family;
+pub mod classes;
 pub mod scene;
 pub mod sink;
 pub mod split;

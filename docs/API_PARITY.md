@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
 | **total** | **1424** | **0** | **229** | **939** | **2592** | **79.0%** | **86.1%** |
 
-Cairo-only public items not matched to upstream: **1503**.
+Cairo-only public items not matched to upstream: **1523**.
 
 ## Aabb
 
@@ -4905,7 +4905,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **AxesMask** method `from_bits` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `intersection` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `is_empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- ... 1303 more
+- ... 1323 more
 
 ## Embedded Rust inventory
 

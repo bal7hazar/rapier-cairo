@@ -3,7 +3,6 @@
 //! counts the steps of the library-called classes in the test's).
 
 use rapier2d::prelude::{BasicStepConfig, WorldState, WorldTrait};
-use rapier_sink::family::{BALL_CLASS_SLOT, FamilyStepConfig, POLYGON_CLASS_SLOT};
 use rapier_sink::split::alternatives::{CONTACT_FULL_CLASS_SLOT, FullManifoldStepConfig};
 use rapier_sink::split::{CONTACT_CLASS_SLOT, SplitNarrowStepConfig, class_at};
 use rapier_testing::opaque;
@@ -28,25 +27,6 @@ fn split_narrow(ticks: u32) {
     install("ContactClass", CONTACT_CLASS_SLOT);
     let (mut pile, _) = run::<SplitNarrowStepConfig>(ticks);
     opaque(digest(ref pile));
-}
-
-fn family(ticks: u32) {
-    install("ContactBallClass", BALL_CLASS_SLOT);
-    install("ContactPolygonClass", POLYGON_CLASS_SLOT);
-    let (mut pile, _) = run::<FamilyStepConfig>(ticks);
-    opaque(digest(ref pile));
-}
-
-#[test]
-fn test_family_bit_identical() {
-    let ticks = 151;
-    let (mut pile, events) = run::<BasicStepConfig>(ticks);
-    let expected = digest(ref pile);
-    install("ContactBallClass", BALL_CLASS_SLOT);
-    install("ContactPolygonClass", POLYGON_CLASS_SLOT);
-    let (mut pile, split_events) = run::<FamilyStepConfig>(ticks);
-    assert_eq!(split_events, events);
-    assert_eq!(digest(ref pile), expected);
 }
 
 /// pile10 after `ticks` ticks; with `trip`, the world then crosses a transaction boundary as the
@@ -394,44 +374,4 @@ fn steps_split_full_100() {
 #[test]
 fn steps_split_full_151() {
     split_full(151);
-}
-
-#[test]
-fn steps_family_0() {
-    family(0);
-}
-
-#[test]
-fn steps_family_30() {
-    family(30);
-}
-
-#[test]
-fn steps_family_42() {
-    family(42);
-}
-
-#[test]
-fn steps_family_43() {
-    family(43);
-}
-
-#[test]
-fn steps_family_44() {
-    family(44);
-}
-
-#[test]
-fn steps_family_60() {
-    family(60);
-}
-
-#[test]
-fn steps_family_100() {
-    family(100);
-}
-
-#[test]
-fn steps_family_151() {
-    family(151);
 }

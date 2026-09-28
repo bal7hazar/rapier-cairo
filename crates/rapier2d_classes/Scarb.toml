@@ -1,19 +1,21 @@
 [package]
-name = "rapier_sink"
-description = "Starknet contract fixtures measuring the compiled class size of the rapier2d step (not published)."
+name = "rapier2d_classes"
+description = "The rapier2d step split across declared Starknet classes: contact generation and the island solve, library-called through StepConfig."
 version.workspace = true
 edition.workspace = true
 cairo-version.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
-publish = false
+keywords = ["physics", "rapier", "rigid-body", "2d", "starknet"]
+documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapier2d_classes"
 
 [dependencies]
 fixed.workspace = true
 glam.workspace = true
-rapier2d = { path = "../rapier2d" }
-rapier2d_classes = { path = "../rapier2d_classes" }
+rapier2d = { path = "../rapier2d", version = "0.1.0-alpha.6" }
+rapier_core.workspace = true
+rapier_dynamics2d.workspace = true
 rapier_geometry2d.workspace = true
 starknet = "2.19.4"
 
@@ -21,6 +23,8 @@ starknet = "2.19.4"
 snforge_std.workspace = true
 assert_macros.workspace = true
 rapier_testing.workspace = true
+
+[lib]
 
 [[target.starknet-contract]]
 sierra = true
@@ -31,7 +35,7 @@ fmt.workspace = true
 scarb.workspace = true
 
 # The workspace's snforge settings, plus a step cap for the whole-shot probes of
-# `tests/split.cairo` (up to ~50M Cairo steps; snforge's default stops at 10M).
+# `tests/split.cairo` (up to ~30M Cairo steps; snforge's default stops at 10M).
 [tool.snforge]
 tracked_resource = "sierra-gas"
 max_n_steps = 400000000
