@@ -88,7 +88,6 @@ use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
-use rapier_geometry2d::shape::ShapeTrait;
 use crate::world::World;
 
 pub mod active_set;
@@ -107,7 +106,7 @@ pub mod facade;
 pub(crate) mod fixtures;
 pub use ccd::{CCDSolver, CCDSolverTrait, step_with_ccd, step_with_ccd_and_force_events};
 pub mod force_events;
-use force_events::{CollisionOnly, StepOutput, WithForces};
+use force_events::{CollisionOnly, CollisionOnlyWith, StepOutput, WithForces, WithForcesBy};
 mod free_path;
 pub use free_path::solve_and_advance_free;
 use free_path::{
@@ -115,6 +114,7 @@ use free_path::{
 };
 pub mod config;
 pub use config::{BasicStepConfig, DefaultStepConfig, StepConfig};
+use stages::{InProcessStages, StageConfig};
 mod fused;
 pub(crate) use fused::active_joints;
 pub use fused::{solve_and_advance, solve_and_advance_sleeping, solve_and_advance_sleeping_with};
@@ -163,7 +163,9 @@ pub use user_changes::{handle_user_changes, recompute_mass_properties_from_colli
 /// # Panics
 /// As the stages: fixed-point overflow, zero solver iterations, negative parameters.
 pub fn step(ref world: World) -> Array<CollisionEvent> {
-    step_internal::<Array<CollisionEvent>, CollisionOnly, DefaultStepConfig>(ref world)
+    step_internal::<
+        Array<CollisionEvent>, CollisionOnly, DefaultStepConfig, InProcessStages<DefaultStepConfig>,
+    >(ref world)
 }
 
 /// Same step, also returning post-solver normal-force events in ascending pair order.
@@ -173,7 +175,10 @@ pub fn step_with_force_events(
     ref world: World,
 ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
     step_internal::<
-        (Array<CollisionEvent>, Array<ContactForceEvent>), WithForces, DefaultStepConfig,
+        (Array<CollisionEvent>, Array<ContactForceEvent>),
+        WithForces,
+        DefaultStepConfig,
+        InProcessStages<DefaultStepConfig>,
     >(ref world)
 }
 
@@ -184,25 +189,51 @@ pub fn step_with_force_events(
 /// # Panics
 /// As [`step`], and when the world uses a feature `C` disables (see [`config`]).
 pub fn step_with<impl C: StepConfig>(ref world: World) -> Array<CollisionEvent> {
-    step_internal::<Array<CollisionEvent>, CollisionOnly, C>(ref world)
+    step_internal::<Array<CollisionEvent>, CollisionOnly, C, InProcessStages<C>>(ref world)
 }
 
 /// [`step_with_force_events`] compiled with `C`, as [`step_with`]. Panics as [`step_with`].
 pub fn step_with_force_events_with<impl C: StepConfig>(
     ref world: World,
 ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-    step_internal::<(Array<CollisionEvent>, Array<ContactForceEvent>), WithForces, C>(ref world)
+    step_internal::<
+        (Array<CollisionEvent>, Array<ContactForceEvent>), WithForces, C, InProcessStages<C>,
+    >(ref world)
 }
 
-pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
+/// [`step_with`] with the stages of `S` ([`stages`], CS5): a stage can run in another declared
+/// class. With `InProcessStages<C>` it is [`step_with`]. Same results as [`step_with`] on the
+/// worlds `C` and `S` support.
+///
+/// # Panics
+/// As [`step_with`], and when the world uses a feature `S` disables (see [`stages`]).
+pub fn step_with_stages<impl C: StepConfig, impl S: StageConfig>(
+    ref world: World,
+) -> Array<CollisionEvent> {
+    step_internal::<Array<CollisionEvent>, CollisionOnlyWith<S::Forces>, C, S>(ref world)
+}
+
+/// [`step_with_force_events_with`] with the stages of `S`, as [`step_with_stages`]. Panics as
+/// [`step_with_stages`].
+pub fn step_with_force_events_with_stages<impl C: StepConfig, impl S: StageConfig>(
+    ref world: World,
+) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+    step_internal::<
+        (Array<CollisionEvent>, Array<ContactForceEvent>), WithForcesBy<S::Forces>, C, S,
+    >(ref world)
+}
+
+pub(crate) fn step_internal<
+    T, impl Output: StepOutput<T>, impl C: StepConfig, impl S: StageConfig, +Drop<T>,
+>(
     ref world: World,
 ) -> T {
     if active_set::usable(ref world) {
-        return active_set::sparse_step::<T, Output, C>(ref world);
+        return active_set::sparse_step::<T, Output, C, S>(ref world);
     }
     let no_joints = C::Joints::joint_free(@world.impulse_joints);
     let (snapshot, mut infos, entries, census, fresh) = user_changes_bodies_for_step::<
-        C::Mass,
+        S,
     >(
         ref world.bodies,
         ref world.colliders,
@@ -211,17 +242,21 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         !world.narrow_phase.pairs.is_empty() || !no_joints,
     );
     let prediction = world.integration_parameters.prediction_distance();
-    let free_candidate = world.narrow_phase.pairs.is_empty() && no_joints && !census.eligible;
+    // CS6: a configuration without the pair-free path compiles none of it.
+    let free_candidate = world.narrow_phase.pairs.is_empty()
+        && no_joints
+        && !census.eligible
+        && S::Free::ENABLED;
     let (scratch, sleeping, force_events, pairs) = if free_candidate {
-        let (proxies, sleeping, force_events) = collision_proxies_from_entries_with_events(
-            snapshot, entries, ref world.bodies, prediction,
-        );
+        let (proxies, sleeping, force_events) = collision_proxies_from_entries_with_events::<
+            S::Shapes,
+        >(snapshot, entries, ref world.bodies, prediction);
         let proxies = if fresh.is_empty() {
             proxies
         } else {
             sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries)
         };
-        let pairs = C::Broad::find_pairs(proxies.span());
+        let pairs = S::Broad::find_pairs(proxies.span());
         if !sleeping && pairs.is_empty() {
             solve_and_advance_free(
                 world.gravity,
@@ -245,15 +280,15 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         infos = fresh_infos.span();
         (collision_scratch(snapshot, infos, ref world.bodies), sleeping, force_events, pairs)
     } else {
-        let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events(
-            snapshot, infos, ref world.bodies, prediction,
-        );
+        let (proxies, scratch, sleeping, force_events) = collision_inputs_with_events_by::<
+            S::Shapes,
+        >(snapshot, infos, ref world.bodies, prediction);
         let proxies = if fresh.is_empty() {
             proxies
         } else {
             sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries)
         };
-        (scratch, sleeping, force_events, C::Broad::find_pairs(proxies.span()))
+        (scratch, sleeping, force_events, S::Broad::find_pairs(proxies.span()))
     };
     let mut dormant = array![];
     if sleeping {
@@ -261,12 +296,12 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         world.narrow_phase.pairs = active;
         dormant = asleep;
     }
-    let events = C::Narrow::compute_contacts(
+    let events = S::Narrow::compute_contacts(
         ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
     );
     let joint_entries = C::Joints::entries(ref world.impulse_joints);
     let (entries, sleeping, woken) = if fresh.is_empty() {
-        C::Islands::update_islands(
+        S::Islands::update_islands(
             ref world.bodies,
             world.narrow_phase.pairs.span(),
             dormant.span(),
@@ -275,7 +310,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
             census,
         )
     } else {
-        C::Islands::islands_after_insertions(
+        S::Islands::islands_after_insertions(
             ref world.bodies,
             world.narrow_phase.pairs.span(),
             dormant.span(),
@@ -291,7 +326,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
         dormant = asleep;
     }
-    C::Advance::solve_and_advance(
+    S::Advance::solve_and_advance(
         world.gravity,
         world.integration_parameters,
         ref world.bodies,
@@ -321,7 +356,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
     // Behind a one-iteration `while`: only the steps that refresh the set pay for it (AGENTS §7).
     let mut pending = rebuild || active_set::is_valid(@world);
     while pending {
-        active_set::refresh(ref world, rebuild);
+        active_set::refresh::<S>(ref world, rebuild);
         pending = false;
     }
     output
@@ -394,12 +429,12 @@ pub fn user_changes_bodies(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
     let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step::<
-        stages::InProcessMass,
+        InProcessStages<DefaultStepConfig>,
     >(ref bodies, ref colliders, pairs, None, true);
     (snapshot, infos, entries, census)
 }
 
-fn user_changes_bodies_for_step<impl M: stages::MassStage>(
+fn user_changes_bodies_for_step<impl S: StageConfig>(
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
     pairs: Span<ContactPair>,
@@ -435,7 +470,7 @@ fn user_changes_bodies_for_step<impl M: stages::MassStage>(
         } else {
             bodies_dirty = true;
             let body = body_changes::<
-                M,
+                S::Mass,
             >(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span());
             census.count(@body);
             (
@@ -456,7 +491,11 @@ fn user_changes_bodies_for_step<impl M: stages::MassStage>(
     // body's hot path keeps snapshot field reads and no per-body loop dispatch.
     while has_kinematic {
         if let Some(dt) = dt {
-            kinematic::prepare_existing(ref bodies, entries, dt);
+            if S::KINEMATIC {
+                kinematic::prepare_existing(ref bodies, entries, dt);
+            } else {
+                core::panic_with_felt252(stages::errors::KINEMATIC);
+            }
             bodies_dirty = true;
         }
         has_kinematic = false;
@@ -513,6 +552,18 @@ pub(crate) fn collision_inputs_with_events(
     ref bodies: RigidBodySet,
     prediction: Fixed,
 ) -> (Array<BroadPhaseProxy>, Span<PairCollider>, bool, bool) {
+    collision_inputs_with_events_by::<
+        stages::InProcessShapes,
+    >(snapshot, infos, ref bodies, prediction)
+}
+
+/// [`collision_inputs_with_events`] with the proxies' boxes by `A` (CS6).
+pub(crate) fn collision_inputs_with_events_by<impl A: stages::ShapeStage>(
+    snapshot: Span<(Handle, Collider)>,
+    infos: Span<BodyInfo>,
+    ref bodies: RigidBodySet,
+    prediction: Fixed,
+) -> (Array<BroadPhaseProxy>, Span<PairCollider>, bool, bool) {
     let margin = prediction * HALF;
     let mut proxies = array![];
     let mut scratch = array![];
@@ -548,7 +599,7 @@ pub(crate) fn collision_inputs_with_events(
             .append(
                 BroadPhaseProxy {
                     collider: *handle,
-                    aabb: collider.shape.compute_aabb(pose).loosened(margin),
+                    aabb: A::compute_aabb(collider.shape, pose).loosened(margin),
                     is_static: body_type == RigidBodyType::Fixed || sleeping,
                 },
             );

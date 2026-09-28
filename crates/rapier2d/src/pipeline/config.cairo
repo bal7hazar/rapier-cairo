@@ -15,18 +15,17 @@
 //!   (`crate::dispatcher::BasicShapesDispatcher`), no sensor, no composite shape, no joint.
 //!
 //! A game picks its own mix: `impl MyStep of StepConfig { impl Dispatcher = ..; impl Sensors =
-//! ..; impl Composites = ..; impl Joints = ..; impl Narrow = ..; impl Broad = ..; impl Islands =
-//! ..; impl Advance = ..; impl Mass = ..; }`.
+//! ..; impl Composites = ..; impl Joints = ..; }`.
 //!
-//! # Stage slots (CS5)
+//! # Stages (CS5, CS6)
 //!
-//! `Narrow`, `Broad`, `Islands`, `Advance` and `Mass` hand whole stages of the step to strategies
-//! (`super::stages`), so that a contract can run them in other declared classes
-//! (`rapier2d_classes`). The in-process implementations forward to the functions the step called
-//! before the slots existed: a configuration that names them (`PairLoopNarrowPhase<Dispatcher,
-//! Sensors, Composites>`, `InProcessBroadPhase`, `InProcessIslands`,
-//! `InProcessSolveAdvance<Joints>`, `InProcessMass`, as the two configurations below) compiles
-//! the same program.
+//! Where the stages of the step run is a second, separate choice, a [`StageConfig`] handed to
+//! `WorldTrait::step_with_stages` / `step_with_force_events_with_stages` (`super::stages`): the
+//! broad phase, the narrow phase's pair loop, the island stage, the fused solve and advance and
+//! the mass properties, so that a contract can run them in other declared classes
+//! (`rapier2d_classes`), and the code a slim caller class leaves out (CS6). `step_with::<C>` is
+//! `step_with_stages::<C, InProcessStages<C>>`: every stage in process, the program it compiled
+//! before the slots existed.
 //!
 //! # Rejection instead of silent skipping
 //!
@@ -66,7 +65,8 @@ pub use crate::dispatcher::{BasicShapesDispatcher, DefaultDispatcher};
 /// The stage slots (CS5) and their in-process implementations.
 pub use super::stages::{
     BroadPhaseStage, InProcessBroadPhase, InProcessIslands, InProcessMass, InProcessSolveAdvance,
-    IslandStage, MassStage, NarrowPhaseStage, PairLoopNarrowPhase, SolveAdvanceStage,
+    InProcessStages, IslandStage, MassStage, NarrowPhaseStage, PairLoopNarrowPhase,
+    SolveAdvanceStage, StageConfig,
 };
 use super::{active_joints, joint_values, write_joints};
 
@@ -87,17 +87,6 @@ pub trait StepConfig {
     impl Composites: CompositeStrategy;
     /// Impulse joints.
     impl Joints: JointStrategy;
-    /// The narrow phase's pair loop (CS5): `PairLoopNarrowPhase<Dispatcher, Sensors, Composites>`
-    /// in process.
-    impl Narrow: NarrowPhaseStage;
-    /// The broad phase (CS5): `InProcessBroadPhase` in process.
-    impl Broad: BroadPhaseStage;
-    /// The island stage, sleep and wake-up (CS5): `InProcessIslands` in process.
-    impl Islands: IslandStage;
-    /// The fused solve and position update (CS5): `InProcessSolveAdvance<Joints>` in process.
-    impl Advance: SolveAdvanceStage;
-    /// The mass properties of the user changes (CS5): `InProcessMass` in process.
-    impl Mass: MassStage;
 }
 
 /// Everything: what `World::step` and `World::step_with_force_events` compile.
@@ -106,11 +95,6 @@ pub impl DefaultStepConfig of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = CompositeManifolds;
     impl Joints = ImpulseJointSolver;
-    impl Narrow = PairLoopNarrowPhase<DefaultDispatcher, SensorIntersections, CompositeManifolds>;
-    impl Broad = InProcessBroadPhase;
-    impl Islands = InProcessIslands;
-    impl Advance = InProcessSolveAdvance<ImpulseJointSolver>;
-    impl Mass = InProcessMass;
 }
 
 /// Balls, cuboids, convex polygons and half-spaces; no sensor, no composite shape, no joint.
@@ -122,11 +106,6 @@ pub impl BasicStepConfig of StepConfig {
     impl Sensors = NoSensors;
     impl Composites = NoComposites;
     impl Joints = NoJoints;
-    impl Narrow = PairLoopNarrowPhase<BasicShapesDispatcher, NoSensors, NoComposites>;
-    impl Broad = InProcessBroadPhase;
-    impl Islands = InProcessIslands;
-    impl Advance = InProcessSolveAdvance<NoJoints>;
-    impl Mass = InProcessMass;
 }
 
 /// How the step treats the world's impulse joints.

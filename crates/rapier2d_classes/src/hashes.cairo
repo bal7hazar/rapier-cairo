@@ -32,6 +32,12 @@ pub trait ClassHashes {
     fn broad_phase() -> ClassHash;
     /// The class hash of `MassClass` (`crate::mass`).
     fn mass() -> ClassHash;
+    /// The class hash of `NarrowPhaseClass` (`crate::narrow`, CS6).
+    fn narrow_phase() -> ClassHash;
+    /// The class hash of `ActiveSetClass` (`crate::active_set`, CS6).
+    fn active_set() -> ClassHash;
+    /// The class hash of `ForceEventsClass` (`crate::forces`, CS6).
+    fn force_events() -> ClassHash;
 }
 
 /// Errors of the library calls.

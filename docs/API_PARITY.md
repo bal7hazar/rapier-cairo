@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
 | **total** | **1424** | **0** | **229** | **939** | **2592** | **79.0%** | **86.1%** |
 
-Cairo-only public items not matched to upstream: **1579**.
+Cairo-only public items not matched to upstream: **1650**.
 
 ## Aabb
 
@@ -4761,10 +4761,16 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **ActiveHooks** method `remove` (`crates/rapier_core/src/collider/hooks.cairo`)
 - **ActiveHooks** type `ActiveHooks` (`crates/rapier_core/src/collider/hooks.cairo`)
 - **ActiveSet** impl `Default` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** impl `Serde` (`crates/rapier2d_classes/src/active_set.cairo`)
 - **ActiveSet** method `default` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** method `deserialize` (`crates/rapier2d_classes/src/active_set.cairo`)
 - **ActiveSet** method `invalidate` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** method `is_valid` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** method `rebuild` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSet** method `serialize` (`crates/rapier2d_classes/src/active_set.cairo`)
 - **ActiveSet** type `ActiveSet` (`crates/rapier2d/src/pipeline/active_set.cairo`)
+- **ActiveSetStage** method `rebuild` (`crates/rapier2d/src/pipeline/stages.cairo`)
+- **ActiveSetStage** trait `ActiveSetStage` (`crates/rapier2d/src/pipeline/stages.cairo`)
 - **ActiveView** type `ActiveView` (`crates/rapier2d/src/pipeline/ccd/targets.cairo`)
 - **Advance** method `solve_and_advance` (`crates/rapier2d_classes/src/advance.cairo`)
 - **Advance** method `solve_and_advance_values` (`crates/rapier2d_classes/src/advance.cairo`)
@@ -4899,13 +4905,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **ArenaState** type `ArenaState` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArenaTrait** trait `ArenaTrait` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArrayArena** type `ArrayArena` (`crates/rapier_core/src/data/arena/alternatives.cairo`)
-- **ArrayBodies** type `ArrayBodies` (`crates/rapier_dynamics2d/src/solver/body_store.cairo`)
-- **AxesMask** const `ALL` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** const `ANG_Z` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** const `LIN_X` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** const `LIN_Y` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `all` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- ... 1379 more
+- ... 1450 more
 
 ## Embedded Rust inventory
 

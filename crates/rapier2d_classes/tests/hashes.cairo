@@ -26,6 +26,12 @@ pub const ISLANDS_HASH: felt252 = 0x522e7be18c1a186cddd2a5898d8a3fe5da94c7387a0d
 pub const BROAD_PHASE_HASH: felt252 =
     0x7d3eed01dc6daa7f8ccdc93ffbed0f86c938302bbc3f8b1fcc24694b448c4d7;
 pub const MASS_HASH: felt252 = 0x5415bd22e6c965a3c006b598c748686672ef13cecde4d60cadb674184e451a2;
+pub const NARROW_PHASE_HASH: felt252 =
+    0x69d00ab7e3ebdb09cfeaee8bb6acc4b2f49468e06d516c72f16936b44dcf336;
+pub const ACTIVE_SET_HASH: felt252 =
+    0x4a6e55fafd8273f75152b3509aa40223f5f50e882ab1978a91beeb895201d02;
+pub const FORCE_EVENTS_HASH: felt252 =
+    0x322bab3a8c6a846ade7d18d85db51f1ad5cd92c1680dfc79e7049510928fe5a;
 
 /// The declared classes: name, pinned hash, storage slot of [`StoredHashes`], call counter of
 /// [`CountingHashes`].
@@ -38,6 +44,9 @@ fn classes() -> Array<(ByteArray, felt252, felt252, felt252)> {
         ("IslandsClass", ISLANDS_HASH, ISLANDS_SLOT, ISLANDS_CALLS),
         ("BroadPhaseClass", BROAD_PHASE_HASH, BROAD_PHASE_SLOT, BROAD_PHASE_CALLS),
         ("MassClass", MASS_HASH, MASS_SLOT, MASS_CALLS),
+        ("NarrowPhaseClass", NARROW_PHASE_HASH, NARROW_PHASE_SLOT, NARROW_PHASE_CALLS),
+        ("ActiveSetClass", ACTIVE_SET_HASH, ACTIVE_SET_SLOT, ACTIVE_SET_CALLS),
+        ("ForceEventsClass", FORCE_EVENTS_HASH, FORCE_EVENTS_SLOT, FORCE_EVENTS_CALLS),
     ]
 }
 
@@ -77,6 +86,21 @@ pub impl PinnedHashes of ClassHashes {
         const H: ClassHash = MASS_HASH.try_into().unwrap();
         H
     }
+
+    fn narrow_phase() -> ClassHash {
+        const H: ClassHash = NARROW_PHASE_HASH.try_into().unwrap();
+        H
+    }
+
+    fn active_set() -> ClassHash {
+        const H: ClassHash = ACTIVE_SET_HASH.try_into().unwrap();
+        H
+    }
+
+    fn force_events() -> ClassHash {
+        const H: ClassHash = FORCE_EVENTS_HASH.try_into().unwrap();
+        H
+    }
 }
 
 const BALL_SLOT: felt252 = selector!("contact_ball_class");
@@ -86,6 +110,9 @@ const SOLVE_ADVANCE_SLOT: felt252 = selector!("solve_advance_class");
 const ISLANDS_SLOT: felt252 = selector!("islands_class");
 const BROAD_PHASE_SLOT: felt252 = selector!("broad_phase_class");
 const MASS_SLOT: felt252 = selector!("mass_class");
+const NARROW_PHASE_SLOT: felt252 = selector!("narrow_phase_class");
+const ACTIVE_SET_SLOT: felt252 = selector!("active_set_class");
+const FORCE_EVENTS_SLOT: felt252 = selector!("force_events_class");
 /// Call counters of [`CountingHashes`].
 pub const BALL_CALLS: felt252 = selector!("contact_ball_calls");
 pub const POLYGON_CALLS: felt252 = selector!("contact_polygon_calls");
@@ -94,6 +121,9 @@ pub const SOLVE_ADVANCE_CALLS: felt252 = selector!("solve_advance_calls");
 pub const ISLANDS_CALLS: felt252 = selector!("islands_calls");
 pub const BROAD_PHASE_CALLS: felt252 = selector!("broad_phase_calls");
 pub const MASS_CALLS: felt252 = selector!("mass_calls");
+pub const NARROW_PHASE_CALLS: felt252 = selector!("narrow_phase_calls");
+pub const ACTIVE_SET_CALLS: felt252 = selector!("active_set_calls");
+pub const FORCE_EVENTS_CALLS: felt252 = selector!("force_events_calls");
 
 pub fn read(slot: felt252) -> felt252 {
     storage_read_syscall(0, slot.try_into().unwrap()).unwrap_syscall()
@@ -137,6 +167,18 @@ pub impl StoredHashes of ClassHashes {
     fn mass() -> ClassHash {
         class_at(MASS_SLOT)
     }
+
+    fn narrow_phase() -> ClassHash {
+        class_at(NARROW_PHASE_SLOT)
+    }
+
+    fn active_set() -> ClassHash {
+        class_at(ACTIVE_SET_SLOT)
+    }
+
+    fn force_events() -> ClassHash {
+        class_at(FORCE_EVENTS_SLOT)
+    }
 }
 
 fn count(slot: felt252) {
@@ -178,6 +220,21 @@ pub impl CountingHashes of ClassHashes {
     fn mass() -> ClassHash {
         count(MASS_CALLS);
         StoredHashes::mass()
+    }
+
+    fn narrow_phase() -> ClassHash {
+        count(NARROW_PHASE_CALLS);
+        StoredHashes::narrow_phase()
+    }
+
+    fn active_set() -> ClassHash {
+        count(ACTIVE_SET_CALLS);
+        StoredHashes::active_set()
+    }
+
+    fn force_events() -> ClassHash {
+        count(FORCE_EVENTS_CALLS);
+        StoredHashes::force_events()
     }
 }
 

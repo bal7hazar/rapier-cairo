@@ -5,21 +5,24 @@
 //!
 //! * `Split4Step`: `rapier2d_classes::ContactSolveStepConfig`, CS4's layout (4 classes: the
 //!   caller, 2 contact families, the solve).
-//! * `StagesSplitStep` (CS5): `rapier2d_classes::SplitStepConfig`, every stage out (the caller,
+//! * `StagesSplitStep` (CS5): `rapier2d_classes::SplitStages`, every stage out (the caller,
 //!   2 contact families called once per pair, the broad phase, the islands, the solve and position
 //!   update, the mass properties: 7 classes);
-//! * `StagesBatchedStep`: `SplitBatchedStepConfig` (the contact generation batched per family,
+//! * `StagesBatchedStep`: `SplitBatchedStages` (the contact generation batched per family,
 //!   one call of each family class per step);
-//! * `StagesHybridStep`: `SplitHybridStepConfig` (the free bodies of a step without a touching
+//! * `StagesHybridStep`: `SplitHybridStages` (the free bodies of a step without a touching
 //!   pair moved in the caller).
 //! * `Split3Step`: the contact generation in `crate::split`'s `ContactClass` (one class, hash read
 //!   from storage) and the solve in `SolverClass` (3 classes).
 
-use rapier2d::pipeline::config::{
-    InProcessBroadPhase, InProcessIslands, InProcessMass, InProcessSolveAdvance, NoComposites,
-    NoSensors, PairLoopNarrowPhase, StepConfig,
+use rapier2d::pipeline::config::{NoComposites, NoSensors, PairLoopNarrowPhase, StepConfig};
+use rapier2d::pipeline::stages::{
+    BasicShapeKernels, InProcessActiveSet, InProcessForceEvents, NoFreePath, StageConfig,
 };
-use rapier2d_classes::{ClassHashes, LibraryCallSolver};
+use rapier2d_classes::{
+    ClassHashes, FamilyDispatcher, LibraryCallBroadPhase, LibraryCallIslands, LibraryCallMass,
+    LibraryCallSolveAdvance, LibraryCallSolver,
+};
 use starknet::ClassHash;
 use crate::split::LibraryCallDispatcher;
 
@@ -59,6 +62,21 @@ pub impl FixtureHashes of ClassHashes {
         const H: ClassHash = 0x7a55_felt252.try_into().unwrap();
         H
     }
+
+    fn narrow_phase() -> ClassHash {
+        const H: ClassHash = 0x8a77_felt252.try_into().unwrap();
+        H
+    }
+
+    fn active_set() -> ClassHash {
+        const H: ClassHash = 0x9ac7_felt252.try_into().unwrap();
+        H
+    }
+
+    fn force_events() -> ClassHash {
+        const H: ClassHash = 0xf0ce_felt252.try_into().unwrap();
+        H
+    }
 }
 
 /// `BasicStepConfig` with the contact generation in `ContactClass` and the solve in
@@ -68,11 +86,21 @@ pub impl Split3StepConfig of StepConfig {
     impl Sensors = NoSensors;
     impl Composites = NoComposites;
     impl Joints = LibraryCallSolver<FixtureHashes>;
-    impl Narrow = PairLoopNarrowPhase<LibraryCallDispatcher, NoSensors, NoComposites>;
-    impl Broad = InProcessBroadPhase;
-    impl Islands = InProcessIslands;
-    impl Advance = InProcessSolveAdvance<LibraryCallSolver<FixtureHashes>>;
-    impl Mass = InProcessMass;
+}
+
+/// CS6's levers 1 and 2 alone: `SlimSplitStages` with the pair loop in the caller (the contact
+/// generation of each pair in the family classes, as `SplitStages`).
+pub impl Levers12Stages of StageConfig {
+    impl Narrow = PairLoopNarrowPhase<FamilyDispatcher<FixtureHashes>, NoSensors, NoComposites>;
+    impl Broad = LibraryCallBroadPhase<FixtureHashes>;
+    impl Islands = LibraryCallIslands<FixtureHashes>;
+    impl Advance = LibraryCallSolveAdvance<FixtureHashes>;
+    impl Mass = LibraryCallMass<FixtureHashes>;
+    impl Shapes = BasicShapeKernels;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<BasicShapeKernels>;
+    impl Free = NoFreePath;
+    const KINEMATIC: bool = false;
 }
 
 #[starknet::contract]
@@ -130,20 +158,23 @@ pub mod Split3Step {
 
 #[starknet::contract]
 pub mod StagesSplitStep {
-    use rapier2d::prelude::{WorldState, WorldTrait};
-    use rapier2d_classes::SplitStepConfig;
+    use rapier2d::prelude::{BasicStepConfig, WorldState, WorldTrait};
+    use rapier2d_classes::SplitStages;
     use super::FixtureHashes;
 
     #[storage]
     struct Storage {}
 
-    /// `BasicGameStep::step_state` with `SplitStepConfig<FixtureHashes>`.
+    /// `BasicGameStep::step_state` with `SplitStages<FixtureHashes>`.
     #[external(v0)]
     fn step_state(self: @ContractState, state: WorldState, steps: u32) -> WorldState {
         let mut world = WorldTrait::from_state(state);
         let mut i = 0;
         while i != steps {
-            let _ = world.step_with_force_events_with::<SplitStepConfig<FixtureHashes>>();
+            let _ = world
+                .step_with_force_events_with_stages::<
+                    BasicStepConfig, SplitStages<FixtureHashes>,
+                >();
             i += 1;
         }
         world.into_state()
@@ -152,20 +183,23 @@ pub mod StagesSplitStep {
 
 #[starknet::contract]
 pub mod StagesBatchedStep {
-    use rapier2d::prelude::{WorldState, WorldTrait};
-    use rapier2d_classes::SplitBatchedStepConfig;
+    use rapier2d::prelude::{BasicStepConfig, WorldState, WorldTrait};
+    use rapier2d_classes::SplitBatchedStages;
     use super::FixtureHashes;
 
     #[storage]
     struct Storage {}
 
-    /// `BasicGameStep::step_state` with `SplitBatchedStepConfig<FixtureHashes>`.
+    /// `BasicGameStep::step_state` with `SplitBatchedStages<FixtureHashes>`.
     #[external(v0)]
     fn step_state(self: @ContractState, state: WorldState, steps: u32) -> WorldState {
         let mut world = WorldTrait::from_state(state);
         let mut i = 0;
         while i != steps {
-            let _ = world.step_with_force_events_with::<SplitBatchedStepConfig<FixtureHashes>>();
+            let _ = world
+                .step_with_force_events_with_stages::<
+                    BasicStepConfig, SplitBatchedStages<FixtureHashes>,
+                >();
             i += 1;
         }
         world.into_state()
@@ -174,22 +208,104 @@ pub mod StagesBatchedStep {
 
 #[starknet::contract]
 pub mod StagesHybridStep {
-    use rapier2d::prelude::{WorldState, WorldTrait};
-    use rapier2d_classes::SplitHybridStepConfig;
+    use rapier2d::prelude::{BasicStepConfig, WorldState, WorldTrait};
+    use rapier2d_classes::SplitHybridStages;
     use super::FixtureHashes;
 
     #[storage]
     struct Storage {}
 
-    /// `BasicGameStep::step_state` with `SplitHybridStepConfig<FixtureHashes>`.
+    /// `BasicGameStep::step_state` with `SplitHybridStages<FixtureHashes>`.
     #[external(v0)]
     fn step_state(self: @ContractState, state: WorldState, steps: u32) -> WorldState {
         let mut world = WorldTrait::from_state(state);
         let mut i = 0;
         while i != steps {
-            let _ = world.step_with_force_events_with::<SplitHybridStepConfig<FixtureHashes>>();
+            let _ = world
+                .step_with_force_events_with_stages::<
+                    BasicStepConfig, SplitHybridStages<FixtureHashes>,
+                >();
             i += 1;
         }
         world.into_state()
+    }
+}
+
+#[starknet::contract]
+pub mod SlimSplitStep {
+    use rapier2d::prelude::BasicStepConfig;
+    use rapier2d::world::WorldTrait;
+    use rapier2d::world::basic_state::{BasicWorldState, from_basic_state, into_basic_state};
+    use rapier2d_classes::SlimSplitStages;
+    use super::FixtureHashes;
+
+    #[storage]
+    struct Storage {}
+
+    /// `StagesSplitStep::step_state` with `SlimSplitStages<FixtureHashes>` and the basic codec
+    /// (CS6: the same calldata).
+    #[external(v0)]
+    fn step_state(self: @ContractState, state: BasicWorldState, steps: u32) -> BasicWorldState {
+        let mut world = from_basic_state(state);
+        let mut i = 0;
+        while i != steps {
+            let _ = world
+                .step_with_force_events_with_stages::<
+                    BasicStepConfig, SlimSplitStages<FixtureHashes>,
+                >();
+            i += 1;
+        }
+        into_basic_state(world)
+    }
+}
+
+#[starknet::contract]
+pub mod Levers12Step {
+    use rapier2d::prelude::BasicStepConfig;
+    use rapier2d::world::WorldTrait;
+    use rapier2d::world::basic_state::{BasicWorldState, from_basic_state, into_basic_state};
+    use super::Levers12Stages;
+
+    #[storage]
+    struct Storage {}
+
+    /// `SlimSplitStep::step_state` with [`Levers12Stages`] (CS6's levers 1 and 2 alone).
+    #[external(v0)]
+    fn step_state(self: @ContractState, state: BasicWorldState, steps: u32) -> BasicWorldState {
+        let mut world = from_basic_state(state);
+        let mut i = 0;
+        while i != steps {
+            let _ = world.step_with_force_events_with_stages::<BasicStepConfig, Levers12Stages>();
+            i += 1;
+        }
+        into_basic_state(world)
+    }
+}
+
+/// Route (b) of CS6 (measured, not shipped): the caller of `rapier2d_classes`'
+/// `OrchestratorClass`, the world decoded here between the steps (where a game's rules run) and
+/// crossing to the orchestrator and back at every step.
+#[starknet::contract]
+pub mod OrchestratedStep {
+    use rapier2d::world::basic_state::{BasicWorldState, from_basic_state, into_basic_state};
+    use rapier2d_classes::orchestrator::orchestrated_step;
+    use starknet::ClassHash;
+
+    #[storage]
+    struct Storage {}
+
+    /// `SlimSplitStep::step_state` with each step in the orchestrator at `orchestrator`.
+    #[external(v0)]
+    fn step_state(
+        self: @ContractState, state: BasicWorldState, steps: u32, orchestrator: ClassHash,
+    ) -> BasicWorldState {
+        let mut world = from_basic_state(state);
+        let mut i = 0;
+        while i != steps {
+            let (next, _) = orchestrated_step(orchestrator, into_basic_state(world));
+            world = from_basic_state(next);
+            i += 1;
+        }
+        into_basic_state(world)
     }
 }

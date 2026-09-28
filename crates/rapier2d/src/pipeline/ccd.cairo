@@ -90,6 +90,7 @@ use crate::world::World;
 use super::active_set::ActiveSet;
 use super::config::{DefaultStepConfig, StepConfig};
 use super::force_events::{CollisionOnly, StepOutput, WithForces};
+use super::stages::InProcessStages;
 use super::{active_set, moving};
 mod configured;
 pub use configured::{step_with_ccd_and_force_events_with, step_with_ccd_with};
@@ -789,7 +790,7 @@ fn substep<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
 ) -> T {
     world.integration_parameters.dt = dt;
     let starts = solver.starts(ref world);
-    let step = super::step_internal::<T, Output, C>(ref world);
+    let step = super::step_internal::<T, Output, C, InProcessStages<C>>(ref world);
     let events = solver.solve_continuous(ref world, starts.span());
     Output::with_events(step, events)
 }

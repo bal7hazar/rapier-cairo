@@ -18,7 +18,10 @@ use crate::pipeline::active_set::usable;
 use crate::pipeline::ccd::{CCDSolver, CCDSolverTrait};
 use crate::pipeline::fixtures::{draw, free_fall, p3_scene};
 use crate::world::{World, WorldTrait};
-use super::{BasicStepConfig, DefaultStepConfig, ImpulseJointSolver, NoJoints, StepConfig};
+use super::{
+    BasicStepConfig, DefaultStepConfig, ImpulseJointSolver, InProcessStages, NoJoints, StageConfig,
+    StepConfig,
+};
 
 /// Basic shapes and sensors (a mix a game may pick).
 impl BasicWithSensors of StepConfig {
@@ -26,14 +29,6 @@ impl BasicWithSensors of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = NoComposites;
     impl Joints = NoJoints;
-    impl Narrow =
-        crate::pipeline::stages::PairLoopNarrowPhase<
-            BasicShapesDispatcher, SensorIntersections, NoComposites,
-        >;
-    impl Broad = crate::pipeline::stages::InProcessBroadPhase;
-    impl Islands = crate::pipeline::stages::InProcessIslands;
-    impl Advance = crate::pipeline::stages::InProcessSolveAdvance<NoJoints>;
-    impl Mass = crate::pipeline::stages::InProcessMass;
 }
 
 /// Every shape but composites, with joints.
@@ -42,14 +37,6 @@ impl NoCompositeShapes of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = NoComposites;
     impl Joints = ImpulseJointSolver;
-    impl Narrow =
-        crate::pipeline::stages::PairLoopNarrowPhase<
-            DefaultDispatcher, SensorIntersections, NoComposites,
-        >;
-    impl Broad = crate::pipeline::stages::InProcessBroadPhase;
-    impl Islands = crate::pipeline::stages::InProcessIslands;
-    impl Advance = crate::pipeline::stages::InProcessSolveAdvance<ImpulseJointSolver>;
-    impl Mass = crate::pipeline::stages::InProcessMass;
 }
 
 fn f(raw: i64) -> Fixed {
@@ -166,6 +153,13 @@ fn assert_same(ref a: World, ref b: World, t: u32) {
 pub(crate) fn run_both<impl C: StepConfig>(
     ref full: World, ref configured: World, seed: u32, steps: u32, changes: bool, plain: bool,
 ) -> u32 {
+    run_both_stages::<C, InProcessStages<C>>(ref full, ref configured, seed, steps, changes, plain)
+}
+
+/// [`run_both`] with `step_with_stages::<C, S>` / `step_with_force_events_with_stages::<C, S>`.
+pub(crate) fn run_both_stages<impl C: StepConfig, impl S: StageConfig>(
+    ref full: World, ref configured: World, seed: u32, steps: u32, changes: bool, plain: bool,
+) -> u32 {
     let mut sparse = 0;
     let mut t: u32 = 0;
     while t != steps {
@@ -177,11 +171,11 @@ pub(crate) fn run_both<impl C: StepConfig>(
         }
         if plain && t % 2 == 1 {
             let expected = full.step();
-            let got = configured.step_with::<C>();
+            let got = configured.step_with_stages::<C, S>();
             assert!(got == expected, "step {} events", t);
         } else {
             let (expected, expected_forces) = full.step_with_force_events();
-            let (got, got_forces) = configured.step_with_force_events_with::<C>();
+            let (got, got_forces) = configured.step_with_force_events_with_stages::<C, S>();
             assert!(got == expected, "step {} events", t);
             assert!(got_forces == expected_forces, "step {} force events", t);
         }

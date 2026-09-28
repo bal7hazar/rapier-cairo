@@ -10,6 +10,11 @@ use rapier_dynamics2d::narrow_phase::strategies::errors;
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::shape::ShapeTrait;
+use super::stages::{ForceEventStage, InProcessForceEvents};
+
+/// The in-process outputs (what every step but `step_with_stages` returns).
+pub(crate) impl CollisionOnly = CollisionOnlyWith<InProcessForceEvents>;
+pub(crate) impl WithForces = WithForcesBy<InProcessForceEvents>;
 
 
 /// Specialize only the return shape: both modes execute the same stages and event bookkeeping.
@@ -31,7 +36,8 @@ pub(crate) trait StepOutput<T> {
     fn merge(first: T, second: T) -> T;
 }
 
-pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
+/// The collision events alone, force events collected by `F` (CS6) for their status bits.
+pub(crate) impl CollisionOnlyWith<impl F: ForceEventStage> of StepOutput<Array<CollisionEvent>> {
     #[inline(always)]
     fn finish(
         events: Array<CollisionEvent>,
@@ -42,7 +48,7 @@ pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
         groups: bool,
     ) -> Array<CollisionEvent> {
         if enabled {
-            let _ = collect_either(groups, dt, ref narrow, ref colliders);
+            let _ = F::collect(groups, dt, ref narrow, ref colliders);
         }
         events
     }
@@ -62,7 +68,10 @@ pub(crate) impl CollisionOnly of StepOutput<Array<CollisionEvent>> {
     }
 }
 
-pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactForceEvent>)> {
+/// The collision and force events, force events collected by `F` (CS6).
+pub(crate) impl WithForcesBy<
+    impl F: ForceEventStage,
+> of StepOutput<(Array<CollisionEvent>, Array<ContactForceEvent>)> {
     #[inline(always)]
     fn finish(
         events: Array<CollisionEvent>,
@@ -72,7 +81,12 @@ pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactFo
         ref colliders: ColliderSet,
         groups: bool,
     ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
-        let forces = dispatch(enabled, dt, ref narrow, ref colliders, groups);
+        // Inlined dispatch: only the changed sets cross the branch merge.
+        let forces = if enabled {
+            F::collect(groups, dt, ref narrow, ref colliders)
+        } else {
+            array![]
+        };
         (events, forces)
     }
 
@@ -96,17 +110,6 @@ pub(crate) impl WithForces of StepOutput<(Array<CollisionEvent>, Array<ContactFo
     }
 }
 
-/// Inlined dispatch with only the changed sets crossing the branch merge.
-#[inline(always)]
-pub(crate) fn dispatch(
-    enabled: bool, dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet, groups: bool,
-) -> Array<ContactForceEvent> {
-    if enabled {
-        collect_either(groups, dt, ref narrow, ref colliders)
-    } else {
-        array![]
-    }
-}
 
 #[cfg(test)]
 /// Refund boundary for the optional event branch, as the JM solver gas-wallet pattern.
@@ -274,7 +277,7 @@ pub fn collect_convex(
 
 /// [`collect`] when `groups` (a constant after inlining), [`collect_convex`] otherwise.
 #[inline(always)]
-fn collect_either(
+pub(crate) fn collect_either(
     groups: bool, dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet,
 ) -> Array<ContactForceEvent> {
     if groups {

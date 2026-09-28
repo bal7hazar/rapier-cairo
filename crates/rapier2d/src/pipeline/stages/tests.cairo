@@ -8,50 +8,72 @@ use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_dynamics2d::narrow_phase::strategies::{NoComposites, NoSensors, SensorIntersections};
 use crate::dispatcher::{BasicShapesDispatcher, DefaultDispatcher};
-use crate::pipeline::config::tests::{ball_over, basic_level, run_both, v};
-use crate::pipeline::config::{NoJoints, StepConfig};
+use crate::pipeline::config::tests::{ball_over, basic_level, run_both_stages, v};
+use crate::pipeline::config::{BasicStepConfig, NoJoints, StepConfig};
 use crate::pipeline::fixtures::p3_scene;
 use crate::world::WorldTrait;
 use super::narrow::{BatchedNarrowPhase, InProcessBatch};
-use super::{InProcessBroadPhase, InProcessIslands, InProcessMass, InProcessSolveAdvance};
+use super::{
+    InProcessActiveSet, InProcessBroadPhase, InProcessForceEvents, InProcessFreePath,
+    InProcessIslands, InProcessMass, InProcessShapes, InProcessSolveAdvance, StageConfig,
+};
 
-/// `BasicStepConfig` with the batched narrow phase in process.
-impl BatchedBasic of StepConfig {
-    impl Dispatcher = BasicShapesDispatcher;
-    impl Sensors = NoSensors;
-    impl Composites = NoComposites;
-    impl Joints = NoJoints;
+/// The stages of `BasicStepConfig` with the batched narrow phase in process.
+impl BatchedBasic of StageConfig {
     impl Narrow = BatchedNarrowPhase<InProcessBatch<BasicShapesDispatcher>, NoSensors>;
     impl Broad = InProcessBroadPhase;
     impl Islands = InProcessIslands;
     impl Advance = InProcessSolveAdvance<NoJoints>;
     impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
 }
 
-/// [`BatchedBasic`] with sensors.
-impl BatchedWithSensors of StepConfig {
+/// Basic shapes and sensors (the step configuration of [`BatchedWithSensors`]).
+impl BasicWithSensorsStep of StepConfig {
     impl Dispatcher = BasicShapesDispatcher;
     impl Sensors = SensorIntersections;
     impl Composites = NoComposites;
     impl Joints = NoJoints;
+}
+
+/// [`BatchedBasic`] with sensors.
+impl BatchedWithSensors of StageConfig {
     impl Narrow = BatchedNarrowPhase<InProcessBatch<BasicShapesDispatcher>, SensorIntersections>;
     impl Broad = InProcessBroadPhase;
     impl Islands = InProcessIslands;
     impl Advance = InProcessSolveAdvance<NoJoints>;
     impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
 }
 
-/// Every shape pair of the full dispatcher, batched (composite pairs rejected).
-impl BatchedDefault of StepConfig {
+/// Every shape of the full dispatcher, no sensor, no composite, no joint.
+impl DefaultShapesStep of StepConfig {
     impl Dispatcher = DefaultDispatcher;
     impl Sensors = NoSensors;
     impl Composites = NoComposites;
     impl Joints = NoJoints;
+}
+
+/// Every shape pair of the full dispatcher, batched (composite pairs rejected).
+impl BatchedDefault of StageConfig {
     impl Narrow = BatchedNarrowPhase<InProcessBatch<DefaultDispatcher>, NoSensors>;
     impl Broad = InProcessBroadPhase;
     impl Islands = InProcessIslands;
     impl Advance = InProcessSolveAdvance<NoJoints>;
     impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
 }
 
 /// Random game-shaped levels with user changes (wake-ups, removals, insertions, moves).
@@ -60,7 +82,9 @@ impl BatchedDefault of StepConfig {
 fn fuzz_batched_agrees(seed: u16) {
     let mut full = basic_level(seed.into());
     let mut batched = basic_level(seed.into());
-    let _ = run_both::<BatchedBasic>(ref full, ref batched, seed.into(), 14, true, false);
+    let _ = run_both_stages::<
+        BasicStepConfig, BatchedBasic,
+    >(ref full, ref batched, seed.into(), 14, true, false);
 }
 
 /// Levels without user changes (sleep, then the active set's flight) and the P3 scenes of basic
@@ -71,13 +95,18 @@ fn test_batched_agrees_on_levels_and_scenes() {
     for seed in array![0_u32, 1].span() {
         let mut full = basic_level(*seed);
         let mut batched = basic_level(*seed);
-        taken += run_both::<BatchedBasic>(ref full, ref batched, *seed, 14, false, *seed == 1);
+        taken +=
+            run_both_stages::<
+                BasicStepConfig, BatchedBasic,
+            >(ref full, ref batched, *seed, 14, false, *seed == 1);
     }
     assert!(taken != 0, "the active set was never taken");
     for (id, n) in array![('balls', 8_u32), ('stack', 5), ('cubes', 4), ('row', 4)].span() {
         let mut full = p3_scene(*id, *n);
         let mut batched = p3_scene(*id, *n);
-        let _ = run_both::<BatchedBasic>(ref full, ref batched, 0, 4, false, true);
+        let _ = run_both_stages::<
+            BasicStepConfig, BatchedBasic,
+        >(ref full, ref batched, 0, 4, false, true);
     }
 }
 
@@ -93,7 +122,9 @@ fn test_batched_with_sensors_agrees() {
     let _ = full.insert_collider(sensor, None);
     let mut batched = basic_level(3);
     let _ = batched.insert_collider(sensor, None);
-    let _ = run_both::<BatchedWithSensors>(ref full, ref batched, 3, 6, false, false);
+    let _ = run_both_stages::<
+        BasicWithSensorsStep, BatchedWithSensors,
+    >(ref full, ref batched, 3, 6, false, false);
 }
 
 #[test]
@@ -101,5 +132,5 @@ fn test_batched_with_sensors_agrees() {
 fn test_batched_rejects_composite_pairs() {
     let points = array![v(-ONE, fixed::ZERO), v(fixed::ZERO, fixed::ZERO), v(ONE, fixed::ZERO)];
     let mut world = ball_over(ColliderBuilderTrait::polyline(points.span(), None));
-    let _ = world.step_with::<BatchedDefault>();
+    let _ = world.step_with_stages::<DefaultShapesStep, BatchedDefault>();
 }

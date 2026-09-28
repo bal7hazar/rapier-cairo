@@ -60,13 +60,13 @@ use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTra
 use rapier_dynamics2d::solver::island::FreeBodySolverTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
-use rapier_geometry2d::shape::ShapeTrait;
 use crate::world::World;
 use super::config::StepConfig;
 use super::force_events::StepOutput;
 use super::free_path::no_body_info;
 use super::islands::{SleepCensus, SleepCensusTrait, links_awake_to_sleeping};
 use super::ordering::{BODY_SLEEPING, body_status};
+use super::stages::{ShapeStage, StageConfig};
 use super::{merge_pairs, split_dormant};
 
 /// The live-pair list helpers of [`sparse_step`].
@@ -127,7 +127,7 @@ pub(crate) fn usable(ref world: World) -> bool {
 /// flags cleared), marked invalid otherwise. Reading the sets again here (rather than keeping
 /// the step's walks alive) costs only the steps that fill the set.
 #[inline(never)]
-pub(crate) fn refresh(ref world: World, fill: bool) {
+pub(crate) fn refresh<impl S: StageConfig>(ref world: World, fill: bool) {
     if fill {
         let prediction = world.integration_parameters.prediction_distance();
         let snapshot = world.colliders.iter().span();
@@ -136,7 +136,7 @@ pub(crate) fn refresh(ref world: World, fill: bool) {
         world
             .active_set =
                 BoxTrait::new(
-                    rebuild(
+                    S::Active::rebuild(
                         snapshot,
                         entries,
                         world.narrow_phase.pairs.span(),
@@ -154,14 +154,14 @@ pub(crate) fn refresh(ref world: World, fill: bool) {
 /// [`refresh`]`(world, true)` with the bodies given (BT4: the island stage's entries, whose
 /// types, activation flags and change flags are those of the set) instead of read again.
 #[inline(never)]
-fn refill_with(ref world: World, entries: Span<(Handle, RigidBody)>) {
+fn refill_with<impl S: StageConfig>(ref world: World, entries: Span<(Handle, RigidBody)>) {
     let prediction = world.integration_parameters.prediction_distance();
     let snapshot = world.colliders.iter().span();
     let force_events = any_force_events(snapshot);
     world
         .active_set =
             BoxTrait::new(
-                rebuild(
+                S::Active::rebuild(
                     snapshot, entries, world.narrow_phase.pairs.span(), force_events, prediction,
                 ),
             );
@@ -188,7 +188,7 @@ pub fn invalidate(ref world: World) {
 /// `entries` every body after the islands stage, `pairs` the pair list the step leaves,
 /// `force_events` whether a collider enables force events. An invalid set when a body is a
 /// position-based kinematic one or disabled and asleep, or when none sleeps.
-pub(crate) fn rebuild(
+pub fn rebuild<impl A: ShapeStage>(
     snapshot: Span<(Handle, Collider)>,
     entries: Span<(Handle, RigidBody)>,
     pairs: Span<ContactPair>,
@@ -244,7 +244,7 @@ pub(crate) fn rebuild(
             }
         }
         if !active {
-            let aabb = collider.shape.compute_aabb(*collider.pos.pose).loosened(margin);
+            let aabb = A::compute_aabb(*collider.shape, *collider.pos.pose).loosened(margin);
             statics.append(BroadPhaseProxy { collider: *handle, aabb, is_static: true });
         }
     }
@@ -549,7 +549,9 @@ fn with_referenced(
 
 /// One step of a world whose [`ActiveSet`] is [`usable`] (see the module documentation).
 #[inline(never)]
-pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Drop<T>>(
+pub(crate) fn sparse_step<
+    T, impl Output: StepOutput<T>, impl C: StepConfig, impl S: StageConfig, +Drop<T>,
+>(
     ref world: World,
 ) -> T {
     let params = world.integration_parameters;
@@ -585,7 +587,8 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
             .append(
                 BroadPhaseProxy {
                     collider: *handle,
-                    aabb: collider.shape.compute_aabb(collider.pos.pose).loosened(margin),
+                    aabb: S::Shapes::compute_aabb(collider.shape, collider.pos.pose)
+                        .loosened(margin),
                     is_static: false,
                 },
             );
@@ -602,7 +605,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
     }
     // BT4: the static proxies away from every active one take no part in the pairs.
     let statics = near_statics(statics, dynamic.span());
-    let candidates = C::Broad::find_pairs_sparse(statics, dynamic.span());
+    let candidates = S::Broad::find_pairs_sparse(statics, dynamic.span());
     // The previous live pairs are the narrow phase's previous pairs; the others are dormant.
     let previous = world.narrow_phase.pairs;
     let mut previous_live = array![];
@@ -622,7 +625,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
             pairs.append((i, j));
         }
         events =
-            C::Narrow::compute_contacts(
+            S::Narrow::compute_contacts(
                 ref world.narrow_phase,
                 prediction,
                 scratch.span(),
@@ -657,7 +660,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
         let (_, rest) = split_at_positions(previous.span(), set.pairs.span());
         dormant = rest;
         let all = world.bodies.iter().span();
-        let (all, sleeping, woken) = C::Islands::update_islands(
+        let (all, sleeping, woken) = S::Islands::update_islands(
             ref world.bodies,
             active_pairs,
             dormant.span(),
@@ -678,7 +681,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
             world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
             dormant = asleep;
         }
-        C::Advance::solve_and_advance(
+        S::Advance::solve_and_advance(
             world.gravity,
             params,
             ref world.bodies,
@@ -694,7 +697,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
         // Nothing moves: only the parameters are validated, as the solver stage does.
         let _ = FreeBodySolverTrait::new(params, world.gravity);
     } else {
-        C::Advance::solve_and_advance(
+        S::Advance::solve_and_advance(
             world.gravity,
             params,
             ref world.bodies,
@@ -722,7 +725,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
         if refill {
             // BT4: a body woke up or fell asleep and another still sleeps: the set is filled
             // again for the next step (as the whole step does).
-            refill_with(ref world, island_entries);
+            refill_with::<S>(ref world, island_entries);
             return output;
         }
     } else {

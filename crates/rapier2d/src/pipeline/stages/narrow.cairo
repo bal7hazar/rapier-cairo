@@ -132,7 +132,7 @@ pub impl BatchedNarrowPhase<
 }
 
 /// The jobs of the pairs of `pairs` that reach the contact generation, in pair order (pass 1).
-fn contact_jobs(
+pub fn contact_jobs(
     previous: Span<ContactPair>, scratch: Span<PairCollider>, pairs: Span<(u32, u32)>,
 ) -> Array<ContactJob> {
     let mut jobs = array![];
@@ -184,13 +184,34 @@ fn compute_contacts_batched<impl B: ContactBatch, impl S: IntersectionStrategy>(
     pairs: Span<(u32, u32)>,
     ref colliders: ColliderSet,
 ) -> Array<CollisionEvent> {
-    let previous = narrow_phase.pairs.span();
-    let jobs = contact_jobs(previous, scratch, pairs);
-    let mut results = if jobs.is_empty() {
+    let jobs = contact_jobs(narrow_phase.pairs.span(), scratch, pairs);
+    let results = if jobs.is_empty() {
         array![].span()
     } else {
         B::contact_geometries(prediction, jobs.span())
     };
+    compute_contacts_with_results::<
+        S,
+    >(ref narrow_phase, prediction, scratch, pairs, ref colliders, results)
+}
+
+/// Pass 3 of the batched narrow phase (see the module documentation): the pair loop with
+/// `results`, the contact generation of the jobs of [`contact_jobs`] in their order, as
+/// [`ContactBatch::contact_geometries`] returns it. A contract runs it in another declared class
+/// (CS6, `rapier2d_classes::narrow`).
+///
+/// # Panics
+/// As [`BatchedNarrowPhase`]; when `results` has fewer entries than the jobs.
+pub fn compute_contacts_with_results<impl S: IntersectionStrategy>(
+    ref narrow_phase: NarrowPhase,
+    prediction: Fixed,
+    scratch: Span<PairCollider>,
+    pairs: Span<(u32, u32)>,
+    ref colliders: ColliderSet,
+    results: Span<(bool, ManifoldGeometry)>,
+) -> Array<CollisionEvent> {
+    let mut results = results;
+    let previous = narrow_phase.pairs.span();
     let fresh_pair = ContactPairTrait::new(Default::default(), Default::default());
     let fresh = BoxTrait::new(@fresh_pair);
     let mut cursor: u32 = 0;
