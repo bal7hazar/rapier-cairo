@@ -221,6 +221,38 @@ pub fn family_geometries(
     out.span()
 }
 
+/// [`family_geometries`] with the polygon family run here (CX2: the class that calls it is the
+/// polygon family's): one call of the ball family class at `contact_ball` with the pairs with a
+/// ball, skipped when there is none.
+pub fn family_local_polygon(
+    contact_ball: ClassHash, prediction: Fixed, jobs: Span<ContactJob>,
+) -> Span<(bool, ManifoldGeometry)> {
+    let mut ball = array![];
+    for job in jobs {
+        if ball_family(*job.shape1, *job.shape2) {
+            ball.append(*job);
+        }
+    }
+    let mut ball = if ball.is_empty() {
+        array![].span()
+    } else {
+        family_call(contact_ball, prediction, ball.span())
+    };
+    let mut out = array![];
+    for job in jobs {
+        if ball_family(*job.shape1, *job.shape2) {
+            out.append(*ball.pop_front().unwrap());
+        } else {
+            let mut manifold = with_geometry(*job.geometry, Default::default());
+            let supported = contact_manifold_polygon_family(
+                *job.pos12, *job.shape1, *job.shape2, prediction, ref manifold,
+            );
+            out.append((supported, geometry(@manifold)));
+        }
+    }
+    out.span()
+}
+
 /// [`contact_manifold_ball_family`] on each job of a batch (default solver data, which no
 /// generator reads).
 pub fn ball_batch(prediction: Fixed, jobs: Span<ContactJob>) -> Span<(bool, ManifoldGeometry)> {

@@ -27,7 +27,7 @@ pub const BROAD_PHASE_HASH: felt252 =
     0x7d3eed01dc6daa7f8ccdc93ffbed0f86c938302bbc3f8b1fcc24694b448c4d7;
 pub const MASS_HASH: felt252 = 0x5415bd22e6c965a3c006b598c748686672ef13cecde4d60cadb674184e451a2;
 pub const NARROW_PHASE_HASH: felt252 =
-    0x69d00ab7e3ebdb09cfeaee8bb6acc4b2f49468e06d516c72f16936b44dcf336;
+    0x74d996fd9cb70bfae3c2a237aaddb26f1e2fc23471cc2d6cc0395ead7b895b5;
 pub const ACTIVE_SET_HASH: felt252 =
     0x4a6e55fafd8273f75152b3509aa40223f5f50e882ab1978a91beeb895201d02;
 pub const FORCE_EVENTS_HASH: felt252 =

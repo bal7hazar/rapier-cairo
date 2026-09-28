@@ -1,6 +1,6 @@
 # rapier2d_classes
 
-The `rapier2d` step split across declared Starknet classes (work packages CS4–CS6, CX1), so that no
+The `rapier2d` step split across declared Starknet classes (work packages CS4–CS6, CX1, CX2), so that no
 class of a game's step exceeds the size limit of a declared class (73,728 Sierra and CASM felts). The
 analysis is in `docs/research/class-split.md`.
 
@@ -17,9 +17,9 @@ that run the stages and the strategies that library-call them:
 
 | class | runs | called (`SlimSplitStages`) |
 |---|---|---|
-| `NarrowPhaseClass` | the narrow phase's pair loop (filters, one-way platforms, solver data, events), the contact generation batched per family | once per step with a pair |
+| `NarrowPhaseClass` | the narrow phase's pair loop (filters, one-way platforms, solver data, events) and the contact generation of the pairs without a ball | once per step with a pair |
 | `ContactBallClass` | contact generation of the pairs with a ball | once per step with such a pair (per pair with `SplitStages`) |
-| `ContactPolygonClass` | contact generation of cuboid, convex polygon and half-space pairs | once per step with such a pair |
+| `ContactPolygonClass` | contact generation of cuboid, convex polygon and half-space pairs | not called (in `NarrowPhaseClass`; once per step with such a pair with `SplitBatchedStages`) |
 | `SolveAdvanceClass` | constraints, island solve, free bodies, position update, sleep timers | once per step with a moving body |
 | `IslandsClass` | union-find, sleep and wake-up rules | on the steps whose islands can change |
 | `BroadPhaseClass` | candidate pairs | once per step |
@@ -57,11 +57,11 @@ fn step_state(state: BasicWorldState, steps: u32) -> BasicWorldState {
 }
 ```
 
-The caller class compiled this way (`rapier_sink`'s `SlimSplitStep`) is 73,083 CASM felts; it
+The caller class compiled this way (`rapier_sink`'s `SlimSplitStep`) is 73,204 CASM felts; it
 supports the worlds of `BasicStepConfig` (balls, cuboids, convex polygons, half-spaces; no sensor,
 composite or impulse joint) without position-based kinematic bodies (rejected with
 `'Step: kinematic disabled'`), and the basic codec rejects any other shape and any joint arena ever
-used. On slingfall's pile10 reference shot it costs 32.97M Cairo steps (+47.0 % over the in-process
+used. On slingfall's pile10 reference shot it costs 30.77M Cairo steps (+37.2 % over the in-process
 step), 4 transactions of ≤ 10M. `SplitStages` (every stage out, the pair loop in the caller: a
 caller over the limit), `SplitBatchedStages`, `SplitHybridStages`, `ContactSolveStepConfig`
 (CS4's layout) and `orchestrator::OrchestratorClass` (CS6's route (b)) are the measured

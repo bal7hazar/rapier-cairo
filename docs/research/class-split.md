@@ -451,6 +451,84 @@ six identical (`program.basic` 231,196). Class sizes: every pre-existing line of
   and `user_data` (≈ 37 instead of ≈ 64 felts each); not built (the caller's margin is 547 CASM felts).
 * The caller's margin is thin: CX1's changes to the solve-and-advance and island crossings move the caller's wrappers.
 
+## 11. CX2: the narrow phase's crossings
+
+Toolchain as above. Base: `main` at `a7d7392` (0.1.0-alpha.7, CX1's slim layout: 32,965,606 steps on the shot, +47.0 %).
+Steps: whole-shot probes with `--tracked-resource cairo-steps --detailed-resources`, one at a time; sizes:
+`scripts/bytecode_size.py`. The variants' strategies and class entries are at commit `b225f42` of the PR branch (a
+throwaway test module, not committed, measured them against CS6's crossing at 32,965,603 steps); the shipped one is `SlimSplitStages`' `LibraryCallNarrowPhase`.
+
+**Programme gate (measurement first) met:** the caller `SlimSplitStep` stays at **73,204 CASM felts** (≤ 73,728; +121)
+and the shot gains **2,192,329 steps** (≥ 2M): **30,773,277 steps, +37.2 %** over in process (22,432,677), 4
+transactions of ≤ 10M with more headroom. Bit-identical at every tick; in-process users unchanged (no engine file changed).
+
+### 11.1 Where the crossing's steps go
+
+Felts over the shot (152 narrow-phase calls): previous pairs 90,768 (1,417 pairs, 64 felts each), pair colliders 29,162
+(942, 31 each), candidate pairs 1,428, contact jobs 55,611 (1,428 jobs, 39 felts each; 233 with a ball) and their results
+(30 felts each), new pairs 91,544 (1,428), collision events 152. An extra `Serde` round trip of each crossing added to the
+shot costs: previous pairs 1,626,826 steps, new pairs 1,641,700, colliders 579,178, jobs and results 2,153,376:
+≈ 18 steps per felt (serialize and deserialize), ≈ 6.0M for the narrow phase's crossings.
+
+### 11.2 Packing loses, dropping felts wins
+
+| variant (whole shot, bit-identical unless noted) | steps | Δ vs CS6's crossing |
+|---|--:|--:|
+| CS6's crossing (whole previous pairs, both families library-called) | 32,965,603 | |
+| every crossing packed in 64-bit lanes (colliders 5 felts + shape, previous pairs 10, jobs 10 + shapes, results 9, new pairs 17) | 33,187,017 | +221,414 |
+| the same, the new pairs back by their `Serde` (identity not checked) | 33,952,027 | +986,424 |
+| the polygon family in `NarrowPhaseClass`, CS6's felts otherwise | 31,095,744 | −1,869,859 |
+| **and the previous pairs as `PreviousPair` (shipped)** | **30,773,277** | **−2,192,329** |
+
+* A packed felt (three lanes: `a + b · 2^64 + c · 2^128`, a `Fixed` biased by `2^63`, two `u32` per lane) is decoded with a
+  `u256` conversion and two bounded divisions: ≈ 70 steps to write and read, about the price of the three plain felts it
+  replaces. On 15 pairs of the shot (tick 60): a whole pair's `Serde` round trip 1,143 steps, packed 1,314; a geometry
+  587 by `Serde` (29 felts), 654 packed (9 felts). The packed wires stay measured in `narrow::alternatives` (round
+  trips and `gas_*` probes: net of baseline on the three fixture pairs, whole pairs 3,404 steps, `PreviousPair` 2,895,
+  previous pairs packed 2,631, whole pairs packed 3,950).
+* **Polygon family merged** (`crate::contact::family_local_polygon`): 84 % of the jobs are pairs without a ball; their
+  geometry crossed four times (caller → `NarrowPhaseClass` → `ContactPolygonClass` → back twice). Computing them in
+  `NarrowPhaseClass` removes their job and result crossings and 109 of the 797 library calls; the pairs with a ball still
+  call `ContactBallClass`, whose hash crosses with the call (`contact_polygon()` is no longer read by the slim layout).
+  `NarrowPhaseClass` goes from 11,319 / 23,597 to **22,008 / 68,372** Sierra / CASM felts (margin 5,356 CASM); both
+  families' classes are unchanged (the other layouts call them).
+* **`PreviousPair`** (`narrow::{PreviousPair, previous_of, pair_of}`): a previous pair crosses as its handles, event status,
+  solver contact count, user data and geometry, 36 felts instead of 64. The pair loop rewrites every other field of the
+  solver data (`solver_data_supported`: bodies, flags, friction, restitution, dominance, normal, both solver contacts) and
+  reads only the contact count (`had_contact`); the class rebuilds the pair with the default solver data but those two
+  fields (`pair_of`), so its results are those of the whole pair. −322,533 steps for +121 CASM felts in the caller.
+
+### 11.3 Per layout: classes, shot, transactions
+
+Transactions as in section 10.4 (greedy, 10-tick granularity, ≤ 10M steps, one world crossing of 47,365 steps each):
+
+| layout | classes changed (Sierra / CASM felts) | shot | Δ | transactions (ticks: steps; calldata in + inputs → out) |
+|---|---|--:|--:|---|
+| CX1 (`main`) | `SlimSplitStep` 28,518 / 73,083 · `NarrowPhaseClass` 11,319 / 23,597 | 32,965,606 | +47.0 % | 4 |
+| **CX2** | **`SlimSplitStep` 28,638 / 73,204** · **`NarrowPhaseClass` 22,008 / 68,372** · `OrchestratorClass` 28,819 / 73,570 | **30,773,277** | **+37.2 %** | 0–60: 7.22M (2,831 + 1 → 1,839); 60–90: 8.41M (1,839 + 1 → 1,422); 90–120: 7.54M (1,422 + 1 → 1,422); 120–151: 7.79M (1,422 + 1 → 1,422) |
+
+Per narrow-phase call (152): ≈ 800 fewer felts cross (over the shot, the previous pairs go from 90,768 to 51,164 felts,
+1,417 × 36 plus the counts; the 1,195 polygon jobs, ≈ 46,600 felts, and their results, ≈ 35,850, no longer cross) and
+14,423 fewer steps.
+
+### 11.4 Bit-identity and in-process users
+
+`snforge test -p rapier2d_classes` (every default test, single-threaded): the slim layout against `BasicStepConfig` at
+every tick of the shot and with user changes (`tests/slim.cairo`), the removals scene (`tests/removals.cairo`: holes and
+reused slots, kinematic bodies, a parentless collider, an impact wake-up) and the game's ticks with force events every
+step and basic-codec save / restore mid-collapse (`tests/game_ticks.cairo`); `snforge test -p rapier_sink` (58 tests).
+No file of `rapier2d` or of its dependencies changed: every `steps_*` probe of `rapier2d`, the CCD tests, the game-shaped
+probes and `program.basic` (231,196 felts, `bytecode_size.py check`) are unchanged by construction.
+
+### 11.5 Open
+
+* The previous pairs packed (10 felts) would save ≈ 90 more steps per pair in process (the `gas_*` probes above), ≈ 0.13M
+  on the shot, for a lane encoder in the caller (margin 524 CASM felts): not built.
+* The new pairs (64 felts, 1.64M steps per round trip over the shot) cross whole: their handles and parents are
+  derivable in the caller, at the price of caller code.
+* The pairs with a ball (233 jobs) still cross to `ContactBallClass` (41,560 CASM felts: it does not fit next to the pair
+  loop and the polygon family).
+
 ## Appendix: reproduction
 
 ```
@@ -468,4 +546,7 @@ snforge test -p rapier2d_classes slim --include-ignored --tracked-resource cairo
 snforge test -p rapier2d_classes route_b --include-ignored --tracked-resource cairo-steps --detailed-resources
 snforge test -p rapier2d_classes steps_cs4_ --include-ignored --tracked-resource cairo-steps --detailed-resources
 snforge test -p rapier2d_classes test_state_felts --include-ignored
+# CX2: the narrow phase's crossings (the variants' code: `git switch --detach b225f42`)
+snforge test -p rapier2d_classes narrow:: --tracked-resource cairo-steps --detailed-resources
+snforge test -p rapier2d_classes slim::steps_slim_ --include-ignored --max-threads 1 --tracked-resource cairo-steps --detailed-resources
 ```
