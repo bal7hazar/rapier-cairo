@@ -94,6 +94,21 @@ jobs:
           set -o pipefail
           python3 scripts/bytecode_size.py check | tee -a "$GITHUB_STEP_SUMMARY"
 
+  sink:
+    # The declared-class crates' own tests (CS3: the split layouts are bit-identical to the in-process step over the
+    # pile10 reference shot; CS4: `rapier2d_classes`). Kept out of the `test` matrix: their logs are not gas-snapshotted.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - uses: foundry-rs/setup-snfoundry@v6
+      - name: Run tests
+        run: |
+          set -e
+          for p in rapier_sink rapier2d_classes; do
+            if [ -d "crates/$p" ]; then snforge test -p "$p"; fi
+          done
+
   api-parity:
     runs-on: ubuntu-latest
     steps:
