@@ -94,7 +94,7 @@ pub impl SolverBodyIndexMapImpl of SolverBodyIndexMapTrait {
 }
 
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
-pub(crate) struct BodyStep {
+pub struct BodyStep {
     pub increment: RigidBodyVelocity,
     pub local_com: Vec2,
     pub damping: RigidBodyDamping,
