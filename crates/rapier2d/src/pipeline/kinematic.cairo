@@ -90,7 +90,9 @@ mod tests {
                 Some(world.integration_parameters.dt),
             );
         } else {
-            let _ = super::super::user_changes_bodies_for_step(
+            let _ = super::super::user_changes_bodies_for_step::<
+                crate::pipeline::stages::InProcessMass,
+            >(
                 ref world.bodies,
                 ref world.colliders,
                 array![].span(),
@@ -151,9 +153,9 @@ mod tests {
                 ref world.bodies, ref world.colliders, array![].span(), dt,
             );
         } else {
-            let _ = super::super::user_changes_bodies_for_step(
-                ref world.bodies, ref world.colliders, array![].span(), dt, true,
-            );
+            let _ = super::super::user_changes_bodies_for_step::<
+                crate::pipeline::stages::InProcessMass,
+            >(ref world.bodies, ref world.colliders, array![].span(), dt, true);
         }
         world.bodies.iter()
     }

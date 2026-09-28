@@ -26,6 +26,14 @@ impl NoJointsStep of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = CompositeManifolds;
     impl Joints = NoJoints;
+    impl Narrow =
+        rapier2d::pipeline::config::PairLoopNarrowPhase<
+            DefaultDispatcher, SensorIntersections, CompositeManifolds,
+        >;
+    impl Broad = rapier2d::pipeline::config::InProcessBroadPhase;
+    impl Islands = rapier2d::pipeline::config::InProcessIslands;
+    impl Advance = rapier2d::pipeline::config::InProcessSolveAdvance<NoJoints>;
+    impl Mass = rapier2d::pipeline::config::InProcessMass;
 }
 
 impl NoSensorsStep of StepConfig {
@@ -33,6 +41,14 @@ impl NoSensorsStep of StepConfig {
     impl Sensors = NoSensors;
     impl Composites = CompositeManifolds;
     impl Joints = ImpulseJointSolver;
+    impl Narrow =
+        rapier2d::pipeline::config::PairLoopNarrowPhase<
+            DefaultDispatcher, NoSensors, CompositeManifolds,
+        >;
+    impl Broad = rapier2d::pipeline::config::InProcessBroadPhase;
+    impl Islands = rapier2d::pipeline::config::InProcessIslands;
+    impl Advance = rapier2d::pipeline::config::InProcessSolveAdvance<ImpulseJointSolver>;
+    impl Mass = rapier2d::pipeline::config::InProcessMass;
 }
 
 impl NoCompositesStep of StepConfig {
@@ -40,6 +56,14 @@ impl NoCompositesStep of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = NoComposites;
     impl Joints = ImpulseJointSolver;
+    impl Narrow =
+        rapier2d::pipeline::config::PairLoopNarrowPhase<
+            DefaultDispatcher, SensorIntersections, NoComposites,
+        >;
+    impl Broad = rapier2d::pipeline::config::InProcessBroadPhase;
+    impl Islands = rapier2d::pipeline::config::InProcessIslands;
+    impl Advance = rapier2d::pipeline::config::InProcessSolveAdvance<ImpulseJointSolver>;
+    impl Mass = rapier2d::pipeline::config::InProcessMass;
 }
 
 impl BasicDispatcherStep of StepConfig {
@@ -47,6 +71,14 @@ impl BasicDispatcherStep of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = CompositeManifolds;
     impl Joints = ImpulseJointSolver;
+    impl Narrow =
+        rapier2d::pipeline::config::PairLoopNarrowPhase<
+            BasicShapesDispatcher, SensorIntersections, CompositeManifolds,
+        >;
+    impl Broad = rapier2d::pipeline::config::InProcessBroadPhase;
+    impl Islands = rapier2d::pipeline::config::InProcessIslands;
+    impl Advance = rapier2d::pipeline::config::InProcessSolveAdvance<ImpulseJointSolver>;
+    impl Mass = rapier2d::pipeline::config::InProcessMass;
 }
 
 /// `(collision events, contact-force events)` of `steps` configured steps of the game world.

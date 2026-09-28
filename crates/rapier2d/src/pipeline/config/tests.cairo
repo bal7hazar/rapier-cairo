@@ -26,6 +26,14 @@ impl BasicWithSensors of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = NoComposites;
     impl Joints = NoJoints;
+    impl Narrow =
+        crate::pipeline::stages::PairLoopNarrowPhase<
+            BasicShapesDispatcher, SensorIntersections, NoComposites,
+        >;
+    impl Broad = crate::pipeline::stages::InProcessBroadPhase;
+    impl Islands = crate::pipeline::stages::InProcessIslands;
+    impl Advance = crate::pipeline::stages::InProcessSolveAdvance<NoJoints>;
+    impl Mass = crate::pipeline::stages::InProcessMass;
 }
 
 /// Every shape but composites, with joints.
@@ -34,17 +42,25 @@ impl NoCompositeShapes of StepConfig {
     impl Sensors = SensorIntersections;
     impl Composites = NoComposites;
     impl Joints = ImpulseJointSolver;
+    impl Narrow =
+        crate::pipeline::stages::PairLoopNarrowPhase<
+            DefaultDispatcher, SensorIntersections, NoComposites,
+        >;
+    impl Broad = crate::pipeline::stages::InProcessBroadPhase;
+    impl Islands = crate::pipeline::stages::InProcessIslands;
+    impl Advance = crate::pipeline::stages::InProcessSolveAdvance<ImpulseJointSolver>;
+    impl Mass = crate::pipeline::stages::InProcessMass;
 }
 
 fn f(raw: i64) -> Fixed {
     Fixed { raw }
 }
 
-fn v(x: Fixed, y: Fixed) -> Vec2 {
+pub(crate) fn v(x: Fixed, y: Fixed) -> Vec2 {
     Vec2 { x, y }
 }
 
-fn at(x: Fixed, y: Fixed) -> Pose2 {
+pub(crate) fn at(x: Fixed, y: Fixed) -> Pose2 {
     Pose2 { translation: v(x, y), rotation: Rot2 { re: ONE, im: ZERO } }
 }
 
@@ -60,7 +76,7 @@ fn pentagon() -> ColliderBuilder {
 /// (cuboids and pentagons, stacked or side by side) that fall asleep after two calm steps, and a
 /// ball fired at them from the left; every collider reports collision and force events.
 /// Blocks stand 2 apart (a pentagon is 1.5 wide).
-fn basic_level(seed: u32) -> World {
+pub(crate) fn basic_level(seed: u32) -> World {
     let mut state: u64 = seed.into();
     let mut world: World = Default::default();
     let events = COLLISION_EVENTS | CONTACT_FORCE_EVENTS;
@@ -147,7 +163,7 @@ fn assert_same(ref a: World, ref b: World, t: u32) {
 /// `step_with_force_events_with::<C>` (`step` / `step_with::<C>` on odd steps when `plain`)
 /// `steps` times, with the user changes of `seed` when `changes`; asserts equality after every
 /// step; returns how many steps took the active set.
-fn run_both<impl C: StepConfig>(
+pub(crate) fn run_both<impl C: StepConfig>(
     ref full: World, ref configured: World, seed: u32, steps: u32, changes: bool, plain: bool,
 ) -> u32 {
     let mut sparse = 0;
@@ -286,7 +302,7 @@ fn test_basic_config_agrees_with_ccd() {
 
 /// A ball dropped on `builder`'s collider (at the origin, fixed): the pair meets the
 /// dispatcher at the first step.
-fn ball_over(builder: ColliderBuilder) -> World {
+pub(crate) fn ball_over(builder: ColliderBuilder) -> World {
     let mut world: World = Default::default();
     let _ = world.insert_collider(builder.build(), None);
     let _ = world

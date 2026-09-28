@@ -61,6 +61,14 @@ pub impl AssertingBasicStep of StepConfig {
     impl Sensors = NoSensors;
     impl Composites = NoComposites;
     impl Joints = AssertingNoJoints;
+    impl Narrow =
+        crate::pipeline::stages::PairLoopNarrowPhase<
+            BasicShapesDispatcher, NoSensors, NoComposites,
+        >;
+    impl Broad = crate::pipeline::stages::InProcessBroadPhase;
+    impl Islands = crate::pipeline::stages::InProcessIslands;
+    impl Advance = crate::pipeline::stages::InProcessSolveAdvance<AssertingNoJoints>;
+    impl Mass = crate::pipeline::stages::InProcessMass;
 }
 
 #[cfg(test)]

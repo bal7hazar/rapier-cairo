@@ -429,9 +429,9 @@ pub fn handle_user_changes_flagged(
     for (handle, body) in bodies.iter() {
         if !body.changes.is_empty() {
             any = true;
-            let _ = body_changes(
-                handle, body, ref bodies, ref colliders, ref touched, fresh.span(),
-            );
+            let _ = body_changes::<
+                crate::pipeline::stages::InProcessMass,
+            >(handle, body, ref bodies, ref colliders, ref touched, fresh.span());
         }
     }
     if !touched.is_empty() && !pairs.is_empty() {

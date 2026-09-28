@@ -109,7 +109,7 @@ pub(crate) fn is_member(body: @RigidBody) -> bool {
 
 /// What [`update_islands`] needs to know before building anything: how many island members
 /// sleep, how many are awake, and whether an awake one is eligible for sleep.
-#[derive(Copy, Drop, PartialEq, Debug, Default)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
 pub struct SleepCensus {
     pub sleeping: u32,
     pub awake: u32,
@@ -188,7 +188,7 @@ pub fn update_islands(
 /// do (BT2: the union-find is skipped). Out of line: the fast path of [`update_islands`] stays
 /// loop-free.
 #[inline(never)]
-pub(crate) fn links_awake_to_sleeping(
+pub fn links_awake_to_sleeping(
     pairs: Span<ContactPair>,
     joints: Span<(Handle, ImpulseJoint)>,
     entries: Span<(Handle, RigidBody)>,
@@ -222,7 +222,7 @@ fn crosses(s1: u8, s2: u8) -> bool {
 
 /// [`update_islands`] once the fast checks passed: the union-find and the two walks.
 #[inline(never)]
-pub(crate) fn update_islands_slow(
+pub fn update_islands_slow(
     ref bodies: RigidBodySet,
     pairs: Span<ContactPair>,
     dormant: Span<ContactPair>,

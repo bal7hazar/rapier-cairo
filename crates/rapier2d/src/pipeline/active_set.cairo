@@ -55,13 +55,11 @@ use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, Ri
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
-use rapier_dynamics2d::narrow_phase::{
-    ContactPair, PairCollider, compute_contacts_from_scratch_with,
-};
+use rapier_dynamics2d::narrow_phase::{ContactPair, PairCollider};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use rapier_dynamics2d::solver::island::FreeBodySolverTrait;
 use rapier_geometry2d::aabb::AabbTrait;
-use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs_sparse};
+use rapier_geometry2d::broad_phase::BroadPhaseProxy;
 use rapier_geometry2d::shape::ShapeTrait;
 use crate::world::World;
 use super::config::StepConfig;
@@ -69,7 +67,7 @@ use super::force_events::StepOutput;
 use super::free_path::no_body_info;
 use super::islands::{SleepCensus, SleepCensusTrait, links_awake_to_sleeping};
 use super::ordering::{BODY_SLEEPING, body_status};
-use super::{merge_pairs, solve_and_advance_sleeping_with, split_dormant, update_islands};
+use super::{merge_pairs, split_dormant};
 
 /// The live-pair list helpers of [`sparse_step`].
 mod live;
@@ -604,7 +602,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
     }
     // BT4: the static proxies away from every active one take no part in the pairs.
     let statics = near_statics(statics, dynamic.span());
-    let candidates = find_pairs_sparse(statics, dynamic.span());
+    let candidates = C::Broad::find_pairs_sparse(statics, dynamic.span());
     // The previous live pairs are the narrow phase's previous pairs; the others are dormant.
     let previous = world.narrow_phase.pairs;
     let mut previous_live = array![];
@@ -624,9 +622,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
             pairs.append((i, j));
         }
         events =
-            compute_contacts_from_scratch_with::<
-                C::Dispatcher, C::Sensors, C::Composites,
-            >(
+            C::Narrow::compute_contacts(
                 ref world.narrow_phase,
                 prediction,
                 scratch.span(),
@@ -661,7 +657,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
         let (_, rest) = split_at_positions(previous.span(), set.pairs.span());
         dormant = rest;
         let all = world.bodies.iter().span();
-        let (all, sleeping, woken) = update_islands(
+        let (all, sleeping, woken) = C::Islands::update_islands(
             ref world.bodies,
             active_pairs,
             dormant.span(),
@@ -682,9 +678,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
             world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
             dormant = asleep;
         }
-        solve_and_advance_sleeping_with::<
-            C::Joints,
-        >(
+        C::Advance::solve_and_advance(
             world.gravity,
             params,
             ref world.bodies,
@@ -700,9 +694,7 @@ pub(crate) fn sparse_step<T, impl Output: StepOutput<T>, impl C: StepConfig, +Dr
         // Nothing moves: only the parameters are validated, as the solver stage does.
         let _ = FreeBodySolverTrait::new(params, world.gravity);
     } else {
-        solve_and_advance_sleeping_with::<
-            C::Joints,
-        >(
+        C::Advance::solve_and_advance(
             world.gravity,
             params,
             ref world.bodies,

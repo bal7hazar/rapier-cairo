@@ -83,13 +83,11 @@ use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, Ri
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
-use rapier_dynamics2d::narrow_phase::{
-    ContactPair, PairCollider, compute_contacts_from_scratch_with,
-};
+use rapier_dynamics2d::narrow_phase::{ContactPair, PairCollider};
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTrait};
 use rapier_geometry2d::aabb::AabbTrait;
-use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};
+use rapier_geometry2d::broad_phase::BroadPhaseProxy;
 use rapier_geometry2d::shape::ShapeTrait;
 use crate::world::World;
 
@@ -111,15 +109,15 @@ pub use ccd::{CCDSolver, CCDSolverTrait, step_with_ccd, step_with_ccd_and_force_
 pub mod force_events;
 use force_events::{CollisionOnly, StepOutput, WithForces};
 mod free_path;
+pub use free_path::solve_and_advance_free;
 use free_path::{
     body_info, collision_proxies_from_entries_with_events, collision_scratch, no_body_info,
-    solve_and_advance_free,
 };
 pub mod config;
 pub use config::{BasicStepConfig, DefaultStepConfig, StepConfig};
 mod fused;
-pub(crate) use fused::{active_joints, solve_and_advance_sleeping_with};
-pub use fused::{solve_and_advance, solve_and_advance_sleeping};
+pub(crate) use fused::active_joints;
+pub use fused::{solve_and_advance, solve_and_advance_sleeping, solve_and_advance_sleeping_with};
 #[cfg(test)]
 pub(crate) mod fused_alternatives;
 pub mod islands;
@@ -138,6 +136,8 @@ pub mod sleeping;
 pub(crate) mod solve_alternatives;
 #[cfg(test)]
 mod solve_benches;
+/// The stage slots of `StepConfig` (CS5).
+pub mod stages;
 #[cfg(test)]
 mod tests;
 mod user_changes;
@@ -201,7 +201,9 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         return active_set::sparse_step::<T, Output, C>(ref world);
     }
     let no_joints = C::Joints::joint_free(@world.impulse_joints);
-    let (snapshot, mut infos, entries, census, fresh) = user_changes_bodies_for_step(
+    let (snapshot, mut infos, entries, census, fresh) = user_changes_bodies_for_step::<
+        C::Mass,
+    >(
         ref world.bodies,
         ref world.colliders,
         world.narrow_phase.pairs.span(),
@@ -219,7 +221,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         } else {
             sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries)
         };
-        let pairs = find_pairs(proxies.span());
+        let pairs = C::Broad::find_pairs(proxies.span());
         if !sleeping && pairs.is_empty() {
             solve_and_advance_free(
                 world.gravity,
@@ -251,7 +253,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         } else {
             sleeping::unstatic_fresh(proxies, fresh, sleeping, snapshot, entries)
         };
-        (scratch, sleeping, force_events, find_pairs(proxies.span()))
+        (scratch, sleeping, force_events, C::Broad::find_pairs(proxies.span()))
     };
     let mut dormant = array![];
     if sleeping {
@@ -259,12 +261,12 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         world.narrow_phase.pairs = active;
         dormant = asleep;
     }
-    let events = compute_contacts_from_scratch_with::<
-        C::Dispatcher, C::Sensors, C::Composites,
-    >(ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders);
+    let events = C::Narrow::compute_contacts(
+        ref world.narrow_phase, prediction, scratch, pairs.span(), ref world.colliders,
+    );
     let joint_entries = C::Joints::entries(ref world.impulse_joints);
     let (entries, sleeping, woken) = if fresh.is_empty() {
-        update_islands(
+        C::Islands::update_islands(
             ref world.bodies,
             world.narrow_phase.pairs.span(),
             dormant.span(),
@@ -273,7 +275,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
             census,
         )
     } else {
-        sleeping::islands_after_insertions(
+        C::Islands::islands_after_insertions(
             ref world.bodies,
             world.narrow_phase.pairs.span(),
             dormant.span(),
@@ -289,9 +291,7 @@ pub(crate) fn step_internal<T, impl Output: StepOutput<T>, impl C: StepConfig, +
         world.narrow_phase.pairs = merge_pairs(world.narrow_phase.pairs.span(), revived.span());
         dormant = asleep;
     }
-    solve_and_advance_sleeping_with::<
-        C::Joints,
-    >(
+    C::Advance::solve_and_advance(
         world.gravity,
         world.integration_parameters,
         ref world.bodies,
@@ -362,7 +362,7 @@ pub fn body_infos(entries: Span<(Handle, RigidBody)>) -> (Array<BodyInfo>, Sleep
 /// The collider `handle`: `snapshot[handle.index]` when that entry has the handle, a set read
 /// otherwise.
 #[inline(always)]
-fn snapshot_collider(
+pub fn snapshot_collider(
     snapshot: Span<(Handle, Collider)>, handle: Handle, ref colliders: ColliderSet,
 ) -> Option<Collider> {
     if let Some(entry) = snapshot.get(handle.index) {
@@ -393,13 +393,13 @@ pub fn user_changes_snapshot(
 pub fn user_changes_bodies(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> (Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus) {
-    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step(
-        ref bodies, ref colliders, pairs, None, true,
-    );
+    let (snapshot, infos, entries, census, _) = user_changes_bodies_for_step::<
+        stages::InProcessMass,
+    >(ref bodies, ref colliders, pairs, None, true);
     (snapshot, infos, entries, census)
 }
 
-fn user_changes_bodies_for_step(
+fn user_changes_bodies_for_step<impl M: stages::MassStage>(
     ref bodies: RigidBodySet,
     ref colliders: ColliderSet,
     pairs: Span<ContactPair>,
@@ -434,9 +434,9 @@ fn user_changes_bodies_for_step(
             )
         } else {
             bodies_dirty = true;
-            let body = body_changes(
-                *handle, *body, ref bodies, ref colliders, ref touched, fresh.span(),
-            );
+            let body = body_changes::<
+                M,
+            >(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span());
             census.count(@body);
             (
                 body.body_type,
@@ -599,7 +599,7 @@ pub fn advance_with_snapshot(
 
 /// The step moves `body`: enabled, not fixed, awake.
 #[inline(always)]
-pub(crate) fn moving(body: @RigidBody) -> bool {
+pub fn moving(body: @RigidBody) -> bool {
     *body.enabled && *body.body_type != RigidBodyType::Fixed && !*body.activation.sleeping
 }
 

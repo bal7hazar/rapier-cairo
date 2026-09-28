@@ -47,6 +47,7 @@ use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::ShapeTrait;
 use super::islands::max_extent;
 use super::sleeping::wake_touched_partners;
+use super::stages::{InProcessMass, MassStage};
 
 /// The body changes whose colliders upstream flags for the narrow phase (`POSITION` from
 /// `update_positions`, `PARENT_EFFECTIVE_DOMINANCE`, `ENABLED_OR_DISABLED`): `POSITION |
@@ -76,9 +77,9 @@ pub(crate) fn handle_user_changes_fresh(
     }
     for (handle, body) in bodies.iter() {
         if !body.changes.is_empty() {
-            let _ = body_changes(
-                handle, body, ref bodies, ref colliders, ref touched, fresh.span(),
-            );
+            let _ = body_changes::<
+                InProcessMass,
+            >(handle, body, ref bodies, ref colliders, ref touched, fresh.span());
         }
     }
     if !touched.is_empty() && !pairs.is_empty() {
@@ -162,7 +163,7 @@ pub(crate) fn collider_changes(
 /// [`TOUCHING_CHANGES`] and a collider of the body is not in `fresh` (inserted since the last
 /// step), the body is woken up and its colliders are appended to `touched`.
 #[inline(never)]
-pub(crate) fn body_changes(
+pub(crate) fn body_changes<impl M: MassStage>(
     handle: Handle,
     body: RigidBody,
     ref bodies: RigidBodySet,
@@ -177,7 +178,7 @@ pub(crate) fn body_changes(
         body.mprops = body.mprops.update_world_mass_properties(body.body_type, body.pos.position);
     }
     if changes.intersects(LOCAL_MASS_PROPERTIES | COLLIDERS) {
-        recompute_mass_properties_from_colliders(ref body, ref colliders);
+        M::recompute_mass_properties(ref body, ref colliders);
     }
     if changes.intersects(TOUCHING_CHANGES) && has_known_collider(body.colliders, fresh) {
         // Upstream flags the colliders, whose modified-colliders pass wakes the body strongly

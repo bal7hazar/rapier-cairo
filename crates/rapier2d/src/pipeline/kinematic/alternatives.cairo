@@ -26,7 +26,9 @@ pub fn user_changes_copied_body(
             *body
         } else {
             bodies_dirty = true;
-            body_changes(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span())
+            body_changes::<
+                crate::pipeline::stages::InProcessMass,
+            >(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span())
         };
         // Mass changes must precede COM-based interpolation. Meter the computing arm
         // so ordinary dynamic/fixed bodies do not pay for trig or a body-set write.
@@ -100,9 +102,9 @@ pub fn user_changes_per_body(
             )
         } else {
             bodies_dirty = true;
-            let body = body_changes(
-                *handle, *body, ref bodies, ref colliders, ref touched, fresh.span(),
-            );
+            let body = body_changes::<
+                crate::pipeline::stages::InProcessMass,
+            >(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span());
             census.count(@body);
             (
                 body.body_type,
@@ -173,9 +175,9 @@ pub fn user_changes_second_walk(
             )
         } else {
             bodies_dirty = true;
-            let body = body_changes(
-                *handle, *body, ref bodies, ref colliders, ref touched, fresh.span(),
-            );
+            let body = body_changes::<
+                crate::pipeline::stages::InProcessMass,
+            >(*handle, *body, ref bodies, ref colliders, ref touched, fresh.span());
             census.count(@body);
             (
                 body.body_type,

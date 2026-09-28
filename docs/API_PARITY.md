@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
 | **total** | **1424** | **0** | **229** | **939** | **2592** | **79.0%** | **86.1%** |
 
-Cairo-only public items not matched to upstream: **1523**.
+Cairo-only public items not matched to upstream: **1579**.
 
 ## Aabb
 
@@ -4766,6 +4766,8 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **ActiveSet** method `is_valid` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** type `ActiveSet` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveView** type `ActiveView` (`crates/rapier2d/src/pipeline/ccd/targets.cairo`)
+- **Advance** method `solve_and_advance` (`crates/rapier2d_classes/src/advance.cairo`)
+- **Advance** method `solve_and_advance_values` (`crates/rapier2d_classes/src/advance.cairo`)
 - **Alternatives** const `BALL_BALL` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `BALL_CONVEX` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `CAPSULE_CAPSULE` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
@@ -4864,15 +4866,20 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Arena** const `STATE_SLOT_REUSED` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `STATE_UNORDERED` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** impl `Default` (`crates/rapier_core/src/data/arena.cairo`)
+- **Arena** method `ascending` (`crates/rapier2d_classes/src/arena.cairo`)
 - **Arena** method `capacity` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `contains` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `default` (`crates/rapier_core/src/data/arena.cairo`)
+- **Arena** method `dense` (`crates/rapier2d_classes/src/arena.cairo`)
+- **Arena** method `dense_option` (`crates/rapier2d_classes/src/arena.cairo`)
 - **Arena** method `destruct` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `get` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `insert` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `is_empty` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `len` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `new` (`crates/rapier_core/src/data/arena.cairo`)
+- **Arena** method `partial_state` (`crates/rapier2d_classes/src/arena.cairo`)
+- **Arena** method `positions` (`crates/rapier2d_classes/src/arena.cairo`)
 - **Arena** method `remove` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `replace` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `set` (`crates/rapier_core/src/data/arena.cairo`)
@@ -4898,14 +4905,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **AxesMask** const `LIN_X` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** const `LIN_Y` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
 - **AxesMask** method `all` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `bits` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `contains` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `default` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `from_bits` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `intersection` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- **AxesMask** method `is_empty` (`crates/rapier_core/src/rigid_body/axes_mask.cairo`)
-- ... 1323 more
+- ... 1379 more
 
 ## Embedded Rust inventory
 

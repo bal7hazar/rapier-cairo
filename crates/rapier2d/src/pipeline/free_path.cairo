@@ -195,7 +195,7 @@ fn advance_free_unchecked(
 }
 
 #[inline(never)]
-pub(crate) fn solve_and_advance_free(
+pub fn solve_and_advance_free(
     gravity: Vec2,
     params: IntegrationParameters,
     ref bodies: RigidBodySet,
