@@ -102,11 +102,68 @@ impl AdvanceOnly of StageConfig {
 }
 
 /// The advance crossing in process (measurement: `ValuesSolveAdvance`).
-impl AdvanceValues of StageConfig {
+pub impl AdvanceValues of StageConfig {
     impl Narrow = PairLoopNarrowPhase<BasicShapesDispatcher, NoSensors, NoComposites>;
     impl Broad = InProcessBroadPhase;
     impl Islands = InProcessIslands;
     impl Advance = rapier2d_classes::advance::ValuesSolveAdvance;
+    impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
+}
+
+/// CS5's advance crossing in process (measurement: `alternatives::Cs5ValuesSolveAdvance`).
+pub impl AdvanceCs5Values of StageConfig {
+    impl Narrow = PairLoopNarrowPhase<BasicShapesDispatcher, NoSensors, NoComposites>;
+    impl Broad = InProcessBroadPhase;
+    impl Islands = InProcessIslands;
+    impl Advance = rapier2d_classes::advance::alternatives::Cs5ValuesSolveAdvance;
+    impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
+}
+
+/// The islands crossing in process (measurement: `ValuesIslands`).
+pub impl IslandsValues of StageConfig {
+    impl Narrow = PairLoopNarrowPhase<BasicShapesDispatcher, NoSensors, NoComposites>;
+    impl Broad = InProcessBroadPhase;
+    impl Islands = rapier2d_classes::islands::ValuesIslands;
+    impl Advance = InProcessSolveAdvance<NoJoints>;
+    impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
+}
+
+/// CX1's islands crossing in process with `update_islands_slow` in the class (measurement:
+/// `alternatives::SlowValuesIslands`).
+pub impl IslandsSlowValues of StageConfig {
+    impl Narrow = PairLoopNarrowPhase<BasicShapesDispatcher, NoSensors, NoComposites>;
+    impl Broad = InProcessBroadPhase;
+    impl Islands = rapier2d_classes::islands::alternatives::SlowValuesIslands;
+    impl Advance = InProcessSolveAdvance<NoJoints>;
+    impl Mass = InProcessMass;
+    impl Shapes = InProcessShapes;
+    impl Forces = InProcessForceEvents;
+    impl Active = InProcessActiveSet<InProcessShapes>;
+    impl Free = InProcessFreePath;
+    const KINEMATIC: bool = true;
+}
+
+/// CS5's islands crossing in process (measurement: `alternatives::Cs5ValuesIslands`).
+pub impl IslandsCs5Values of StageConfig {
+    impl Narrow = PairLoopNarrowPhase<BasicShapesDispatcher, NoSensors, NoComposites>;
+    impl Broad = InProcessBroadPhase;
+    impl Islands = rapier2d_classes::islands::alternatives::Cs5ValuesIslands;
+    impl Advance = InProcessSolveAdvance<NoJoints>;
     impl Mass = InProcessMass;
     impl Shapes = InProcessShapes;
     impl Forces = InProcessForceEvents;
@@ -628,6 +685,30 @@ fn steps_mass_only_0() {
 #[ignore]
 fn steps_advance_values_151() {
     shot::<Staged<BasicStepConfig, AdvanceValues>>(151);
+}
+
+#[test]
+#[ignore]
+fn steps_advance_cs5_values_151() {
+    shot::<Staged<BasicStepConfig, AdvanceCs5Values>>(151);
+}
+
+#[test]
+#[ignore]
+fn steps_islands_values_151() {
+    shot::<Staged<BasicStepConfig, IslandsValues>>(151);
+}
+
+#[test]
+#[ignore]
+fn steps_islands_slow_values_151() {
+    shot::<Staged<BasicStepConfig, IslandsSlowValues>>(151);
+}
+
+#[test]
+#[ignore]
+fn steps_islands_cs5_values_151() {
+    shot::<Staged<BasicStepConfig, IslandsCs5Values>>(151);
 }
 
 #[test]
