@@ -68,12 +68,24 @@ fn run_b(ticks: u32, ref digests: Array<felt252>) -> Pile {
     pile
 }
 
+fn route_b_bit_identical(ticks: u32) {
+    let expected = trace::<InProcess<BasicStepConfig>>(ticks);
+    let mut got = array![];
+    let _ = run_b(ticks, ref got);
+    assert_same("route (b)", got.span(), expected.span());
+}
+
+/// The first 50 ticks (flight, impact, the first destructions); the whole shot is `#[ignore]`d
+/// (CI's runners, memory).
 #[test]
 fn test_route_b_bit_identical() {
-    let expected = trace::<InProcess<BasicStepConfig>>(151);
-    let mut got = array![];
-    let _ = run_b(151, ref got);
-    assert_same("route (b)", got.span(), expected.span());
+    route_b_bit_identical(50);
+}
+
+#[test]
+#[ignore]
+fn test_route_b_bit_identical_151() {
+    route_b_bit_identical(151);
 }
 
 /// The shot without the per-tick digests (the probes).

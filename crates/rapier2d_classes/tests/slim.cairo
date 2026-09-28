@@ -77,20 +77,33 @@ fn test_slim_bit_identical() {
     );
 }
 
-#[test]
-fn test_slim_levers_bit_identical() {
-    let expected = trace::<InProcess<BasicStepConfig>>(151);
+/// The measured layouts over `ticks` ticks.
+fn levers_bit_identical(ticks: u32) {
+    let expected = trace::<InProcess<BasicStepConfig>>(ticks);
     install(true);
     assert_same(
         "levers 1-2",
-        trace::<Staged<BasicStepConfig, Levers12<StoredHashes>>>(151).span(),
+        trace::<Staged<BasicStepConfig, Levers12<StoredHashes>>>(ticks).span(),
         expected.span(),
     );
     assert_same(
         "force events out",
-        trace::<Staged<BasicStepConfig, ForcesOut<StoredHashes>>>(151).span(),
+        trace::<Staged<BasicStepConfig, ForcesOut<StoredHashes>>>(ticks).span(),
         expected.span(),
     );
+}
+
+/// The first 50 ticks (flight, impact at tick 43, the first destructions): CI's runners run the
+/// whole shot of the shipped layout only (memory).
+#[test]
+fn test_slim_levers_bit_identical() {
+    levers_bit_identical(50);
+}
+
+#[test]
+#[ignore]
+fn test_slim_levers_bit_identical_151() {
+    levers_bit_identical(151);
 }
 
 /// User changes in the middle of the shot (`split::change`).
