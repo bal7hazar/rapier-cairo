@@ -7,11 +7,14 @@ usage:
                                       print the size tables
   scripts/bytecode_size.py snapshot   same, then write gas/bytecode.size
   scripts/bytecode_size.py check      same, then diff against gas/bytecode.size; exit 1 on ANY difference
-  scripts/bytecode_size.py attribution [--class C] [--depth N] [--top K] [--strategy S] [--cut LABEL=REGEX ...]
+  scripts/bytecode_size.py attribution [--class C] [--by parts|phases] [--depth N] [--top K] [--strategy S]
+                                      [--cut LABEL=REGEX ...]
       builds, in a temporary package outside the workspace (scarb only applies the `[cairo]` of the
       workspace root, so `--strategy` sets `inlining-strategy` for the engine too), the fixtures
-      with Sierra debug names, and prints for class C (default `GameStep`): its CASM felts per
-      module path (N segments) and per function (the K heaviest), then the *exclusive* CASM felts
+      with Sierra debug names, and prints for class C (default `GameStep`): its CASM felts (and
+      an estimate of its Sierra felts, pro rata of Sierra statements) per part (`PARTS`) or per
+      stage of the step (`PHASES`, `--by phases`), per module path (N segments) and per function
+      (the K heaviest), then the *exclusive* CASM felts
       of each cut group (`CUTS`, or `--cut`): the matching functions plus every function reachable
       from the entry points only through them, i.e. what the class loses if they are never called.
 
@@ -63,6 +66,9 @@ PROGRAMS_PACKAGE = "rapier_sink_programs"
 PROGRAMS = ["full", "basic", "no_joints", "no_sensors", "no_composites", "basic_dispatcher"]
 PROGRAM_HEADER = "# program: program_felts"
 PROGRAM_PREFIX = "program."
+# The workspace crates `crates/rapier_sink/src` uses (its `[dependencies]`), as path dependencies of
+# the attribution's temporary package.
+SINK_CRATES = ["rapier2d", "rapier_dynamics2d", "rapier_geometry2d"]
 
 # Starknet limits. Source: https://docs.starknet.io/learn/cheatsheets/chain-info (Starknet v0.14.2
 # on Mainnet, v0.14.3 on Sepolia, read 2026-09-21 by glam-cairo R1) and the sequencer that
@@ -122,6 +128,39 @@ PARTS = [
                                       r"|^core::dict"),
     ("fixed-point and vector maths", r"^fixed::|^glam::|^rapier_math::|^rapier_core::"),
     ("fixture (scene building, entry points)", r"^rapier_sink::"),
+    ("corelib", r"^core::"),
+]
+
+# The same decomposition along the stages of one game step (CS3, `--by phases`): the contact
+# generators per shape-pair module, then each stage of `step_with_force_events_with`; the entry
+# points and the crossing `Serde` of the split fixtures (`rapier_sink::split*`) count with the
+# `WorldState` codec. Shared code (fixed-point maths, arena and dicts, corelib) keeps its own rows.
+PHASES = [
+    ("contact generator `{}`", r"^rapier_geometry2d::contact_generators::(\w+)"),
+    ("contact dispatch", r"^rapier_geometry2d::dispatch::|^rapier2d::dispatcher::"),
+    ("geometry kernels (SAT, clipping, projections, features)",
+     r"^rapier_geometry2d::(sat|clip|point|polygonal_feature|closest_points|manifold|contact)"),
+    ("narrow phase (pair loop, solver contacts)", r"^rapier_dynamics2d::narrow_phase"),
+    ("broad phase (proxies, AABBs, pairs)",
+     r"^rapier_geometry2d::(broad_phase|aabb)|^rapier_geometry2d::shape::\S*(aabb|bounding)"
+     r"|collision_inputs|collision_proxies|collision_scratch|near_statics"),
+    ("constraint build", r"^rapier_dynamics2d::solver::(island::sweeps::split::generation|contact)"),
+    ("solve (sweeps)", r"^rapier_dynamics2d::solver::island::(sweeps|solve_input|run)"),
+    ("integrate (bodies, free bodies, damping)", r"^rapier_dynamics2d::solver::"),
+    ("islands / sleep", r"^rapier2d::pipeline::(islands|sleeping)|^rapier_core::data::union_find"),
+    ("active set (sparse step)", r"^rapier2d::pipeline::active_set"),
+    ("pair-free fast path", r"^rapier2d::pipeline::free_path"),
+    ("force events", r"^rapier2d::pipeline::force_events|^rapier_dynamics2d::events"),
+    ("`WorldState` encode / decode, crossing Serde", r"^rapier2d::world::state|Serde|serialize"),
+    ("user changes, mass properties", r"^rapier2d::pipeline::user_changes|^rapier_geometry2d::mass"
+                                      r"|^rapier_dynamics2d::rigid_body::"),
+    ("shapes (other methods)", r"^rapier_geometry2d::shape"),
+    ("step glue (step_internal, fused solve and advance)", r"^rapier2d::pipeline"),
+    ("sets, arena, dicts, world API", r"^rapier_core::data|^rapier_dynamics2d::"
+                                      r"(collider_set|rigid_body_set|collider)|^rapier2d::world"
+                                      r"|^core::dict"),
+    ("fixed-point and vector maths", r"^fixed::|^glam::|^rapier_math::|^rapier_core::"),
+    ("fixture (entry points, split dispatchers)", r"^rapier_sink::"),
     ("corelib", r"^core::"),
 ]
 
@@ -267,7 +306,7 @@ def temp_package(work, strategy):
     shutil.copytree(ROOT / "crates" / PACKAGE / "src", work / "src")
     pins = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]
     deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam")]
-    deps.append(f'rapier2d = {{ path = "{(ROOT / "crates" / "rapier2d").as_posix()}" }}')
+    deps += [f'{c} = {{ path = "{(ROOT / "crates" / c).as_posix()}" }}' for c in SINK_CRATES]
     cairo = f"\n[cairo]\ninlining-strategy = {strategy_toml(strategy)}\n" if strategy else ""
     (work / "Scarb.toml").write_text(
         f'[package]\nname = "{PACKAGE}"\nversion = "0.1.0"\nedition = "2024_07"\n\n'
@@ -277,8 +316,9 @@ def temp_package(work, strategy):
 
 
 def call_graph(program):
-    """-> {function name: set of callee names} of a `*.sierra.json` program: each function owns
-    the statements from its entry point to the next function's (they are laid out contiguously)."""
+    """-> ({function name: set of callee names}, {function name: Sierra statements}) of a
+    `*.sierra.json` program: each function owns the statements from its entry point to the next
+    function's (they are laid out contiguously)."""
     statements = program["statements"]
     calls = {}
     for decl in program["libfunc_declarations"]:
@@ -287,16 +327,17 @@ def call_graph(program):
     funcs = sorted((f["entry_point"], f["id"]["id"], f["id"].get("debug_name") or "?")
                    for f in program["funcs"])
     names = {fid: name for _, fid, name in funcs}
-    graph = {}
+    graph, lengths = {}, defaultdict(int)
     for i, (entry, _, name) in enumerate(funcs):
         end = funcs[i + 1][0] if i + 1 < len(funcs) else len(statements)
+        lengths[name] += end - entry
         callees = set()
         for s in statements[entry:end]:
             inv = s.get("Invocation")
             if inv and inv["libfunc_id"]["id"] in calls:
                 callees.add(names[calls[inv["libfunc_id"]["id"]]])
         graph[name] = callees
-    return graph
+    return graph, lengths
 
 
 def casm_by_function(sierra, casm):
@@ -332,7 +373,7 @@ def exclusive(sizes, graph, roots, pattern):
     return sum(sizes.values()) - kept, len(sizes) - len(seen & set(sizes))
 
 
-def attribution(cls, depth, top, strategy, cuts):
+def attribution(cls, depth, top, strategy, cuts, by="parts"):
     with tempfile.TemporaryDirectory(prefix="bytecode_size_") as tmp:
         work = Path(tmp)
         temp_package(work, strategy)
@@ -344,29 +385,36 @@ def attribution(cls, depth, top, strategy, cuts):
         sys.exit(f"attribution: no class `{cls}` (have {', '.join(sorted(built))})")
     sierra, casm = built[cls]
     sizes, consts = casm_by_function(sierra, casm)
-    graph = call_graph(program.get("program", program))
+    graph, lengths = call_graph(program.get("program", program))
     total = len(casm["bytecode"])
+    # Sierra felts are not split per function: each part gets the class's Sierra felts in
+    # proportion to its functions' Sierra statements (in the library build of the same code).
+    sierra_total = len(sierra["sierra_program"])
+    statements = sum(lengths.get(n, 0) for n in sizes) or 1
     groups = defaultdict(lambda: [0, 0])
     for name, n in sizes.items():
         g = groups[module_key(name, depth)]
         g[0] += n
         g[1] += 1
-    parts = defaultdict(lambda: [0, 0])
+    parts = defaultdict(lambda: [0, 0, 0])
     for name, n in sizes.items():
         label = "other"
-        for fmt, pattern in PARTS:
+        for fmt, pattern in (PHASES if by == "phases" else PARTS):
             m = re.search(pattern, name)
             if m:
                 label = fmt.format(*m.groups())
                 break
         parts[label][0] += n
         parts[label][1] += 1
-    print(f"\n### `{cls}`: CASM felts by part of the step; {total:,} felts, {len(sizes):,} "
-          f"functions, constants segment {consts:,}\n")
-    print("| part | CASM felts | share | functions |")
-    print("|---|--:|--:|--:|")
-    for key, (n, count) in sorted(parts.items(), key=lambda kv: -kv[1][0]):
-        print(f"| {key} | {n:,} | {100 * n / total:.1f} % | {count} |")
+        parts[label][2] += lengths.get(name, 0)
+    print(f"\n### `{cls}`: CASM felts by {'stage' if by == 'phases' else 'part'} of the step; "
+          f"{total:,} CASM felts, {sierra_total:,} Sierra felts, {len(sizes):,} functions, "
+          f"constants segment {consts:,}\n")
+    print("| part | CASM felts | share | Sierra felts (est.) | functions |")
+    print("|---|--:|--:|--:|--:|")
+    for key, (n, count, st) in sorted(parts.items(), key=lambda kv: -kv[1][0]):
+        print(f"| {key} | {n:,} | {100 * n / total:.1f} % | {round(sierra_total * st / statements):,} "
+              f"| {count} |")
     print(f"\n### `{cls}`: the {top} heaviest modules (depth {depth})\n")
     print("| module | CASM felts | share | functions |")
     print("|---|--:|--:|--:|")
@@ -398,13 +446,15 @@ def main():
     ap.add_argument("--depth", type=int, default=3, help="attribution: module path segments")
     ap.add_argument("--top", type=int, default=30, help="attribution: heaviest functions shown")
     ap.add_argument("--strategy", help="attribution: inlining-strategy (default, avoid or a number)")
+    ap.add_argument("--by", choices=["parts", "phases"], default="parts",
+                    help="attribution: decomposition, `PARTS` (CS1) or `PHASES` (CS3, the step's stages)")
     ap.add_argument("--cut", action="append", default=[],
                     help="attribution: LABEL=REGEX on function names, replaces `CUTS` (repeatable)")
     a = ap.parse_args()
 
     if a.cmd == "attribution":
         cuts = dict(c.split("=", 1) for c in a.cut) if a.cut else CUTS
-        attribution(a.cls, a.depth, a.top, a.strategy, cuts)
+        attribution(a.cls, a.depth, a.top, a.strategy, cuts, a.by)
         return
 
     rows = fixtures()
