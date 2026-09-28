@@ -16,9 +16,9 @@ use starknet::{ClassHash, SyscallResultTrait};
 /// The class hashes snforge declares for this package's classes (`test_pinned_class_hashes`
 /// prints the new ones when the classes change).
 pub const CONTACT_BALL_HASH: felt252 =
-    0x7821f7fd3f73ec3e2000804015f615c63a5dde2495e2a8b3097f6e701f4153f;
+    0x5bf9108e4308b295865dde2a05ce51cbcdbff5c94e81124fa271020360c1f65;
 pub const CONTACT_POLYGON_HASH: felt252 =
-    0x641aec5d123fca908fcb15ac8ea473bbd08dc2a2d06ca6fba995f4e0ac98676;
+    0x53543e3ef58b4a20a9e9c1f1110f64b4ac4f08f2d6de5c9763f623d23ba2604;
 pub const SOLVER_HASH: felt252 = 0x447d2dddc0d41fd2ac6d384e96f468d300f0509756eeb49435f004eac8a33ef;
 pub const SOLVE_ADVANCE_HASH: felt252 =
     0x484f69de20d79c8ec04effc9557b3ce9a63cc0940d9643f9a954c4a436c4239;
@@ -27,7 +27,7 @@ pub const BROAD_PHASE_HASH: felt252 =
     0x7d3eed01dc6daa7f8ccdc93ffbed0f86c938302bbc3f8b1fcc24694b448c4d7;
 pub const MASS_HASH: felt252 = 0x5415bd22e6c965a3c006b598c748686672ef13cecde4d60cadb674184e451a2;
 pub const NARROW_PHASE_HASH: felt252 =
-    0x69d00ab7e3ebdb09cfeaee8bb6acc4b2f49468e06d516c72f16936b44dcf336;
+    0x32d058844ef7cc421dfac8ffd7c95380dabfcfc47d467046b293f95cdf8d431;
 pub const ACTIVE_SET_HASH: felt252 =
     0x4a6e55fafd8273f75152b3509aa40223f5f50e882ab1978a91beeb895201d02;
 pub const FORCE_EVENTS_HASH: felt252 =
