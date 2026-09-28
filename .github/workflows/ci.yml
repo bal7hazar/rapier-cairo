@@ -23,6 +23,25 @@ jobs:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
       - run: scarb lint --workspace --deny-warnings
+      # Package granularity rule (docs/research/package-cost.md): the proxy gate, report only.
+      - name: Library lines of the published crates (proxy of the package size gate, report only)
+        run: python3 scripts/consumer_cost.py --lines-only --report-only --modules
+      - name: Published crates do not depend on the internal ones
+        run: |
+          python3 - <<'PY'
+          import glob, sys, tomllib
+          internal = {"rapier_golden", "rapier_testing", "rapier_sink"}
+          bad = []
+          for path in sorted(glob.glob("crates/*/Scarb.toml")):
+              with open(path, "rb") as f:
+                  m = tomllib.load(f)
+              if m["package"].get("publish", True) is False:
+                  continue
+              bad += [f"{path}: [dependencies] {d}" for d in internal & set(m.get("dependencies", {}))]
+          if bad:
+              sys.exit("internal crates under [dependencies] of a published crate (dev-dependencies only):\n"
+                       + "\n".join(bad))
+          PY
 
   build:
     runs-on: ubuntu-latest
@@ -109,6 +128,34 @@ jobs:
       - uses: software-mansion/setup-scarb@v1
       - uses: foundry-rs/setup-snfoundry@v6
       - run: snforge test -p ${{ matrix.package }}
+
+  # Package granularity rule (programme decision 2026-09-28, docs/research/package-cost.md): the
+  # published crates and the product closures of consumer_cost.toml against the size gates (lines,
+  # cold-build time and memory an empty consumer adds over the no-dependency build). Report only: the
+  # script reports the cost over the baseline while gate 2 is the marginal cost (crate minus its direct
+  # dependencies; `deps_of_rapier_geometry2d` gives geometry2d's, the crate rows give the others'). The
+  # orchestrator makes it enforcing with alpha.7.
+  consumer-cost:
+    name: Consumer cost
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: software-mansion/setup-scarb@v1
+      - name: Measure the published crates and the closures (cold builds, one after the other)
+        run: |
+          python3 scripts/consumer_cost.py --report-only --modules --repeat 3 --json consumer_cost.json \
+            --closure deps_of_rapier_geometry2d=rapier_core,rapier_math | tee consumer_cost.md
+          { echo "### Consumer cost (report only)"; echo; cat consumer_cost.md; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: consumer-cost
+          path: |
+            consumer_cost.json
+            consumer_cost.md
+          if-no-files-found: warn
+          retention-days: 30
 
   api-parity:
     runs-on: ubuntu-latest
