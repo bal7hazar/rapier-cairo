@@ -57,8 +57,8 @@ pub fn solve_island(
 /// entry order (BT4: gathered straight from the entries, no `SolverBodyStore`).
 #[derive(Drop, Serde)]
 pub struct SolverInput {
-    bodies: Array<SolverBody>,
-    steps: Array<BodyStep>,
+    pub bodies: Array<SolverBody>,
+    pub steps: Array<BodyStep>,
 }
 
 /// The impulses a solve left in one contact point (the fields `solve_island` writes back into
@@ -85,9 +85,9 @@ pub struct ManifoldImpulses {
 /// [`ManifoldImpulses`] per input manifold (none when there was no contact constraint).
 #[derive(Drop, Serde)]
 pub struct SolvedIsland {
-    bodies: Span<SolverBody>,
-    steps: Span<BodyStep>,
-    impulses: Span<ManifoldImpulses>,
+    pub bodies: Span<SolverBody>,
+    pub steps: Span<BodyStep>,
+    pub impulses: Span<ManifoldImpulses>,
 }
 
 /// The result of a solve that did not run (no constraint): no body, no impulse.

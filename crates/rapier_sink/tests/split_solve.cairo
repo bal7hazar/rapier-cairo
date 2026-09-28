@@ -5,7 +5,8 @@ use rapier2d::prelude::BasicStepConfig;
 use rapier_sink::family::{BALL_CLASS_SLOT, POLYGON_CLASS_SLOT};
 use rapier_sink::split::CONTACT_CLASS_SLOT;
 use rapier_sink::split_solve::{
-    SOLVER_CLASS_SLOT, Split3StepConfig, Split4StepConfig, SplitSolveStepConfig,
+    SOLVER_CLASS_SLOT, Split3StepConfig, Split4FullSolveStepConfig, Split4StepConfig,
+    SplitSolveStepConfig,
 };
 use rapier_testing::opaque;
 use crate::pile10::{digest, run};
@@ -29,6 +30,14 @@ fn split4(ticks: u32) {
     install("ContactPolygonClass", POLYGON_CLASS_SLOT);
     install("SolverClass", SOLVER_CLASS_SLOT);
     let (mut pile, _) = run::<Split4StepConfig>(ticks);
+    opaque(digest(ref pile));
+}
+
+fn split4_full(ticks: u32) {
+    install("ContactBallClass", BALL_CLASS_SLOT);
+    install("ContactPolygonClass", POLYGON_CLASS_SLOT);
+    install("SolverClass", SOLVER_CLASS_SLOT);
+    let (mut pile, _) = run::<Split4FullSolveStepConfig>(ticks);
     opaque(digest(ref pile));
 }
 
@@ -355,4 +364,34 @@ fn steps_split4_150() {
 #[test]
 fn steps_split4_151() {
     split4(151);
+}
+
+#[test]
+fn steps_split4full_0() {
+    split4_full(0);
+}
+
+#[test]
+fn steps_split4full_43() {
+    split4_full(43);
+}
+
+#[test]
+fn steps_split4full_44() {
+    split4_full(44);
+}
+
+#[test]
+fn steps_split4full_60() {
+    split4_full(60);
+}
+
+#[test]
+fn steps_split4full_100() {
+    split4_full(100);
+}
+
+#[test]
+fn steps_split4full_151() {
+    split4_full(151);
 }
