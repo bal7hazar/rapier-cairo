@@ -13,7 +13,13 @@ publish = false
 fixed.workspace = true
 glam.workspace = true
 rapier2d = { path = "../rapier2d" }
+rapier_geometry2d.workspace = true
 starknet = "2.19.4"
+
+[dev-dependencies]
+snforge_std.workspace = true
+assert_macros.workspace = true
+rapier_testing.workspace = true
 
 [[target.starknet-contract]]
 sierra = true
@@ -22,3 +28,9 @@ casm = true
 [tool]
 fmt.workspace = true
 scarb.workspace = true
+
+# The workspace's snforge settings, plus a step cap for the whole-shot probes of
+# `tests/split.cairo` (up to ~50M Cairo steps; snforge's default stops at 10M).
+[tool.snforge]
+tracked_resource = "sierra-gas"
+max_n_steps = 400000000
