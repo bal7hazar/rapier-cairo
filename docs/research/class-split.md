@@ -329,7 +329,9 @@ steps: `snforge test -p rapier2d_classes <filter> --include-ignored --tracked-re
 (`tests/{slim,route_b,steps}.cairo`, constant class hashes `PinnedHashes` except where noted). **Gate met:** the caller
 `SlimSplitStep` is **28,413 Sierra / 73,181 CASM** felts and every declared class fits (`bytecode_size.py check`, SNIP-36
 checks included); the shot is bit-identical to in process at every tick (and with user changes mid-shot); in-process users
-are unchanged (section 10.5). **Steps: +65.9 %**, 5 transactions of ≤ 10M: inside the programme's first-shot envelope
+are unchanged (section 10.5). Every layout of this section is bit-identical over the whole shot (`--include-ignored`); CI
+runs the whole shot for the shipped layouts and 50 ticks for the measured ones (its 16 GB runners cannot hold every
+whole-shot trace at once: CS5's variants test alone peaks at 9.0 GB). **Steps: +65.9 %**, 5 transactions of ≤ 10M: inside the programme's first-shot envelope
 (≤ +75 %, ≤ 5 transactions), above the +25 % target.
 
 ### 10.1 The API change undone
