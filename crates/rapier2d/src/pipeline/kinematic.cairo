@@ -91,7 +91,9 @@ mod tests {
             );
         } else {
             let _ = super::super::user_changes_bodies_for_step::<
-                crate::pipeline::stages::InProcessMass,
+                crate::pipeline::stages::InProcessStages<
+                    crate::pipeline::config::DefaultStepConfig,
+                >,
             >(
                 ref world.bodies,
                 ref world.colliders,
@@ -154,7 +156,9 @@ mod tests {
             );
         } else {
             let _ = super::super::user_changes_bodies_for_step::<
-                crate::pipeline::stages::InProcessMass,
+                crate::pipeline::stages::InProcessStages<
+                    crate::pipeline::config::DefaultStepConfig,
+                >,
             >(ref world.bodies, ref world.colliders, array![].span(), dt, true);
         }
         world.bodies.iter()

@@ -13,7 +13,7 @@ use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySet, RigidBodySetTra
 use rapier_dynamics2d::solver::island::FreeBodySolverTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
-use rapier_geometry2d::shape::ShapeTrait;
+use super::stages::ShapeStage;
 use super::{BodyInfo, advance_body_with_snapshot, islands, moving};
 
 /// The [`BodyInfo`] of a missing or absent parent.
@@ -70,7 +70,7 @@ fn body_info_from_entries(
     }
 }
 
-pub(crate) fn collision_proxies_from_entries_with_events(
+pub(crate) fn collision_proxies_from_entries_with_events<impl A: ShapeStage>(
     snapshot: Span<(Handle, Collider)>,
     entries: Span<(Handle, RigidBody)>,
     ref bodies: RigidBodySet,
@@ -100,7 +100,7 @@ pub(crate) fn collision_proxies_from_entries_with_events(
             .append(
                 BroadPhaseProxy {
                     collider: *handle,
-                    aabb: collider.shape.compute_aabb(collider.pos.pose).loosened(margin),
+                    aabb: A::compute_aabb(collider.shape, collider.pos.pose).loosened(margin),
                     is_static: body_type == RigidBodyType::Fixed || sleeping,
                 },
             );

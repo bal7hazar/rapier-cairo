@@ -32,7 +32,7 @@ Measured quantities, per contract (see the `LIMITS` block for their source):
 The build is deterministic for a given toolchain (`.tool-versions`), so the check uses equality.
 
 Declared classes (CS4): the classes a game declares and library-calls (`DECLARED`, built from
-`crates/rapier2d_classes`) must each stay within `DECLARED_LIMIT` Sierra and CASM felts (the
+`crates/rapier2d_classes`, and since CS6 the caller class of `crates/rapier_sink`) must each stay within `DECLARED_LIMIT` Sierra and CASM felts (the
 programme's target for the SNIP-36 path, 2026-09-27); `check` fails above it. The classes of
 `SNIP36` (the declared classes and their caller fixture) must also run under the SNIP-36 virtual OS
 (programme's SN1 verdict, 2026-09-28): no entry point of the compiled class may list a builtin of
@@ -75,12 +75,17 @@ PACKAGE = "rapier_sink"
 # The declared classes (CS4): built from their own package, snapshotted with the fixtures (contract
 # names are unique across both packages), each checked against `DECLARED_LIMIT`.
 CLASSES_PACKAGE = "rapier2d_classes"
+# CS6: the pair-loop, active-set and force-event classes, and `SlimSplitStep`, the caller class of the
+# game's step (`rapier_sink`, `SlimSplitStages` with the basic `WorldState` codec), which must fit too.
 DECLARED = ["ContactBallClass", "ContactPolygonClass", "SolverClass", "SolveAdvanceClass",
-            "IslandsClass", "BroadPhaseClass", "MassClass"]
+            "IslandsClass", "BroadPhaseClass", "MassClass", "NarrowPhaseClass", "ActiveSetClass",
+            "ForceEventsClass", "SlimSplitStep"]
 DECLARED_LIMIT = 73728
 # SNIP-36 (SN1, 2026-09-28): what the virtual OS fails on and what its prover rejects. Checked on the
-# declared classes and on their caller fixtures (CS4's layout; CS5's, every stage out, and its variants).
-SNIP36 = DECLARED + ["Split4Step", "StagesSplitStep", "StagesBatchedStep", "StagesHybridStep"]
+# declared classes and on their caller fixtures (CS4's layout; CS5's, every stage out, and its variants;
+# CS6's levers 1 and 2 alone and route (b), measured and not shipped: its orchestrator and caller).
+SNIP36 = DECLARED + ["Split4Step", "StagesSplitStep", "StagesBatchedStep", "StagesHybridStep",
+                     "Levers12Step", "OrchestratorClass", "OrchestratedStep"]
 REJECTED_BUILTINS = ["ecdsa", "range_check96", "add_mod", "mul_mod"]
 FORBIDDEN_SYSCALLS = ["deploy_syscall", "replace_class_syscall", "get_block_hash_syscall",
                       "meta_tx_v0_syscall"]

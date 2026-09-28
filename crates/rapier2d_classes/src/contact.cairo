@@ -25,8 +25,8 @@ use rapier_geometry2d::contact_generators::polygon_polygon::{
     contact_manifold_polygon_cuboid, contact_manifold_polygon_polygon,
 };
 use rapier_geometry2d::dispatch::basic::errors::UNSUPPORTED;
-use starknet::SyscallResultTrait;
 use starknet::syscalls::library_call_syscall;
+use starknet::{ClassHash, SyscallResultTrait};
 use crate::hashes::{ClassHashes, errors};
 
 /// The pairs with a ball: `contact_manifold_step_basic`'s ball arms. Always `true` (supported).
@@ -156,7 +156,7 @@ fn ball_family(shape1: Shape, shape2: Shape) -> bool {
 
 /// One library call of the family class at `class_hash` on `jobs` (not empty).
 fn family_call(
-    class_hash: starknet::ClassHash, prediction: Fixed, jobs: Span<ContactJob>,
+    class_hash: ClassHash, prediction: Fixed, jobs: Span<ContactJob>,
 ) -> Span<(bool, ManifoldGeometry)> {
     let mut calldata = array![];
     prediction.serialize(ref calldata);
@@ -178,39 +178,47 @@ pub impl FamilyBatch<impl H: ClassHashes> of ContactBatch {
     fn contact_geometries(
         prediction: Fixed, jobs: Span<ContactJob>,
     ) -> Span<(bool, ManifoldGeometry)> {
-        let mut ball = array![];
-        let mut polygon = array![];
-        let mut families = array![];
-        for job in jobs {
-            let is_ball = ball_family(*job.shape1, *job.shape2);
-            if is_ball {
-                ball.append(*job);
-            } else {
-                polygon.append(*job);
-            }
-            families.append(is_ball);
-        }
-        if polygon.is_empty() {
-            return family_call(H::contact_ball(), prediction, ball.span());
-        }
-        if ball.is_empty() {
-            return family_call(H::contact_polygon(), prediction, polygon.span());
-        }
-        let mut ball = family_call(H::contact_ball(), prediction, ball.span());
-        let mut polygon = family_call(H::contact_polygon(), prediction, polygon.span());
-        let mut out = array![];
-        for is_ball in families {
-            out
-                .append(
-                    if is_ball {
-                        *ball.pop_front().unwrap()
-                    } else {
-                        *polygon.pop_front().unwrap()
-                    },
-                );
-        }
-        out.span()
+        family_geometries(H::contact_ball(), H::contact_polygon(), prediction, jobs)
     }
+}
+
+/// [`FamilyBatch`] with the family classes at `contact_ball` and `contact_polygon` (the hashes a
+/// declared class receives, CS6: `crate::narrow`).
+pub fn family_geometries(
+    contact_ball: ClassHash, contact_polygon: ClassHash, prediction: Fixed, jobs: Span<ContactJob>,
+) -> Span<(bool, ManifoldGeometry)> {
+    let mut ball = array![];
+    let mut polygon = array![];
+    let mut families = array![];
+    for job in jobs {
+        let is_ball = ball_family(*job.shape1, *job.shape2);
+        if is_ball {
+            ball.append(*job);
+        } else {
+            polygon.append(*job);
+        }
+        families.append(is_ball);
+    }
+    if polygon.is_empty() {
+        return family_call(contact_ball, prediction, ball.span());
+    }
+    if ball.is_empty() {
+        return family_call(contact_polygon, prediction, polygon.span());
+    }
+    let mut ball = family_call(contact_ball, prediction, ball.span());
+    let mut polygon = family_call(contact_polygon, prediction, polygon.span());
+    let mut out = array![];
+    for is_ball in families {
+        out
+            .append(
+                if is_ball {
+                    *ball.pop_front().unwrap()
+                } else {
+                    *polygon.pop_front().unwrap()
+                },
+            );
+    }
+    out.span()
 }
 
 /// [`contact_manifold_ball_family`] on each job of a batch (default solver data, which no

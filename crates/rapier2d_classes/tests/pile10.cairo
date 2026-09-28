@@ -7,17 +7,37 @@
 //! game's tick (calm rule, out-of-bounds, scoring) is not reproduced: the run is a fixed number of
 //! ticks.
 //!
-//! Every tick is generic over the `StepConfig` (`tick::<C>`), so that the in-process step and the
-//! split step (`rapier2d_classes::SplitStepConfig`) run the same world. A copy of
+//! Every tick is generic over the [`Layout`] (`tick::<L>`: a `StepConfig` and a `StageConfig`), so
+//! that the in-process step and the split step (`rapier2d_classes::SplitStages`) run the same
+//! world. A copy of
 //! `crates/rapier_sink/tests/pile10.cairo` (CS3) whose `tick` returns the events, and with
 //! [`tick_digest`] for the tick-by-tick comparison.
 
 use fixed::FixedTrait;
+use rapier2d::pipeline::stages::{InProcessStages, StageConfig};
 use rapier2d::prelude::{
     CONTACT_FORCE_EVENTS, ColliderBuilder, ColliderBuilderTrait, ContactForceEvent, Fixed, Handle,
     IntegrationParameters, Pose2, RigidBodyBuilderTrait, RigidBodyTrait, Rot2, StepConfig, Vec2,
     World, WorldTrait,
 };
+
+/// What a tick runs: the step's `StepConfig` and where its stages run.
+pub trait Layout {
+    impl Step: StepConfig;
+    impl Stages: StageConfig;
+}
+
+/// Every stage in process with `C` (`step_with_force_events_with::<C>`).
+pub impl InProcess<impl C: StepConfig> of Layout {
+    impl Step = C;
+    impl Stages = InProcessStages<C>;
+}
+
+/// `C` with the stages of `S`.
+pub impl Staged<impl C: StepConfig, impl S: StageConfig> of Layout {
+    impl Step = C;
+    impl Stages = S;
+}
 
 /// `-9.81` in raw Q32.32.
 const GRAVITY_Y: i64 = -42133629174;
@@ -121,8 +141,8 @@ fn bodies() -> Array<(ColliderBuilder, Pose2, u32)> {
 }
 
 /// pile10 as slingfall's `GameTrait::new` builds it, `settle` included (one `dt = 0` step with
-/// `C`, then every dynamic body back to sleep).
-pub fn build<impl C: StepConfig>() -> Pile {
+/// `L`, then every dynamic body back to sleep).
+pub fn build<impl L: Layout>() -> Pile {
     let mut params: IntegrationParameters = Default::default();
     params.dt = f(DT);
     params.num_solver_iterations = 4;
@@ -149,7 +169,7 @@ pub fn build<impl C: StepConfig>() -> Pile {
         index += 1;
     }
     world.integration_parameters.dt = f(0);
-    let _ = world.step_with::<C>();
+    let _ = world.step_with_stages::<L::Step, L::Stages>();
     world.integration_parameters.dt = f(DT);
     let mut pile = Pile { world, entities, pebble: None };
     sleep_all(ref pile);
@@ -234,7 +254,7 @@ fn hit(ref totals: Array<u32>, entities: Span<Entity>, collider: Handle, force: 
 
 /// slingfall's D6: damage of this tick's force events, then removal of the destroyed bodies in
 /// ascending entity order. Returns the number destroyed.
-fn apply_damage(ref pile: Pile, events: Span<ContactForceEvent>) -> u32 {
+pub fn apply_damage(ref pile: Pile, events: Span<ContactForceEvent>) -> u32 {
     if events.is_empty() {
         return 0;
     }
@@ -271,22 +291,22 @@ fn apply_damage(ref pile: Pile, events: Span<ContactForceEvent>) -> u32 {
     destroyed
 }
 
-/// One game tick with `C`: the step with force events, then the damage rule. Returns the force
+/// One game tick with `L`: the step with force events, then the damage rule. Returns the force
 /// events.
-pub fn tick<impl C: StepConfig>(ref pile: Pile) -> Array<ContactForceEvent> {
-    let (_, events) = pile.world.step_with_force_events_with::<C>();
+pub fn tick<impl L: Layout>(ref pile: Pile) -> Array<ContactForceEvent> {
+    let (_, events) = pile.world.step_with_force_events_with_stages::<L::Step, L::Stages>();
     let _ = apply_damage(ref pile, events.span());
     events
 }
 
-/// pile10, the owner's shot, `ticks` ticks with `C`; returns the force events counted.
-pub fn run<impl C: StepConfig>(ticks: u32) -> (Pile, u32) {
-    let mut pile = build::<C>();
+/// pile10, the owner's shot, `ticks` ticks with `L`; returns the force events counted.
+pub fn run<impl L: Layout>(ticks: u32) -> (Pile, u32) {
+    let mut pile = build::<L>();
     launch(ref pile, PULL);
     let mut events = 0;
     let mut i = 0;
     while i != ticks {
-        events += tick::<C>(ref pile).len();
+        events += tick::<L>(ref pile).len();
         i += 1;
     }
     (pile, events)

@@ -109,14 +109,6 @@ pub impl SplitNarrowStepConfig of StepConfig {
     impl Sensors = NoSensors;
     impl Composites = NoComposites;
     impl Joints = NoJoints;
-    impl Narrow =
-        rapier2d::pipeline::config::PairLoopNarrowPhase<
-            LibraryCallDispatcher, NoSensors, NoComposites,
-        >;
-    impl Broad = rapier2d::pipeline::config::InProcessBroadPhase;
-    impl Islands = rapier2d::pipeline::config::InProcessIslands;
-    impl Advance = rapier2d::pipeline::config::InProcessSolveAdvance<NoJoints>;
-    impl Mass = rapier2d::pipeline::config::InProcessMass;
 }
 
 #[starknet::contract]
@@ -258,14 +250,6 @@ pub mod alternatives {
         impl Sensors = NoSensors;
         impl Composites = NoComposites;
         impl Joints = NoJoints;
-        impl Narrow =
-            rapier2d::pipeline::config::PairLoopNarrowPhase<
-                FullManifoldDispatcher, NoSensors, NoComposites,
-            >;
-        impl Broad = rapier2d::pipeline::config::InProcessBroadPhase;
-        impl Islands = rapier2d::pipeline::config::InProcessIslands;
-        impl Advance = rapier2d::pipeline::config::InProcessSolveAdvance<NoJoints>;
-        impl Mass = rapier2d::pipeline::config::InProcessMass;
     }
 
     #[starknet::contract]

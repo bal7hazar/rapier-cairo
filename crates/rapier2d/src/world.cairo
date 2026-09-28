@@ -59,7 +59,10 @@ use rapier_math::pose2::Pose2;
 use crate::pipeline::active_set::ActiveSet;
 use crate::pipeline::ccd::CCDSolver;
 use crate::pipeline::config::StepConfig;
+use crate::pipeline::stages::StageConfig;
 use crate::queries::{QueryFilter, QueryPipeline, QueryPipelineTrait};
+/// The same felts for a basic world, without the other shapes' and the joints' code (CS6).
+pub mod basic_state;
 
 /// Versioned save / restore ([`WorldTrait::to_state`], [`WorldTrait::from_state`]).
 pub mod state;
@@ -484,6 +487,26 @@ pub impl WorldImpl of WorldTrait {
         ref self: World,
     ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
         crate::pipeline::step_with_force_events_with::<C>(ref self)
+    }
+
+    /// [`WorldTrait::step_with`] with the stages of `S` (`crate::pipeline::stages`, CS5): a
+    /// contract runs a stage in another declared class (`rapier2d_classes`). With
+    /// `InProcessStages<C>` it is `step_with::<C>`.
+    ///
+    /// # Panics
+    /// As `step_with`, and when the world uses a feature `S` disables.
+    fn step_with_stages<impl C: StepConfig, impl S: StageConfig>(
+        ref self: World,
+    ) -> Array<CollisionEvent> {
+        crate::pipeline::step_with_stages::<C, S>(ref self)
+    }
+
+    /// [`WorldTrait::step_with_force_events_with`] with the stages of `S`, as
+    /// [`WorldTrait::step_with_stages`].
+    fn step_with_force_events_with_stages<impl C: StepConfig, impl S: StageConfig>(
+        ref self: World,
+    ) -> (Array<CollisionEvent>, Array<ContactForceEvent>) {
+        crate::pipeline::step_with_force_events_with_stages::<C, S>(ref self)
     }
 
     /// [`WorldTrait::step`] with continuous collision detection (upstream `PhysicsWorld::step`
