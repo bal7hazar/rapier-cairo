@@ -2,19 +2,22 @@
 //! `docs/research/class-split.md`), so that no class of a game's step exceeds the size limit of a
 //! declared class.
 //!
-//! `StepConfig` (`rapier2d::pipeline::config`) already hands the two heaviest stages of the step to
-//! strategies: the contact generation of each pair (its `ContactDispatcher`) and the island solve
-//! (its `JointStrategy`). This crate provides the declared classes that run them and the strategies
-//! that library-call those classes:
+//! `StepConfig` (`rapier2d::pipeline::config`) hands the stages of the step to strategies: the
+//! contact generation of each pair (its `ContactDispatcher`), the island solve (its
+//! `JointStrategy`) and, since CS5, the narrow phase's pair loop, the broad phase, the island
+//! stage, the fused solve and position update and the mass properties (`Narrow`, `Broad`,
+//! `Islands`, `Advance`, `Mass`). This crate provides the declared classes that run them and the
+//! strategies that library-call those classes:
 //!
 //! * `ContactBallClass` (pairs with a ball) and `ContactPolygonClass` (cuboid, convex polygon and
-//!   half-space pairs), called by [`contact::FamilyDispatcher`], one call per pair whose AABBs
-//!   overlap;
-//! * `SolverClass`, called by [`solver::LibraryCallSolver`], one call per step with a touching
-//!   manifold;
-//! * [`config::SplitStepConfig`]: `BasicStepConfig` with both stages library-called, generic over
+//!   half-space pairs), called by [`contact::FamilyDispatcher`] once per pair whose AABBs overlap,
+//!   or by [`contact::FamilyBatch`] once per step with all of them;
+//! * `SolveAdvanceClass` ([`advance`]), `IslandsClass` ([`islands`]), `BroadPhaseClass`
+//!   ([`broad_phase`]) and `MassClass` ([`mass`]): the other stages;
+//! * `SolverClass`, called by [`solver::LibraryCallSolver`] (CS4's layout);
+//! * [`config::SplitStepConfig`]: `BasicStepConfig` with every stage library-called, generic over
 //!   the [`hashes::ClassHashes`] of the declared classes (constants the game supplies after
-//!   declaring them).
+//!   declaring them); its measured alternatives and CS4's layout.
 //!
 //! Results are bit-identical to `BasicStepConfig`'s (`tests/split.cairo`).
 
