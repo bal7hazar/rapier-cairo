@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Compiled class size of the `rapier_sink` contract fixtures (crates/rapier_sink) against the
-Starknet limits, and where the CASM felts of a class go.
+"""Compiled class size of the `rapier_sink` contract fixtures (crates/rapier_sink) and of the declared
+classes of `rapier2d_classes` (crates/rapier2d_classes) against the Starknet limits, and where the
+CASM felts of a class go.
 
 usage:
-  scripts/bytecode_size.py [table]    build crates/rapier_sink (release) and its executable programs,
-                                      print the size tables
+  scripts/bytecode_size.py [table]    build crates/rapier_sink and crates/rapier2d_classes (release)
+                                      and the executable programs, print the size tables
   scripts/bytecode_size.py snapshot   same, then write gas/bytecode.size
-  scripts/bytecode_size.py check      same, then diff against gas/bytecode.size; exit 1 on ANY difference
+  scripts/bytecode_size.py check      same, then diff against gas/bytecode.size; exit 1 on ANY difference,
+                                      and when a class of `DECLARED` exceeds `DECLARED_LIMIT` Sierra or
+                                      CASM felts
   scripts/bytecode_size.py attribution [--class C] [--by parts|phases] [--depth N] [--top K] [--strategy S]
                                       [--cut LABEL=REGEX ...]
       builds, in a temporary package outside the workspace (scarb only applies the `[cairo]` of the
@@ -26,6 +29,10 @@ Measured quantities, per contract (see the `LIMITS` block for their source):
                 debug info, which a declare transaction does not carry)
   casm_bytes    compact JSON of the compiled class
 The build is deterministic for a given toolchain (`.tool-versions`), so the check uses equality.
+
+Declared classes (CS4): the classes a game declares and library-calls (`DECLARED`, built from
+`crates/rapier2d_classes`) must each stay within `DECLARED_LIMIT` Sierra and CASM felts (the
+programme's target for the SNIP-36 path, 2026-09-27); `check` fails above it.
 
 Programs (CS2): `crates/rapier_sink/programs/lib.cairo` (with `crates/rapier_sink/src/scene.cairo`)
 built as a temporary package with one `[[target.executable]]` per function of `PROGRAMS`
@@ -57,6 +64,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = "rapier_sink"
+# The declared classes (CS4): built from their own package, snapshotted with the fixtures (contract
+# names are unique across both packages), each checked against `DECLARED_LIMIT`.
+CLASSES_PACKAGE = "rapier2d_classes"
+DECLARED = ["ContactBallClass", "ContactPolygonClass", "SolverClass"]
+DECLARED_LIMIT = 73728
 SNAPSHOT = ROOT / "gas" / "bytecode.size"
 METRICS = ["sierra_felts", "casm_felts", "sierra_bytes", "casm_bytes"]
 HEADER = "# contract: " + " ".join(METRICS)
@@ -68,7 +80,7 @@ PROGRAM_HEADER = "# program: program_felts"
 PROGRAM_PREFIX = "program."
 # The workspace crates `crates/rapier_sink/src` uses (its `[dependencies]`), as path dependencies of
 # the attribution's temporary package.
-SINK_CRATES = ["rapier2d", "rapier_dynamics2d", "rapier_geometry2d"]
+SINK_CRATES = ["rapier2d", "rapier2d_classes", "rapier_dynamics2d", "rapier_geometry2d"]
 
 # Starknet limits. Source: https://docs.starknet.io/learn/cheatsheets/chain-info (Starknet v0.14.2
 # on Mainnet, v0.14.3 on Sepolia, read 2026-09-21 by glam-cairo R1) and the sequencer that
@@ -251,8 +263,40 @@ def write_snapshot(rows, progs):
 
 
 def fixtures():
-    scarb(ROOT, ["build", "-p", PACKAGE], profile="release")
-    return measure(ROOT / "target" / "release", PACKAGE)
+    rows = {}
+    for package in (PACKAGE, CLASSES_PACKAGE):
+        scarb(ROOT, ["build", "-p", package], profile="release")
+        measured = measure(ROOT / "target" / "release", package)
+        if set(measured) & set(rows):
+            sys.exit(f"contract names shared by {PACKAGE} and {CLASSES_PACKAGE}: "
+                     f"{', '.join(sorted(set(measured) & set(rows)))}")
+        rows.update(measured)
+    return rows
+
+
+def declared_over(rows):
+    """-> the problems of the declared classes: missing, or over `DECLARED_LIMIT` felts."""
+    bad = []
+    for name in DECLARED:
+        r = rows.get(name)
+        if r is None:
+            bad.append(f"{name}: declared class not built")
+            continue
+        for metric in ("sierra_felts", "casm_felts"):
+            if r[metric] > DECLARED_LIMIT:
+                bad.append(f"{name}: {metric} {r[metric]:,} > {DECLARED_LIMIT:,}")
+    return bad
+
+
+def print_declared(rows):
+    print(f"\n### declared classes (`{CLASSES_PACKAGE}`), limit {DECLARED_LIMIT:,} felts each\n")
+    print("| class | Sierra felts | × limit | CASM felts | × limit |")
+    print("|---|--:|--:|--:|--:|")
+    for name in DECLARED:
+        r = rows.get(name)
+        if r:
+            print(f"| `{name}` | {r['sierra_felts']:,} | {r['sierra_felts'] / DECLARED_LIMIT:.2f} "
+                  f"| {r['casm_felts']:,} | {r['casm_felts'] / DECLARED_LIMIT:.2f} |")
 
 
 def programs_package(work):
@@ -458,7 +502,8 @@ def main():
         return
 
     rows = fixtures()
-    print_table(rows, "rapier_sink fixtures (release profile)")
+    print_table(rows, f"{PACKAGE} fixtures and {CLASSES_PACKAGE} classes (release profile)")
+    print_declared(rows)
     progs = programs()
     print_programs(progs)
     if a.cmd == "snapshot":
@@ -473,6 +518,11 @@ def main():
             new, old = progs.get(name), snap_progs.get(name)
             if new != old:
                 bad.append(f"{PROGRAM_PREFIX}{name}: {old} -> {new}")
+        over = declared_over(rows)
+        if over:
+            print("\n".join(over), file=sys.stderr)
+            sys.exit(f"declared class over {DECLARED_LIMIT:,} felts ({len(over)}): split it further "
+                     "(docs/research/class-split.md).")
         if bad:
             print("\n".join(bad), file=sys.stderr)
             sys.exit(f"bytecode size mismatch ({len(bad)}). Run `scripts/bytecode_size.py snapshot` "

@@ -13,10 +13,12 @@ step configuration (`rapier2d::pipeline::config`). It is not part of this packag
 `scripts/bytecode_size.py` builds it as a temporary executable package and records each
 program's felts (`program.*` in `gas/bytecode.size`), what a proof of the game hashes.
 
-`src/split.cairo` and `src/family.cairo` hold the multi-class fixtures of CS3 (the game's step split
-across declared classes called through `library_call_syscall`): `BasicGameStep` (the game's step,
-`WorldState` in and out), the contact-generation classes (`ContactClass`, or one per shape-pair
-family: `ContactBallClass`, `ContactPolygonClass`), their caller `SplitNarrowStep` and `Echo` (the
-cost of a bare library call). `tests/` reproduces slingfall's pile10 level and reference shot and
+`src/split.cairo` holds the multi-class fixtures of CS3 (the game's step split across declared
+classes called through `library_call_syscall`): `BasicGameStep` (the game's step, `WorldState` in
+and out), the contact-generation class `ContactClass`, its caller `SplitNarrowStep` and `Echo` (the
+cost of a bare library call). The supported declared classes (`ContactBallClass`,
+`ContactPolygonClass`, `SolverClass`) live in `crates/rapier2d_classes` (CS4); `src/classes.cairo`
+holds their callers `Split4Step` (`rapier2d_classes::SplitStepConfig`) and `Split3Step`
+(`ContactClass` and `SolverClass`), size fixtures. `tests/` reproduces slingfall's pile10 level and reference shot and
 measures each layout in exact Cairo steps (`snforge test -p rapier_sink --tracked-resource
 cairo-steps --detailed-resources`); the analysis is in `docs/research/class-split.md`.
