@@ -2,8 +2,10 @@
 //! reproduction of slingfall's pile10 level and reference shot. Run with `--tracked-resource
 //! cairo-steps`; the `steps_*` probes are measurements, not gas snapshots.
 
+mod game_ticks;
 mod hashes;
 mod pile10;
+mod removals;
 mod route_b;
 mod slim;
 mod split;

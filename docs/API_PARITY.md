@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
 | **total** | **1424** | **0** | **229** | **939** | **2592** | **79.0%** | **86.1%** |
 
-Cairo-only public items not matched to upstream: **1650**.
+Cairo-only public items not matched to upstream: **1662**.
 
 ## Aabb
 
@@ -4828,6 +4828,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Alternatives** method `hit_info_cosine` (`crates/rapier2d/src/control/character_controller/alternatives.cairo`)
 - **Alternatives** method `intersect_shape_direct` (`crates/rapier2d/src/queries/alternatives.cairo`)
 - **Alternatives** method `intersection_test_from_contacts` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
+- **Alternatives** method `islands_after_insertions` (`crates/rapier2d_classes/src/islands/alternatives.cairo`)
 - **Alternatives** method `joint_free` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives** method `linear_rigid_body_correction_full` (`crates/rapier2d/src/control/pid_controller/alternatives.cairo`)
 - **Alternatives** method `literal` (`crates/rapier_dynamics2d/src/solver/joint/coupled/alternatives.cairo`)
@@ -4841,6 +4842,8 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Alternatives** method `segment_segment_endpoints` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `solve` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives** method `solve_all_manifolds` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
+- **Alternatives** method `solve_and_advance` (`crates/rapier2d_classes/src/advance/alternatives.cairo`)
+- **Alternatives** method `solve_and_advance_values` (`crates/rapier2d_classes/src/advance/alternatives.cairo`)
 - **Alternatives** method `solve_early_return` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
 - **Alternatives** method `solve_jl` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
 - **Alternatives** method `solve_metered` (`crates/rapier_dynamics2d/src/solver/joint/bounded/alternatives.cairo`)
@@ -4851,7 +4854,10 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Alternatives** method `step_wallet` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
 - **Alternatives** method `step_with_cache` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** method `step_world` (`crates/rapier2d/src/pipeline/force_events/alternatives.cairo`)
+- **Alternatives** method `update_islands` (`crates/rapier2d_classes/src/islands/alternatives.cairo`)
 - **Alternatives** method `update_islands_metered` (`crates/rapier2d/src/pipeline/islands/alternatives.cairo`)
+- **Alternatives** method `update_islands_values` (`crates/rapier2d_classes/src/islands/alternatives.cairo`)
+- **Alternatives** method `update_islands_values_slow` (`crates/rapier2d_classes/src/islands/alternatives.cairo`)
 - **Alternatives** method `update_sleep_timer_captured` (`crates/rapier2d/src/pipeline/islands/alternatives.cairo`)
 - **Alternatives** method `update_sleep_timer_rest_static` (`crates/rapier2d/src/pipeline/islands/alternatives.cairo`)
 - **Alternatives** method `update_sleep_timer_v1` (`crates/rapier2d/src/pipeline/islands/alternatives.cairo`)
@@ -4899,13 +4905,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **ArenaState** method `from_state` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArenaState** method `generation` (`crates/rapier_core/src/data/arena.cairo`)
 - **ArenaState** method `is_modified` (`crates/rapier_core/src/data/arena.cairo`)
-- **ArenaState** method `mark_modified` (`crates/rapier_core/src/data/arena.cairo`)
-- **ArenaState** method `set_untracked` (`crates/rapier_core/src/data/arena.cairo`)
-- **ArenaState** method `to_state` (`crates/rapier_core/src/data/arena.cairo`)
-- **ArenaState** type `ArenaState` (`crates/rapier_core/src/data/arena.cairo`)
-- **ArenaTrait** trait `ArenaTrait` (`crates/rapier_core/src/data/arena.cairo`)
-- **ArrayArena** type `ArrayArena` (`crates/rapier_core/src/data/arena/alternatives.cairo`)
-- ... 1450 more
+- ... 1462 more
 
 ## Embedded Rust inventory
 

@@ -28,6 +28,9 @@ use crate::hashes::{CountingHashes, StoredHashes, calls, install};
 use crate::pile10::{
     InProcess, Layout, PULL, Pile, Staged, build, digest, launch, run, tick, tick_digest,
 };
+use crate::steps::{
+    AdvanceCs5Values, AdvanceValues, IslandsCs5Values, IslandsSlowValues, IslandsValues,
+};
 
 /// `BasicStepConfig` with the batched narrow phase in process (the batch measured against the
 /// per-pair loop without a library call).
@@ -115,6 +118,49 @@ fn test_split_variants_bit_identical() {
 #[ignore]
 fn test_split_variants_bit_identical_151() {
     variants_bit_identical(151);
+}
+
+fn crossing_values_bit_identical(ticks: u32) {
+    let expected = trace::<InProcess<BasicStepConfig>>(ticks);
+    assert_same(
+        "advance values",
+        trace::<Staged<BasicStepConfig, AdvanceValues>>(ticks).span(),
+        expected.span(),
+    );
+    assert_same(
+        "advance CS5 values",
+        trace::<Staged<BasicStepConfig, AdvanceCs5Values>>(ticks).span(),
+        expected.span(),
+    );
+    assert_same(
+        "islands values",
+        trace::<Staged<BasicStepConfig, IslandsValues>>(ticks).span(),
+        expected.span(),
+    );
+    assert_same(
+        "islands slow values",
+        trace::<Staged<BasicStepConfig, IslandsSlowValues>>(ticks).span(),
+        expected.span(),
+    );
+    assert_same(
+        "islands CS5 values",
+        trace::<Staged<BasicStepConfig, IslandsCs5Values>>(ticks).span(),
+        expected.span(),
+    );
+}
+
+/// The crossings' gather, class work and write-back run in process (`steps`' measurement
+/// layouts, CX1's and CS5's) agree with the in-process step after every tick: the first 50 ticks
+/// (CI's memory, as [`test_split_variants_bit_identical`]); the whole shot is `#[ignore]`d.
+#[test]
+fn test_crossing_values_bit_identical() {
+    crossing_values_bit_identical(50);
+}
+
+#[test]
+#[ignore]
+fn test_crossing_values_bit_identical_151() {
+    crossing_values_bit_identical(151);
 }
 
 /// The user changes of [`trace_with_changes`] at tick `t`: a second pebble launched into the
