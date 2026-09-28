@@ -130,26 +130,22 @@ jobs:
       - run: snforge test -p ${{ matrix.package }}
 
   # Package granularity rule (programme decision 2026-09-28, docs/research/package-cost.md): the
-  # published crates and the product closures of consumer_cost.toml against the size gates. Enforcing
-  # since 0.1.0-alpha.7 for gate 1 (library lines) and gate 3 (closures) — the programme's interim
-  # option C: the shared script judges a crate on its cost over the no-dependency baseline, while gate 2
-  # is the MARGINAL cost (the crate minus its direct dependencies), so the per-crate time / memory gate
-  # is lifted here (`--max-seconds` / `--max-gb`) and gate 2 is documented by the marginal figures of
-  # docs/research/package-cost.md until the shared script has a `marginal` column.
+  # published crates and the product closures of consumer_cost.toml against the size gates, all
+  # enforcing: gate 1 (library lines), gate 2 (a crate's MARGINAL cost over its direct dependencies,
+  # computed by the shared script since nalgebra-cairo 7177cf3), gate 3 (closures; `rapier2d` is a
+  # facade, judged on gate 3 only). Medians of 3 cold builds.
   consumer-cost:
     name: Consumer cost
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
       - name: Measure the published crates and the closures (cold builds, one after the other)
         run: |
           set -o pipefail
-          python3 scripts/consumer_cost.py --modules --repeat 3 --json consumer_cost.json \
-            --max-seconds 1000000 --max-gb 1000000 \
-            --closure deps_of_rapier_geometry2d=rapier_core,rapier_math | tee consumer_cost.md
-          { echo "### Consumer cost (gates 1 and 3 enforced)"; echo; cat consumer_cost.md; } >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/consumer_cost.py --modules --repeat 3 --json consumer_cost.json | tee consumer_cost.md
+          { echo "### Consumer cost (gates 1-3 enforced)"; echo; cat consumer_cost.md; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
