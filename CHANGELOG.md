@@ -3,6 +3,16 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## Unreleased
+
+**Results:** unchanged since `0.1.0-alpha.7` (the in-process step and every query).
+
+### Changed
+- `rapier2d_classes` (CX2, #222): `NarrowPhaseClass` computes the polygon-family contacts itself (68,372 CASM felts)
+  and previous pairs cross trimmed (`PreviousPair`); the slim layout's pile10 shot 32.97M → 30.77M Cairo steps (+37.2 %
+  over in process, 4 transactions of ≤ 10M), its caller 73,204 CASM felts. `NarrowPhaseClass::compute_contacts` has new
+  arguments: games re-declare the class. Bit-identical.
+
 ## 0.1.0-alpha.7 — 2026-09-28
 
 **Results:** step results unchanged since `0.1.0-alpha.6` (every step probe and `program.*` identical); shape-cast
