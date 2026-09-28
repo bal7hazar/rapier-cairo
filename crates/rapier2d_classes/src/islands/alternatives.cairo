@@ -20,7 +20,7 @@ use rapier_dynamics2d::rigid_body::RigidBodyVelocityTrait;
 use crate::arena::{dense_option, partial_state, positions};
 use super::{
     ENABLED, FIXED, IslandBody, SLEEPING, SLEEP_RAISED, fixed_of, island_bodies, needs_slow_path,
-    pack_body, replay,
+    pack_islands, replay,
 };
 
 /// The two bodies of every touching pair of `pairs`, appended to `links`.
@@ -129,11 +129,9 @@ pub impl SlowValuesIslands of IslandStage {
         let mut links = array![];
         super::append_links(ref links, pairs);
         super::append_links(ref links, dormant);
-        let mut packed = array![];
-        for (handle, body) in entries {
-            pack_body(ref packed, *handle, body);
-        }
-        let (changed, sleeping, woken) = update_islands_values_slow(links.span(), packed.span());
+        let (changed, sleeping, woken) = update_islands_values_slow(
+            links.span(), pack_islands(island_bodies(entries).span()),
+        );
         (replay(ref bodies, entries, changed), sleeping, woken)
     }
 

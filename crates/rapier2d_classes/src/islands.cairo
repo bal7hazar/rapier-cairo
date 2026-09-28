@@ -3,13 +3,14 @@
 //!
 //! [`LibraryCallIslands`] keeps `update_islands`' fast checks in the caller (no awake member, or
 //! no eligible one and no link from an awake body to a sleeping one: nothing changes, no call) and
-//! library-calls [`IslandsClass`] for the union-find, `update_islands_slow`. What crosses (CX1,
-//! felts packed by the caller, see [`pack_body`] and [`pack_link`]):
+//! library-calls [`IslandsClass`] for the union-find, `update_islands_slow`. What crosses (CX1):
 //! * in: one link per touching pair whose two sides have a body (the slots of the two bodies in
-//!   one felt: the union-find and the membership lookups only read the slot index), active pairs
-//!   first, then the dormant ones, in the stage's order; per body (every entry of the stage,
-//!   ascending slot) its slot and flags in one felt (enabled, fixed, sleeping, `SLEEP` change
-//!   flag raised) and, for an island member (enabled, not fixed), its two sleep timers;
+//!   one felt, [`pack_link`]: the union-find and the membership lookups only read the slot
+//!   index), active pairs first, then the dormant ones, in the stage's order; an [`IslandBody`]
+//!   per body (every entry of the stage, ascending slot), which the class packs
+//!   ([`pack_islands`]: its slot and flags in one felt and, for an island member, its two sleep
+//!   timers). Measured against the caller packing them (fewer felts, 283 more CASM felts in the
+//!   slim caller, whose margin CX1 must keep: `REPORT`, margin options);
 //! * out: one felt per body the stage changed (its position in the entries and whether it was
 //!   woken up and / or put to sleep), whether a member sleeps and whether a body woke up.
 //!
@@ -23,7 +24,7 @@
 //!
 //! A step that met colliders inserted since the last step (`islands_after_insertions`, whose
 //! contact-start wake-up reads the pairs' event state and the bodies' types from a set) sends the
-//! whole pairs and an [`IslandBody`] per body instead (CS5's crossing). CS5's crossing of the
+//! whole pairs and the same [`IslandBody`]s. CS5's crossing of the
 //! per-step path is the measured loser, in [`alternatives`].
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
@@ -79,31 +80,34 @@ pub(crate) fn append_links(ref links: Array<felt252>, pairs: Span<ContactPair>) 
     }
 }
 
-/// All the island stage reads of `body` at slot `handle`, appended to `out`: the slot and flags
-/// in one felt (`slot · 16 + flags`), then, for an island member (enabled, not fixed), its
-/// `time_until_sleep` and `time_since_can_sleep` (raw).
-#[inline(always)]
-pub fn pack_body(ref out: Array<felt252>, handle: Handle, body: @RigidBody) {
-    let enabled = *body.enabled;
-    let fixed = *body.body_type == RigidBodyType::Fixed;
-    let mut flags: u32 = 0;
-    if enabled {
-        flags += ENABLED;
+/// All the island stage reads of the bodies of `entries`: per body its slot and flags in one felt
+/// (`slot · 16 + flags`: enabled, fixed, sleeping, `SLEEP` raised) then, for an island member
+/// (enabled, not fixed), its `time_until_sleep` and `time_since_can_sleep` (raw).
+pub fn pack_islands(entries: Span<(Handle, IslandBody)>) -> Span<felt252> {
+    let mut out = array![];
+    for (handle, body) in entries {
+        let enabled = *body.enabled;
+        let fixed = *body.body_type == RigidBodyType::Fixed;
+        let mut flags: u32 = 0;
+        if enabled {
+            flags += ENABLED;
+        }
+        if fixed {
+            flags += FIXED;
+        }
+        if *body.activation.sleeping {
+            flags += SLEEPING;
+        }
+        if body.changes.contains(SLEEP) {
+            flags += SLEEP_RAISED;
+        }
+        out.append((*handle).index.into() * SLOT + flags.into());
+        if enabled && !fixed {
+            out.append((*body.activation.time_until_sleep.raw).into());
+            out.append((*body.activation.time_since_can_sleep.raw).into());
+        }
     }
-    if fixed {
-        flags += FIXED;
-    }
-    if *body.activation.sleeping {
-        flags += SLEEPING;
-    }
-    if body.changes.contains(SLEEP) {
-        flags += SLEEP_RAISED;
-    }
-    out.append(handle.index.into() * SLOT + flags.into());
-    if enabled && !fixed {
-        out.append((*body.activation.time_until_sleep.raw).into());
-        out.append((*body.activation.time_since_can_sleep.raw).into());
-    }
+    out.span()
 }
 
 /// `entries` with the class's decisions (`changed`, ascending position) replayed on their bodies
@@ -217,13 +221,9 @@ pub impl LibraryCallIslands<impl H: ClassHashes> of IslandStage {
         let mut links = array![];
         append_links(ref links, pairs);
         append_links(ref links, dormant);
-        let mut packed = array![];
-        for (handle, body) in entries {
-            pack_body(ref packed, *handle, body);
-        }
         let mut calldata = array![];
         links.span().serialize(ref calldata);
-        packed.span().serialize(ref calldata);
+        island_bodies(entries).span().serialize(ref calldata);
         let mut ret = library_call_syscall(
             H::islands(), selector!("update_islands"), calldata.span(),
         )
@@ -278,11 +278,9 @@ pub impl ValuesIslands of IslandStage {
         let mut links = array![];
         append_links(ref links, pairs);
         append_links(ref links, dormant);
-        let mut packed = array![];
-        for (handle, body) in entries {
-            pack_body(ref packed, *handle, body);
-        }
-        let (changed, sleeping, woken) = update_islands_decisions(links.span(), packed.span());
+        let (changed, sleeping, woken) = update_islands_decisions(
+            links.span(), pack_islands(island_bodies(entries).span()),
+        );
         (replay(ref bodies, entries, changed), sleeping, woken)
     }
 
@@ -520,12 +518,12 @@ pub mod IslandsClass {
     #[storage]
     struct Storage {}
 
-    /// [`super::update_islands_decisions`].
+    /// [`super::update_islands_decisions`] of the packed bodies ([`super::pack_islands`]).
     #[external(v0)]
     fn update_islands(
-        self: @ContractState, links: Span<felt252>, bodies: Span<felt252>,
+        self: @ContractState, links: Span<felt252>, bodies: Span<(Handle, IslandBody)>,
     ) -> (Span<felt252>, bool, bool) {
-        super::update_islands_decisions(links, bodies)
+        super::update_islands_decisions(links, super::pack_islands(bodies))
     }
 
     /// [`super::islands_after_insertions_values`].

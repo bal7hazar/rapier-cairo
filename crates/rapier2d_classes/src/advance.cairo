@@ -60,8 +60,10 @@ use crate::hashes::{ClassHashes, errors};
 /// Measured and rejected: CS5's crossing.
 pub mod alternatives;
 
-/// The rarely non-default fields of a moving body the solve and the sleep timer read.
-#[derive(Copy, Drop, Serde, PartialEq)]
+/// The damping, forces and sleep thresholds of a body (what the solve and the sleep timer read of
+/// them). Always sent: sending `None` for the defaults (one felt instead of eleven) was measured
+/// and rejected for the slim caller's size (the comparison costs 294 CASM felts, `REPORT`).
+#[derive(Copy, Drop, Serde)]
 pub struct MotionExtras {
     pub damping: RigidBodyDamping,
     pub forces: RigidBodyForces,
@@ -69,25 +71,12 @@ pub struct MotionExtras {
     pub angular_threshold: Fixed,
 }
 
-/// The [`MotionExtras`] of a default body (sent as `None`).
-#[inline(always)]
-fn default_extras() -> MotionExtras {
-    let activation: RigidBodyActivation = Default::default();
-    MotionExtras {
-        damping: Default::default(),
-        forces: Default::default(),
-        normalized_linear_threshold: activation.normalized_linear_threshold,
-        angular_threshold: activation.angular_threshold,
-    }
-}
-
 /// All the solve and the position update read of a body. `packed` is `slot · 2^13 + locked
 /// axes · 32 + body type · 8 + constrained · 4 + enabled · 2 + sleeping` (the body type as
 /// [`type_code`]; constrained: a touching pair references the body, the stage's `constrained`
 /// set); the
 /// world mass properties are recomputed from the local ones (`gather`), `next_position` is only
-/// read for a position-based kinematic body (the solve writes it for the others), `extras` is
-/// `None` for default damping, forces and sleep thresholds.
+/// read for a position-based kinematic body (the solve writes it for the others).
 #[derive(Copy, Drop, Serde)]
 pub struct MotionBody {
     pub packed: felt252,
@@ -97,7 +86,7 @@ pub struct MotionBody {
     pub max_extent: Fixed,
     pub vels: RigidBodyVelocity,
     pub time_since_can_sleep: Fixed,
-    pub extras: Option<MotionExtras>,
+    pub extras: MotionExtras,
 }
 
 /// All the solve reads of a touching pair: its solver data but its bodies' handles (their
@@ -188,11 +177,7 @@ fn motion_body(handle: Handle, body: @RigidBody, constrained: bool) -> MotionBod
         max_extent: *body.mprops.max_extent,
         vels: *body.vels,
         time_since_can_sleep: *body.activation.time_since_can_sleep,
-        extras: if extras == default_extras() {
-            None
-        } else {
-            Some(extras)
-        },
+        extras,
     }
 }
 
@@ -207,7 +192,7 @@ fn from_motion_body(body: MotionBody) -> (Handle, RigidBody, bool) {
     let (slot, locked) = DivRem::div_rem(rest, 256_u64.try_into().unwrap());
     let (code, low) = DivRem::div_rem(low, 8_u64.try_into().unwrap());
     let (constrained, flags) = DivRem::div_rem(low, 4_u64.try_into().unwrap());
-    let extras = body.extras.unwrap_or_else(|| default_extras());
+    let extras = body.extras;
     let mut activation: RigidBodyActivation = Default::default();
     activation.normalized_linear_threshold = extras.normalized_linear_threshold;
     activation.angular_threshold = extras.angular_threshold;
