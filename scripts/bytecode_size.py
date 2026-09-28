@@ -349,6 +349,9 @@ def snip36_problems():
 def print_declared(rows):
     print(f"\n### declared classes (`{CLASSES_PACKAGE}`, limit {DECLARED_LIMIT:,} felts each) and "
           "their caller fixture: sizes, entry-point builtins, syscalls (SNIP-36)\n")
+    # A game measures its classes in the dev profile: the felt counts are the same in both profiles
+    # (checked on every class of `rapier2d_classes` at 57cf361); only the byte sizes differ (debug names).
+    print("Profile: **release** (Sierra / CASM felts identical in the dev profile; bytes differ).\n")
     # The margin under the limit of every declared class, so that a PR that eats it is visible in its
     # CI summary (programme, 2026-09-28: the slim caller's margin is a few dozen felts after CX1).
     print("| class | Sierra felts | × limit | CASM felts | × limit | margin (Sierra / CASM) | builtins | syscalls |")
