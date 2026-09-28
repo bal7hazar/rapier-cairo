@@ -30,6 +30,10 @@ whether simulation results changed.
   (`InProcessStages<C>` is the in-process default).
 
 ### Added
+- Compact crossings (CX1, #217): `SolveAdvanceClass` 58,547 and `IslandsClass` 19,083 CASM felts; per call 37,960 →
+  ≈ 14,256 and 13,741 → 2,615 Cairo steps; the slim layout's pile10 shot 37.22M → 32.97M steps (+47.0 % over in
+  process, 4 transactions of ≤ 10M), its caller 73,083 CASM felts; bit-identical, incl. force events every step and
+  basic-codec save / restore mid-collapse.
 - The slim caller (CS6, #215): `BasicWorldState` / `from_basic_state` / `into_basic_state` (the basic `WorldState`
   codec: the same felts as `WorldState` v3, other shapes and used joint arenas rejected), `NarrowPhaseClass`,
   `ActiveSetClass`, `ForceEventsClass`; a caller class stepping the game's worlds is 73,181 CASM felts (≤ 73,728), the
