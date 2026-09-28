@@ -130,11 +130,12 @@ jobs:
       - run: snforge test -p ${{ matrix.package }}
 
   # Package granularity rule (programme decision 2026-09-28, docs/research/package-cost.md): the
-  # published crates and the product closures of consumer_cost.toml against the size gates (lines,
-  # cold-build time and memory an empty consumer adds over the no-dependency build). Report only: the
-  # script reports the cost over the baseline while gate 2 is the marginal cost (crate minus its direct
-  # dependencies; `deps_of_rapier_geometry2d` gives geometry2d's, the crate rows give the others'). The
-  # orchestrator makes it enforcing with alpha.7.
+  # published crates and the product closures of consumer_cost.toml against the size gates. Enforcing
+  # since 0.1.0-alpha.7 for gate 1 (library lines) and gate 3 (closures) — the programme's interim
+  # option C: the shared script judges a crate on its cost over the no-dependency baseline, while gate 2
+  # is the MARGINAL cost (the crate minus its direct dependencies), so the per-crate time / memory gate
+  # is lifted here (`--max-seconds` / `--max-gb`) and gate 2 is documented by the marginal figures of
+  # docs/research/package-cost.md until the shared script has a `marginal` column.
   consumer-cost:
     name: Consumer cost
     runs-on: ubuntu-latest
@@ -144,9 +145,11 @@ jobs:
       - uses: software-mansion/setup-scarb@v1
       - name: Measure the published crates and the closures (cold builds, one after the other)
         run: |
-          python3 scripts/consumer_cost.py --report-only --modules --repeat 3 --json consumer_cost.json \
+          set -o pipefail
+          python3 scripts/consumer_cost.py --modules --repeat 3 --json consumer_cost.json \
+            --max-seconds 1000000 --max-gb 1000000 \
             --closure deps_of_rapier_geometry2d=rapier_core,rapier_math | tee consumer_cost.md
-          { echo "### Consumer cost (report only)"; echo; cat consumer_cost.md; } >> "$GITHUB_STEP_SUMMARY"
+          { echo "### Consumer cost (gates 1 and 3 enforced)"; echo; cat consumer_cost.md; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

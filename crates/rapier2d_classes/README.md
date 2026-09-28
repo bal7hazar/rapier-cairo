@@ -1,8 +1,14 @@
 # rapier2d_classes
 
-The `rapier2d` step split across declared Starknet classes (work packages CS4–CS6), so that no class
-of a game's step exceeds the size limit of a declared class (73,728 Sierra and CASM felts). The
+The `rapier2d` step split across declared Starknet classes (work packages CS4–CS6, CX1), so that no
+class of a game's step exceeds the size limit of a declared class (73,728 Sierra and CASM felts). The
 analysis is in `docs/research/class-split.md`.
+
+```toml
+[dependencies]
+rapier2d = "0.1.0-alpha.7"
+rapier2d_classes = "0.1.0-alpha.7"
+```
 
 `StepConfig` (`rapier2d::pipeline::config`) chooses what a step supports (contact dispatcher,
 sensor / composite / joint strategies); `StageConfig` (`rapier2d::pipeline::stages`, CS5 / CS6)
@@ -51,9 +57,12 @@ fn step_state(state: BasicWorldState, steps: u32) -> BasicWorldState {
 }
 ```
 
-The caller class compiled this way (`rapier_sink`'s `SlimSplitStep`) is 73,181 CASM felts; it
-supports the worlds of `BasicStepConfig` without position-based kinematic bodies (rejected with
-`'Step: kinematic disabled'`). `SplitStages` (every stage out, the pair loop in the caller: a
+The caller class compiled this way (`rapier_sink`'s `SlimSplitStep`) is 73,083 CASM felts; it
+supports the worlds of `BasicStepConfig` (balls, cuboids, convex polygons, half-spaces; no sensor,
+composite or impulse joint) without position-based kinematic bodies (rejected with
+`'Step: kinematic disabled'`), and the basic codec rejects any other shape and any joint arena ever
+used. On slingfall's pile10 reference shot it costs 32.97M Cairo steps (+47.0 % over the in-process
+step), 4 transactions of ≤ 10M. `SplitStages` (every stage out, the pair loop in the caller: a
 caller over the limit), `SplitBatchedStages`, `SplitHybridStages`, `ContactSolveStepConfig`
 (CS4's layout) and `orchestrator::OrchestratorClass` (CS6's route (b)) are the measured
 alternatives.

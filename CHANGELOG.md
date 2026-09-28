@@ -3,11 +3,20 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
-## Unreleased
+## 0.1.0-alpha.7 — 2026-09-28
 
-**Results:** unchanged since `0.1.0-alpha.6`.
+**Results:** step results unchanged since `0.1.0-alpha.6` (every step probe and `program.*` identical); shape-cast
+results changed for touching starts (CN1, below).
 
 ### Notes
+- The slim caller path (`rapier2d_classes`, `SlimSplitStages`) steps the worlds of `BasicStepConfig` only: balls,
+  cuboids, convex polygons and half-spaces, no sensor, composite or impulse joint, no position-based kinematic body;
+  its caller class is 73,083 CASM felts (645 under the 73,728 limit), the pile10 reference shot +47.0 % Cairo steps
+  over the in-process step in 4 transactions of ≤ 10M. The in-process step (`World::step*`) is unchanged.
+- Package size (owner's rule, 2026-09-28; `docs/research/package-cost.md`): every published crate ≤ 40,000
+  library lines (largest `rapier_geometry2d`, 22,013), marginal cost of each crate ≤ 2.3 s / 0.47 GB, closures
+  `rapier2d` 8.9 s / 1.85 GB and `rapier2d_classes` 9.0 s / 1.95 GB (cold, local). `rapier2d_classes` is published
+  from this release on.
 - Correction to `0.1.0-alpha.6`'s notes: the "−1,612 Cairo steps per step" of `BasicStepConfig` was measured on the P3
   contact probes (`balls8`, `stack5`, `stack10`); the saving scales with the contact pairs — the game measures −551 on
   a flight step (11,918 → 11,367) and −6,853 on a pile10 impact step (398,167 → 391,314).
@@ -23,8 +32,6 @@ whether simulation results changed.
   matches rapier-rs: one collision fewer, `1e-4` lower), and its golden's worst error drops from 900 to 3 raw. A corner
   just past the end of a face keeps its corner normal (the face snap forgives an excess of at most `height / 2^30`).
   Touching starts cost +670 Cairo steps per cast; other casts are unchanged (CN1).
-
-### Changed
 - Not breaking: `StepConfig` keeps its `0.1.0-alpha.6` shape; the stage slots CS5 added to it (#213) live in a separate
   `StageConfig` since CS6 (#215), taken by `World::step_with_stages` / `step_with_force_events_with_stages`
   (`InProcessStages<C>` is the in-process default).
