@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
+publish = false
 keywords = ["testing", "cairo"]
 documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapier_testing"
 

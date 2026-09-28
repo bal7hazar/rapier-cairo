@@ -1,0 +1,20 @@
+# Gates and closures of scripts/consumer_cost.py (a verbatim copy of nalgebra-cairo's shared script,
+# see its docstring). Package granularity rule (programme decision 2026-09-28): a published crate has
+# at most 40,000 library lines; an empty consumer of it adds at most 5 s / 1 GB to the no-dependency
+# build (the programme judges gate 2 on the crate's MARGINAL cost: consumer of the crate minus
+# consumer of its direct dependencies; the script reports the cost over the baseline); a product's
+# typical closure adds at most 15 s / 3 GB. Measurements: docs/research/package-cost.md.
+[gates]
+max_lines = 40000
+max_seconds = 5
+max_gb = 1
+closure_seconds = 15
+closure_gb = 3
+
+# Product closures (one consumer depending on all the listed crates). Every published crate is in
+# the closure of `rapier2d_classes`, so `game_classes` is also the "whole repository" closure.
+[closures]
+# A game or a test harness running the in-process step: the facade and everything under it.
+rapier2d = ["rapier2d"]
+# A Starknet game that library-calls the declared step classes (StepConfig slots, CS5/CS6).
+game_classes = ["rapier2d_classes"]
