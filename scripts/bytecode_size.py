@@ -65,7 +65,7 @@ PROGRAM_HEADER = "# program: program_felts"
 PROGRAM_PREFIX = "program."
 # The workspace crates `crates/rapier_sink/src` uses (its `[dependencies]`), as path dependencies of
 # the attribution's temporary package.
-SINK_CRATES = ["rapier2d", "rapier_geometry2d"]
+SINK_CRATES = ["rapier2d", "rapier_dynamics2d", "rapier_geometry2d"]
 
 # Starknet limits. Source: https://docs.starknet.io/learn/cheatsheets/chain-info (Starknet v0.14.2
 # on Mainnet, v0.14.3 on Sepolia, read 2026-09-21 by glam-cairo R1) and the sequencer that

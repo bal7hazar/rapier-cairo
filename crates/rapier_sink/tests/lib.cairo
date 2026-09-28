@@ -4,3 +4,4 @@
 
 mod pile10;
 mod split;
+mod split_solve;

@@ -13,6 +13,7 @@ publish = false
 fixed.workspace = true
 glam.workspace = true
 rapier2d = { path = "../rapier2d" }
+rapier_dynamics2d.workspace = true
 rapier_geometry2d.workspace = true
 starknet = "2.19.4"
 

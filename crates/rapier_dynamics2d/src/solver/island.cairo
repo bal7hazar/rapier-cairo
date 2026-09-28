@@ -55,7 +55,7 @@ pub fn solve_island(
 
 /// The input of [`solve_island_input`]: one solver body and its frozen step data per entry, in
 /// entry order (BT4: gathered straight from the entries, no `SolverBodyStore`).
-#[derive(Drop)]
+#[derive(Drop, Serde)]
 pub struct SolverInput {
     bodies: Array<SolverBody>,
     steps: Array<BodyStep>,
@@ -63,7 +63,7 @@ pub struct SolverInput {
 
 /// The impulses a solve left in one contact point (the fields `solve_island` writes back into
 /// the manifold's point `contact_id`).
-#[derive(Copy, Drop, Debug, PartialEq, Default)]
+#[derive(Copy, Drop, Serde, Debug, PartialEq, Default)]
 pub struct PointImpulses {
     pub contact_id: u8,
     pub impulse: Fixed,
@@ -74,7 +74,7 @@ pub struct PointImpulses {
 
 /// The impulses of one manifold: `count` points (0 when no constraint was generated for it:
 /// then `solve_island` leaves the manifold unchanged).
-#[derive(Copy, Drop, Debug, PartialEq, Default)]
+#[derive(Copy, Drop, Serde, Debug, PartialEq, Default)]
 pub struct ManifoldImpulses {
     pub count: u8,
     pub a: PointImpulses,
@@ -83,7 +83,7 @@ pub struct ManifoldImpulses {
 
 /// What [`solve_island_input`] leaves: the solved bodies in input order and one
 /// [`ManifoldImpulses`] per input manifold (none when there was no contact constraint).
-#[derive(Drop)]
+#[derive(Drop, Serde)]
 pub struct SolvedIsland {
     bodies: Span<SolverBody>,
     steps: Span<BodyStep>,

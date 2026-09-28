@@ -11,3 +11,4 @@
 pub mod scene;
 pub mod sink;
 pub mod split;
+pub mod split_solve;

@@ -94,6 +94,7 @@ dependencies = [
  "fixed",
  "glam",
  "rapier2d",
+ "rapier_dynamics2d",
  "rapier_geometry2d",
  "rapier_testing",
  "snforge_std",

@@ -12,7 +12,7 @@ use crate::pile10::{digest, run};
 
 /// Declares `name` and stores its class hash at `slot` of the test contract's storage, where the
 /// split dispatchers read it.
-fn install(name: ByteArray, slot: felt252) {
+pub fn install(name: ByteArray, slot: felt252) {
     let class_hash = *declare(name).unwrap_syscall().contract_class().class_hash;
     storage_write_syscall(0, slot.try_into().unwrap(), class_hash.into()).unwrap_syscall();
 }
