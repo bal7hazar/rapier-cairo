@@ -7,6 +7,17 @@
 //! hashes snforge gives the classes of this package, checked by `test_pinned_class_hashes`), and
 //! [`StoredHashes`], each hash read from a storage slot of the calling contract (CS3's
 //! dispatchers), the loser.
+//!
+//! The tests that run by default use [`StoredHashes`] only, so that a change to the engine code
+//! the classes compile (which changes their hashes) never breaks them. The pinned-hash tests are
+//! `#[ignore]`d measurements:
+//!
+//! ```text
+//! snforge test -p rapier2d_classes test_pinned_class_hashes --include-ignored
+//!     # prints the declared hashes; copy them into the `*_HASH` constants below
+//! snforge test -p rapier2d_classes steps_ --include-ignored --tracked-resource cairo-steps \
+//!     --detailed-resources
+//! ```
 
 use rapier2d::pipeline::config::{NoComposites, NoJoints, NoSensors};
 use rapier2d::prelude::{BasicStepConfig, StepConfig};
@@ -83,21 +94,21 @@ fn count(slot: felt252) {
     write(slot, read(slot) + 1);
 }
 
-/// [`PinnedHashes`], counting the calls of each class in storage.
+/// [`StoredHashes`], counting the calls of each class in storage.
 impl CountingHashes of ClassHashes {
     fn contact_ball() -> ClassHash {
         count(BALL_CALLS);
-        PinnedHashes::contact_ball()
+        StoredHashes::contact_ball()
     }
 
     fn contact_polygon() -> ClassHash {
         count(POLYGON_CALLS);
-        PinnedHashes::contact_polygon()
+        StoredHashes::contact_polygon()
     }
 
     fn solver() -> ClassHash {
         count(SOLVER_CALLS);
-        PinnedHashes::solver()
+        StoredHashes::solver()
     }
 }
 
@@ -121,6 +132,7 @@ fn install(store: bool) {
 }
 
 #[test]
+#[ignore]
 fn test_pinned_class_hashes() {
     let classes = [
         ("ContactBallClass", CONTACT_BALL_HASH), ("ContactPolygonClass", CONTACT_POLYGON_HASH),
@@ -156,8 +168,8 @@ fn trace<impl C: StepConfig>(ticks: u32) -> Array<felt252> {
 #[test]
 fn test_split_bit_identical() {
     let expected = trace::<BasicStepConfig>(151);
-    install(false);
-    let split = trace::<SplitStepConfig<PinnedHashes>>(151);
+    install(true);
+    let split = trace::<SplitStepConfig<StoredHashes>>(151);
     assert_eq!(split.len(), expected.len());
     let mut tick = 0;
     for (a, b) in split.span().into_iter().zip(expected.span()) {
@@ -166,20 +178,10 @@ fn test_split_bit_identical() {
     }
 }
 
-#[test]
-fn test_split_stored_bit_identical() {
-    let (mut pile, events) = run::<BasicStepConfig>(151);
-    let expected = digest(ref pile);
-    install(true);
-    let (mut pile, split_events) = run::<SplitStepConfig<StoredHashes>>(151);
-    assert_eq!(split_events, events);
-    assert_eq!(digest(ref pile), expected);
-}
-
 /// The library calls of the shot (settle step included), per class.
 #[test]
 fn test_call_counts() {
-    install(false);
+    install(true);
     let (mut pile, _) = run::<SplitStepConfig<CountingHashes>>(151);
     opaque(digest(ref pile));
     let (ball, polygon, solver) = (read(BALL_CALLS), read(POLYGON_CALLS), read(SOLVER_CALLS));
@@ -261,31 +263,37 @@ fn steps_basic_151() {
 }
 
 #[test]
+#[ignore]
 fn steps_split_0() {
     split(0);
 }
 
 #[test]
+#[ignore]
 fn steps_split_30() {
     split(30);
 }
 
 #[test]
+#[ignore]
 fn steps_split_43() {
     split(43);
 }
 
 #[test]
+#[ignore]
 fn steps_split_44() {
     split(44);
 }
 
 #[test]
+#[ignore]
 fn steps_split_100() {
     split(100);
 }
 
 #[test]
+#[ignore]
 fn steps_split_151() {
     split(151);
 }
@@ -306,6 +314,7 @@ fn steps_split_stored_151() {
 }
 
 #[test]
+#[ignore]
 fn steps_contacts_only_151() {
     contacts_only(151);
 }

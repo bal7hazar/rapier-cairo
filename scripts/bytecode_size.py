@@ -8,8 +8,9 @@ usage:
                                       and the executable programs, print the size tables
   scripts/bytecode_size.py snapshot   same, then write gas/bytecode.size
   scripts/bytecode_size.py check      same, then diff against gas/bytecode.size; exit 1 on ANY difference,
-                                      and when a class of `DECLARED` exceeds `DECLARED_LIMIT` Sierra or
-                                      CASM felts
+                                      when a class of `DECLARED` exceeds `DECLARED_LIMIT` Sierra or CASM
+                                      felts, and when a class of `SNIP36` uses a builtin or a syscall the
+                                      SNIP-36 virtual OS / prover rejects
   scripts/bytecode_size.py attribution [--class C] [--by parts|phases] [--depth N] [--top K] [--strategy S]
                                       [--cut LABEL=REGEX ...]
       builds, in a temporary package outside the workspace (scarb only applies the `[cairo]` of the
@@ -32,7 +33,14 @@ The build is deterministic for a given toolchain (`.tool-versions`), so the chec
 
 Declared classes (CS4): the classes a game declares and library-calls (`DECLARED`, built from
 `crates/rapier2d_classes`) must each stay within `DECLARED_LIMIT` Sierra and CASM felts (the
-programme's target for the SNIP-36 path, 2026-09-27); `check` fails above it.
+programme's target for the SNIP-36 path, 2026-09-27); `check` fails above it. The classes of
+`SNIP36` (the declared classes and their caller fixture) must also run under the SNIP-36 virtual OS
+(programme's SN1 verdict, 2026-09-28): no entry point of the compiled class may list a builtin of
+`REJECTED_BUILTINS` (`entry_points_by_type[*][*].builtins`), and the Sierra program may not reference
+a syscall libfunc of `FORBIDDEN_SYSCALLS`. The release Sierra carries no debug names, but its felt
+encoding stores each libfunc's generic id as a short-string felt, and the compression keeps every
+distinct felt verbatim: a libfunc is referenced iff its name's felt is in `sierra_program`
+(`SYSCALLS` are all shorter than 32 bytes).
 
 Programs (CS2): `crates/rapier_sink/programs/lib.cairo` (with `crates/rapier_sink/src/scene.cairo`)
 built as a temporary package with one `[[target.executable]]` per function of `PROGRAMS`
@@ -69,6 +77,17 @@ PACKAGE = "rapier_sink"
 CLASSES_PACKAGE = "rapier2d_classes"
 DECLARED = ["ContactBallClass", "ContactPolygonClass", "SolverClass"]
 DECLARED_LIMIT = 73728
+# SNIP-36 (SN1, 2026-09-28): what the virtual OS fails on and what its prover rejects. Checked on the
+# declared classes and on their caller fixture.
+SNIP36 = DECLARED + ["Split4Step"]
+REJECTED_BUILTINS = ["ecdsa", "range_check96", "add_mod", "mul_mod"]
+FORBIDDEN_SYSCALLS = ["deploy_syscall", "replace_class_syscall", "get_block_hash_syscall",
+                      "meta_tx_v0_syscall"]
+# Every syscall libfunc reported in the tables (the forbidden ones included).
+SYSCALLS = ["call_contract_syscall", "library_call_syscall", "storage_read_syscall",
+            "storage_write_syscall", "get_execution_info_syscall", "get_execution_info_v2_syscall",
+            "get_class_hash_at_syscall", "send_message_to_l1_syscall", "emit_event_syscall",
+            "keccak_syscall", "sha256_process_block_syscall"] + FORBIDDEN_SYSCALLS
 SNAPSHOT = ROOT / "gas" / "bytecode.size"
 METRICS = ["sierra_felts", "casm_felts", "sierra_bytes", "casm_bytes"]
 HEADER = "# contract: " + " ".join(METRICS)
@@ -206,10 +225,26 @@ def classes(target, package):
     }
 
 
+def short_string(text):
+    return int.from_bytes(text.encode(), "big")
+
+
+def interface(sierra, casm):
+    """-> (builtins of the entry points, syscall libfuncs of `SYSCALLS` referenced) of a class."""
+    builtins = sorted({b for eps in casm["entry_points_by_type"].values() for ep in eps
+                       for b in ep["builtins"]})
+    felts = {int(f, 16) for f in sierra["sierra_program"]}
+    return builtins, [s for s in SYSCALLS if short_string(s) in felts]
+
+
+INTERFACES = {}
+
+
 def measure(target, package):
-    """-> {contract_name: {metric: int}}"""
+    """-> {contract_name: {metric: int}}; fills `INTERFACES` (builtins and syscalls per class)."""
     res = {}
     for name, (sierra, casm) in classes(target, package).items():
+        INTERFACES[name] = interface(sierra, casm)
         declared = {
             "sierra_program": sierra["sierra_program"],
             "contract_class_version": sierra["contract_class_version"],
@@ -288,15 +323,34 @@ def declared_over(rows):
     return bad
 
 
+def snip36_problems():
+    """-> the uses of a rejected builtin or a forbidden syscall by a class of `SNIP36`."""
+    bad = []
+    for name in SNIP36:
+        if name not in INTERFACES:
+            bad.append(f"{name}: not built")
+            continue
+        builtins, syscalls = INTERFACES[name]
+        bad += [f"{name}: builtin `{b}` rejected by the SNIP-36 prover"
+                for b in builtins if b in REJECTED_BUILTINS]
+        bad += [f"{name}: `{s}` fails in the SNIP-36 virtual OS"
+                for s in syscalls if s in FORBIDDEN_SYSCALLS]
+    return bad
+
+
 def print_declared(rows):
-    print(f"\n### declared classes (`{CLASSES_PACKAGE}`), limit {DECLARED_LIMIT:,} felts each\n")
-    print("| class | Sierra felts | × limit | CASM felts | × limit |")
-    print("|---|--:|--:|--:|--:|")
-    for name in DECLARED:
+    print(f"\n### declared classes (`{CLASSES_PACKAGE}`, limit {DECLARED_LIMIT:,} felts each) and "
+          "their caller fixture: sizes, entry-point builtins, syscalls (SNIP-36)\n")
+    print("| class | Sierra felts | × limit | CASM felts | × limit | builtins | syscalls |")
+    print("|---|--:|--:|--:|--:|---|---|")
+    for name in SNIP36:
         r = rows.get(name)
         if r:
+            builtins, syscalls = INTERFACES[name]
             print(f"| `{name}` | {r['sierra_felts']:,} | {r['sierra_felts'] / DECLARED_LIMIT:.2f} "
-                  f"| {r['casm_felts']:,} | {r['casm_felts'] / DECLARED_LIMIT:.2f} |")
+                  f"| {r['casm_felts']:,} | {r['casm_felts'] / DECLARED_LIMIT:.2f} "
+                  f"| {', '.join(builtins) or '—'} "
+                  f"| {', '.join(s.removesuffix('_syscall') for s in syscalls) or '—'} |")
 
 
 def programs_package(work):
@@ -523,6 +577,11 @@ def main():
             print("\n".join(over), file=sys.stderr)
             sys.exit(f"declared class over {DECLARED_LIMIT:,} felts ({len(over)}): split it further "
                      "(docs/research/class-split.md).")
+        rejected = snip36_problems()
+        if rejected:
+            print("\n".join(rejected), file=sys.stderr)
+            sys.exit(f"SNIP-36: {len(rejected)} rejected builtin or syscall use(s) in the declared "
+                     "classes or their caller.")
         if bad:
             print("\n".join(bad), file=sys.stderr)
             sys.exit(f"bytecode size mismatch ({len(bad)}). Run `scripts/bytecode_size.py snapshot` "
