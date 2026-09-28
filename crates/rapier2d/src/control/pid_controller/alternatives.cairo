@@ -2,7 +2,7 @@
 //! axis mask, and the PD's linear correction through the full rigid-body correction.
 
 use fixed::{Fixed, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::rigid_body::AxesMaskTrait;
 use rapier_core::rigid_body::axes_mask::{ANG_Z, LIN_X, LIN_Y};
 use rapier_dynamics2d::rigid_body::velocity::RigidBodyVelocity;

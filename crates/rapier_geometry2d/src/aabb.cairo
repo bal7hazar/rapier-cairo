@@ -8,7 +8,7 @@ pub mod bounding_volume;
 use bounding_volume::{BoundingSphere, local_point_cloud_aabb};
 use fixed::wide::{dot2, norm2};
 use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::feature_id::{FeatureId, FeatureIdTrait};
@@ -484,7 +484,7 @@ pub fn cast_local_ray_and_get_normal_aabb(
 #[cfg(test)]
 pub mod alternatives {
     use fixed::wide::norm2;
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use super::bounding_volume::BoundingSphere;
     use super::{Aabb, AabbTrait};
@@ -512,7 +512,7 @@ mod helper_tests;
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{IDENTITY, Rot2};
     use rapier_testing::opaque;

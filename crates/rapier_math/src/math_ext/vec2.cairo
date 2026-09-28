@@ -14,7 +14,7 @@ use super::norm2::{is_norm2_gt, is_norm2_le};
 
 /// Computes the dot product `a . b` with a single rescale.
 ///
-/// Mirrors `rapier::utils::DotProduct::gdot` for `Vector2` (`glam::Vec2::dot`).
+/// Mirrors `rapier::utils::DotProduct::gdot` for `Vector2` (`glam_core::Vec2::dot`).
 /// #### Panics
 /// * `'Fixed: overflow'` if the result does not fit the scalar range.
 /// #### Deviations
@@ -27,7 +27,7 @@ pub fn gdot(ax: Fixed, ay: Fixed, bx: Fixed, by: Fixed) -> Fixed {
 /// Computes the generalised cross product of two 2D vectors, `ax * by - ay * bx` (the perp-dot
 /// product, i.e. the `z` component of the 3D cross product), with a single rescale.
 ///
-/// Mirrors `rapier::utils::CrossProduct<Vector> for Vector` in 2D (`glam::Vec2::perp_dot`).
+/// Mirrors `rapier::utils::CrossProduct<Vector> for Vector` in 2D (`glam_core::Vec2::perp_dot`).
 /// #### Panics
 /// * `'Fixed: overflow'` if the result does not fit the scalar range.
 /// #### Deviations
@@ -71,7 +71,7 @@ pub fn gcross_vs(x: Fixed, y: Fixed, s: Fixed) -> (Fixed, Fixed) {
 
 /// Returns `(x, y)` rotated by a quarter turn counter-clockwise: `(-y, x)`.
 ///
-/// Mirrors `glam::Vec2::perp`.
+/// Mirrors `glam_core::Vec2::perp`.
 /// #### Panics
 /// * `'i64_neg Overflow'` if `y` is `fixed::MIN`.
 /// #### Deviations
@@ -96,7 +96,7 @@ pub fn orthonormal_vector(x: Fixed, y: Fixed) -> (Fixed, Fixed) {
 
 /// Normalises `(x, y)`, or returns `None` when it is exactly the zero vector.
 ///
-/// Mirrors `glam::Vec2::try_normalize` (whose threshold is the zero test of the length).
+/// Mirrors `glam_core::Vec2::try_normalize` (whose threshold is the zero test of the length).
 /// The zero test is the wide one — `x^2 + y^2 = 0` iff both components are 0 — so it never
 /// underflows.
 ///

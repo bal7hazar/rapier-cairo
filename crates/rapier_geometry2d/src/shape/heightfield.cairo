@@ -19,7 +19,7 @@
 //! * `set_scale` recomputes the box from the heights (upstream scales it by `new / old`).
 
 use fixed::{Fixed, HALF, MAX, MIN, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::Pose2;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::aabb::{Aabb, AabbTrait};

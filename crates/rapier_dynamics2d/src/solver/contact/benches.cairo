@@ -3,7 +3,7 @@
 #[cfg(test)]
 mod tests {
     use fixed::{FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::integration_parameters::IntegrationParametersTrait;
     use rapier_geometry2d::contact::SolverContact;
     use rapier_math::pose2::Pose2;

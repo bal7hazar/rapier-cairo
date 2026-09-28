@@ -16,7 +16,7 @@
 //! `sep1 > prediction + radius` and `sep1 + radius` is upstream's core separation. The only
 //! normalisation is the segment normal inside `segment_cuboid_find_local_separating_normal_oneway`.
 use fixed::Fixed;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::contact::{ContactManifold, ContactManifoldTrait};
@@ -171,7 +171,7 @@ pub fn contact_manifold_cuboid_capsule_shapes(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_golden::contact_manifolds::{
         CAPSULE_CUBOID_SHALLOW, CUBOID_CAPSULE_DEEP, CUBOID_CAPSULE_DEGENERATE,
         CUBOID_CAPSULE_SEPARATED, CUBOID_CAPSULE_SHALLOW, CUBOID_CAPSULE_TOUCHING,

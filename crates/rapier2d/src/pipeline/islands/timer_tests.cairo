@@ -2,7 +2,7 @@
 //! (`alternatives::update_sleep_timer_v1`) on random bodies, and the per-body gas probes.
 
 use fixed::{FRAC_PI_2, Fixed, HALF, MAX, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_core::rigid_body::activation::DEFAULT_NORMALIZED_LINEAR_THRESHOLD;
 use rapier_core::rigid_body::{RigidBodyActivation, RigidBodyActivationTrait, RigidBodyType};
@@ -22,7 +22,7 @@ use super::{
 
 /// `(|delta| + chord) / 2 < limit` through the square root, as `dynamic_gate` on the drift.
 fn reference_below_with(delta: Vec2, limit: Fixed, chord: Fixed) -> bool {
-    (glam::Vec2Trait::length(delta) + chord) * HALF < limit
+    (glam_core::Vec2Trait::length(delta) + chord) * HALF < limit
 }
 
 fn reference_below(delta: Vec2, limit: Fixed) -> bool {

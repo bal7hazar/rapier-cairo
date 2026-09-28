@@ -2,7 +2,7 @@
 //! zero). Every intermediate/output must fit Q32.32, otherwise fixed/core overflow panics.
 use fixed::wide::{dot2, dot4};
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::{gcross_vv, inv};
 use super::super::body::{SolverBody, SolverVel};
 

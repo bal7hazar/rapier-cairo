@@ -1,7 +1,7 @@
 //! Rejected candidates of [`super`], kept for the `gas_*` ranking.
 
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::Pose2;
 use crate::query::normalize_and_length;
 use crate::shape::Shape;

@@ -3,7 +3,7 @@
 //! closest edge pairs supply the Euclidean normal, including rounded/speculative corners.
 use fixed::wide::dot2;
 use fixed::{Fixed, MAX, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use rapier_math::math_ext::vec2::try_normalize2_and_length;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -341,7 +341,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::consts::UNIT_TOL_SQ_RAW;
     use rapier_math::math_ext::norm2::is_unit2_raw;
     use rapier_math::pose2::{IDENTITY, Pose2};

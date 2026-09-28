@@ -6,7 +6,7 @@
 //! denominator is a miss, and the sign test `t >= 0` is read off the two exact operands.
 
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use crate::feature_id::FeatureIdTrait;
 use crate::point::wide2::dot_wide;
 use crate::shape::HalfSpace;
@@ -114,7 +114,7 @@ pub fn cast_local_ray_halfspace(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::shape::{HalfSpace, HalfSpaceTrait};
     use super::super::Ray;

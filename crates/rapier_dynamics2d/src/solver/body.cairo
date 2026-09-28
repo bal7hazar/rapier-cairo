@@ -1,6 +1,6 @@
 //! Dense solver storage independent of rigid-body components.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_math::pose2::Pose2;
 

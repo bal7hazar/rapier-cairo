@@ -2,7 +2,7 @@
 //! the array queries, and a fuzzed comparison of `cast_ray` with the per-collider casts.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier2d::queries::{QueryFilter, QueryFilterTrait};
 use rapier2d::world::{World, WorldTrait};
 use rapier_core::Handle;

@@ -12,7 +12,7 @@ documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapi
 
 [dependencies]
 fixed.workspace = true
-glam.workspace = true
+glam_core.workspace = true
 rapier2d.workspace = true
 rapier_core.workspace = true
 rapier_dynamics2d.workspace = true

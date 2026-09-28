@@ -16,7 +16,7 @@
 
 use fixed::wide::{distance2, mul_add};
 use fixed::{Fixed, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::shape::{Segment, SegmentTrait};
@@ -177,7 +177,7 @@ pub fn contains_local_point_segment(seg: Segment, pt: Vec2) -> bool {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::{FeatureId, FeatureIdTrait};
     use crate::shape::Segment;

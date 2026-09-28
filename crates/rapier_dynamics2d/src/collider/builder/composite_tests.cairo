@@ -1,5 +1,5 @@
 use fixed::{FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::{
     CompoundTrait, HeightFieldTrait, PolylineFlagsTrait, PolylineTrait, Shape, ShapeTrait,

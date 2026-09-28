@@ -10,7 +10,7 @@
 
 use fixed::Fixed;
 use fixed::trig::TrigTrait;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};
 use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::forces::{RigidBodyForces, RigidBodyForcesTrait};
@@ -158,7 +158,7 @@ pub impl RigidBodyPositionImpl of RigidBodyPositionTrait {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_core::rigid_body::RigidBodyType;
     use rapier_geometry2d::mass::MassProperties;
     use rapier_math::pose2::{IDENTITY, Pose2};

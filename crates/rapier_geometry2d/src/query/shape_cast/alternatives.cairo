@@ -2,7 +2,7 @@
 
 use fixed::wide::dot2;
 use fixed::{Fixed, MAX, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::consts::GJK_EPS_TOL;
 use rapier_math::math_ext::norm2::is_zero2;
 use rapier_math::pose2::{Pose2, Pose2Trait};

@@ -3,7 +3,7 @@
 //! every step), and the rejection of the worlds it does not.
 
 use fixed::{Fixed, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::collider::events::{COLLISION_EVENTS, CONTACT_FORCE_EVENTS};
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;

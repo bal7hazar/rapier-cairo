@@ -13,7 +13,8 @@ use fixed::Fixed;
 
 /// Returns the exact raw Q64.64 dot product `a . b` (`ax bx + ay by`), without rescale.
 ///
-/// Mirrors `glam::Vec2::dot`, kept wide; the `Fixed` form is `rapier_math::math_ext::vec2::gdot`.
+/// Mirrors `glam_core::Vec2::dot`, kept wide; the `Fixed` form is
+/// `rapier_math::math_ext::vec2::gdot`.
 /// #### Panics
 /// * `'i128_add Overflow'` only for raws at the very ends of the range (the sum needs 128 bits).
 /// #### Deviations
@@ -25,7 +26,7 @@ pub fn dot_wide(ax: Fixed, ay: Fixed, bx: Fixed, by: Fixed) -> i128 {
 
 /// Returns the exact raw Q64.64 perp-dot product `a x b` (`ax by - ay bx`), without rescale.
 ///
-/// Mirrors `glam::Vec2::perp_dot`, kept wide; the `Fixed` form is
+/// Mirrors `glam_core::Vec2::perp_dot`, kept wide; the `Fixed` form is
 /// `rapier_math::math_ext::vec2::gcross_vv`. Its **sign** is the side of the line `a` that `b`
 /// lies on and its vanishing is exact collinearity — neither survives a rescale.
 /// #### Panics

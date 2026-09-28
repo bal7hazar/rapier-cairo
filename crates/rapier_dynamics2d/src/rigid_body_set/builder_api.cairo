@@ -1,7 +1,7 @@
 //! RigidBodyBuilder API split out of `rigid_body_set.cairo`.
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::rigid_body::{RigidBodyActivationTrait, RigidBodyChangesTrait, RigidBodyType};
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_math::pose2::Pose2;

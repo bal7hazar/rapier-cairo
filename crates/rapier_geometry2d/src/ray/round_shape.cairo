@@ -13,7 +13,7 @@
 //! the exit with the inward normal; the feature is always `Unknown`.
 
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::is_zero2;
 use rapier_math::math_ext::vec2::try_normalize2;
 use crate::feature_id::FEATURE_UNKNOWN;

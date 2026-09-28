@@ -5,7 +5,7 @@
 //! `gas_collect_*` probes each candidate after the same `WARMUP` steps (`gas_setup_*`).
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::events::ContactForceEvent;

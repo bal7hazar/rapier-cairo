@@ -1,6 +1,6 @@
 //! Bit-for-bit multi-substep replay through the public joint API.
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_math::rot2::Rot2Trait;
 use rapier_testing::opaque;

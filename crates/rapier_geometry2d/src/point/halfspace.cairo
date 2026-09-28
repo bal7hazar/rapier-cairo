@@ -6,7 +6,7 @@
 
 use fixed::wide::{dot2, mul_add};
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::shape::HalfSpace;
 use super::PointProjection;
@@ -86,7 +86,7 @@ pub fn contains_local_point_halfspace(halfspace: HalfSpace, pt: Vec2) -> bool {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
     use crate::shape::HalfSpace;

@@ -72,7 +72,7 @@
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::data::union_find::{UnionFind, UnionFindTrait};
 use rapier_core::integration_parameters::IntegrationParameters;

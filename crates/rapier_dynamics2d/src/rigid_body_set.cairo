@@ -24,7 +24,7 @@
 use core::nullable::{FromNullableResult, match_nullable};
 use core::num::traits::DivRem;
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::changes::{PARENT, POSITION as COLLIDER_POSITION};
 use rapier_core::data::arena::{

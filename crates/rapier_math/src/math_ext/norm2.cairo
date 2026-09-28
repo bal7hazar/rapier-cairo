@@ -76,7 +76,7 @@ pub fn sq_wide(x: Fixed) -> i128 {
 
 /// Returns the exact raw Q64.64 squared length of `(x, y)` (`x_raw^2 + y_raw^2`).
 ///
-/// Mirrors `glam::Vec2::length_squared`, kept wide: no rescale, no underflow, and defined over
+/// Mirrors `glam_core::Vec2::length_squared`, kept wide: no rescale, no underflow, and defined over
 /// the whole scalar range.
 /// #### Panics
 /// * `'i128_add Overflow'` for the single input `x = y = fixed::MIN`, whose raw sum of squares is
@@ -189,8 +189,8 @@ pub fn is_norm2_between(x: Fixed, y: Fixed, lo: Fixed, hi: Fixed) -> bool {
 /// Returns `true` when `(x, y)` has unit length to within `tol_ulps` ulp of the **squared** norm,
 /// i.e. `|x^2 + y^2 - 1| <= tol_ulps * 2^-32`.
 ///
-/// Mirrors `glam::Vec2::is_normalized` (which tests `|length_squared() - 1| <= 2e-4`, a tolerance
-/// tied to f32's 24-bit mantissa); `super::super::consts::UNIT_TOL_ULPS` is the Q32.32
+/// Mirrors `glam_core::Vec2::is_normalized` (which tests `|length_squared() - 1| <= 2e-4`, a
+/// tolerance tied to f32's 24-bit mantissa); `super::super::consts::UNIT_TOL_ULPS` is the Q32.32
 /// equivalent, derived in that module. A direct port would compare `norm2_squared` against
 /// `1 +- tol`, which is off by up to 1 ulp because the rescale floors, and panics for long
 /// vectors.

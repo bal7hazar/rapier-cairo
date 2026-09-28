@@ -14,7 +14,7 @@ use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::num::traits::DivRem;
 use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, dot4, mul_sub, wide_from, wide_mul};
 use fixed::{Fixed, HALF, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_core::integration_parameters::spring::{SpringCoefficients, SpringCoefficientsTrait};

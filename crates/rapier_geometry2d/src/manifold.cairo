@@ -6,7 +6,7 @@
 
 use fixed::wide::dot2;
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::consts::{COS_1_DEGREES, DIST_SQ_THRESHOLD_RAW};
 use rapier_math::math_ext::norm2::{norm2_sq_wide, sq_wide};
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -241,7 +241,7 @@ mod alternatives {
                 return false;
             }
             let new_p1 = local_p2
-                - glam::Vec2 { x: manifold.local_n1.x * dist, y: manifold.local_n1.y * dist };
+                - glam_core::Vec2 { x: manifold.local_n1.x * dist, y: manifold.local_n1.y * dist };
             let delta = new_p1 - pt.local_p1;
             if norm2_sq_wide(delta.x, delta.y) > dist_sq_tol {
                 return false;
@@ -269,7 +269,7 @@ mod alternatives {
         }
     }
 
-    fn separation(pt: TrackedContact, pos12: Pose2, local_n1: glam::Vec2) -> Fixed {
+    fn separation(pt: TrackedContact, pos12: Pose2, local_n1: glam_core::Vec2) -> Fixed {
         let local_p2 = pos12.transform_point(pt.local_p2);
         let dpt = local_p2 - pt.local_p1;
         dot2(dpt.x, local_n1.x, dpt.y, local_n1.y)
@@ -279,7 +279,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::consts::{COS_1_DEGREES, DIST_SQ_THRESHOLD_RAW};
     use rapier_math::pose2::Pose2;
     use rapier_math::rot2::Rot2;

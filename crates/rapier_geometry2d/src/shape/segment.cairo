@@ -2,7 +2,7 @@
 
 use core::num::traits::Zero;
 use fixed::{Fixed, FixedTrait};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::{DEFAULT_EPSILON, try_normalize2, try_normalize2_eps};
 use crate::aabb::Aabb;
@@ -261,7 +261,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

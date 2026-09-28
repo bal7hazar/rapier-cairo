@@ -3,7 +3,7 @@
 //! `tests_scenes`; the golden comparison in `tests/control_golden.cairo`.
 
 use fixed::{FRAC_PI_2, FRAC_PI_4, Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_geometry2d::query::{ShapeCastHit, ShapeCastStatus};
 use rapier_geometry2d::shape::{Ball, CapsuleTrait, CuboidTrait, Shape};
 use rapier_math::pose2::{Pose2, Pose2Trait};

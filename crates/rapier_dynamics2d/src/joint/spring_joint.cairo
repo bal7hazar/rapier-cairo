@@ -1,7 +1,7 @@
 //! Spring joint builder (upstream `SpringJointBuilder`): no locked axis, coupled linear axes and
 //! a force-based position motor on the first one toward the rest length. Setters copy exactly.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use super::{GenericJoint, GenericJointTrait, LIN_AXES, MotorModel};
 
 /// Spring joint builder; build returns the shared GenericJoint representation.

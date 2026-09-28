@@ -5,7 +5,7 @@
 //! answers them with GJK, within its tolerance) must answer `true` here, touching included; every
 //! one of them is `true` upstream too.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::dispatch::intersection_test;
 use rapier_geometry2d::shape::{
     Ball, Capsule, ConvexPolygonTrait, Cuboid, HalfSpace, Segment, Shape,

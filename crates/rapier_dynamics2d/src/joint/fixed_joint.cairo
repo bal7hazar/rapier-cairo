@@ -1,6 +1,6 @@
 //! Typed view of a fixed joint (upstream `FixedJoint`): a `GenericJoint` with every axis locked.
 //! Nothing is added to the generic joint: the view wraps it and its methods are field accesses.
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use rapier_math::pose2::Pose2;
 use super::{FixedJointBuilder, GenericJoint, LOCKED_FIXED_AXES};

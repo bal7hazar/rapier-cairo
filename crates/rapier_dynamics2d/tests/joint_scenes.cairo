@@ -1,6 +1,6 @@
 //! Mock substep driver: DA pose integration and DE joint rebuild/solve against golden scenes.
 use fixed::{Fixed, FixedTrait, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_dynamics2d::joint::{

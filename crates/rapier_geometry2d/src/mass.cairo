@@ -13,7 +13,7 @@ use core::num::traits::Zero;
 use core::ops::{AddAssign, SubAssign};
 use fixed::wide::{WideAdd, WideMul, WideNarrow, dot2, norm2, wide_mul};
 use fixed::{Fixed, PI, ZERO};
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;
 use rapier_math::{DEFAULT_EPSILON, inv};
@@ -382,7 +382,7 @@ pub impl MassPropertiesSubAssign of SubAssign<MassProperties, MassProperties> {
 #[cfg(test)]
 mod alternatives {
     use fixed::{Fixed, FixedTrait, PI};
-    use glam::Vec2;
+    use glam_core::Vec2;
 
     fn three() -> Fixed {
         FixedTrait::from_int(3)
@@ -422,7 +422,7 @@ mod tests {
     use core::num::traits::Zero;
     use fixed::wide::norm2;
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_golden::compare::abs_diff;
     use rapier_golden::mass_properties::cases;
     use rapier_golden::types::ShapeRaw;

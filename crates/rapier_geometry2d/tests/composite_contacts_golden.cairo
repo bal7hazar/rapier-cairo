@@ -9,7 +9,7 @@
 //! upstream's PFM–PFM generator where the port runs the capsule–capsule one (see
 //! `rapier_geometry2d::dispatch::composite`).
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::dispatch::composite::contact_manifolds_composite;
 use rapier_geometry2d::query::{distance, intersection_test};

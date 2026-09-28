@@ -8,7 +8,7 @@
 //! `dist != 0` and the fallback is the segment normal, or `+y` for a segment that has none.
 
 use fixed::{Fixed, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::is_norm2_le;
 use rapier_math::math_ext::vec2::try_normalize2;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
@@ -118,7 +118,7 @@ pub fn contains_local_point_capsule(capsule: Capsule, pt: Vec2) -> bool {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
     use crate::shape::{Capsule, Segment};

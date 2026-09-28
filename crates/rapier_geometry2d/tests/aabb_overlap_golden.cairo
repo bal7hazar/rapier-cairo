@@ -1,7 +1,7 @@
 //! Golden broad-phase checks against Parry's closed-interval AABB overlap fixtures.
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::HandleTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::{BroadPhaseProxy, find_pairs};

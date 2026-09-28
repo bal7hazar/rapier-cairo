@@ -9,7 +9,7 @@
 mod empty;
 mod sweeps;
 use fixed::{Fixed, MAX, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::RigidBodyDamping;

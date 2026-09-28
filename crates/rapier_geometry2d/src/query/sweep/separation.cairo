@@ -4,7 +4,7 @@
 //! vertex of the other), as a function of the sweep fraction.
 
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2Trait;
 use rapier_math::rot2::Rot2Trait;
 use crate::point::wide2::dot_wide;

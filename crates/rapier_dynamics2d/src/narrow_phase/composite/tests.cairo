@@ -1,5 +1,5 @@
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};

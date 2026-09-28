@@ -14,7 +14,7 @@
 
 use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, wide_mul};
 use fixed::{Fixed, FixedTrait, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use crate::feature_id::FeatureIdTrait;
@@ -485,7 +485,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::consts::UNIT_TOL_SQ_RAW;
     use rapier_math::math_ext::norm2::is_unit2_raw;
     use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};

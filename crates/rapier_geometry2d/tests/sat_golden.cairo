@@ -1,7 +1,7 @@
 //! All 15 in-scope cases in both directions. Seven triangle cases are explicitly
 //! Counted as deferred: implementing their three edge axes is outside GD's scope.
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::sat::{
     cuboid_cuboid_find_local_separating_normal_oneway,
     cuboid_segment_find_local_separating_normal_oneway,

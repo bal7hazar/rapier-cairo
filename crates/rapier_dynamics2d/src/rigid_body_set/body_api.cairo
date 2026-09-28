@@ -1,5 +1,5 @@
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::rigid_body::changes::{
     DOMINANCE, ENABLED_OR_DISABLED, LOCAL_MASS_PROPERTIES, POSITION, SLEEP, TYPE,

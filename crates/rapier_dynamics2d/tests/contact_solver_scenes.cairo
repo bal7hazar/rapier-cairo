@@ -2,7 +2,7 @@
 //! Geometry is analytic: unit balls and bottom corners of a unit box against an infinite plane.
 use fixed::wide::dot2;
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_dynamics2d::solver::body::SolverBody;

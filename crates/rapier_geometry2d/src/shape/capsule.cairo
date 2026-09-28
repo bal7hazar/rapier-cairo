@@ -2,7 +2,7 @@
 //! `mass_properties_capsule.rs`).
 
 use fixed::{Fixed, FixedTrait, ONE};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
@@ -172,7 +172,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{Rot2, Rot2Trait};
     use rapier_testing::opaque;

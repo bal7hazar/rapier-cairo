@@ -27,7 +27,7 @@
 use core::num::traits::WideMul;
 use fixed::wide::norm2;
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::{is_zero2, norm2_sq_wide};
 use rapier_math::math_ext::vec2::try_normalize2;
 use crate::feature_id::FEATURE_UNKNOWN;
@@ -283,7 +283,7 @@ pub fn cast_local_ray_capsule(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::point::contains_local_point_capsule;
     use crate::shape::{Capsule, CapsuleTrait};

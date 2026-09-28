@@ -14,7 +14,7 @@
 
 use fixed::wide::{WideAdd, WideNarrow, distance2, dot2, norm2, wide_mul};
 use fixed::{Fixed, FixedTrait, MAX, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::{Pose2, Pose2Trait};

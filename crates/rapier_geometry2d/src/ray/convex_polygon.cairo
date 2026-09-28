@@ -3,7 +3,7 @@
 //! corner the lowest edge id wins a tied rounded time. Normals are outward on entry and inward on
 //! exit.
 use fixed::{Fixed, ZERO};
-use glam::Vec2Trait;
+use glam_core::Vec2Trait;
 use crate::feature_id::{FEATURE_UNKNOWN, FeatureIdTrait};
 use crate::point::cross_wide;
 use crate::shape::{ConvexPolygon, ConvexPolygonTrait};

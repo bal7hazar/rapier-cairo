@@ -39,7 +39,7 @@ pub mod halfspace;
 pub mod support_map;
 pub use ball_ball::cast_shapes_ball_ball;
 use fixed::{Fixed, MAX, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 pub use halfspace::{cast_shapes_halfspace_support_map, cast_shapes_support_map_halfspace};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;

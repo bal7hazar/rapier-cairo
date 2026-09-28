@@ -3,7 +3,7 @@
 //! Coordinates/displacements must fit Q32.32; all dot/pose products floor once.
 use fixed::wide::dot2;
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};
 use crate::clip::{ClippingPoints, clip_segment_segment_with_normal};
 use crate::contact::{ContactManifold, TrackedContact};
@@ -220,7 +220,7 @@ fn face_vertex(
 #[cfg(test)]
 mod tests {
     use fixed::{ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{IDENTITY, Pose2};
     use rapier_testing::opaque;
     use crate::contact::{ContactManifold, ContactManifoldTrait};

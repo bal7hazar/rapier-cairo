@@ -46,7 +46,7 @@
 //! its BVH: the answer is a subset of upstream's, and never misses a real overlap.
 
 use fixed::Fixed;
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::Handle;
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};

@@ -1,7 +1,7 @@
 //! Rope joint builder (upstream `RopeJointBuilder`): no locked axis, coupled linear axes and a
 //! `[0, max_dist]` limit on the first one, i.e. a maximum anchor distance. Setters copy exactly.
 use fixed::{Fixed, MAX, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use super::{GenericJoint, GenericJointTrait, JointMotor, LIN_AXES, MotorModel};
 

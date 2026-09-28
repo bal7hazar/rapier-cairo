@@ -1,7 +1,7 @@
 //! Kinematic interpolation uses centre-of-mass displacement and the shortest rotation.
 use fixed::trig::TrigTrait;
 use fixed::{Fixed, FixedTrait, HALF, ONE, PI, TWO, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;
 use rapier_testing::opaque;

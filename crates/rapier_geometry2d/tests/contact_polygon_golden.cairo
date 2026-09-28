@@ -1,6 +1,6 @@
 //! SAT/PFM vs upstream GJK/EPA: 48 cases over every pair/order/regime.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::dispatch::contact_manifold;
 use rapier_geometry2d::shape::{

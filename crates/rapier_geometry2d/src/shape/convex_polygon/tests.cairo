@@ -1,6 +1,6 @@
 use fixed::trig::TrigTrait;
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;
 use rapier_testing::opaque;

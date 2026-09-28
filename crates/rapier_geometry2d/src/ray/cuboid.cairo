@@ -16,7 +16,7 @@
 //! the slab loop stay meaningful for rays nearly parallel to an axis.
 
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::vec2::try_normalize2;
 use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
 use crate::shape::Cuboid;
@@ -253,7 +253,7 @@ pub fn cast_local_ray_and_get_normal_cuboid(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::{FEATURE_UNKNOWN, FeatureIdTrait};
     use crate::shape::{Cuboid, CuboidTrait};

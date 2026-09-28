@@ -1,6 +1,6 @@
 //! Body mutation API checks, separated to keep rigid_body_set below the source budget.
 use fixed::{Fixed, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::rigid_body::changes::{DOMINANCE, POSITION, SLEEP};
 use rapier_core::rigid_body::{RigidBodyActivationTrait, RigidBodyChangesTrait, RigidBodyType};
 use rapier_math::pose2::Pose2;

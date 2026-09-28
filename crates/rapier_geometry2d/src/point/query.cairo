@@ -19,7 +19,7 @@
 //! * The round shapes' impl is generic over the inner shape (`super::round_shape`).
 
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::norm2::is_norm2_gt;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::aabb::{
@@ -479,7 +479,7 @@ fn contains_local_point_sh1(shape: Shape, pt: Vec2) -> u8 {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

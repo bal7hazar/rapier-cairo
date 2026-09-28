@@ -1,5 +1,5 @@
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::HandleTrait;
 use crate::aabb::AabbTrait;
 use super::grid::{find_pairs_grid, find_pairs_grid_sized};

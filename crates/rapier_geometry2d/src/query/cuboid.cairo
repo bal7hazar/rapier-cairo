@@ -9,7 +9,7 @@
 //! the exact closest pair in 2D.
 
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::math_ext::norm2::is_norm2_gt;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -187,7 +187,7 @@ pub fn closest_points_triangle_cuboid(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

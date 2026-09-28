@@ -7,7 +7,7 @@
 //! plain field accesses, no candidates.
 
 use fixed::{Fixed, HALF, ONE};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::changes::{
     ENABLED_OR_DISABLED, GROUPS, LOCAL_MASS_PROPERTIES, PARENT, POSITION, SHAPE, TYPE,

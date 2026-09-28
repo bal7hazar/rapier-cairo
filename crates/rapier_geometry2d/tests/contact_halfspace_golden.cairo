@@ -1,7 +1,7 @@
 //! Half-space contact-manifold golden checks.
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use rapier_geometry2d::contact_generators::cuboid_segment::contact_manifold_cuboid_segment_shapes;
 use rapier_geometry2d::contact_generators::halfspace_pfm::contact_manifold_halfspace_pfm_shapes;

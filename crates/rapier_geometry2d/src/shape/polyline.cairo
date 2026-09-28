@@ -23,7 +23,7 @@ use core::nullable::NullableTrait;
 use core::num::traits::DivRem;
 use core::traits::BitOr;
 use fixed::Fixed;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::aabb::{Aabb, AabbTrait};

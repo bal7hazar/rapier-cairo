@@ -2,7 +2,7 @@
 //! `mass_properties_cuboid.rs`).
 
 use fixed::{Fixed, FixedTrait};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use rapier_math::{copy_sign_to, smallest_abs_component_index};
 use crate::aabb::bounding_volume::{BoundingSphere, centered_bounding_sphere};
@@ -189,7 +189,7 @@ pub impl CuboidImpl of CuboidTrait {
 #[cfg(test)]
 mod alternatives {
     use fixed::{Fixed, FixedTrait};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::Pose2;
     use rapier_math::rot2::Rot2Trait;
     use crate::aabb::{Aabb, AabbTrait};
@@ -225,7 +225,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_golden::contact_manifolds::cases;
     use rapier_golden::types::{ShapeRaw, Vec2Raw};
     use rapier_math::pose2::{Pose2, Pose2Trait};

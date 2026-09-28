@@ -28,7 +28,7 @@
 pub mod support_map;
 use fixed::trig::TrigTrait;
 use fixed::{FRAC_PI_2, FRAC_PI_4, Fixed, PI, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::{Rot2, Rot2Trait};
 pub use support_map::cast_shapes_nonlinear_support_map_support_map;

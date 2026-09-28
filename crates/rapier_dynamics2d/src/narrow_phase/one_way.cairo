@@ -1,6 +1,6 @@
 //! Built-in equivalent of upstream `update_as_oneway_platform` (no user hooks).
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_geometry2d::contact::ContactManifold;
 use super::PairCollider;
 
@@ -70,7 +70,7 @@ fn transition(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::Handle;
     use rapier_geometry2d::contact::{ContactManifold, SolverContact};
     use rapier_math::rot2::{Rot2, Rot2Trait};

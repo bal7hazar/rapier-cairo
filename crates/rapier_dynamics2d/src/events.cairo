@@ -7,7 +7,7 @@
 //! (`crate::narrow_phase::intersections`).
 
 use fixed::{FixedTrait, ZERO};
-use glam::Vec2Trait;
+use glam_core::Vec2Trait;
 use rapier_core::Handle;
 use rapier_core::collider::events::{REMOVED, SENSOR};
 use rapier_core::collider::{CollisionEventFlags, CollisionEventFlagsTrait};
@@ -21,11 +21,11 @@ pub struct ContactForceEvent {
     /// Second collider, in ascending pair order.
     pub collider2: Handle,
     /// Vector sum of normal forces, in world coordinates.
-    pub total_force: glam::Vec2,
+    pub total_force: glam_core::Vec2,
     /// Sum of individual normal-force magnitudes, not the length of `total_force`.
     pub total_force_magnitude: fixed::Fixed,
     /// World unit normal at the strongest contact, or zero when every impulse is zero.
-    pub max_force_direction: glam::Vec2,
+    pub max_force_direction: glam_core::Vec2,
     /// Strongest individual normal impulse divided by dt.
     pub max_force_magnitude: fixed::Fixed,
     /// True on the first step above threshold, reset at or below it or on separation.
@@ -212,7 +212,7 @@ pub fn stopped(collider1: Handle, collider2: Handle, flags: CollisionEventFlags)
 #[cfg(test)]
 mod tests {
     use fixed::{HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::Handle;
     use rapier_core::collider::events::{REMOVED, SENSOR};
     use rapier_core::collider::{CollisionEventFlags, CollisionEventFlagsTrait};

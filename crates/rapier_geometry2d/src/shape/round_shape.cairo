@@ -11,7 +11,7 @@
 //! `crate::contact_generators::pfm_pfm`.
 
 use fixed::Fixed;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingVolume};
 use crate::aabb::{Aabb, AabbTrait};

@@ -4,7 +4,7 @@
 //! generators do.
 
 use fixed::{Fixed, FixedTrait, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_geometry2d::broad_phase::find_pairs;

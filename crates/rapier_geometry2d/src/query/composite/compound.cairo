@@ -17,7 +17,7 @@
 //!   (distance, closest points, casts), which visits more parts for the same answer.
 
 use fixed::{Fixed, MAX};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;

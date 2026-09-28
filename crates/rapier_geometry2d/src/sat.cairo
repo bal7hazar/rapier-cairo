@@ -3,7 +3,7 @@
 //! Q32.32, otherwise the fixed arithmetic panics. No allocation or support loops.
 use fixed::wide::{dot2, normalize2};
 use fixed::{Fixed, FixedTrait, MAX, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::shape::{Capsule, Cuboid, Segment};
@@ -163,7 +163,7 @@ mod alternatives {
     //! Measured candidates retained for reproducibility.
     use core::num::traits::WideMul;
     use fixed::{Fixed, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use super::{Cuboid, Segment, X, Y, best, finish_cuboids, signed};
 
@@ -205,7 +205,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{IDENTITY, Pose2};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

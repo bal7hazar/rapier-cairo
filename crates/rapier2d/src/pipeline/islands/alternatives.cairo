@@ -22,7 +22,7 @@
 //! target of the lot being the awake free-fall step.
 
 use fixed::{Fixed, HALF, MAX, ONE, ZERO};
-use glam::Vec2Trait;
+use glam_core::Vec2Trait;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_core::rigid_body::activation::DEFAULT_NORMALIZED_LINEAR_THRESHOLD;

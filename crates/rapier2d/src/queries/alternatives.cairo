@@ -3,7 +3,7 @@
 //! returns exactly what the brute-force scan returns.
 
 use fixed::Fixed;
-use glam::vec2::Vec2Trait;
+use glam_core::vec2::Vec2Trait;
 use rapier_core::Handle;
 use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_geometry2d::aabb::{Aabb, AabbTrait};
@@ -98,7 +98,7 @@ pub fn intersect_shape_direct(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_dynamics2d::collider::ColliderBuilderTrait;
     use rapier_geometry2d::ray::Ray;
     use rapier_geometry2d::shape::{Ball, Shape};

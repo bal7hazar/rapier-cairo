@@ -33,7 +33,7 @@
 //!   port reports `-y`, upstream `+y`, so `pass_through` drops or keeps the start on opposite
 //!   sides (1 answer).
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::point::PointQuery;
 use rapier_geometry2d::query::shape_cast::{ShapeCastOptions, ShapeCastStatus, cast_shapes};
 use rapier_geometry2d::shape::Shape;

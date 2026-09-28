@@ -2,7 +2,7 @@
 //! classification by cosine comparison, the manifolds through the metered dispatcher.
 
 use fixed::{Fixed, FixedTrait, TrigTrait, ZERO};
-use glam::vec2::Vec2Trait;
+use glam_core::vec2::Vec2Trait;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::dispatch::composite::contact_manifolds_composite;
 use rapier_geometry2d::dispatch::contact_manifold;

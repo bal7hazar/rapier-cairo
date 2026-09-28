@@ -1,7 +1,7 @@
 //! Joint accessors of `World` (JA1): iteration, per-body queries, setters with their wake-ups.
 
 use fixed::{HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_dynamics2d::joint::{

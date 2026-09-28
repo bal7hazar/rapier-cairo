@@ -5,7 +5,7 @@
 //! `Segment`, `Cuboid`, `ConvexPolygon` and `Triangle` (as upstream), and for the [`Shape`] view
 //! returned by `ShapeTrait::as_polygonal_feature_map`.
 
-use glam::Vec2;
+use glam_core::Vec2;
 use crate::polygonal_feature::PolygonalFeature;
 use crate::shape::{
     ConvexPolygon, ConvexPolygonTrait, Cuboid, CuboidTrait, Segment, Shape, Triangle, TriangleTrait,
@@ -80,7 +80,7 @@ pub impl ShapePolygonalFeatureMap of PolygonalFeatureMap<Shape> {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_testing::opaque;
     use crate::polygonal_feature::PolygonalFeature;
     use crate::shape::{BallTrait, ConvexPolygonTrait, CuboidTrait, SegmentTrait, Shape, ShapeTrait};

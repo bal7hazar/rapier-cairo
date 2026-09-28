@@ -11,7 +11,7 @@ pub mod world;
 /// Everything a game needs to build and step a world (requested by P1).
 pub mod prelude {
     pub use fixed::Fixed;
-    pub use glam::Vec2;
+    pub use glam_core::Vec2;
     pub use rapier_core::collider::events::{
         ActiveEvents, COLLISION_EVENTS, CONTACT_FORCE_EVENTS, CollisionEventFlags, REMOVED, SENSOR,
     };

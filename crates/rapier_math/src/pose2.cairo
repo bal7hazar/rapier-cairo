@@ -1,7 +1,7 @@
 //! Rigid 2D transforms (the `glamx::Pose2` layer), with fused Q32.32 kernels.
 use fixed::ZERO;
 use fixed::wide::{dot2, dot2_add, mul_sub};
-use glam::Vec2;
+use glam_core::Vec2;
 use crate::rot2::{Rot2, Rot2Trait};
 
 /// Translation and unit-complex rotation; applies rotation first, then translation.
@@ -111,7 +111,7 @@ pub impl Pose2Mul of Mul<Pose2> {
 
 #[cfg(test)]
 mod alternatives {
-    use glam::Vec2;
+    use glam_core::Vec2;
     use crate::rot2::Rot2;
     use super::Pose2;
 
@@ -146,7 +146,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, MAX, MIN, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_testing::opaque;
     use crate::rot2::{Rot2, Rot2Trait};
     use super::{IDENTITY, Pose2, Pose2Trait, alternatives};

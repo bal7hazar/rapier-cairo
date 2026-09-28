@@ -1,7 +1,7 @@
 //! Public DF driver golden replays with analytic manifolds (GG is not required).
 use fixed::wide::dot2;
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_dynamics2d::joint::{ImpulseJoint, RevoluteJointBuilderTrait};

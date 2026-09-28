@@ -7,7 +7,7 @@
 //! a cairo-steps run).
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier2d::pipeline::ccd::{CCDSolver, CCDSolverTrait};
 use rapier2d::pipeline::config::BasicStepConfig;
 use rapier2d::world::{World, WorldTrait};

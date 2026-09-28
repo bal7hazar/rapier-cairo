@@ -1,7 +1,7 @@
 //! Cuboid manifolds: persistent contacts, two-way SAT, then feature clipping.
 //! First-axis ties, clipping order and f32 feature identifiers follow Parry.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::contact::{ContactManifold, ContactManifoldTrait};
 use crate::manifold::ManifoldTrait;

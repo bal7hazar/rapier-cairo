@@ -13,7 +13,7 @@
 
 use fixed::wide::{NormTrait, RecipTrait, norm2, norm2_wide};
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::is_norm2_le;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::shape::Ball;
@@ -100,7 +100,7 @@ pub fn contains_local_point_ball(ball: Ball, pt: Vec2) -> bool {
 #[cfg(test)]
 pub mod alternatives {
     use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_math::math_ext::norm2::is_norm2_le;
     use crate::shape::Ball;
     use super::super::PointProjection;
@@ -128,7 +128,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
     use crate::shape::Ball;

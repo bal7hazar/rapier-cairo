@@ -24,7 +24,7 @@
 //! made on Cairo steps, reported in `REPORT.md`.
 
 use fixed::{Fixed, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::Pose2Trait;
 use rapier_testing::opaque;
 use crate::shape::compound::{BoxedCompoundSerde, CompoundTrait};

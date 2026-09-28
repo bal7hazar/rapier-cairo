@@ -6,7 +6,7 @@
 //! `linear_slop / 4` of the target, and the port's exact distance kernel steers it through other
 //! iterates than GJK's); normal `NORMAL` = 2^10 (243); impact point `POINT` = 2^17 (53495).
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::query::sweep::{
     SweepToiStatus, SweepTrait, ToiProxyTrait, sweep_time_of_impact,
 };

@@ -8,7 +8,7 @@
 
 use fixed::wide::norm2;
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::consts::DEFAULT_EPSILON;
 use rapier_math::math_ext::norm2::{is_norm2_le, is_norm2_lt};
 use rapier_math::math_ext::vec2::try_normalize2;
@@ -240,7 +240,7 @@ pub fn distance_ball_convex_polyhedron(pos12: Pose2, ball1: Ball, shape2: Shape)
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

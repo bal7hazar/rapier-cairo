@@ -15,7 +15,7 @@
 //! `dispatch::contact_manifold_step` (the step's variant) is compared bit for bit with
 //! `dispatch::contact_manifold` on every case, in both orders, cold and warm.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use rapier_geometry2d::dispatch::{contact_manifold, contact_manifold_step};
 use rapier_geometry2d::shape::{

@@ -1,6 +1,6 @@
 //! Post-solver force events, in ascending collider-pair order.
 use fixed::{Fixed, FixedTrait, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::collider::ActiveEventsTrait;
 use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
 use rapier_dynamics2d::collider::Collider;
@@ -401,7 +401,7 @@ fn collect_groups(
 #[cfg(test)]
 mod tests {
     use fixed::{HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_dynamics2d::collider::ColliderBuilderTrait;
     use rapier_dynamics2d::narrow_phase::{ContactPairTrait, NarrowPhaseTrait};
     use rapier_dynamics2d::rigid_body_set::RigidBodyTrait;

@@ -2,7 +2,7 @@
 //! casts on every candidate, without the box pre-tests.
 
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::Handle;
 use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_geometry2d::query::{

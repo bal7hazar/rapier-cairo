@@ -1,6 +1,6 @@
 //! Upstream limit/motor configuration. Setters copy exactly; validation occurs in the solver.
 use fixed::{Fixed, MAX, MIN, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::{Rot2, Rot2Trait};

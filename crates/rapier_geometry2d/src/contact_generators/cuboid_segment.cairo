@@ -5,7 +5,7 @@
 
 use fixed::wide::distance2;
 use fixed::{Fixed, MAX, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::consts::{COS_1_DEGREES, DIST_SQ_THRESHOLD_RAW};
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -283,7 +283,7 @@ pub fn contact_manifold_cuboid_segment_shapes(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

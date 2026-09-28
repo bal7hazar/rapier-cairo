@@ -12,7 +12,7 @@
 
 use fixed::trig::TrigTrait;
 use fixed::{Fixed, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::collider::{
     ActiveCollisionTypes, ActiveEvents, ActiveEventsTrait, ActiveHooks, ActiveHooksTrait,
     CoefficientCombineRule, ColliderChangesTrait, ColliderEnabled, ColliderFlags, ColliderMaterial,
@@ -422,7 +422,7 @@ mod composite_tests;
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::collider::changes::ColliderChanges;
     use rapier_core::collider::events::COLLISION_EVENTS;
     use rapier_core::collider::hooks::FILTER_CONTACT_PAIRS;

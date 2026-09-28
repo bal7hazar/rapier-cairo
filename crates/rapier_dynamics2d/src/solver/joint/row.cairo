@@ -1,7 +1,7 @@
 //! Scalar row maths; fused dots floor once, multiplication floors, reciprocals round to nearest.
 use fixed::Fixed;
 use fixed::wide::dot4;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::inv;
 use super::super::body::SolverVel;
 

@@ -1,7 +1,7 @@
 //! Upstream frame construction and modified Gram–Schmidt, angular before X before Y.
 use fixed::wide::dot2;
 use fixed::{Fixed, ONE};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::gcross_vv;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;

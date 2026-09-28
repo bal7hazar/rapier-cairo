@@ -9,7 +9,7 @@
 //! compare with `gas_se_warm_<kind>` (warm-up only).
 
 use fixed::{HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_core::rigid_body::RigidBodyActivationTrait;

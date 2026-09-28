@@ -12,7 +12,7 @@
 
 use fixed::wide::norm2;
 use fixed::{Fixed, FixedTrait};
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_geometry2d::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
 use rapier_geometry2d::ray::{Ray, RayIntersection, cast_ray, cast_ray_and_get_normal};
 use rapier_geometry2d::shape::{

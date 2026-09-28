@@ -50,7 +50,7 @@ pub use cuboid::{
     project_local_point_and_get_feature_cuboid, project_local_point_cuboid,
 };
 use fixed::{Fixed, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 pub use halfspace::{
     contains_local_point_halfspace, distance_to_local_point_halfspace,
     project_local_point_and_get_feature_halfspace, project_local_point_halfspace,
@@ -142,7 +142,7 @@ pub impl SegmentPointLocationImpl of SegmentPointLocationTrait {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, HALF, ONE, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use super::{PointProjection, SegmentPointLocation, SegmentPointLocationTrait};
 

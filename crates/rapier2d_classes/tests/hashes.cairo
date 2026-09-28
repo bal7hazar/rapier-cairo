@@ -16,22 +16,22 @@ use starknet::{ClassHash, SyscallResultTrait};
 /// The class hashes snforge declares for this package's classes (`test_pinned_class_hashes`
 /// prints the new ones when the classes change).
 pub const CONTACT_BALL_HASH: felt252 =
-    0x7821f7fd3f73ec3e2000804015f615c63a5dde2495e2a8b3097f6e701f4153f;
+    0x4efa41be660cdf0afad6953de378645d439efea43d9409603db060d432c38df;
 pub const CONTACT_POLYGON_HASH: felt252 =
-    0x641aec5d123fca908fcb15ac8ea473bbd08dc2a2d06ca6fba995f4e0ac98676;
-pub const SOLVER_HASH: felt252 = 0x447d2dddc0d41fd2ac6d384e96f468d300f0509756eeb49435f004eac8a33ef;
+    0x7bfd56046f343075ac1c74a80bec6e00f3d3ba5c605b865e10e965ff403204c;
+pub const SOLVER_HASH: felt252 = 0x4cfc36dee6ae77a422c0db5333a91991141b907d937ceecde7c1fb155027737;
 pub const SOLVE_ADVANCE_HASH: felt252 =
-    0x484f69de20d79c8ec04effc9557b3ce9a63cc0940d9643f9a954c4a436c4239;
-pub const ISLANDS_HASH: felt252 = 0x6124b2b6093c09826da9b57e8008363ad730eae18a95ad5d6f5208342830f54;
+    0x6f22ca2b78b9955a5b288e4e80663a65fcb997739e11b68bf5c2226022b72d3;
+pub const ISLANDS_HASH: felt252 = 0x640435f9c277ebb55e1c01979eeb2cf84948424dcacbd669e11055d12b78bde;
 pub const BROAD_PHASE_HASH: felt252 =
-    0x7d3eed01dc6daa7f8ccdc93ffbed0f86c938302bbc3f8b1fcc24694b448c4d7;
-pub const MASS_HASH: felt252 = 0x5415bd22e6c965a3c006b598c748686672ef13cecde4d60cadb674184e451a2;
+    0x63c302fc078a15b81bc53c4d4bbc7c3c10920773cedcf9c4edf5a64c8e7a2b8;
+pub const MASS_HASH: felt252 = 0x59bd3e4c27c773dc1cd65d09408315b6344aad370a0ef1c60f8b24af42c0fce;
 pub const NARROW_PHASE_HASH: felt252 =
-    0x74d996fd9cb70bfae3c2a237aaddb26f1e2fc23471cc2d6cc0395ead7b895b5;
+    0x447bcf48b1735aaba6fdfaa632aed8582d115764ae676fdda24c31b20a10dbd;
 pub const ACTIVE_SET_HASH: felt252 =
-    0x4a6e55fafd8273f75152b3509aa40223f5f50e882ab1978a91beeb895201d02;
+    0x74d52fcda3b1da92328620cffef1ff1b9563f36b5cb02512dd1505a5fe12b14;
 pub const FORCE_EVENTS_HASH: felt252 =
-    0x322bab3a8c6a846ade7d18d85db51f1ad5cd92c1680dfc79e7049510928fe5a;
+    0x79868c1cabc3ba4f2fb06394abfa8365c2670b7aff7f9cf94faeb9d9fac7c8e;
 
 /// The declared classes: name, pinned hash, storage slot of [`StoredHashes`], call counter of
 /// [`CountingHashes`].

@@ -1,7 +1,7 @@
 //! Unit tests and gas probes of the island stage, the sleep timer and the extent helpers.
 
 use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::rigid_body::RigidBodyType;
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_dynamics2d::joint::{ImpulseJointSetTrait, RevoluteJointBuilderTrait};

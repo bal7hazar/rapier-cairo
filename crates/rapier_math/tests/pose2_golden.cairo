@@ -1,6 +1,6 @@
 //! End-to-end comparisons with Parry/glamx f64 pose fixtures; no input renormalization.
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_golden::compare::{vec2_within, within};
 use rapier_golden::types::{PoseRaw, RotRaw, Vec2Raw};
 use rapier_golden::{aabb, pose2, scenes};

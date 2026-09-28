@@ -11,7 +11,7 @@
 //! GJK stops at `0.99833`, 0.02 past the boundary; its normal and hit agree. Closest points of
 //! parallel faces (`ell_cuboid/hover`) may slide along the faces (`parallel`).
 use fixed::Fixed;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_geometry2d::feature_id::FeatureIdTrait;
 use rapier_geometry2d::point::PointQuery;
 use rapier_geometry2d::query::{

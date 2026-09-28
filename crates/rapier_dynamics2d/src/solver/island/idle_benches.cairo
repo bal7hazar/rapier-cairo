@@ -15,13 +15,14 @@ pub(crate) fn idle_set(n: u32) -> RigidBodySet {
         let x = FixedTrait::from_int(k.try_into().unwrap()) * FixedTrait::from_int(4);
         let mut rb = RigidBodyTrait::dynamic(
             rapier_math::pose2::Pose2 {
-                translation: glam::Vec2 { x, y: FixedTrait::from_int(100) }, ..Default::default(),
+                translation: glam_core::Vec2 { x, y: FixedTrait::from_int(100) },
+                ..Default::default(),
             },
         );
         rb.mprops.local_mprops.inv_mass = ONE;
         rb.mprops.local_mprops.inv_principal_inertia = FixedTrait::from_int(2);
-        rb.mprops.local_mprops.local_com = glam::Vec2 { x: HALF, y: ZERO };
-        rb.vels.linvel = glam::Vec2 { x: HALF, y: -ONE };
+        rb.mprops.local_mprops.local_com = glam_core::Vec2 { x: HALF, y: ZERO };
+        rb.vels.linvel = glam_core::Vec2 { x: HALF, y: -ONE };
         rb.vels.angvel = HALF;
         let _ = set.insert(rb);
         k += 1;
@@ -29,8 +30,8 @@ pub(crate) fn idle_set(n: u32) -> RigidBodySet {
     set
 }
 
-fn gravity() -> glam::Vec2 {
-    glam::Vec2 { x: ZERO, y: Fixed { raw: -42133629174 } }
+fn gravity() -> glam_core::Vec2 {
+    glam_core::Vec2 { x: ZERO, y: Fixed { raw: -42133629174 } }
 }
 
 #[inline(never)]

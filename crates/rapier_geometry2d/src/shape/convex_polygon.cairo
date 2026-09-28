@@ -4,7 +4,7 @@
 //! overflow panics. Padded slots are zero and do not participate in any query.
 
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;
@@ -494,7 +494,7 @@ mod tests;
 #[cfg(test)]
 mod alternatives {
     use fixed::{ONE, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2Trait;
     use crate::aabb::Aabb;

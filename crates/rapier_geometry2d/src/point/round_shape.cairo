@@ -16,7 +16,7 @@
 
 use fixed::wide::{NormTrait, RecipTrait, distance2, norm2_wide};
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::norm2::is_norm2_gt;
 use crate::feature_id::{FEATURE_UNKNOWN, FeatureId};
 use crate::shape::{

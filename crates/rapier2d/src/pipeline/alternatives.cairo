@@ -2,7 +2,7 @@
 //! measured ranking is in the pipeline module documentation and in `REPORT.md`.
 
 use fixed::{Fixed, HALF};
-use glam::Vec2;
+use glam_core::Vec2;
 use kind::{
     BALL_BALL, BALL_CONVEX, BallBallDispatcher, BallConvexDispatcher, CAPSULE_CAPSULE, CONVEX_BALL,
     CUBOID_CUBOID, CapsuleCapsuleDispatcher, ConvexBallDispatcher, CuboidCuboidDispatcher,

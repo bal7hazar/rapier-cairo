@@ -24,7 +24,7 @@
 
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
 use fixed::{Fixed, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;
 use crate::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
@@ -123,7 +123,7 @@ fn write_contact(
 pub mod alternatives {
     use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
     use fixed::{Fixed, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::math_ext::norm2::is_norm2_lt;
     use rapier_math::pose2::Pose2;
     use crate::contact::{ContactManifold, ContactManifoldTrait};
@@ -175,7 +175,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, HALF, ONE, TWO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::Pose2;
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

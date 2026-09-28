@@ -2,7 +2,7 @@
 //! stairs, the snap to the ground (upstream's private methods of the same names).
 
 use fixed::{Fixed, FixedTrait, ZERO};
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBodySetTrait, RigidBodyTrait};

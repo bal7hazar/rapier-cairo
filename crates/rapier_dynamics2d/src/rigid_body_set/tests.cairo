@@ -1,7 +1,7 @@
 //! Unit tests and gas probes of the rigid-body set.
 
 use fixed::{Fixed, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::rigid_body::changes::{ENABLED_OR_DISABLED, LOCAL_MASS_PROPERTIES, TYPE};
 use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyType};

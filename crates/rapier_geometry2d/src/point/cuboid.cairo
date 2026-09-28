@@ -18,7 +18,7 @@
 
 use fixed::wide::distance2;
 use fixed::{Fixed, FixedTrait, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::consts::DEFAULT_EPSILON;
 use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
 use crate::shape::Cuboid;
@@ -172,7 +172,7 @@ pub fn contains_local_point_cuboid(cuboid: Cuboid, pt: Vec2) -> bool {
 #[cfg(test)]
 pub mod alternatives {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_math::math_ext::scalar::copy_sign_to;
     use crate::shape::Cuboid;
     use super::super::PointProjection;
@@ -221,7 +221,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
     use crate::shape::Cuboid;

@@ -1,6 +1,6 @@
 //! Configuration parity of generic, revolute and prismatic value builders.
 use fixed::{HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_testing::opaque;
 use super::*;
 

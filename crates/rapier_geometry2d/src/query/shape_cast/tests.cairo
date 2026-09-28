@@ -1,7 +1,7 @@
 //! Table-driven tests and `gas_*` probes of the linear shape casts (`super`).
 
 use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_golden::compare::abs_diff;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::{Rot2, Rot2Trait};
