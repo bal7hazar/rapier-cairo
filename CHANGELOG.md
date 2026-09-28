@@ -25,6 +25,12 @@ whether simulation results changed.
   Touching starts cost +670 Cairo steps per cast; other casts are unchanged (CN1).
 
 ### Added
+- `rapier2d_classes` (new crate): the step's contact generation and island solve as declared Starknet classes
+  (`ContactBallClass` 39,561, `ContactPolygonClass` 54,634, `SolverClass` 43,726 CASM felts, each ≤ 73,728),
+  library-called at the constant hashes of a `ClassHashes` impl through `SplitStepConfig<H>`; bit-identical to
+  `BasicStepConfig` over a 151-tick pile10 shot, +22.8 % Cairo steps there (CS4, #211).
+- The island solver's input and output derive `Serde` and are `pub` (a Cairo-only extension for the declared classes;
+  no logic change, in-process steps and `program.basic` unchanged; ADR 0001 entry 39).
 - Controllers (`rapier2d::control`, in the prelude): `PdController`, `PidController`, `PdErrors` and the kinematic
   character controller (`KinematicCharacterController::move_shape` → `EffectiveCharacterMovement` + `CharacterCollision`s,
   `solve_character_collision_impulses`, `CharacterLength`, `CharacterAutostep`) on the shape casts; nothing of it

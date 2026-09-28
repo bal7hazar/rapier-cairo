@@ -20,6 +20,7 @@ rapier_math = { path = "crates/rapier_math", version = "0.1.0-alpha.6" }
 rapier_core = { path = "crates/rapier_core", version = "0.1.0-alpha.6" }
 rapier_geometry2d = { path = "crates/rapier_geometry2d", version = "0.1.0-alpha.6" }
 rapier_dynamics2d = { path = "crates/rapier_dynamics2d", version = "0.1.0-alpha.6" }
+rapier2d = { path = "crates/rapier2d", version = "0.1.0-alpha.6" }
 rapier_testing = { path = "crates/rapier_testing", version = "0.1.0-alpha.6" }
 rapier_golden = { path = "crates/rapier_golden", version = "0.1.0-alpha.6" }
 snforge_std = "0.61.0"
