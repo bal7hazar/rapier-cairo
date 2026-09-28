@@ -570,14 +570,14 @@ pub fn compute_contacts_from_scratch_with<
 
 /// `true` when either collider has `COLLISION_EVENTS`.
 #[inline(always)]
-fn events_on(co1: PairCollider, co2: PairCollider) -> bool {
+pub fn events_on(co1: PairCollider, co2: PairCollider) -> bool {
     (co1.active_events | co2.active_events).contains(COLLISION_EVENTS)
 }
 
 /// The `Stopped` event of a dropped previous pair, if its `Started` was emitted (see
 /// [`dropped_events`]); flagged `SENSOR` for an intersection pair.
 #[inline(always)]
-fn dropped_event(
+pub fn dropped_event(
     collider1: Handle,
     collider2: Handle,
     status: PairEventStatus,

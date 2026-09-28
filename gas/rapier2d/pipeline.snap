@@ -357,6 +357,9 @@ rapier2d::pipeline::solve_benches::gas_stack3_separate_marking 477297481
 rapier2d::pipeline::solve_benches::gas_stack3_shipped 477024061
 rapier2d::pipeline::solve_benches::gas_stack3_solve_0 470465817
 rapier2d::pipeline::solve_benches::gas_stack3_staged 477327531
+rapier2d::pipeline::stages::tests::test_batched_agrees_on_levels_and_scenes 657401028
+rapier2d::pipeline::stages::tests::test_batched_rejects_composite_pairs 1586619
+rapier2d::pipeline::stages::tests::test_batched_with_sensors_agrees 204746660
 rapier2d::pipeline::tests::test_all_manifolds_solver_agrees 120247152
 rapier2d::pipeline::tests::test_collision_inputs_match_the_stage_functions 73354630
 rapier2d::pipeline::tests::test_fused_step_agrees_on_scenes 597570380

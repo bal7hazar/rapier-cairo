@@ -300,7 +300,7 @@ fn wake_sleeping_dynamic(body: Option<Handle>, ref bodies: RigidBodySet) -> bool
 /// `islands::update_islands`, forced through its slow path when a body woke so that its island
 /// wakes with it.
 #[inline(never)]
-pub(crate) fn islands_after_insertions(
+pub fn islands_after_insertions(
     ref bodies: RigidBodySet,
     pairs: Span<ContactPair>,
     dormant: Span<ContactPair>,
