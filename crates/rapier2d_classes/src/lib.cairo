@@ -12,7 +12,9 @@
 //! * `ContactBallClass` (pairs with a ball) and `ContactPolygonClass` (cuboid, convex polygon and
 //!   half-space pairs), called by [`contact::FamilyDispatcher`] once per pair whose AABBs overlap,
 //!   or by [`contact::FamilyBatch`] once per step with all of them;
-//! * `NarrowPhaseClass` ([`narrow`], CS6): the pair loop, which calls the families once per step;
+//! * `NarrowPhaseClass` ([`narrow`], CS6, CX2): the pair loop and the contacts of the pairs without
+//!   a ball (the polygon family, computed in the class); it calls `ContactBallClass` once per step
+//!   for the pairs with a ball;
 //! * `SolveAdvanceClass` ([`advance`]), `IslandsClass` ([`islands`]), `BroadPhaseClass`
 //!   ([`broad_phase`]), `MassClass` ([`mass`]), `ActiveSetClass` ([`active_set`], CS6) and
 //!   `ForceEventsClass` ([`forces`], CS6): the other stages;
