@@ -25,11 +25,15 @@ whether simulation results changed.
   Touching starts cost +670 Cairo steps per cast; other casts are unchanged (CN1).
 
 ### Changed
-- **Breaking for custom `StepConfig` impls (CS5, #213):** `StepConfig` gained five stage slots (solve-and-advance,
-  narrow phase, islands, broad phase, mass) with in-process impls; `DefaultStepConfig` / `BasicStepConfig` users are
-  unaffected (same results, Cairo steps and program). CS6 moves the slots to a separate trait before the next release.
+- Not breaking: `StepConfig` keeps its `0.1.0-alpha.6` shape; the stage slots CS5 added to it (#213) live in a separate
+  `StageConfig` since CS6 (#215), taken by `World::step_with_stages` / `step_with_force_events_with_stages`
+  (`InProcessStages<C>` is the in-process default).
 
 ### Added
+- The slim caller (CS6, #215): `BasicWorldState` / `from_basic_state` / `into_basic_state` (the basic `WorldState`
+  codec: the same felts as `WorldState` v3, other shapes and used joint arenas rejected), `NarrowPhaseClass`,
+  `ActiveSetClass`, `ForceEventsClass`; a caller class stepping the game's worlds is 73,181 CASM felts (≤ 73,728), the
+  pile10 shot +65.9 % Cairo steps in 5 transactions of ≤ 10M; in-process steps and every `program.*` unchanged.
 - Stage classes in `rapier2d_classes` (`SolveAdvanceClass`, `IslandsClass`, `BroadPhaseClass`, `MassClass`, a batched
   contact entry point; each ≤ 73,728 felts) and configurations that library-call every stage; bit-identical to
   `BasicStepConfig` over the pile10 shot (CS5, #213).
