@@ -4,6 +4,7 @@
 
 mod hashes;
 mod pile10;
+mod removals;
 mod route_b;
 mod slim;
 mod split;
