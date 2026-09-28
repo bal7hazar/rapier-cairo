@@ -28,7 +28,6 @@ use rapier_geometry2d::dispatch::basic::errors::UNSUPPORTED;
 use starknet::syscalls::library_call_syscall;
 use starknet::{ClassHash, SyscallResultTrait};
 use crate::hashes::{ClassHashes, errors};
-use crate::narrow::wire::{put_job, put_result, take_job, take_result};
 
 /// The pairs with a ball: `contact_manifold_step_basic`'s ball arms. Always `true` (supported).
 ///
@@ -254,89 +253,6 @@ pub fn family_local_polygon(
     out.span()
 }
 
-/// One library call of `contact_packed` with the job wire `calldata` (the prediction, then the
-/// jobs): its result felts.
-fn packed_call(class_hash: ClassHash, calldata: Array<felt252>) -> Span<felt252> {
-    let mut ret = library_call_syscall(class_hash, selector!("contact_packed"), calldata.span())
-        .unwrap_syscall();
-    let _ = ret.pop_front();
-    ret
-}
-
-/// [`family_geometries`] through the compact wires (CX2, `crate::narrow::wire`): the jobs and
-/// the results packed.
-pub fn family_packed(
-    contact_ball: ClassHash, contact_polygon: ClassHash, prediction: Fixed, jobs: Span<ContactJob>,
-) -> Span<(bool, ManifoldGeometry)> {
-    let mut ball = array![];
-    let mut polygon = array![];
-    prediction.serialize(ref ball);
-    prediction.serialize(ref polygon);
-    let mut families = array![];
-    let mut balls = false;
-    let mut polygons = false;
-    for job in jobs {
-        let is_ball = ball_family(*job.shape1, *job.shape2);
-        if is_ball {
-            put_job(ref ball, job);
-            balls = true;
-        } else {
-            put_job(ref polygon, job);
-            polygons = true;
-        }
-        families.append(is_ball);
-    }
-    let mut ball = if balls {
-        packed_call(contact_ball, ball)
-    } else {
-        array![].span()
-    };
-    let mut polygon = if polygons {
-        packed_call(contact_polygon, polygon)
-    } else {
-        array![].span()
-    };
-    let mut out = array![];
-    for is_ball in families {
-        out.append(if is_ball {
-            take_result(ref ball)
-        } else {
-            take_result(ref polygon)
-        });
-    }
-    out.span()
-}
-
-/// [`contact_manifold_ball_family`] on each job of a job wire: the result wire.
-pub fn ball_packed(prediction: Fixed, jobs: Span<felt252>) -> Span<felt252> {
-    let mut jobs = jobs;
-    let mut out = array![];
-    while !jobs.is_empty() {
-        let job = take_job(ref jobs);
-        let mut manifold = with_geometry(job.geometry, Default::default());
-        let supported = contact_manifold_ball_family(
-            job.pos12, job.shape1, job.shape2, prediction, ref manifold,
-        );
-        put_result(ref out, supported, @geometry(@manifold));
-    }
-    out.span()
-}
-
-/// [`contact_manifold_polygon_family`] on each job of a job wire: the result wire.
-pub fn polygon_packed(prediction: Fixed, jobs: Span<felt252>) -> Span<felt252> {
-    let mut jobs = jobs;
-    let mut out = array![];
-    while !jobs.is_empty() {
-        let job = take_job(ref jobs);
-        let mut manifold = with_geometry(job.geometry, Default::default());
-        let supported = contact_manifold_polygon_family(
-            job.pos12, job.shape1, job.shape2, prediction, ref manifold,
-        );
-        put_result(ref out, supported, @geometry(@manifold));
-    }
-    out.span()
-}
-
 /// [`contact_manifold_ball_family`] on each job of a batch (default solver data, which no
 /// generator reads).
 pub fn ball_batch(prediction: Fixed, jobs: Span<ContactJob>) -> Span<(bool, ManifoldGeometry)> {
@@ -368,7 +284,6 @@ pub fn polygon_batch(prediction: Fixed, jobs: Span<ContactJob>) -> Span<(bool, M
 #[starknet::contract]
 pub mod ContactBallClass {
     use rapier2d::prelude::{Fixed, Pose2, Shape};
-    use crate::narrow::wire::Wire;
     use super::{ContactJob, ManifoldGeometry, contact_manifold_ball_family, with_geometry};
 
     #[storage]
@@ -398,19 +313,12 @@ pub mod ContactBallClass {
     ) -> Span<(bool, ManifoldGeometry)> {
         super::ball_batch(prediction, jobs)
     }
-
-    /// [`super::ball_packed`]: a step's pairs with a ball on the compact wires (CX2).
-    #[external(v0)]
-    fn contact_packed(self: @ContractState, prediction: Fixed, jobs: Wire) -> Span<felt252> {
-        super::ball_packed(prediction, jobs.felts)
-    }
 }
 
 /// The contact generation of the pairs of cuboids, convex polygons and half-spaces.
 #[starknet::contract]
 pub mod ContactPolygonClass {
     use rapier2d::prelude::{Fixed, Pose2, Shape};
-    use crate::narrow::wire::Wire;
     use super::{ContactJob, ManifoldGeometry, contact_manifold_polygon_family, with_geometry};
 
     #[storage]
@@ -439,11 +347,5 @@ pub mod ContactPolygonClass {
         self: @ContractState, prediction: Fixed, jobs: Span<ContactJob>,
     ) -> Span<(bool, ManifoldGeometry)> {
         super::polygon_batch(prediction, jobs)
-    }
-
-    /// [`super::polygon_packed`]: a step's pairs without a ball on the compact wires (CX2).
-    #[external(v0)]
-    fn contact_packed(self: @ContractState, prediction: Fixed, jobs: Wire) -> Span<felt252> {
-        super::polygon_packed(prediction, jobs.felts)
     }
 }
