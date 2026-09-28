@@ -3,8 +3,9 @@
 //! counts the steps of the library-called classes in the test's).
 
 use rapier2d::prelude::BasicStepConfig;
+use rapier_sink::split::alternatives::{CONTACT_FULL_CLASS_SLOT, FullManifoldStepConfig};
+use rapier_sink::split::{CONTACT_CLASS_SLOT, SplitNarrowStepConfig, class_at};
 use rapier_testing::opaque;
-use rapier_sink::split::{CONTACT_CLASS_SLOT, SplitNarrowStepConfig};
 use snforge_std::{DeclareResultTrait, declare};
 use starknet::SyscallResultTrait;
 use starknet::syscalls::{library_call_syscall, storage_write_syscall};
@@ -28,9 +29,15 @@ fn split_narrow(ticks: u32) {
     opaque(digest(ref pile));
 }
 
+fn split_full(ticks: u32) {
+    install("ContactClassFull", CONTACT_FULL_CLASS_SLOT);
+    let (mut pile, _) = run::<FullManifoldStepConfig>(ticks);
+    opaque(digest(ref pile));
+}
+
 #[test]
 fn test_split_narrow_bit_identical() {
-    let ticks = 60;
+    let ticks = 151;
     let (mut pile, events) = run::<BasicStepConfig>(ticks);
     let expected = digest(ref pile);
     install("ContactClass", CONTACT_CLASS_SLOT);
@@ -39,8 +46,10 @@ fn test_split_narrow_bit_identical() {
     assert_eq!(digest(ref pile), expected);
 }
 
-/// `n` library calls of `Echo::echo` with `len` felts each way.
-fn echo(n: u32, len: u32) {
+/// `n` library calls of `Echo::echo` with `len` felts each way; with `stored`, the class hash is
+/// read from storage before each call (as the split dispatchers read it).
+fn echo(n: u32, len: u32, stored: bool) {
+    install("Echo", CONTACT_CLASS_SLOT);
     let class_hash = *declare("Echo").unwrap_syscall().contract_class().class_hash;
     let mut data: Array<felt252> = array![];
     let mut i = 0;
@@ -53,8 +62,12 @@ fn echo(n: u32, len: u32) {
     let calldata = opaque(calldata);
     let mut k = 0;
     while k != n {
-        let ret = library_call_syscall(class_hash, selector!("echo"), calldata.span())
-            .unwrap_syscall();
+        let class = if stored {
+            class_at(CONTACT_CLASS_SLOT)
+        } else {
+            class_hash
+        };
+        let ret = library_call_syscall(class, selector!("echo"), calldata.span()).unwrap_syscall();
         assert(ret.len() == len + 1, 'echo');
         k += 1;
     }
@@ -62,22 +75,27 @@ fn echo(n: u32, len: u32) {
 
 #[test]
 fn steps_echo_0_0() {
-    echo(0, 0);
+    echo(0, 0, false);
 }
 
 #[test]
 fn steps_echo_10_0() {
-    echo(10, 0);
+    echo(10, 0, false);
 }
 
 #[test]
 fn steps_echo_10_100() {
-    echo(10, 100);
+    echo(10, 100, false);
+}
+
+#[test]
+fn steps_echo_10_0_stored() {
+    echo(10, 0, true);
 }
 
 #[test]
 fn steps_echo_10_1000() {
-    echo(10, 1000);
+    echo(10, 1000, false);
 }
 
 #[test]
@@ -278,4 +296,44 @@ fn steps_split_narrow_150() {
 #[test]
 fn steps_split_narrow_151() {
     split_narrow(151);
+}
+
+#[test]
+fn steps_split_full_0() {
+    split_full(0);
+}
+
+#[test]
+fn steps_split_full_30() {
+    split_full(30);
+}
+
+#[test]
+fn steps_split_full_42() {
+    split_full(42);
+}
+
+#[test]
+fn steps_split_full_43() {
+    split_full(43);
+}
+
+#[test]
+fn steps_split_full_44() {
+    split_full(44);
+}
+
+#[test]
+fn steps_split_full_60() {
+    split_full(60);
+}
+
+#[test]
+fn steps_split_full_100() {
+    split_full(100);
+}
+
+#[test]
+fn steps_split_full_151() {
+    split_full(151);
 }

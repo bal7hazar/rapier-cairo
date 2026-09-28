@@ -110,11 +110,10 @@ fn bodies() -> Array<(ColliderBuilder, Pose2, u32)> {
     let cube = ColliderBuilderTrait::cuboid(f(HALF), f(HALF));
     array![
         (ColliderBuilderTrait::halfspace(Vec2 { x: f(0), y: f(ONE) }), at(0, 0), 1),
-        (cube, at(18 * ONE, HALF), 0), (cube, at(19 * ONE, HALF), 0),
-        (cube, at(20 * ONE, HALF), 0), (cube, at(21 * ONE, HALF), 0),
-        (cube, at(18 * ONE + HALF, 6438155977), 1), (cube, at(19 * ONE + HALF, 6438155977), 1),
-        (cube, at(20 * ONE + HALF, 6438155977), 1), (cube, at(19 * ONE, 10733123273), 2),
-        (cube, at(20 * ONE, 10733123273), 2),
+        (cube, at(18 * ONE, HALF), 0), (cube, at(19 * ONE, HALF), 0), (cube, at(20 * ONE, HALF), 0),
+        (cube, at(21 * ONE, HALF), 0), (cube, at(18 * ONE + HALF, 6438155977), 1),
+        (cube, at(19 * ONE + HALF, 6438155977), 1), (cube, at(20 * ONE + HALF, 6438155977), 1),
+        (cube, at(19 * ONE, 10733123273), 2), (cube, at(20 * ONE, 10733123273), 2),
         (ColliderBuilderTrait::ball(f(1717986918)), at(19 * ONE + HALF, 14598593839), 3),
     ]
 }
@@ -172,7 +171,9 @@ fn sleep_all(ref pile: Pile) {
 pub fn launch(ref pile: Pile, pull: (i32, i32)) {
     let (px, py) = pull;
     let scale = f(LAUNCH_SCALE);
-    let linvel = Vec2 { x: FixedTrait::from_int(-px) * scale, y: FixedTrait::from_int(-py) * scale };
+    let linvel = Vec2 {
+        x: FixedTrait::from_int(-px) * scale, y: FixedTrait::from_int(-py) * scale,
+    };
     let body = RigidBodyBuilderTrait::dynamic()
         .position(at(3 * ONE, 5 * HALF))
         .linvel(linvel)
