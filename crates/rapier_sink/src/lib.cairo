@@ -8,6 +8,7 @@
 //! `docs/research/class-size.md`. Every input comes from calldata, so that nothing is
 //! constant-folded. The scenes live in `scene`, the contracts in `sink`.
 
+pub mod family;
 pub mod scene;
 pub mod sink;
 pub mod split;
