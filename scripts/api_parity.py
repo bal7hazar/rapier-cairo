@@ -483,7 +483,7 @@ OWNER_ALIASES.update({
     # SH1: Parry's generic `RoundShape<S>` is instantiated as three aliases; its `impl Shape` and
     # `RayCast` are the aliases' (`From<RoundCuboid> for Shape`, `RoundCuboidRayCast`, ...).
     "RoundShape": ("RoundShape", "RoundShapeTrait", "RoundCuboid", "RoundTriangle", "RoundConvexPolygon"),
-    "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase", "NarrowPhaseContactPairs"),
+    "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase", "NarrowPhaseContactPairs", "NarrowPhaseInteractionGraph"),
     "Halfspace": ("HalfSpace",),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
     "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),
@@ -516,7 +516,7 @@ OWNER_ALIASES.update({
     "TypedShape": ("Shape",),
     # CP3: upstream's `ContactPair` (one pair, all its manifolds) is `ContactPairView`
     # (`narrow_phase/contact_pairs.cairo`; the pair list keeps one `ContactPair` entry per manifold,
-    # ADR 0001 entry 35); the `NarrowPhase` reads are `NarrowPhaseContactPairsTrait`.
+    # ADR 0001 entry 35); the `NarrowPhase` reads are `NarrowPhaseContactPairsTrait`. The graph reads are `NarrowPhaseInteractionGraphTrait` (IG1).
     "ContactPair": ("ContactPair", "ContactPairView"),
     # SH2a: the composite queries are free functions of `{point,ray,query,dispatch}/composite.cairo`
     # and `query/sweep/composite.cairo` (owner `Composite`), over `Shape::{Polyline, HeightField}`.
@@ -1096,8 +1096,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
                     "voxelized_convex_decomposition_with_params", "voxelized_mesh")},
     # CP3 / programme (2026-09-29): the interaction graph stays in scope; a read-only view over the pair list can
     # answer most of it (derived `Default` / `Debug` are matched since the CP3 follow-up).
-    **{("NarrowPhase", n): "Not ported yet: a read-only view over the pair list (no persistent graph, D7); meanwhile `contact_pairs` / `intersection_pairs`."
-       for n in ("contact_graph", "intersection_graph")},
     ("ContactManifoldData", "solver_contact_world_points"):
         "The port's anchors are world-frame offsets from the centre of mass at the step's start; the bodies have moved since, so no exact answer from the manifold data.",
     # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
