@@ -12,10 +12,25 @@ whether simulation results changed.
   counts unchanged; class hashes change (type paths), consumers re-declare; a consumer must itself be on `fixed` 0.4
   and `glam` ≥ 0.4.1 (or `glam_core`), otherwise it holds two generations of the same types. `rapier2d::prelude`
   still re-exports `Vec2` and `Fixed` (DU1, #225).
+- `rapier2d_classes` (CS7, #226): the slim caller 73,204 → 67,076 CASM felts (outlined basic-codec readers, the mass
+  crossing written by the basic collider writer), the slim layout's pile10 shot 30.77M → 30.71M Cairo steps (+36.9 %
+  over in process, 4 transactions of ≤ 10M); `ContactPolygonClass` is no longer called by the slim layout (CX2 moved
+  the polygon family into `NarrowPhaseClass`). Bit-identical; the basic codec writes and reads the same felts.
 - `rapier2d_classes` (CX2, #222): `NarrowPhaseClass` computes the polygon-family contacts itself (68,372 CASM felts)
   and previous pairs cross trimmed (`PreviousPair`); the slim layout's pile10 shot 32.97M → 30.77M Cairo steps (+37.2 %
   over in process, 4 transactions of ≤ 10M), its caller 73,204 CASM felts. `NarrowPhaseClass::compute_contacts` has new
   arguments: games re-declare the class. Bit-identical.
+
+### Added
+- `WorldEditClass` (CS7, #226): the World edits between steps (insert a body with its collider and velocities, remove
+  bodies, put bodies to sleep) as a declared class, 51,865 CASM felts; `edit_world` takes its class hash as a parameter
+  (`ClassHashes` is unchanged). A caller that forwards the edits is 68,818 CASM felts (the same edits compiled in the
+  caller: 96,657).
+- Outlined readers of the basic `WorldState` codec (`world::basic_state::decode`; ADR 0001 entry 44).
+
+### Removed
+- From `rapier2d_classes`: `OrchestratorClass` (CS6's rejected route (b)) and the other measured-only classes, now
+  unpublished fixtures of `rapier_sink` (CS7, #226). A game declares only the classes the crate's README lists.
 
 ## 0.1.0-alpha.7 — 2026-09-28
 
