@@ -8,6 +8,10 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8`.
 
 ### Added
+- A read-only `InteractionGraph` view over the step's pair list (IG1, #238; off the step path): `Default`, `new`,
+  `interactions`, `interactions_with_endpoints`, `interaction_pair`, `interactions_between`, `interactions_with`,
+  `index_interaction`; `NarrowPhase::{contact_graph, intersection_graph}`; `ColliderGraphIndex` /
+  `TemporaryInteractionIndex` are indices into the step's pair list, valid until the next step; in the prelude.
 - The contact-pair read API (CP3, #235; off the step path): `ContactPairView` (one per collider pair, the manifolds
   of a composite run gathered) with `manifolds`, `solver_manifolds`, `rigid`, `total_impulse`,
   `total_impulse_magnitude`, `max_impulse`, `find_deepest_contact`, `clear`; `NarrowPhase::{contact_pairs,
