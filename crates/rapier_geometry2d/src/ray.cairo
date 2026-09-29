@@ -25,6 +25,7 @@
 //! for its deviations; the capsule is the notable one (analytic here, GJK upstream).
 
 pub mod ball;
+pub mod bounding_sphere;
 pub mod capsule;
 pub mod cast;
 pub mod composite;

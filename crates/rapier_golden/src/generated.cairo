@@ -23,6 +23,7 @@ pub mod compound_rays;
 pub mod compound_scenes;
 pub mod compound_shapes;
 pub mod contact_manifolds;
+pub mod geometry_utils;
 pub mod integration_parameters;
 pub mod intersection_tests;
 pub mod level_scenes;

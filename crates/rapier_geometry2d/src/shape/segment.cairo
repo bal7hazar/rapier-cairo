@@ -222,6 +222,13 @@ pub impl SegmentImpl of SegmentTrait {
         Self::local_bounding_sphere(self).transform_by(pose)
     }
 
+    /// The segment of the two points `[a, b]` (upstream `from_array`, a reinterpretation of
+    /// the array there: a value here).
+    #[inline(always)]
+    fn from_array(arr: [Vec2; 2]) -> Segment {
+        arr.into()
+    }
+
     /// Both end points multiplied component-wise by `scale` (floored products).
     #[inline(always)]
     fn scaled(self: Segment, scale: Vec2) -> Segment {
@@ -431,5 +438,13 @@ mod tests {
     #[test]
     fn gas_local_support_point() {
         let _ = opaque(seg(0, 0, 3, 4)).local_support_point(opaque(v(1, 1)));
+    }
+    #[test]
+    fn test_from_array() {
+        assert_eq!(SegmentTrait::from_array([v(1, 2), v(3, 4)]), seg(1, 2, 3, 4));
+    }
+    #[test]
+    fn gas_from_array() {
+        let _ = SegmentTrait::from_array(opaque([v(1, 2), v(3, 4)]));
     }
 }

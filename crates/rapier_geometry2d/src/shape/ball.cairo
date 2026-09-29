@@ -1,11 +1,13 @@
 //! `Ball` (Parry `shape/ball.rs`, `bounding_volume/aabb_ball.rs`, `mass_properties_ball.rs`).
 
-use fixed::Fixed;
+use fixed::{Fixed, FixedTrait};
 use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use crate::aabb::bounding_volume::{BoundingSphere, centered_bounding_sphere};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
+use super::convex_polygon::ConvexPolygon;
+use super::scaled::{Either, ball_outline, scaled_polygon};
 
 /// A disc of the given radius centred on the local origin.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -19,6 +21,25 @@ pub impl BallImpl of BallTrait {
     #[inline(always)]
     fn new(radius: Fixed) -> Ball {
         Ball { radius }
+    }
+
+    /// The ball under `scale` (upstream `scaled`): a ball of radius `radius * |scale.x|` for a
+    /// uniform scale (`Left`), otherwise the [`ConvexPolygon`] of the `nsubdivs` points of its
+    /// outline scaled component-wise (`Right`), `None` if that polygon cannot be built.
+    /// #### Panics
+    /// * `'Fixed: overflow'` if a radius or a coordinate leaves the scalar range.
+    /// #### Deviations
+    /// * The polygon holds at most 8 vertices: `None` for `nsubdivs` outside `3..=8` (see
+    ///   [`super::scaled::ball_outline`]); outline angles are `TAU * k / nsubdivs` in one rounding.
+    /// * A scale of negative determinant reverses the outline: `None` (upstream returns a
+    ///   polygon with inward normals).
+    fn scaled(self: Ball, scale: Vec2, nsubdivs: u32) -> Option<Either<Ball, ConvexPolygon>> {
+        if scale.x != scale.y {
+            let points = ball_outline(self.radius, nsubdivs)?;
+            Some(Either::Right(scaled_polygon(points.span(), scale)?))
+        } else {
+            Some(Either::Left(Ball { radius: self.radius * scale.x.abs() }))
+        }
     }
 
     /// `[-r, r]^2`.

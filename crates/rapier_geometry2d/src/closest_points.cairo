@@ -47,6 +47,7 @@
 //! of an infinite family; it is deterministic and it matches the `ambiguous` fixtures of
 //! `rapier_golden::segment_segment` in distance, not necessarily in location.
 
+pub mod line_line;
 use fixed::wide::{dot2, norm2_squared};
 use fixed::{Fixed, ONE, ZERO};
 use glam_core::vec2::Vec2;

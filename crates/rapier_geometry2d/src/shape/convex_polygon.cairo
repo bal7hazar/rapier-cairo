@@ -77,6 +77,16 @@ fn get(values: [Vec2; 8], i: u8) -> Vec2 {
     }
 }
 
+/// `normalize(n * scale)` for a live slot, the zero padding otherwise; `None` for a zero result.
+fn scale_normal(n: Vec2, scale: Vec2, live: bool) -> Option<Vec2> {
+    if !live {
+        return Some(n);
+    }
+    let m = n * scale;
+    let (x, y) = try_normalize2(m.x, m.y)?;
+    Some(Vec2 { x, y })
+}
+
 fn padded(points: Span<Vec2>, i: u32) -> Vec2 {
     if i < points.len() {
         *points.at(i)
@@ -131,6 +141,35 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
                     padded(ns, 5), padded(ns, 6), padded(ns, 7),
                 ],
                 count: n.try_into().unwrap(),
+            },
+        )
+    }
+
+    /// The polygon with every vertex multiplied component-wise by `scale` (upstream `scaled`).
+    /// Each normal is multiplied by `scale` and normalised again, as upstream does (its
+    /// formula, not the inverse transpose: the normals of a non-uniform scale need not stay
+    /// perpendicular to the edges); `None` if a normal becomes zero.
+    /// #### Panics
+    /// * `'Fixed: overflow'` if a coordinate leaves the scalar range.
+    /// #### Deviations
+    /// * Vertex products floor; normalisation rounds to nearest (`try_normalize2`).
+    fn scaled(self: ConvexPolygon, scale: Vec2) -> Option<ConvexPolygon> {
+        let [v0, v1, v2, v3, v4, v5, v6, v7] = self.vertices;
+        let [n0, n1, n2, n3, n4, n5, n6, n7] = self.normals;
+        let c = self.count;
+        Some(
+            ConvexPolygon {
+                vertices: [
+                    v0 * scale, v1 * scale, v2 * scale, v3 * scale, v4 * scale, v5 * scale,
+                    v6 * scale, v7 * scale,
+                ],
+                normals: [
+                    scale_normal(n0, scale, 0 < c)?, scale_normal(n1, scale, 1 < c)?,
+                    scale_normal(n2, scale, 2 < c)?, scale_normal(n3, scale, 3 < c)?,
+                    scale_normal(n4, scale, 4 < c)?, scale_normal(n5, scale, 5 < c)?,
+                    scale_normal(n6, scale, 6 < c)?, scale_normal(n7, scale, 7 < c)?,
+                ],
+                count: c,
             },
         )
     }

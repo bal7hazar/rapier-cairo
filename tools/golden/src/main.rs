@@ -10,6 +10,7 @@ mod cairo;
 mod ccd_scenes;
 mod clip2d;
 mod cn1;
+mod geometry_utils;
 mod intersection_tests;
 mod jsonfmt;
 mod kc1;
@@ -79,7 +80,7 @@ fn main() {
 
     if mode == "all" || mode == "vectors" {
         type Family = (&'static str, fn() -> Value);
-        let families: [Family; 32] = [
+        let families: [Family; 33] = [
             ("integration_parameters", params::generate),
             ("mass_properties", mass::generate),
             ("aabb", aabb::generate),
@@ -112,6 +113,7 @@ fn main() {
             ("tilted_landing", sf1::tilted_landing),
             ("pid_corrections", kc1::pid_corrections),
             ("character_moves", kc1::character_moves),
+            ("geometry_utils", geometry_utils::generate),
         ];
         for (name, generate) in families {
             let value = with_header(generate());

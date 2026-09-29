@@ -5,6 +5,8 @@
 //! in the test-only alternatives for equivalence checks and gas ranking.
 
 pub mod bounding_volume;
+pub mod clip;
+pub mod utils;
 use bounding_volume::{BoundingSphere, local_point_cloud_aabb};
 use fixed::wide::{dot2, norm2};
 use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, ZERO};

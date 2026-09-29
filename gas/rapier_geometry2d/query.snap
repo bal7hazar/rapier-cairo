@@ -114,6 +114,15 @@ rapier_geometry2d::query::shape_cast::tests::test_start_in_contact 8527200
 rapier_geometry2d::query::shape_cast::tests::test_support_map_table 6823470
 rapier_geometry2d::query::shape_cast::tests::test_symmetry 57142160
 rapier_geometry2d::query::shape_cast::tests::test_table_and_world 3495980
+rapier_geometry2d::query::split::tests::gas_baseline 13620
+rapier_geometry2d::query::split::tests::gas_canonical_split 105480
+rapier_geometry2d::query::split::tests::gas_local_split 104510
+rapier_geometry2d::query::split::tests::gas_local_split_and_get_intersection 104510
+rapier_geometry2d::query::split::tests::gas_local_split_parallel 104710
+rapier_geometry2d::query::split::tests::test_canonical_split_axes 297800
+rapier_geometry2d::query::split::tests::test_canonical_split_axis_out_of_range 20810
+rapier_geometry2d::query::split::tests::test_split_pair_and_intersection 158070
+rapier_geometry2d::query::split::tests::test_split_without_intersection 381360
 rapier_geometry2d::query::support_map::tests::gas_baseline 13620
 rapier_geometry2d::query::support_map::tests::gas_closest_points_support_map_cuboid_capsule 719460
 rapier_geometry2d::query::support_map::tests::gas_contact_support_map_cuboid_cuboid_overlapping 722250
@@ -125,7 +134,10 @@ rapier_geometry2d::query::support_map::tests::gas_distance_support_map_capsule_c
 rapier_geometry2d::query::support_map::tests::gas_distance_support_map_cuboid_cuboid 833690
 rapier_geometry2d::query::support_map::tests::gas_distance_support_map_triangle_triangle 943540
 rapier_geometry2d::query::support_map::tests::gas_distance_witness_capsule_capsule 377310
+rapier_geometry2d::query::support_map::tests::gas_local_point_projection_on_support_map 34700
 rapier_geometry2d::query::support_map::tests::test_halfspace_is_not_a_support_map 14620
+rapier_geometry2d::query::support_map::tests::test_local_point_projection_on_a_half_space_panics 20810
+rapier_geometry2d::query::support_map::tests::test_local_point_projection_on_support_map 13620
 rapier_geometry2d::query::support_map::tests::test_queries_follow_the_witness 1705280
 rapier_geometry2d::query::support_map::tests::test_witness_table 3844780
 rapier_geometry2d::query::sweep::tests::gas_baseline 13620

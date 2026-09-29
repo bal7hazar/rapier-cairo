@@ -25,6 +25,7 @@
 //! radius in `round_shape` (closed form where upstream runs GJK).
 
 pub mod ball;
+pub mod bounding_sphere;
 pub mod capsule;
 pub mod composite;
 pub mod compound;

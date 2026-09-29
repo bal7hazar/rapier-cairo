@@ -9,6 +9,8 @@ use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::{MassProperties, MassPropertiesTrait};
 use crate::shape::segment::{Segment, SegmentTrait};
+use super::convex_polygon::ConvexPolygon;
+use super::scaled::{Either, capsule_outline, scaled_polygon};
 
 /// The segment `segment` dilated by `radius`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -90,6 +92,36 @@ pub impl CapsuleImpl of CapsuleTrait {
     /// Upstream `canonical_transform`, the same pose as [`CapsuleTrait::transform_wrt_y`].
     fn canonical_transform(self: Capsule) -> Pose2 {
         Self::transform_wrt_y(self)
+    }
+
+    /// The capsule under `scale` (upstream `scaled`): a capsule with the end points scaled and
+    /// the radius by `|scale.x|` for a uniform scale (`Left`), otherwise the [`ConvexPolygon`]
+    /// of the `2 * nsubdiv` points of its outline scaled component-wise (`Right`), `None` if that
+    /// polygon cannot be built.
+    /// #### Panics
+    /// * `'Fixed: overflow'` if a coordinate or the radius leaves the scalar range.
+    /// #### Deviations
+    /// * The polygon holds at most 8 vertices: `None` for `nsubdiv` outside `2..=4` (see
+    ///   [`super::scaled::capsule_outline`]); outline angles are `PI * k / nsubdiv` in one
+    ///   rounding.
+    /// * A scale of negative determinant reverses the outline: `None` (upstream returns a
+    ///   polygon with inward normals).
+    fn scaled(self: Capsule, scale: Vec2, nsubdiv: u32) -> Option<Either<Capsule, ConvexPolygon>> {
+        if scale.x != scale.y {
+            let points = capsule_outline(self, nsubdiv)?;
+            Some(Either::Right(scaled_polygon(points.span(), scale)?))
+        } else {
+            let s = scale.x;
+            Some(
+                Either::Left(
+                    Self::new(
+                        self.segment.a.mul_scalar(s),
+                        self.segment.b.mul_scalar(s),
+                        self.radius * s.abs(),
+                    ),
+                ),
+            )
+        }
     }
 
     /// The capsule moved by `pose`.
