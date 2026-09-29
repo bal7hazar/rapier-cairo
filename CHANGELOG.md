@@ -8,6 +8,8 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8`.
 
 ### Added
+- `ImpulseJointSet::map_attached_joints_mut` (PX5, #242): the user's closure is called on a copy of each joint attached
+  to a body and returns the edited joint, written back (Cairo closures have no `&mut`).
 - Cheap API items off the step path (PX4, #240): `Index` on `ColliderSet` / `RigidBodySet` (`set[handle]`),
   `ColliderSet::take_modified` / `ModifiedColliders` (a read, never a drain), `RigidBodyIds`, `RigidPairContacts` /
   `PairContacts` / `ContactId` over `ContactPairView`, `ImpulseJointSet::joint_graph` (an `InteractionGraph` of the
