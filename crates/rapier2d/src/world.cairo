@@ -44,6 +44,7 @@ use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
 use rapier_dynamics2d::joint::{GenericJoint, ImpulseJoint, ImpulseJointSet, ImpulseJointSetTrait};
+use rapier_dynamics2d::narrow_phase::contact_pairs::{ContactPairView, NarrowPhaseContactPairsTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, NarrowPhaseTrait};
 use rapier_dynamics2d::rigid_body_set::{
     BodyAngvel, BodyLinvel, BodySleeping, RigidBody, RigidBodySet, RigidBodySetTrait,
@@ -399,6 +400,21 @@ pub impl WorldImpl of WorldTrait {
         self.narrow_phase.contact_pair(collider1, collider2)
     }
 
+    /// Every contact pair found by the last step, one [`ContactPairView`] per collider pair with
+    /// all its manifolds (a composite pair gathered), in ascending pair order, both colliders
+    /// still existing (upstream `PhysicsWorld::contact_pairs`, without the collider references).
+    fn contact_pairs(ref self: World) -> Array<ContactPairView> {
+        let pairs = self.narrow_phase.contact_pairs();
+        existing_views(ref self.colliders, pairs)
+    }
+
+    /// The contact pairs of `collider` found by the last step, as [`WorldTrait::contact_pairs`]
+    /// (upstream `PhysicsWorld::contact_pairs_with`).
+    fn contact_pairs_with(ref self: World, collider: Handle) -> Array<ContactPairView> {
+        let pairs = self.narrow_phase.contact_pairs_with(collider);
+        existing_views(ref self.colliders, pairs)
+    }
+
     /// Whether the sensor pair of `collider1` and `collider2` (either order) intersects, as of
     /// the last step (upstream `PhysicsWorld::intersection_pair`): `None` when the two colliders
     /// form no intersection pair (their AABBs did not overlap, neither is a sensor, ...).
@@ -671,6 +687,19 @@ fn existing(
     for (h1, h2, intersecting) in pairs {
         if colliders.contains(*h1) && colliders.contains(*h2) {
             out.append((*h1, *h2, *intersecting));
+        }
+    }
+    out
+}
+
+/// The entries of `pairs` whose two colliders exist.
+fn existing_views(
+    ref colliders: ColliderSet, pairs: Array<ContactPairView>,
+) -> Array<ContactPairView> {
+    let mut out = array![];
+    for pair in pairs {
+        if colliders.contains(pair.collider1) && colliders.contains(pair.collider2) {
+            out.append(pair);
         }
     }
     out
