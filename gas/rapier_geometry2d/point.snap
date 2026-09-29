@@ -27,6 +27,9 @@ rapier_geometry2d::point::capsule::tests::gas_project_capsule_outside 67530
 rapier_geometry2d::point::capsule::tests::test_distance_and_containment 769290
 rapier_geometry2d::point::capsule::tests::test_feature_is_always_face_zero 49510
 rapier_geometry2d::point::capsule::tests::test_projection_table 784740
+rapier_geometry2d::point::composite::tests::gas_baseline 14120
+rapier_geometry2d::point::composite::tests::gas_heightfield_location 321110
+rapier_geometry2d::point::composite::tests::test_heightfield_location_matches_the_projection_and_the_cell 4559850
 rapier_geometry2d::point::cuboid::tests::gas_baseline 13620
 rapier_geometry2d::point::cuboid::tests::gas_contains_cuboid_via_projection 28870
 rapier_geometry2d::point::cuboid::tests::gas_contains_local_point_cuboid 17820

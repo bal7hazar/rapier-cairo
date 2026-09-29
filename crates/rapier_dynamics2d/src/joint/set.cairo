@@ -2,6 +2,7 @@
 use fixed::{Fixed, ZERO};
 use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
 use rapier_core::data::handle::Handle;
+use crate::narrow_phase::interaction_graph::{InteractionEdge, InteractionGraph};
 use super::{GenericJoint, GenericJointTrait};
 /// Joint plus signed impulses indexed by LinX, LinY, AngX.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -156,6 +157,24 @@ pub impl ImpulseJointSetImpl of ImpulseJointSetTrait {
         self.joints.to_array()
     }
 
+    /// The joints as a read-only graph (upstream `joint_graph`, PX4, IG1's pattern): one edge per
+    /// joint in ascending slot index, holding the two bodies (in the `collider1` / `collider2`
+    /// fields of the edge, which are body handles here) and the joint. A copy: it does not follow
+    /// the set, and there is no persistent graph (ADR 0001 D7), so upstream's mutable
+    /// `interactions_with_mut` is not available on it. Cost: one dict read per allocated slot.
+    fn joint_graph(ref self: ImpulseJointSet) -> InteractionGraph<ImpulseJoint> {
+        let mut edges = array![];
+        for (_, joint) in self.joints.to_array() {
+            edges
+                .append(
+                    InteractionEdge {
+                        collider1: joint.body1, collider2: joint.body2, weight: joint,
+                    },
+                );
+        }
+        InteractionGraph { edges }
+    }
+
     /// Flat image of the set (generation counter, capacity, free list, every `(handle, joint)` in
     /// ascending slot index), for save / restore. [`from_state`](Self::from_state) rebuilds a set
     /// that issues the same handles as this one for the same future calls, removals included.
@@ -176,6 +195,7 @@ pub impl ImpulseJointSetImpl of ImpulseJointSetTrait {
 #[cfg(test)]
 mod tests {
     use rapier_testing::opaque;
+    use crate::narrow_phase::interaction_graph::InteractionGraphTrait;
     use super::*;
     #[test]
     fn test_reuse_and_order() {
@@ -276,5 +296,34 @@ mod tests {
     #[test]
     fn gas_to_array() {
         probe(3);
+    }
+    #[test]
+    fn test_joint_graph_lists_the_joints_by_bodies() {
+        let mut s = ImpulseJointSetTrait::new();
+        let (a, b, c) = (
+            Handle { index: 0, generation: 0 },
+            Handle { index: 1, generation: 0 },
+            Handle { index: 2, generation: 0 },
+        );
+        let j1 = s.insert(a, b, Default::default());
+        let j2 = s.insert(b, c, Default::default());
+        let graph = s.joint_graph();
+        assert_eq!(graph.edges.len(), 2);
+        let (b1, b2, first) = graph.index_interaction(0).unwrap();
+        assert_eq!((b1, b2), (a, b));
+        assert_eq!(*first, s.get(j1).unwrap());
+        assert_eq!(graph.interactions_with(1).len(), 2);
+        assert_eq!(graph.interactions_between(2, 1).len(), 1);
+        let (_, _, second) = graph.interaction_pair(1, 2).unwrap();
+        assert_eq!(*second, s.get(j2).unwrap());
+        let mut empty = ImpulseJointSetTrait::new();
+        assert_eq!(empty.joint_graph().edges.len(), 0);
+    }
+    #[test]
+    fn gas_joint_graph() {
+        let mut s = ImpulseJointSetTrait::new();
+        let b = opaque(Handle { index: 0, generation: 0 });
+        let _ = s.insert(b, b, opaque(Default::default()));
+        let _ = s.joint_graph();
     }
 }

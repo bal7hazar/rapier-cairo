@@ -24,6 +24,7 @@ use crate::aabb::Aabb;
 use crate::feature_id::FeatureIdTrait;
 use crate::point::wide2::{cross_wide, dot_wide};
 use crate::shape::{HeightField, HeightFieldTrait, Polyline, PolylineTrait, Segment, SegmentTrait};
+use super::cast::RayCast;
 use super::quotient::div_wide;
 use super::segment::cast_local_ray_and_get_normal_segment;
 use super::{Ray, RayIntersection};
@@ -256,4 +257,116 @@ pub fn cast_local_ray_heightfield(
 ) -> Option<Fixed> {
     let (_, hit) = cast_local_ray_and_get_normal_heightfield_part(h, ray, max_time_of_impact)?;
     Some(hit.time_of_impact)
+}
+
+/// Upstream `impl RayCast for Polyline` (PX4): the free functions above, by value.
+pub impl PolylineRayCast of RayCast<Polyline> {
+    fn cast_local_ray(
+        self: Polyline, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<Fixed> {
+        cast_local_ray_polyline(@self, ray, max_time_of_impact, solid)
+    }
+    fn cast_local_ray_and_get_normal(
+        self: Polyline, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<RayIntersection> {
+        cast_local_ray_and_get_normal_polyline(@self, ray, max_time_of_impact, solid)
+    }
+}
+
+/// Upstream `impl RayCast for HeightField` (PX4): the free functions above, by value.
+pub impl HeightFieldRayCast of RayCast<HeightField> {
+    fn cast_local_ray(
+        self: HeightField, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<Fixed> {
+        cast_local_ray_heightfield(@self, ray, max_time_of_impact, solid)
+    }
+    fn cast_local_ray_and_get_normal(
+        self: HeightField, ray: Ray, max_time_of_impact: Fixed, solid: bool,
+    ) -> Option<RayIntersection> {
+        cast_local_ray_and_get_normal_heightfield(@self, ray, max_time_of_impact, solid)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use fixed::{Fixed, FixedTrait, ONE};
+    use glam_core::Vec2;
+    use rapier_math::pose2::{Pose2, Pose2Trait};
+    use rapier_testing::opaque;
+    use crate::shape::{HeightField, HeightFieldTrait, Polyline, PolylineTrait};
+    use super::super::cast::RayCast;
+    use super::super::{Ray, RayTrait};
+    use super::{
+        HeightFieldRayCast, PolylineRayCast, cast_local_ray_and_get_normal_heightfield,
+        cast_local_ray_and_get_normal_polyline, cast_local_ray_heightfield, cast_local_ray_polyline,
+    };
+
+    fn int(x: i32) -> Fixed {
+        FixedTrait::from_int(x)
+    }
+
+    fn v(x: i32, y: i32) -> Vec2 {
+        Vec2 { x: int(x), y: int(y) }
+    }
+
+    fn polyline() -> Polyline {
+        PolylineTrait::new(array![v(2, -1), v(2, 1), v(4, 1), v(4, -1)].span(), None)
+    }
+
+    fn heightfield() -> HeightField {
+        HeightFieldTrait::new(array![int(1), int(2), int(1)].span(), v(4, 1))
+    }
+
+    /// Rays through, beside and short of each shape: the trait answers what the free functions
+    /// answer, the local and the posed casts.
+    #[test]
+    fn test_composite_ray_casts_match_the_free_functions() {
+        let max = int(100);
+        let p = polyline();
+        let h = heightfield();
+        let rays = array![
+            RayTrait::new(v(0, 0), v(1, 0)), RayTrait::new(v(3, 5), v(0, -1)),
+            RayTrait::new(v(0, 3), v(1, 0)), RayTrait::new(v(0, 0), v(-1, 0)),
+        ];
+        for ray in rays.span() {
+            let ray: Ray = *ray;
+            assert_eq!(
+                p.cast_local_ray(ray, max, true), cast_local_ray_polyline(@p, ray, max, true),
+            );
+            assert_eq!(
+                p.cast_local_ray_and_get_normal(ray, max, false),
+                cast_local_ray_and_get_normal_polyline(@p, ray, max, false),
+            );
+            assert_eq!(
+                h.cast_local_ray(ray, max, true), cast_local_ray_heightfield(@h, ray, max, true),
+            );
+            assert_eq!(
+                h.cast_local_ray_and_get_normal(ray, max, true),
+                cast_local_ray_and_get_normal_heightfield(@h, ray, max, true),
+            );
+        }
+        let ahead = RayTrait::new(v(0, 0), v(1, 0));
+        assert_eq!(p.cast_local_ray(ahead, max, true), Some(int(2)));
+        assert!(h.cast_local_ray(RayTrait::new(v(1, 5), v(0, -1)), max, true).is_some());
+        let moved: Pose2 = Pose2Trait::new(v(1, 0), rapier_math::rot2::IDENTITY);
+        assert_eq!(p.cast_ray(moved, ahead, max, true), Some(int(3)));
+        assert!(!p.intersects_ray(moved, RayTrait::new(v(0, 3), v(1, 0)), max));
+    }
+
+    #[test]
+    fn gas_baseline() {
+        let _ = opaque(ONE);
+    }
+
+    #[test]
+    fn gas_polyline_ray_cast() {
+        let p = opaque(polyline());
+        let _ = p.cast_local_ray_and_get_normal(RayTrait::new(v(0, 0), v(1, 0)), int(100), true);
+    }
+
+    #[test]
+    fn gas_heightfield_ray_cast() {
+        let h = opaque(heightfield());
+        let _ = h.cast_local_ray_and_get_normal(RayTrait::new(v(1, 5), v(0, -1)), int(100), true);
+    }
 }

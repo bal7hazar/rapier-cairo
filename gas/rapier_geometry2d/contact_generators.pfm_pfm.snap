@@ -2,6 +2,8 @@
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_ball_triangle 240160
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_baseline 14120
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_halfspace_round_cuboid 300130
+rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_pfm_pfm_shapes_ball 74680
+rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_pfm_pfm_shapes_triangle_cuboid 1106470
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_project_round_cuboid 65180
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_project_triangle 121600
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_ray_round_cuboid 963230
@@ -15,4 +17,5 @@ rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_triangle_triangle 921
 rapier_geometry2d::contact_generators::pfm_pfm::tests::test_border_radius_offsets_points_and_distance 1330120
 rapier_geometry2d::contact_generators::pfm_pfm::tests::test_cuboid_triangle_entry_points 5022960
 rapier_geometry2d::contact_generators::pfm_pfm::tests::test_orientation_does_not_change_the_manifold 1785400
+rapier_geometry2d::contact_generators::pfm_pfm::tests::test_pfm_pfm_shapes 13462130
 rapier_geometry2d::contact_generators::pfm_pfm::tests::test_unsupported_and_warm_start 1966750

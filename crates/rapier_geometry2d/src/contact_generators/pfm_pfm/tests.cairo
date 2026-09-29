@@ -233,3 +233,49 @@ fn test_cuboid_triangle_entry_points() {
     let _ = crate::query::cuboid::closest_points_cuboid_triangle(p, c, t, ONE);
     let _ = crate::query::cuboid::closest_points_triangle_cuboid(p.inverse(), t, c, ONE);
 }
+
+/// `contact_manifold_pfm_pfm_shapes` is the segment-capable generator on pairs with a polygonal
+/// feature map, and leaves the manifold alone for the others.
+#[test]
+fn test_pfm_pfm_shapes() {
+    let prediction = FixedTrait::from_ratio(1, 50);
+    let segment = Shape::Segment(crate::shape::SegmentTrait::new(v(-4, 0), v(4, 0)));
+    let pairs = array![
+        (tri(ccw()), cuboid(), at(0, -3)), (rcub(), cuboid(), at(0, -3)),
+        (segment, segment, at(0, -1)), (tri(ccw()), poly(), at(0, -4)),
+    ];
+    for pair in pairs.span() {
+        let (s1, s2, pos12) = *pair;
+        let mut a: ContactManifold = Default::default();
+        let mut b: ContactManifold = Default::default();
+        assert!(super::contact_manifold_pfm_pfm_shapes(pos12, s1, s2, prediction, ref a));
+        assert!(super::contact_manifold_pfm_pfm_part(pos12, s1, s2, prediction, ref b));
+        assert_eq!(a, b);
+    }
+    let ball = Shape::Ball(BallTrait::new(ONE));
+    let mut m = run(tri(ccw()), cuboid(), at(0, -3));
+    let before = m;
+    assert!(!super::contact_manifold_pfm_pfm_shapes(at(0, 0), ball, cuboid(), prediction, ref m));
+    assert!(!super::contact_manifold_pfm_pfm_shapes(at(0, 0), cuboid(), ball, prediction, ref m));
+    assert_eq!(m, before);
+}
+
+#[test]
+fn gas_pfm_pfm_shapes_triangle_cuboid() {
+    let mut m: ContactManifold = Default::default();
+    let _ = super::contact_manifold_pfm_pfm_shapes(
+        opaque(at(0, -3)),
+        opaque(tri(ccw())),
+        opaque(cuboid()),
+        FixedTrait::from_ratio(1, 50),
+        ref m,
+    );
+}
+
+#[test]
+fn gas_pfm_pfm_shapes_ball() {
+    let mut m: ContactManifold = Default::default();
+    let _ = super::contact_manifold_pfm_pfm_shapes(
+        opaque(at(0, 0)), opaque(Shape::Ball(BallTrait::new(ONE))), opaque(cuboid()), ZERO, ref m,
+    );
+}

@@ -8,25 +8,25 @@ Upstream target: rapier-rs `0.35.3+4` 2D plus parry `0.31.1` public items Rapier
 
 Statuses: `ported` means the same public name or a documented owner/name mapping exists in Cairo; `partial` is reserved for split owners; `missing` is the default; `excluded` uses only the closed reasons below.
 
-Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`.
+Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `closed value enum replaces Arc / dyn shapes (SH2a)`.
 
 ## Coverage summary
 
-Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Q32.32 state cannot become NaN or infinite; nothing to contain`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `static dispatch through StepConfig / StageConfig (D10)`).
+Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Q32.32 state cannot become NaN or infinite; nothing to contain`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `static dispatch through StepConfig / StageConfig (D10)`).
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
-| dynamics | 554 | 0 | 36 | 592 | 1182 | 77.4% | 93.9% |
-| geometry | 241 | 0 | 27 | 47 | 315 | 80.6% | 89.9% |
+| dynamics | 559 | 0 | 31 | 592 | 1182 | 78.1% | 94.7% |
+| geometry | 252 | 0 | 16 | 47 | 315 | 84.3% | 94.0% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
-| parry::query | 254 | 0 | 26 | 127 | 407 | 84.7% | 90.7% |
-| parry::shape | 225 | 0 | 36 | 119 | 380 | 86.2% | 86.2% |
-| pipeline | 79 | 0 | 2 | 77 | 158 | 88.8% | 97.5% |
-| **total** | **1492** | **0** | **127** | **973** | **2592** | **82.7%** | **92.2%** |
+| parry::query | 260 | 0 | 20 | 127 | 407 | 86.7% | 92.9% |
+| parry::shape | 234 | 0 | 24 | 122 | 380 | 89.7% | 90.7% |
+| pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
+| **total** | **1525** | **0** | **91** | **976** | **2592** | **84.5%** | **94.4%** |
 
-Cairo-only public items not matched to upstream: **2010**.
+Cairo-only public items not matched to upstream: **2023**.
 
 ## Aabb
 
@@ -516,9 +516,9 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Index<ColliderHandle>` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| impl `Index<data::Index>` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| impl `IndexMut<ColliderHandle>` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| impl `Index<ColliderHandle>` | geometry | ported | Mapped to ColliderSetIndex.Index<Handle> | `rapier/src/geometry/collider_set.rs` |
+| impl `Index<data::Index>` | geometry | ported | Mapped to ColliderSetIndex.Index<Handle> | `rapier/src/geometry/collider_set.rs` |
+| impl `IndexMut<ColliderHandle>` | geometry | missing | Cairo has no `IndexMut`: colliders are values, write a change back with `ColliderSetTrait::set`. | `rapier/src/geometry/collider_set.rs` |
 | method `contains` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `get` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `get_mut` | geometry | ported | Mapped to ColliderSet.get | `rapier/src/geometry/collider_set.rs` |
@@ -538,8 +538,8 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `new` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `remove` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `set_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `take_modified` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
-| method `take_removed` | geometry | missing | Not found on Cairo candidate(s): ColliderSet, ColliderSetTrait. | `rapier/src/geometry/collider_set.rs` |
+| method `take_modified` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
+| method `take_removed` | geometry | missing | The set records no removals (`remove` returns the collider); recording them would add a field to a stepped struct. | `rapier/src/geometry/collider_set.rs` |
 | method `with_capacity` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | type `ColliderSet` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 
@@ -603,8 +603,8 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `cast_local_ray` | parry::query | ported | Mapped to Composite.cast_local_ray_polyline, Composite.cast_local_ray_heightfield | `parry/src/query/ray/ray_composite_shape.rs` |
-| method `cast_local_ray_and_get_normal` | parry::query | ported | Mapped to Composite.cast_local_ray_and_get_normal_polyline, Composite.cast_local_ray_and_get_normal_heightfield | `parry/src/query/ray/ray_composite_shape.rs` |
+| method `cast_local_ray` | parry::query | ported | Mapped to Composite.cast_local_ray, Composite.cast_local_ray_polyline, Composite.cast_local_ray_heightfield | `parry/src/query/ray/ray_composite_shape.rs` |
+| method `cast_local_ray_and_get_normal` | parry::query | ported | Mapped to Composite.cast_local_ray_and_get_normal, Composite.cast_local_ray_and_get_normal_polyline, Composite.cast_local_ray_and_get_normal_heightfield | `parry/src/query/ray/ray_composite_shape.rs` |
 | method `cast_shape` | parry::query | ported | Mapped to Composite.cast_shapes_composite | `parry/src/query/shape_cast/shape_cast_composite_shape_shape.rs` |
 | method `cast_shape_nonlinear` | parry::query | ported | Mapped to Composite.cast_shapes_nonlinear_composite | `parry/src/query/nonlinear_shape_cast/nonlinear_shape_cast_composite_shape_shape.rs` |
 | method `closest_points_to_shape` | parry::query | ported | Mapped to Composite.closest_points_composite | `parry/src/query/closest_points/closest_points_composite_shape_shape.rs` |
@@ -614,7 +614,7 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `intersects_shape` | parry::query | ported | Mapped to Composite.intersection_test_composite | `parry/src/query/intersection_test/intersection_test_composite_shape_shape.rs` |
 | method `project_local_point` | parry::query | ported | Mapped to Composite.project_local_point, Composite.project_local_point_composite | `parry/src/query/point/point_composite_shape.rs` |
 | method `project_local_point_and_get_feature` | parry::query | ported | Mapped to Composite.project_local_point_and_get_feature, Composite.project_local_point_and_get_feature_composite | `parry/src/query/point/point_composite_shape.rs` |
-| method `project_local_point_and_get_location` | parry::query | ported | Mapped to Composite.project_local_point_and_get_location_polyline | `parry/src/query/point/point_composite_shape.rs` |
+| method `project_local_point_and_get_location` | parry::query | ported | Mapped to Composite.project_local_point_and_get_location, Composite.project_local_point_and_get_location_polyline | `parry/src/query/point/point_composite_shape.rs` |
 | type `CompositeShapeRef` | parry::shape | missing | SH2a: closed `Shape` enum; composite dispatch matches `Polyline` / `HeightField`. | `parry/src/shape/composite_shape.rs` |
 
 ## CompositeShapeShapeContactManifoldsWorkspace
@@ -742,7 +742,7 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ContactId` | geometry | missing | Not found on Cairo candidate(s): ContactId, ContactIdTrait. | `rapier/src/geometry/contact_pair.rs` |
+| type `ContactId` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## ContactManifold
 
@@ -855,7 +855,7 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `feature_normal` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_hull` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `from_convex_polyline` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
-| method `from_convex_polyline_unmodified` | parry::shape | missing | Not found on Cairo candidate(s): ConvexPolygon, ConvexPolygonTrait. | `parry/src/shape/convex_polygon.rs` |
+| method `from_convex_polyline_unmodified` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
 | method `local_aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_convex_polygon.rs` |
 | method `local_bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_convex_polygon.rs` |
 | method `normals` | parry::shape | ported | Same public name. | `parry/src/shape/convex_polygon.rs` |
@@ -964,7 +964,7 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `DefaultBroadPhase` | geometry | missing | Not found on Cairo candidate(s): DefaultBroadPhase, DefaultBroadPhaseTrait. | `rapier/src/geometry/mod.rs` |
+| type `DefaultBroadPhase` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## DefaultQueryDispatcher
 
@@ -1169,7 +1169,7 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `user_data` | dynamics | missing | Not found on Cairo candidate(s): GenericJointBuilder, GenericJointBuilderTrait. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `user_data` | dynamics | missing | `GenericJoint` stores no user data (a new field of a stepped struct). | `rapier/src/dynamics/joint/generic_joint.rs` |
 | type `GenericJointBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## GenericJointConstraint
@@ -1249,8 +1249,8 @@ Cairo-only public items not matched to upstream: **2010**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_heightfield.rs` |
-| impl `PointQueryWithLocation` | parry::query | missing | SH2a: upstream's heightfield location is unused by Rapier; `project_local_point_heightfield_part` returns the cell. | `parry/src/query/point/point_heightfield.rs` |
-| impl `RayCast` | parry::query | missing | SH2a: ray casts are `ray::cast_ray*` on the `Shape` (per-kind functions in `ray/composite.cairo`). | `parry/src/query/ray/ray_heightfield.rs` |
+| impl `PointQueryWithLocation` | parry::query | ported | Same public name. | `parry/src/query/point/point_heightfield.rs` |
+| impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_heightfield.rs` |
 | impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/aabb_heightfield.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_heightfield.rs` |
@@ -1313,7 +1313,7 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `is_empty` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `iter` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `iter_mut` | dynamics | ported | Mapped to ImpulseJointSet.iter | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `joint_graph` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `joint_graph` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `joints_between` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `len` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `map_attached_joints_mut` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
@@ -1624,7 +1624,7 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ModifiedColliders` | geometry | missing | Not found on Cairo candidate(s): ModifiedColliders, ModifiedCollidersTrait. | `rapier/src/geometry/collider_set.rs` |
+| type `ModifiedColliders` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 
 ## MotorModel
 
@@ -1883,7 +1883,7 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `PairContacts` | geometry | missing | Not found on Cairo candidate(s): PairContacts, PairContactsTrait. | `rapier/src/geometry/contact_pair.rs` |
+| type `PairContacts` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## PairFilterContext
 
@@ -2172,8 +2172,8 @@ Cairo-only public items not matched to upstream: **2010**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_composite_shape.rs` |
-| impl `PointQueryWithLocation` | parry::query | missing | SH2a: free function `project_local_point_and_get_location_polyline` (no trait impl). | `parry/src/query/point/point_composite_shape.rs` |
-| impl `RayCast` | parry::query | missing | SH2a: ray casts are `ray::cast_ray*` on the `Shape` (per-kind functions in `ray/composite.cairo`). | `parry/src/query/ray/ray_composite_shape.rs` |
+| impl `PointQueryWithLocation` | parry::query | ported | Same public name. | `parry/src/query/point/point_composite_shape.rs` |
+| impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_composite_shape.rs` |
 | impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabb` | parry::shape | ported | Same public name. | `parry/src/shape/polyline.rs` |
 | method `bounding_sphere` | parry::bounding_volume | ported | Same public name. | `parry/src/bounding_volume/bounding_sphere_polyline.rs` |
@@ -2340,8 +2340,8 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `as_ref` | pipeline | missing | Not found on Cairo candidate(s): QueryPipelineMut, QueryPipelineMutTrait. | `rapier/src/pipeline/query_pipeline.rs` |
-| type `QueryPipelineMut` | pipeline | missing | Not found on Cairo candidate(s): QueryPipelineMut, QueryPipelineMutTrait. | `rapier/src/pipeline/query_pipeline.rs` |
+| method `as_ref` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
+| type `QueryPipelineMut` | pipeline | ported | Same public name. | `rapier/src/pipeline/query_pipeline.rs` |
 
 ## Ray
 
@@ -2640,7 +2640,7 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `RigidBodyGraphIndex` | geometry | missing | Not found on Cairo candidate(s): RigidBodyGraphIndex, RigidBodyGraphIndexTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| type `RigidBodyGraphIndex` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 
 ## RigidBodyHandle
 
@@ -2656,8 +2656,8 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyIds, RigidBodyIdsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
-| type `RigidBodyIds` | dynamics | missing | Not found on Cairo candidate(s): RigidBodyIds, RigidBodyIdsTrait. | `rapier/src/dynamics/rigid_body_components.rs` |
+| impl `Default` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
+| type `RigidBodyIds` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_components.rs` |
 
 ## RigidBodyMassProps
 
@@ -2689,9 +2689,9 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Index<RigidBodyHandle>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
-| impl `Index<data::Index>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
-| impl `IndexMut<RigidBodyHandle>` | dynamics | missing | Not found on Cairo candidate(s): RigidBodySet, RigidBodySetTrait. | `rapier/src/dynamics/rigid_body_set.rs` |
+| impl `Index<RigidBodyHandle>` | dynamics | ported | Mapped to RigidBodySetIndex.Index<Handle> | `rapier/src/dynamics/rigid_body_set.rs` |
+| impl `Index<data::Index>` | dynamics | ported | Mapped to RigidBodySetIndex.Index<Handle> | `rapier/src/dynamics/rigid_body_set.rs` |
+| impl `IndexMut<RigidBodyHandle>` | dynamics | missing | Cairo has no `IndexMut`: bodies are values, write a change back with `RigidBodySetTrait::set`. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `contains` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `get` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `get_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
@@ -2749,9 +2749,9 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `has_any_active_contact` | geometry | missing | Not found on Cairo candidate(s): RigidPairContacts, RigidPairContactsTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `solver_manifolds` | geometry | missing | Not found on Cairo candidate(s): RigidPairContacts, RigidPairContactsTrait. | `rapier/src/geometry/contact_pair.rs` |
-| type `RigidPairContacts` | geometry | missing | Not found on Cairo candidate(s): RigidPairContacts, RigidPairContactsTrait. | `rapier/src/geometry/contact_pair.rs` |
+| method `has_any_active_contact` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `solver_manifolds` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| type `RigidPairContacts` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## RopeJoint
 
@@ -2905,8 +2905,8 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `as_round_triangle_mut` | parry::shape | ported | Mapped to Shape.as_round_triangle | `parry/src/shape/shape.rs` |
 | method `as_segment` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_segment_mut` | parry::shape | ported | Mapped to Shape.as_segment | `parry/src/shape/shape.rs` |
-| method `as_shape` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `as_shape_mut` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `as_shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `as_shape_mut` | parry::shape | excluded | closed value enum replaces Arc / dyn shapes (SH2a) | `parry/src/shape/shape.rs` |
 | method `as_support_map` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_triangle` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `as_triangle_mut` | parry::shape | ported | Mapped to Shape.as_triangle | `parry/src/shape/shape.rs` |
@@ -2915,10 +2915,10 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `as_typed_shape` | parry::shape | ported | Mapped to Shape.shape_type | `parry/src/shape/shape.rs` |
 | method `as_voxels` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shape.rs` |
 | method `as_voxels_mut` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shape.rs` |
-| method `ccd_angular_thickness` | parry::shape | missing | Free function `query::nonlinear_shape_cast::ccd_angular_thickness(shape)` (Shape methods: orchestrator). | `parry/src/shape/shape.rs` |
-| method `ccd_thickness` | parry::shape | missing | Free function `query::nonlinear_shape_cast::ccd_thickness(shape)` (Shape methods: orchestrator). | `parry/src/shape/shape.rs` |
-| method `clone_box` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
-| method `clone_dyn` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `ccd_angular_thickness` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `ccd_thickness` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `clone_box` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
+| method `clone_dyn` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `compute_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `compute_bounding_sphere` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `compute_local_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
@@ -2927,9 +2927,9 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `feature_normal_at_point` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `is_convex` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `mass_properties` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| method `scale_dyn` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| method `scale_dyn` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `shape_type` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
-| trait `Shape` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shape.rs` |
+| trait `Shape` | parry::shape | excluded | closed value enum replaces Arc / dyn shapes (SH2a) | `parry/src/shape/shape.rs` |
 
 ## ShapeCastHit
 
@@ -2994,12 +2994,12 @@ Cairo-only public items not matched to upstream: **2010**.
 | method `convex_decomposition_with_params` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
 | method `convex_hull` | parry::shape | ported | Mapped to Shape.convex_hull | `parry/src/shape/shared_shape.rs` |
 | method `convex_polyline` | parry::shape | ported | Mapped to Shape.convex_polyline | `parry/src/shape/shared_shape.rs` |
-| method `convex_polyline_unmodified` | parry::shape | missing | `ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant. | `parry/src/shape/shared_shape.rs` |
+| method `convex_polyline_unmodified` | parry::shape | ported | Mapped to ShapeDyn.convex_polyline_unmodified | `parry/src/shape/shared_shape.rs` |
 | method `cuboid` | parry::shape | ported | Mapped to Shape.cuboid | `parry/src/shape/shared_shape.rs` |
 | method `halfspace` | parry::shape | ported | Mapped to Shape.halfspace | `parry/src/shape/shared_shape.rs` |
 | method `heightfield` | parry::shape | ported | Mapped to Shape.heightfield | `parry/src/shape/shared_shape.rs` |
-| method `make_mut` | parry::shape | missing | Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed. | `parry/src/shape/shared_shape.rs` |
-| method `new` | parry::shape | missing | `T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`). | `parry/src/shape/shared_shape.rs` |
+| method `make_mut` | parry::shape | excluded | closed value enum replaces Arc / dyn shapes (SH2a) | `parry/src/shape/shared_shape.rs` |
+| method `new` | parry::shape | ported | Mapped to ShapeDyn.new | `parry/src/shape/shared_shape.rs` |
 | method `polyline` | parry::shape | ported | Mapped to Shape.polyline | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_decomposition` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_decomposition_with_params` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
@@ -4067,7 +4067,7 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `Unsupported` | parry::query | missing | Not found on Cairo candidate(s): Unsupported, UnsupportedTrait. | `parry/src/query/error.rs` |
+| type `Unsupported` | parry::query | ported | Same public name. | `parry/src/query/error.rs` |
 
 ## VelocitySolver
 
@@ -4335,7 +4335,7 @@ Cairo-only public items not matched to upstream: **2010**.
 | function `contact_manifold_halfspace_pfm` | parry::query | ported | Mapped to ContactGenerators.contact_manifold_halfspace_pfm | `parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` |
 | function `contact_manifold_halfspace_pfm_shapes` | parry::query | ported | Mapped to ContactGenerators.contact_manifold_halfspace_pfm_shapes | `parry/src/query/contact_manifolds/contact_manifolds_halfspace_pfm.rs` |
 | function `contact_manifold_pfm_pfm` | parry::query | ported | Mapped to ContactGenerators.contact_manifold_pfm_pfm | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
-| function `contact_manifold_pfm_pfm_shapes` | parry::query | missing | Not found on Cairo candidate(s): Query, Ball, Cuboid, Segment, Halfspace, SupportMap, ClosestPoints, dispatch, Intersection, Composite, Compound, ContactGenerators, Clip, LineLine, QueryTrait, BallTrait, CuboidTrait, SegmentTrait, HalfspaceTrait, SupportMapTrait, ClosestPointsTrait, IntersectionTrait, CompositeTrait, CompoundTrait, ContactGeneratorsTrait, ClipTrait, LineLineTrait. | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
+| function `contact_manifold_pfm_pfm_shapes` | parry::query | ported | Mapped to ContactGenerators.contact_manifold_pfm_pfm_shapes | `parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs` |
 | function `contact_manifolds_composite_shape_composite_shape` | parry::query | ported | Mapped to Compound.contact_manifolds_composite_pair | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_composite_shape.rs` |
 | function `contact_manifolds_composite_shape_shape` | parry::query | ported | Mapped to Composite.contact_manifolds_composite | `parry/src/query/contact_manifolds/contact_manifolds_composite_shape_shape.rs` |
 | function `contact_manifolds_heightfield_composite_shape` | parry::query | ported | Mapped to Compound.contact_manifolds_composite_pair | `parry/src/query/contact_manifolds/contact_manifolds_heightfield_composite_shape.rs` |
@@ -4439,31 +4439,24 @@ Cairo-only public items not matched to upstream: **2010**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 40 | mechanical | AP triage |
-| [Query completion](#wp-query-completion) | 39 | standard | QP queries |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 26 | standard | shape interface |
-| [Collider API completion](#wp-collider-api-completion) | 8 | mechanical | DB/EV |
-| [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
-| [Joint API completion](#wp-joint-api-completion) | 3 | standard | JL/RJ |
-| [CCD and shape casts](#wp-ccd-and-shape-casts) | 2 | hard | QP queries |
-| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 2 | standard | P1/SL/EV |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 34 | mechanical | AP triage |
+| [Query completion](#wp-query-completion) | 30 | standard | QP queries |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 18 | standard | shape interface |
+| [Collider API completion](#wp-collider-api-completion) | 4 | mechanical | DB/EV |
+| [Joint API completion](#wp-joint-api-completion) | 2 | standard | JL/RJ |
+| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 1 | standard | P1/SL/EV |
+| [Rigid-body API completion](#wp-rigid-body-api-completion) | 1 | mechanical | KD/SL |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 1 | standard | SE sensors |
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 40 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 34 public items.
 
 - **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** trait `CompositeShape` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShapeRef** type `CompositeShapeRef` (`parry/src/shape/composite_shape.rs`)
-- **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
-- **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
-- **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
-- **Shape** method `clone_dyn` (`parry/src/shape/shape.rs`)
-- **Shape** method `scale_dyn` (`parry/src/shape/shape.rs`)
-- **Shape** trait `Shape` (`parry/src/shape/shape.rs`)
 - **SolverBodies** method `clear` (`rapier/src/dynamics/solver/solver_body.rs`)
 - **SolverBodies** method `copy_from` (`rapier/src/dynamics/solver/solver_body.rs`)
 - **SolverBodies** method `get_pose` (`rapier/src/dynamics/solver/solver_body.rs`)
@@ -4496,13 +4489,12 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 40 public items.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 39 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 30 public items.
 
 - **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
 - **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
 - **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
-- **ContactId** type `ContactId` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
 - **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
 - **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
@@ -4517,13 +4509,7 @@ Tier: standard. Depends/context: QP queries. Estimate: 39 public items.
 - **NormalConstraints** trait `NormalConstraints` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraintsPair** method `project_local_normals` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraintsPair** trait `NormalConstraintsPair` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **PairContacts** type `PairContacts` (`rapier/src/geometry/contact_pair.rs`)
 - **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
-- **QueryPipelineMut** method `as_ref` (`rapier/src/pipeline/query_pipeline.rs`)
-- **QueryPipelineMut** type `QueryPipelineMut` (`rapier/src/pipeline/query_pipeline.rs`)
-- **RigidPairContacts** method `has_any_active_contact` (`rapier/src/geometry/contact_pair.rs`)
-- **RigidPairContacts** method `solver_manifolds` (`rapier/src/geometry/contact_pair.rs`)
-- **RigidPairContacts** type `RigidPairContacts` (`rapier/src/geometry/contact_pair.rs`)
 - **ShapeDistance** impl `From<Real>` (`parry/src/query/distance/distance.rs`)
 - **ShapeDistance** method `new` (`parry/src/query/distance/distance.rs`)
 - **ShapeDistance** method `swapped` (`parry/src/query/distance/distance.rs`)
@@ -4533,14 +4519,12 @@ Tier: standard. Depends/context: QP queries. Estimate: 39 public items.
 - **SolverContactGeneric** type `SolverContactGeneric` (`rapier/src/geometry/contact_pair.rs`)
 - **SolverContacts** type `SolverContacts` (`rapier/src/geometry/contact_pair.rs`)
 - **SubshapePoses** type `SubshapePoses` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **Unsupported** type `Unsupported` (`parry/src/query/error.rs`)
 - **geometry** const `NEW_CONTACT_BIT` (`rapier/src/geometry/contact_pair.rs`)
 - **geometry** function `is_bouncy` (`rapier/src/geometry/contact_pair.rs`)
-- **parry::query** function `contact_manifold_pfm_pfm_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs`)
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 26 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 18 public items.
 
 - **ColliderBuilder** method `round_convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
@@ -4552,16 +4536,8 @@ Tier: standard. Depends/context: shape interface. Estimate: 26 public items.
 - **Compound** method `with_flags` (`parry/src/shape/compound.rs`)
 - **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
 - **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
-- **ConvexPolygon** method `from_convex_polyline_unmodified` (`parry/src/shape/convex_polygon.rs`)
-- **Heightfield** impl `PointQueryWithLocation` (`parry/src/query/point/point_heightfield.rs`)
-- **Heightfield** impl `RayCast` (`parry/src/query/ray/ray_heightfield.rs`)
-- **Polyline** impl `PointQueryWithLocation` (`parry/src/query/point/point_composite_shape.rs`)
-- **Polyline** impl `RayCast` (`parry/src/query/ray/ray_composite_shape.rs`)
 - **SharedShape** method `convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `convex_polyline_unmodified` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `make_mut` (`parry/src/shape/shared_shape.rs`)
-- **SharedShape** method `new` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `round_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `round_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
@@ -4571,49 +4547,31 @@ Tier: standard. Depends/context: shape interface. Estimate: 26 public items.
 
 ### WP: Collider API completion
 
-Tier: mechanical. Depends/context: DB/EV. Estimate: 8 public items.
+Tier: mechanical. Depends/context: DB/EV. Estimate: 4 public items.
 
 - **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
-- **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
 - **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
-- **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
 - **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
-- **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
-
-### WP: Rigid-body API completion
-
-Tier: mechanical. Depends/context: KD/SL. Estimate: 6 public items.
-
-- **RigidBodyGraphIndex** type `RigidBodyGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
-- **RigidBodyIds** impl `Default` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodyIds** type `RigidBodyIds` (`rapier/src/dynamics/rigid_body_components.rs`)
-- **RigidBodySet** impl `Index<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
-- **RigidBodySet** impl `Index<data::Index>` (`rapier/src/dynamics/rigid_body_set.rs`)
-- **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
 
 ### WP: Joint API completion
 
-Tier: standard. Depends/context: JL/RJ. Estimate: 3 public items.
+Tier: standard. Depends/context: JL/RJ. Estimate: 2 public items.
 
 - **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
 - **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-
-### WP: CCD and shape casts
-
-Tier: hard. Depends/context: QP queries. Estimate: 2 public items.
-
-- **Shape** method `ccd_angular_thickness` (`parry/src/shape/shape.rs`)
-- **Shape** method `ccd_thickness` (`parry/src/shape/shape.rs`)
 
 ### WP: Pipeline and world facade
 
-Tier: standard. Depends/context: P1/SL/EV. Estimate: 2 public items.
+Tier: standard. Depends/context: P1/SL/EV. Estimate: 1 public items.
 
-- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
 - **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
+
+### WP: Rigid-body API completion
+
+Tier: mechanical. Depends/context: KD/SL. Estimate: 1 public items.
+
+- **RigidBodySet** impl `IndexMut<RigidBodyHandle>` (`rapier/src/dynamics/rigid_body_set.rs`)
 
 ### WP: Sensors and intersection events
 
@@ -4641,6 +4599,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **AabbCase** type `AabbCase` (`crates/rapier_golden/src/types.cairo`)
 - **AabbClipHit** type `AabbClipHit` (`crates/rapier_geometry2d/src/aabb/clip.cairo`)
 - **AabbOverlapCase** type `AabbOverlapCase` (`crates/rapier_golden/src/types.cairo`)
+- **Access** const `NOT_FOUND` (`crates/rapier_dynamics2d/src/collider_set/access.cairo`)
 - **Activation** const `DEFAULT_ANGULAR_THRESHOLD` (`crates/rapier_core/src/rigid_body/activation.cairo`)
 - **Activation** const `DEFAULT_NORMALIZED_LINEAR_THRESHOLD` (`crates/rapier_core/src/rigid_body/activation.cairo`)
 - **Activation** const `DEFAULT_TIME_UNTIL_SLEEP` (`crates/rapier_core/src/rigid_body/activation.cairo`)
@@ -4822,8 +4781,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Arena** const `CORRUPT_FREE_LIST` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `GENERATION_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `LENGTH_MISMATCH` (`crates/rapier_core/src/data/arena.cairo`)
-- **Arena** const `STATE_GENERATION` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1810 more
+- ... 1823 more
 
 ## Embedded Rust inventory
 

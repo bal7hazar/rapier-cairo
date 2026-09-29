@@ -76,6 +76,24 @@ pub use pipeline::{
 };
 pub use shape_casts::{cast_shape, cast_shape_nonlinear};
 
+/// Upstream's `QueryPipelineMut` (PX4): a query view that may also modify the bodies and colliders.
+/// As [`QueryPipeline`], it is the filter bundle only; the world is handed to each call by `ref`,
+/// which is the mutable access upstream's borrowed `&mut RigidBodySet` / `&mut ColliderSet`
+/// give.
+#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+pub struct QueryPipelineMut {
+    pub filter: QueryFilter,
+}
+
+#[generate_trait]
+pub impl QueryPipelineMutImpl of QueryPipelineMutTrait {
+    /// The read-only view with the same filter (upstream `as_ref`).
+    #[inline(always)]
+    fn as_ref(self: QueryPipelineMut) -> QueryPipeline {
+        QueryPipeline { filter: self.filter }
+    }
+}
+
 #[cfg(test)]
 mod alternatives;
 #[cfg(test)]
@@ -476,4 +494,32 @@ pub fn intersect_aabb(ref world: World, aabb: Aabb, filter: QueryFilter) -> Arra
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use fixed::ONE;
+    use rapier_testing::opaque;
+    use super::pipeline::QueryPipelineTrait;
+    use super::{QueryFilterTrait, QueryPipeline, QueryPipelineMut, QueryPipelineMutTrait};
+
+    #[test]
+    fn test_as_ref_keeps_the_filter() {
+        let filter = QueryFilterTrait::only_dynamic();
+        let view: QueryPipeline = QueryPipelineMut { filter }.as_ref();
+        assert_eq!(view, QueryPipelineTrait::new().with_filter(filter));
+        let unfiltered: QueryPipelineMut = Default::default();
+        assert_eq!(unfiltered.as_ref(), QueryPipelineTrait::new());
+    }
+
+    #[test]
+    fn gas_baseline() {
+        let _ = opaque(ONE);
+    }
+
+    #[test]
+    fn gas_query_pipeline_mut_as_ref() {
+        let _ = opaque(QueryPipelineMut { filter: opaque(QueryFilterTrait::only_dynamic()) })
+            .as_ref();
+    }
 }

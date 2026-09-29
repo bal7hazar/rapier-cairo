@@ -10,12 +10,12 @@
 //! [`ColliderSetTrait::iter`] — the contract `NarrowPhaseTrait::compute_contacts` relies on.
 //!
 //! Deviations from upstream: no modified / removed collider lists (the step is stateless apart
-//! from the sets, `docs/PLAN.md` D7/D9: the pipeline reads the change flags instead), hence no
-//! `take_modified` / `take_removed`; `remove` takes no island manager (no wake-up: the world
-//! wakes the contact partners, `rapier2d::world`); colliders are values, so the `*_mut`
-//! accessors are their copy-out forms (`get`, `iter`, `iter_enabled`, `get_unknown_gen`,
-//! `get_pair_mut`) and a change is written back with `set`; `Index` / `IndexMut` are not
-//! implemented (an arena read needs `ref self`, Cairo's `IndexView` takes a snapshot).
+//! from the sets, `docs/PLAN.md` D7/D9: the pipeline reads the change flags instead), hence a
+//! read-only `take_modified` and no `take_removed` ([`access`]); `remove` takes no island manager
+//! (no wake-up: the world wakes the contact partners, `rapier2d::world`); colliders are values, so
+//! the `*_mut` accessors are their copy-out forms (`get`, `iter`, `iter_enabled`,
+//! `get_unknown_gen`, `get_pair_mut`) and a change is written back with `set`; `Index` is Cairo's
+//! `core::ops::Index` ([`access`]), `IndexMut` is not implemented (Cairo has none).
 
 use fixed::{Fixed, HALF};
 use rapier_core::Handle;
@@ -296,6 +296,9 @@ pub impl ColliderSetImpl of ColliderSetTrait {
         ColliderSet { colliders: ArenaStateTrait::from_state(state) }
     }
 }
+
+/// `Index` and the change reads (PX4).
+pub mod access;
 
 #[cfg(test)]
 mod tests {

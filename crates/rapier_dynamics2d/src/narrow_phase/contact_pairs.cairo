@@ -41,6 +41,9 @@ use rapier_geometry2d::manifold::ManifoldTrait;
 use crate::events::{PairEventStatus, PairEventStatusTrait};
 use super::{ContactPair, NarrowPhase};
 
+pub mod types;
+pub use types::{ContactId, PairContacts, RigidPairContacts};
+
 #[cfg(test)]
 mod tests;
 

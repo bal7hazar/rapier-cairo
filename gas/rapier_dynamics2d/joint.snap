@@ -84,12 +84,14 @@ rapier_dynamics2d::joint::set::tests::gas_baseline 14120
 rapier_dynamics2d::joint::set::tests::gas_from_state 600290
 rapier_dynamics2d::joint::set::tests::gas_get 71350
 rapier_dynamics2d::joint::set::tests::gas_insert_len 58280
+rapier_dynamics2d::joint::set::tests::gas_joint_graph 108310
 rapier_dynamics2d::joint::set::tests::gas_new 23280
 rapier_dynamics2d::joint::set::tests::gas_remove 88410
 rapier_dynamics2d::joint::set::tests::gas_set 109230
 rapier_dynamics2d::joint::set::tests::gas_state_setup 266040
 rapier_dynamics2d::joint::set::tests::gas_to_array 80230
 rapier_dynamics2d::joint::set::tests::gas_to_state 436720
+rapier_dynamics2d::joint::set::tests::test_joint_graph_lists_the_joints_by_bodies 461620
 rapier_dynamics2d::joint::set::tests::test_reuse_and_order 261550
 rapier_dynamics2d::joint::spring_joint::tests::gas_baseline 14120
 rapier_dynamics2d::joint::spring_joint::tests::gas_spring_new 28023

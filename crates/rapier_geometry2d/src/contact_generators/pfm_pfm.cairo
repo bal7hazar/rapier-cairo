@@ -254,5 +254,21 @@ pub fn contact_manifold_cuboid_triangle_shapes(
     }
 }
 
+/// Upstream `contact_manifold_pfm_pfm_shapes` (PX4): the manifold of two shapes that both have a
+/// polygonal feature map (`ShapeTrait::as_polygonal_feature_map`: cuboid, polygon, triangle,
+/// segment, capsule, round shapes), through [`contact_manifold_pfm_pfm_part`] (which also takes
+/// two segment cores). As upstream, `false` and the manifold untouched when either shape has no
+/// polygonal feature map (ball, half-space, composite); [`contact_manifold_pfm_pfm`] clears it.
+/// #### Panics
+/// * As [`contact_manifold_pfm_pfm_part`].
+pub fn contact_manifold_pfm_pfm_shapes(
+    pos12: Pose2, shape1: Shape, shape2: Shape, prediction: Fixed, ref manifold: ContactManifold,
+) -> bool {
+    if decompose(shape1).is_none() || decompose(shape2).is_none() {
+        return false;
+    }
+    contact_manifold_pfm_pfm_part(pos12, shape1, shape2, prediction, ref manifold)
+}
+
 #[cfg(test)]
 mod tests;

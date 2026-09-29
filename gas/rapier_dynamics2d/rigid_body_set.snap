@@ -7,6 +7,12 @@ rapier_dynamics2d::rigid_body_set::ccd_api::tests::test_builder_and_setters_roun
 rapier_dynamics2d::rigid_body_set::ccd_api::tests::test_cold_serde_round_trip 131512
 rapier_dynamics2d::rigid_body_set::ccd_api::tests::test_defaults_keep_no_cold_data 42972
 rapier_dynamics2d::rigid_body_set::ccd_api::tests::test_negative_soft_prediction_panics 36642
+rapier_dynamics2d::rigid_body_set::index::tests::gas_baseline 14120
+rapier_dynamics2d::rigid_body_set::index::tests::gas_ids_default 14720
+rapier_dynamics2d::rigid_body_set::index::tests::gas_index 86032
+rapier_dynamics2d::rigid_body_set::index::tests::test_ids_default_is_all_invalid 13620
+rapier_dynamics2d::rigid_body_set::index::tests::test_index_is_get 316284
+rapier_dynamics2d::rigid_body_set::index::tests::test_index_of_a_removed_handle_panics 141822
 rapier_dynamics2d::rigid_body_set::tests::gas_baseline 14120
 rapier_dynamics2d::rigid_body_set::tests::gas_body_new 36742
 rapier_dynamics2d::rigid_body_set::tests::gas_forces 106841

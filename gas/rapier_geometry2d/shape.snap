@@ -131,6 +131,16 @@ rapier_geometry2d::shape::cuboid::tests::test_feature_normal_table 113200
 rapier_geometry2d::shape::cuboid::tests::test_support_feature_table 203140
 rapier_geometry2d::shape::cuboid::tests::test_support_points 60170
 rapier_geometry2d::shape::cuboid::tests::test_vertex_feature_id_table 60630
+rapier_geometry2d::shape::dyn_api::tests::gas_baseline 14120
+rapier_geometry2d::shape::dyn_api::tests::gas_ccd_methods 19610
+rapier_geometry2d::shape::dyn_api::tests::gas_convex_polyline_unmodified 207580
+rapier_geometry2d::shape::dyn_api::tests::gas_identity_methods 15120
+rapier_geometry2d::shape::dyn_api::tests::gas_scale_dyn_ball_polygon 955840
+rapier_geometry2d::shape::dyn_api::tests::gas_scale_dyn_cuboid 22960
+rapier_geometry2d::shape::dyn_api::tests::test_compound_scales_its_parts_and_translations 101700
+rapier_geometry2d::shape::dyn_api::tests::test_convex_polyline_unmodified_keeps_every_vertex 890810
+rapier_geometry2d::shape::dyn_api::tests::test_identity_and_copies 418790
+rapier_geometry2d::shape::dyn_api::tests::test_scale_dyn_matches_the_scaled_of_each_kind 2308250
 rapier_geometry2d::shape::halfspace::tests::gas_baseline 13620
 rapier_geometry2d::shape::halfspace::tests::gas_compute_aabb 15320
 rapier_geometry2d::shape::halfspace::tests::gas_compute_local_aabb 14320
