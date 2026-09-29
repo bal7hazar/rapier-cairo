@@ -8,6 +8,11 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8`.
 
 ### Added
+- The contact-pair read API (CP3, #235; off the step path): `ContactPairView` (one per collider pair, the manifolds
+  of a composite run gathered) with `manifolds`, `solver_manifolds`, `rigid`, `total_impulse`,
+  `total_impulse_magnitude`, `max_impulse`, `find_deepest_contact`, `clear`; `NarrowPhase::{contact_pairs,
+  contact_pairs_with, contact_pairs_with_unknown_gen, contact_pair_unknown_gen, contact_pair_at_index,
+  contact_pair_view}`; `World::{contact_pairs, contact_pairs_with}`; in the prelude.
 - `crates/rapier2d/tests/finite_state.cairo`: Q32.32 state cannot become NaN or infinite (a tiny mass and a huge
   impulse panic with `'Fixed: overflow'`, a small mass stays finite) — the reason upstream's `Quarantine` is excluded.
 - Parry geometry utilities in `rapier_geometry2d` (PX3, #231; off the step path): `Aabb::{distance_to_origin,
