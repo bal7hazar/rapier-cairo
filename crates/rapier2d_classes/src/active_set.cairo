@@ -9,6 +9,7 @@
 use rapier2d::pipeline::active_set::ActiveSet;
 use rapier2d::pipeline::stages::ActiveSetStage;
 use rapier2d::prelude::{Fixed, Handle, Pose2, Shape};
+use rapier2d::world::basic_state::decode::read_active_set;
 use rapier2d::world::basic_state::{deserialize_basic_shape, serialize_basic_shape};
 use rapier_core::collider::ColliderChanges;
 use rapier_core::rigid_body::{RigidBodyChanges, RigidBodyType};
@@ -111,7 +112,7 @@ pub impl LibraryCallActiveSet<impl H: ClassHashes> of ActiveSetStage {
         prediction.serialize(ref calldata);
         let mut ret = library_call_syscall(H::active_set(), selector!("rebuild"), calldata.span())
             .unwrap_syscall();
-        Serde::deserialize(ref ret).expect(errors::DECODE)
+        read_active_set(ref ret).expect(errors::DECODE)
     }
 }
 
