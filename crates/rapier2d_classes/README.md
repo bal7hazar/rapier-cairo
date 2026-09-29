@@ -6,8 +6,8 @@ analysis is in `docs/research/class-split.md`.
 
 ```toml
 [dependencies]
-rapier2d = "0.1.0-alpha.7"
-rapier2d_classes = "0.1.0-alpha.7"
+rapier2d = "0.1.0-alpha.8"
+rapier2d_classes = "0.1.0-alpha.8"
 ```
 
 `StepConfig` (`rapier2d::pipeline::config`) chooses what a step supports (contact dispatcher,
