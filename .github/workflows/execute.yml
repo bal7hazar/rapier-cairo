@@ -7,10 +7,16 @@ on:
     - cron: "17 3 * * *"
   workflow_dispatch:
   pull_request:
+    # Also every release PR (the version bump edits the root manifest and the CHANGELOG) and every dependency
+    # change: the example pins `fixed` / `glam_core` itself, and alpha.8's first release run found it stale.
     paths:
       - "examples/**"
       - "scripts/prove-example.sh"
       - ".github/workflows/execute.yml"
+      - "Scarb.toml"
+      - "Scarb.lock"
+      - "crates/*/Scarb.toml"
+      - "CHANGELOG.md"
 
 jobs:
   execute:
