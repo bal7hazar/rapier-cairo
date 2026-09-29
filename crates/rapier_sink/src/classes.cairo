@@ -282,14 +282,14 @@ pub mod Levers12Step {
     }
 }
 
-/// Route (b) of CS6 (measured, not shipped): the caller of `rapier2d_classes`'
+/// Route (b) of CS6 (measured, not shipped): the caller of [`crate::orchestrator`]'s
 /// `OrchestratorClass`, the world decoded here between the steps (where a game's rules run) and
 /// crossing to the orchestrator and back at every step.
 #[starknet::contract]
 pub mod OrchestratedStep {
     use rapier2d::world::basic_state::{BasicWorldState, from_basic_state, into_basic_state};
-    use rapier2d_classes::orchestrator::orchestrated_step;
     use starknet::ClassHash;
+    use crate::orchestrator::orchestrated_step;
 
     #[storage]
     struct Storage {}

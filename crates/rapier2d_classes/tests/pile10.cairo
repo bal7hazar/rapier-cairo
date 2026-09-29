@@ -17,9 +17,12 @@ use fixed::FixedTrait;
 use rapier2d::pipeline::stages::{InProcessStages, StageConfig};
 use rapier2d::prelude::{
     CONTACT_FORCE_EVENTS, ColliderBuilder, ColliderBuilderTrait, ContactForceEvent, Fixed, Handle,
-    IntegrationParameters, Pose2, RigidBodyBuilderTrait, RigidBodyTrait, Rot2, StepConfig, Vec2,
-    World, WorldTrait,
+    IntegrationParameters, Pose2, RigidBodyBuilderTrait, RigidBodyTrait, Rot2, Shape, StepConfig,
+    Vec2, World, WorldTrait,
 };
+use rapier2d_classes::{BodyInsert, WorldEdit};
+use rapier_core::rigid_body::RigidBodyType;
+use rapier_geometry2d::shape::ball::BallTrait;
 
 /// What a tick runs: the step's `StepConfig` and where its stages run.
 pub trait Layout {
@@ -143,6 +146,13 @@ fn bodies() -> Array<(ColliderBuilder, Pose2, u32)> {
 /// pile10 as slingfall's `GameTrait::new` builds it, `settle` included (one `dt = 0` step with
 /// `L`, then every dynamic body back to sleep).
 pub fn build<impl L: Layout>() -> Pile {
+    let mut pile = settled::<L>();
+    sleep_all(ref pile);
+    pile
+}
+
+/// [`build`] before the settle's sleeps.
+pub fn settled<impl L: Layout>() -> Pile {
     let mut params: IntegrationParameters = Default::default();
     params.dt = f(DT);
     params.num_solver_iterations = 4;
@@ -171,9 +181,18 @@ pub fn build<impl L: Layout>() -> Pile {
     world.integration_parameters.dt = f(0);
     let _ = world.step_with_stages::<L::Step, L::Stages>();
     world.integration_parameters.dt = f(DT);
-    let mut pile = Pile { world, entities, pebble: None };
-    sleep_all(ref pile);
-    pile
+    Pile { world, entities, pebble: None }
+}
+
+/// The live dynamic bodies, in entity order (what the settle puts to sleep).
+pub fn dynamic_alive(ref pile: Pile) -> Array<Handle> {
+    let mut out = array![];
+    for entity in pile.entities.span() {
+        if *entity.alive && !*entity.is_static {
+            out.append(*entity.handle);
+        }
+    }
+    out
 }
 
 fn sleep_all(ref pile: Pile) {
@@ -189,13 +208,36 @@ fn sleep_all(ref pile: Pile) {
     }
 }
 
-/// slingfall's `sling::launch` of a pull `(px, py)` from the sling anchor `(3, 2.5)`.
-pub fn launch(ref pile: Pile, pull: (i32, i32)) {
+/// The pebble's velocity for a pull `(px, py)`.
+pub fn launch_velocity(pull: (i32, i32)) -> Vec2 {
     let (px, py) = pull;
     let scale = f(LAUNCH_SCALE);
-    let linvel = Vec2 {
-        x: FixedTrait::from_int(-px) * scale, y: FixedTrait::from_int(-py) * scale,
-    };
+    Vec2 { x: FixedTrait::from_int(-px) * scale, y: FixedTrait::from_int(-py) * scale }
+}
+
+/// The pebble's insertion as a World edit (`rapier2d_classes::edits`), the same body and collider
+/// as [`launch`].
+pub fn launch_edit(pull: (i32, i32)) -> WorldEdit {
+    WorldEdit::Insert(
+        BodyInsert {
+            body_type: RigidBodyType::Dynamic,
+            position: at(3 * ONE, 5 * HALF),
+            linvel: launch_velocity(pull),
+            angvel: f(0),
+            shape: Shape::Ball(BallTrait::new(f(0x40000000))),
+            density: f(0x400000000),
+            friction: f(0x80000000),
+            restitution: f(858993459),
+            contact_force_event_threshold: f(0),
+            active_events: CONTACT_FORCE_EVENTS,
+            user_data: 0x100000000,
+        },
+    )
+}
+
+/// slingfall's `sling::launch` of a pull `(px, py)` from the sling anchor `(3, 2.5)`.
+pub fn launch(ref pile: Pile, pull: (i32, i32)) {
+    let linvel = launch_velocity(pull);
     let body = RigidBodyBuilderTrait::dynamic()
         .position(at(3 * ONE, 5 * HALF))
         .linvel(linvel)
@@ -255,8 +297,19 @@ fn hit(ref totals: Array<u32>, entities: Span<Entity>, collider: Handle, force: 
 /// slingfall's D6: damage of this tick's force events, then removal of the destroyed bodies in
 /// ascending entity order. Returns the number destroyed.
 pub fn apply_damage(ref pile: Pile, events: Span<ContactForceEvent>) -> u32 {
+    let destroyed = damage(ref pile, events);
+    for handle in destroyed.span() {
+        let _ = pile.world.remove_body(*handle);
+    }
+    destroyed.len()
+}
+
+/// The damage of [`apply_damage`] without the removals: the destroyed bodies, in ascending entity
+/// order.
+pub fn damage(ref pile: Pile, events: Span<ContactForceEvent>) -> Array<Handle> {
+    let mut destroyed = array![];
     if events.is_empty() {
-        return 0;
+        return destroyed;
     }
     let entities = pile.entities.span();
     let mut totals = array![];
@@ -268,7 +321,6 @@ pub fn apply_damage(ref pile: Pile, events: Span<ContactForceEvent>) -> u32 {
         hit(ref totals, entities, *event.collider2, *event.total_force_magnitude);
     }
     let mut updated = array![];
-    let mut destroyed = 0;
     let mut totals = totals.span();
     for entity in entities {
         let mut entity = *entity;
@@ -280,9 +332,8 @@ pub fn apply_damage(ref pile: Pile, events: Span<ContactForceEvent>) -> u32 {
                 entity.hp - total
             };
             if entity.hp == 0 {
-                let _ = pile.world.remove_body(entity.handle);
+                destroyed.append(entity.handle);
                 entity.alive = false;
-                destroyed += 1;
             }
         }
         updated.append(entity);
