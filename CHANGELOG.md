@@ -8,6 +8,14 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8`.
 
 ### Added
+- Cheap API items off the step path (PX4, #240): `Index` on `ColliderSet` / `RigidBodySet` (`set[handle]`),
+  `ColliderSet::take_modified` / `ModifiedColliders` (a read, never a drain), `RigidBodyIds`, `RigidPairContacts` /
+  `PairContacts` / `ContactId` over `ContactPairView`, `ImpulseJointSet::joint_graph` (an `InteractionGraph` of the
+  joints), `RayCast` for `Polyline` / `HeightField` and `PointQueryWithLocation` for `HeightField`,
+  `QueryPipelineMut::as_ref`, the value meanings of the dyn-shape API (`ShapeDynTrait::{new, as_shape, clone_box,
+  clone_dyn, scale_dyn, ccd_thickness, ccd_angular_thickness, convex_polyline_unmodified}`),
+  `ConvexPolygonTrait::from_convex_polyline_unmodified`, `contact_manifold_pfm_pfm_shapes`, `Unsupported`,
+  `DefaultBroadPhase`, `RigidBodyGraphIndex`; the main ones in the prelude.
 - A read-only `InteractionGraph` view over the step's pair list (IG1, #238; off the step path): `Default`, `new`,
   `interactions`, `interactions_with_endpoints`, `interaction_pair`, `interactions_between`, `interactions_with`,
   `index_interaction`; `NarrowPhase::{contact_graph, intersection_graph}`; `ColliderGraphIndex` /
