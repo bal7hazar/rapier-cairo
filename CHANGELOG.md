@@ -8,6 +8,14 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8`.
 
 ### Added
+- Parry geometry utilities in `rapier_geometry2d` (PX3, #231; off the step path): `Aabb::{distance_to_origin,
+  project_on_axis, scaled_wrt_center, canonical_split, clip_line, clip_line_parameters, clip_ray, clip_ray_parameters,
+  clip_segment, clip_polygon, clip_polygon_with_workspace}`, `clip_aabb_line`, `clip_halfspace_polygon`,
+  `closest_points_line_line{,_parameters,_parameters_eps}`, `local_point_projection_on_support_map`,
+  `convex_polygon_area_and_center_of_mass`, `Segment::{canonical_split, local_split, local_split_and_get_intersection,
+  from_array}`, `SplitResult`, `IntersectResult`, `Ball` / `Capsule` / `ConvexPolygon::scaled` (a polygon of at most 8
+  vertices, `None` beyond), the `BoundingSphere` point and ray queries, `PolygonalFeature::{face_face_contacts,
+  face_vertex_contacts}`; golden family `geometry_utils` (254 cases). Parity raw 80.8 %, in scope 88.1 %.
 - `rapier2d::prelude` exports `RigidBodyType` / `RigidBodyTypeTrait`, `ShapeTrait` (the `SharedShape`-style
   constructors) and the basic shapes with their traits (`Ball`, `Cuboid`, `ConvexPolygon`, `HalfSpace`, `Capsule`,
   `Segment`): a game builds a `rapier2d_classes::BodyInsert` without depending on `rapier_core` or
