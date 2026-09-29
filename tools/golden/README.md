@@ -119,6 +119,7 @@ non-alphanumeric character replaced by `_` (`cuboid/rot-135` → `CUBOID_ROT_135
 | `tilted_landing.json` | 1 scene × 90 steps | `ell_twin` | **SF1** SH2b's tall L built from two plain cuboid colliders on one body, landing tilted on a half-space (the contact-separation rebase, see the SF1 update in the slope section); stops at 90 steps because upstream solves a new pair first at step 94 (persisted graph order, the SO / DO class) |
 | `pid_corrections.json` | 4 | case name | **KC1** `PdController` / `PidController` corrections of a dynamic body with an offset centre of mass, see [KC1 families](#kc1-families) |
 | `character_moves.json` | 8 scenes, 20 moves | move name | **KC1** `KinematicCharacterController::move_shape` (flat ground, wall, 30° / 60° ramps, step, ledge, kinematic platform, dynamic box) and `solve_character_collision_impulses` |
+| `geometry_utils.json` | 254 | `<function>/<case>` | **PX3** Parry geometry utilities off the step path: `Aabb` projections, clips and splits, `clip_aabb_line`, `clip_halfspace_polygon`, `closest_points_line_line*`, segment splits, support-map point projection, convex-polygon area / centre of mass, scaled shapes, bounding-sphere point / ray queries, `PolygonalFeature` face contacts; per-case bands (exact to 16 ulp) |
 
 ### contact_manifolds
 
