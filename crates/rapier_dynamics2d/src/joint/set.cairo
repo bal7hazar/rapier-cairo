@@ -115,6 +115,25 @@ pub impl ImpulseJointSetImpl of ImpulseJointSetTrait {
         }
         out
     }
+    /// Calls `f(body1, body2, joint handle, joint)` on a copy of every joint attached to `body`, in
+    /// ascending slot index, and writes the joint it returns back (upstream
+    /// `map_attached_joints_mut`, whose closure edits a `&mut ImpulseJoint`: here it returns the
+    /// edited copy). The handles are not changed by the write-back: a closure that changes
+    /// `body1` / `body2` changes the joint, not the arguments of the later calls. Upstream also
+    /// bumps its assembly epoch (a cache the port does not have). O(len).
+    fn map_attached_joints_mut<
+        F,
+        +Drop<F>,
+        +Copy<F>,
+        impl call: core::ops::Fn<F, (Handle, Handle, Handle, ImpulseJoint)>,
+        +core::metaprogramming::TypeEqual<call::Output, ImpulseJoint>,
+    >(
+        ref self: ImpulseJointSet, body: Handle, f: F,
+    ) {
+        for (body1, body2, handle, joint) in self.attached_joints(body) {
+            let _ = self.joints.set(handle, f(body1, body2, handle, joint));
+        }
+    }
     /// Removes every joint attached to `body` and returns their handles, in ascending slot index
     /// (upstream `remove_joints_attached_to_rigid_body`). No body is woken up: the set does not
     /// own the bodies (`World::remove_body` does it). O(len).
@@ -194,6 +213,7 @@ pub impl ImpulseJointSetImpl of ImpulseJointSetTrait {
 }
 #[cfg(test)]
 mod tests {
+    use fixed::{HALF, ONE};
     use rapier_testing::opaque;
     use crate::narrow_phase::interaction_graph::InteractionGraphTrait;
     use super::*;
@@ -216,6 +236,67 @@ mod tests {
         let (h1, _) = *entries.at(1);
         assert_eq!(h0, d);
         assert_eq!(h1, c);
+    }
+    #[test]
+    fn test_map_attached_joints_mut() {
+        let mut s = ImpulseJointSetTrait::new();
+        let (a, b, c, d) = (
+            Handle { index: 0, generation: 0 },
+            Handle { index: 1, generation: 0 },
+            Handle { index: 2, generation: 0 },
+            Handle { index: 3, generation: 0 },
+        );
+        let j1 = s.insert(a, b, Default::default());
+        let j2 = s.insert(c, b, Default::default());
+        let j3 = s.insert(c, d, Default::default());
+        let before3 = s.get(j3).unwrap();
+        let mut seen = 0_u32;
+        // 0 attached joints: the closure is never called.
+        s
+            .map_attached_joints_mut(
+                Handle { index: 9, generation: 0 },
+                |_b1: Handle, _b2: Handle, _h: Handle, j: ImpulseJoint| {
+                    assert!(false, "no joint is attached");
+                    j
+                },
+            );
+        // 1 attached joint (body `a`).
+        s
+            .map_attached_joints_mut(
+                a,
+                |b1: Handle, b2: Handle, h: Handle, j: ImpulseJoint| {
+                    assert_eq!((b1, b2, h), (a, b, j1));
+                    ImpulseJoint { impulses: [ONE, ZERO, ZERO], ..j }
+                },
+            );
+        assert_eq!(s.get(j1).unwrap().impulses, [ONE, ZERO, ZERO]);
+        assert_eq!(s.get(j2).unwrap().impulses, [ZERO, ZERO, ZERO]);
+        // 2 attached joints (body `b`): both edited, the third joint is untouched.
+        s
+            .map_attached_joints_mut(
+                b,
+                |_b1: Handle, _b2: Handle, _h: Handle, j: ImpulseJoint| {
+                    ImpulseJoint { impulses: [HALF, HALF, HALF], ..j }
+                },
+            );
+        assert_eq!(s.get(j1).unwrap().impulses, [HALF, HALF, HALF]);
+        assert_eq!(s.get(j2).unwrap().impulses, [HALF, HALF, HALF]);
+        assert_eq!(s.get(j3).unwrap(), before3);
+        seen += s.len();
+        assert_eq!(seen, 3);
+    }
+    #[test]
+    fn gas_map_attached_joints_mut() {
+        let mut s = ImpulseJointSetTrait::new();
+        let b = opaque(Handle { index: 0, generation: 0 });
+        let _ = s.insert(b, b, opaque(Default::default()));
+        s
+            .map_attached_joints_mut(
+                b,
+                |_b1: Handle, _b2: Handle, _h: Handle, j: ImpulseJoint| {
+                    ImpulseJoint { impulses: [ONE, ZERO, ZERO], ..j }
+                },
+            );
     }
     #[test]
     fn gas_baseline() {
