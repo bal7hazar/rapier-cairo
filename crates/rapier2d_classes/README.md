@@ -40,7 +40,25 @@ The classes a game declares:
   `ContactPolygonClass`, `SolverClass`.
 
 Every class of this crate is one of them (CS7 moved route (b)'s `OrchestratorClass` to the unpublished
-`rapier_sink` fixtures).
+`rapier_sink` fixtures). Sizes (felts, release profile; identical in the dev profile), each gated at 73,728 with at
+least 1,000 felts of margin by `scripts/bytecode_size.py check`:
+
+| class | Sierra | CASM | CASM margin | declared for |
+|---|--:|--:|--:|---|
+| `NarrowPhaseClass` | 22,008 | 68,372 | 5,356 | `SlimSplitStages` |
+| `ContactBallClass` | 14,950 | 41,560 | 32,168 | `SlimSplitStages`, CS4 |
+| `SolveAdvanceClass` | 37,044 | 58,547 | 15,181 | `SlimSplitStages` |
+| `IslandsClass` | 7,952 | 19,083 | 54,645 | `SlimSplitStages` |
+| `BroadPhaseClass` | 4,525 | 9,841 | 63,887 | `SlimSplitStages` |
+| `MassClass` | 13,297 | 35,686 | 38,042 | `SlimSplitStages` |
+| `ActiveSetClass` | 4,381 | 10,930 | 62,798 | `SlimSplitStages` |
+| `ForceEventsClass` | 2,832 | 6,202 | 67,526 | `SlimSplitStages` with the force events out |
+| `WorldEditClass` | 17,610 | 51,865 | 21,863 | the World edits between steps (`edit_world`) |
+| `ContactPolygonClass` | 14,515 | 57,299 | 16,429 | CS4's layout |
+| `SolverClass` | 29,500 | 43,726 | 30,002 | CS4's layout |
+
+The caller classes of the fixtures, for reference: `SlimSplitStep` 26,834 / 67,076 (margin 6,652), `SlimEditStep` (the
+same with the edits forwarded to `WorldEditClass`) 27,135 / 68,818 (margin 4,910).
 
 A game declares the classes, then compiles its contract's step with `SlimSplitStages<H>`, `H` an
 impl of `ClassHashes` returning the declared hashes as constants, and takes and returns the world
@@ -91,7 +109,7 @@ Results are bit-identical to `BasicStepConfig` (`tests/split.cairo`, `tests/slim
 `tests/edits.cairo`: every tick of slingfall's pile10 reference shot, and with user changes or the
 World edits in the middle of it); `tests/steps.cairo` and `tests/slim.cairo` measure the Cairo steps
 of each layout, `tests/edits.cairo` those of each edit call. The class sizes are tracked in `gas/bytecode.size`
-(`scripts/bytecode_size.py`, which fails when a declared class exceeds 73,728 Sierra or CASM
+(`scripts/bytecode_size.py`, which fails when a declared class comes within 1,000 felts of 73,728 Sierra or CASM
 felts).
 
 The class hashes change whenever the code a class compiles changes (this crate, or the engine

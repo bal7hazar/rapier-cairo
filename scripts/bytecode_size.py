@@ -77,10 +77,14 @@ PACKAGE = "rapier_sink"
 CLASSES_PACKAGE = "rapier2d_classes"
 # CS6: the pair-loop, active-set and force-event classes, and `SlimSplitStep`, the caller class of the
 # game's step (`rapier_sink`, `SlimSplitStages` with the basic `WorldState` codec), which must fit too.
+# CS7: `WorldEditClass` (the World edits between steps) and `SlimEditStep`, the caller that forwards them.
 DECLARED = ["ContactBallClass", "ContactPolygonClass", "SolverClass", "SolveAdvanceClass",
             "IslandsClass", "BroadPhaseClass", "MassClass", "NarrowPhaseClass", "ActiveSetClass",
-            "ForceEventsClass", "SlimSplitStep"]
+            "ForceEventsClass", "WorldEditClass", "SlimSplitStep", "SlimEditStep"]
 DECLARED_LIMIT = 73728
+# Programme (2026-09-29): a declared class must keep at least this margin under `DECLARED_LIMIT` (a game
+# fails its own size gate on any growth of a class it declares).
+DECLARED_MIN_MARGIN = 1000
 # SNIP-36 (SN1, 2026-09-28): what the virtual OS fails on and what its prover rejects. Checked on the
 # declared classes and on their caller fixtures (CS4's layout; CS5's, every stage out, and its variants;
 # CS6's levers 1 and 2 alone and route (b), measured and not shipped: its orchestrator and caller).
@@ -318,7 +322,8 @@ def fixtures():
 
 
 def declared_over(rows):
-    """-> the problems of the declared classes: missing, or over `DECLARED_LIMIT` felts."""
+    """-> the problems of the declared classes: missing, or within `DECLARED_MIN_MARGIN` felts of
+    `DECLARED_LIMIT` (or over it)."""
     bad = []
     for name in DECLARED:
         r = rows.get(name)
@@ -326,8 +331,9 @@ def declared_over(rows):
             bad.append(f"{name}: declared class not built")
             continue
         for metric in ("sierra_felts", "casm_felts"):
-            if r[metric] > DECLARED_LIMIT:
-                bad.append(f"{name}: {metric} {r[metric]:,} > {DECLARED_LIMIT:,}")
+            if r[metric] > DECLARED_LIMIT - DECLARED_MIN_MARGIN:
+                bad.append(f"{name}: {metric} {r[metric]:,}, margin {DECLARED_LIMIT - r[metric]:,} "
+                           f"< {DECLARED_MIN_MARGIN:,} under {DECLARED_LIMIT:,}")
     return bad
 
 
@@ -590,7 +596,7 @@ def main():
         over = declared_over(rows)
         if over:
             print("\n".join(over), file=sys.stderr)
-            sys.exit(f"declared class over {DECLARED_LIMIT:,} felts ({len(over)}): split it further "
+            sys.exit(f"declared class within {DECLARED_MIN_MARGIN:,} felts of {DECLARED_LIMIT:,} ({len(over)}): split it further "
                      "(docs/research/class-split.md).")
         rejected = snip36_problems()
         if rejected:
