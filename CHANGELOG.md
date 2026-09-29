@@ -3,6 +3,16 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
+## Unreleased
+
+**Results:** unchanged since `0.1.0-alpha.8`.
+
+### Added
+- `rapier2d::prelude` exports `RigidBodyType` / `RigidBodyTypeTrait`, `ShapeTrait` (the `SharedShape`-style
+  constructors) and the basic shapes with their traits (`Ball`, `Cuboid`, `ConvexPolygon`, `HalfSpace`, `Capsule`,
+  `Segment`): a game builds a `rapier2d_classes::BodyInsert` without depending on `rapier_core` or
+  `rapier_geometry2d` (programme request after slingfall's alpha.8 bump).
+
 ## 0.1.0-alpha.8 — 2026-09-29
 
 **Results:** step results unchanged since `0.1.0-alpha.7`: every `steps_*` probe (the game-shaped path included),
