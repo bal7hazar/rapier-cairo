@@ -109,6 +109,7 @@ mod benches;
 
 pub mod composite;
 pub mod contact_pairs;
+pub mod interaction_graph;
 pub mod process;
 pub use process::{pair_transition, previous_state, process_pair, update_manifold};
 pub mod intersections;

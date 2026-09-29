@@ -18,15 +18,15 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
 | dynamics | 554 | 0 | 36 | 592 | 1182 | 77.4% | 93.9% |
-| geometry | 227 | 0 | 41 | 47 | 315 | 75.9% | 84.7% |
+| geometry | 241 | 0 | 27 | 47 | 315 | 80.6% | 89.9% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 254 | 0 | 26 | 127 | 407 | 84.7% | 90.7% |
 | parry::shape | 225 | 0 | 36 | 119 | 380 | 86.2% | 86.2% |
 | pipeline | 79 | 0 | 2 | 77 | 158 | 88.8% | 97.5% |
-| **total** | **1478** | **0** | **141** | **973** | **2592** | **81.9%** | **91.3%** |
+| **total** | **1492** | **0** | **127** | **973** | **2592** | **82.7%** | **92.2%** |
 
-Cairo-only public items not matched to upstream: **2003**.
+Cairo-only public items not matched to upstream: **2010**.
 
 ## Aabb
 
@@ -459,7 +459,7 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `ColliderGraphIndex` | geometry | missing | Not found on Cairo candidate(s): ColliderGraphIndex, ColliderGraphIndexTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| type `ColliderGraphIndex` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 
 ## ColliderHandle
 
@@ -1342,18 +1342,18 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `index_interaction` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `interaction_pair` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
+| method `index_interaction` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interaction_pair` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 | method `interaction_pair_mut` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
-| method `interactions` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `interactions_between` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `interactions_with` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `interactions_with_endpoints` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interactions` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interactions_between` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interactions_with` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interactions_with_endpoints` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 | method `interactions_with_mut` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
-| method `new` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| method `new` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 | method `raw_graph` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
-| type `InteractionGraph` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| type `InteractionGraph` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 
 ## InteractionGroups
 
@@ -1394,7 +1394,7 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `IntersectionPair` | geometry | missing | Not found on Cairo candidate(s): IntersectionPair, IntersectionPairTrait. | `rapier/src/geometry/contact_pair.rs` |
+| type `IntersectionPair` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## InverseKinematicsOption
 
@@ -1790,15 +1790,15 @@ Cairo-only public items not matched to upstream: **2003**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/mod.rs` |
-| method `contact_graph` | geometry | missing | Not ported yet: a read-only view over the pair list (no persistent graph, D7); meanwhile `contact_pairs` / `intersection_pairs`. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `contact_graph` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pair_at_index` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pair_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pairs_with` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pairs_with_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseContactPairs, NarrowPhaseTrait, NarrowPhaseContactPairsTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
-| method `intersection_graph` | geometry | missing | Not ported yet: a read-only view over the pair list (no persistent graph, D7); meanwhile `contact_pairs` / `intersection_pairs`. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseContactPairs, NarrowPhaseInteractionGraph, NarrowPhaseTrait, NarrowPhaseContactPairsTrait, NarrowPhaseInteractionGraphTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
+| method `intersection_graph` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
@@ -3862,7 +3862,7 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `TemporaryInteractionIndex` | geometry | missing | Not found on Cairo candidate(s): TemporaryInteractionIndex, TemporaryInteractionIndexTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| type `TemporaryInteractionIndex` | geometry | ported | Same public name. | `rapier/src/geometry/interaction_graph.rs` |
 
 ## ToiProxy
 
@@ -4439,34 +4439,25 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 50 | mechanical | AP triage |
-| [Query completion](#wp-query-completion) | 40 | standard | QP queries |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 40 | mechanical | AP triage |
+| [Query completion](#wp-query-completion) | 39 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 26 | standard | shape interface |
-| [Collider API completion](#wp-collider-api-completion) | 9 | mechanical | DB/EV |
+| [Collider API completion](#wp-collider-api-completion) | 8 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
 | [Joint API completion](#wp-joint-api-completion) | 3 | standard | JL/RJ |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 3 | standard | SE sensors |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 2 | hard | QP queries |
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 2 | standard | P1/SL/EV |
+| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 1 | standard | SE sensors |
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 50 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 40 public items.
 
 - **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `map_part_at` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** trait `CompositeShape` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShapeRef** type `CompositeShapeRef` (`parry/src/shape/composite_shape.rs`)
-- **InteractionGraph** impl `Default` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `index_interaction` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interaction_pair` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_between` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with_endpoints` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `new` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
 - **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
 - **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
 - **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
@@ -4498,7 +4489,6 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 50 public items.
 - **SolverVel** method `as_vector_slice_mut` (`rapier/src/dynamics/solver/solver_body.rs`)
 - **SolverVel** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
 - **SolverVelRepr** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **TemporaryInteractionIndex** type `TemporaryInteractionIndex` (`rapier/src/geometry/interaction_graph.rs`)
 - **TypedCompositeShape** method `map_typed_part_at` (`parry/src/shape/composite_shape.rs`)
 - **TypedCompositeShape** method `map_untyped_part_at` (`parry/src/shape/composite_shape.rs`)
 - **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
@@ -4506,7 +4496,7 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 50 public items.
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 40 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 39 public items.
 
 - **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
 - **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
@@ -4520,7 +4510,6 @@ Tier: standard. Depends/context: QP queries. Estimate: 40 public items.
 - **ContactManifoldData** method `solver_contact_world_points` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactRef** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
 - **GraphPos** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
-- **NarrowPhase** method `contact_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **NormalConstraints** method `project_local_normal` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraints** method `project_local_normal1` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraints** method `project_local_normal2` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
@@ -4582,11 +4571,10 @@ Tier: standard. Depends/context: shape interface. Estimate: 26 public items.
 
 ### WP: Collider API completion
 
-Tier: mechanical. Depends/context: DB/EV. Estimate: 9 public items.
+Tier: mechanical. Depends/context: DB/EV. Estimate: 8 public items.
 
 - **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
-- **ColliderGraphIndex** type `ColliderGraphIndex` (`rapier/src/geometry/interaction_graph.rs`)
 - **ColliderSet** impl `Index<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
 - **ColliderSet** impl `Index<data::Index>` (`rapier/src/geometry/collider_set.rs`)
 - **ColliderSet** impl `IndexMut<ColliderHandle>` (`rapier/src/geometry/collider_set.rs`)
@@ -4613,14 +4601,6 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 3 public items.
 - **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
 - **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
 
-### WP: Sensors and intersection events
-
-Tier: standard. Depends/context: SE sensors. Estimate: 3 public items.
-
-- **IntersectionPair** type `IntersectionPair` (`rapier/src/geometry/contact_pair.rs`)
-- **NarrowPhase** method `intersection_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
-
 ### WP: CCD and shape casts
 
 Tier: hard. Depends/context: QP queries. Estimate: 2 public items.
@@ -4634,6 +4614,12 @@ Tier: standard. Depends/context: P1/SL/EV. Estimate: 2 public items.
 
 - **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
 - **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
+
+### WP: Sensors and intersection events
+
+Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
+
+- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
 
 ## Cairo public items without upstream match
 
@@ -4837,7 +4823,7 @@ Tier: standard. Depends/context: P1/SL/EV. Estimate: 2 public items.
 - **Arena** const `GENERATION_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `LENGTH_MISMATCH` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `STATE_GENERATION` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1803 more
+- ... 1810 more
 
 ## Embedded Rust inventory
 
