@@ -3,7 +3,7 @@
 A port of the [Rapier](https://rapier.rs) physics engine to [Cairo](https://www.cairo-lang.org),
 so that games can run on **provable physics**.
 
-> Status: `0.1.0-alpha.7` on [scarbs.xyz](https://scarbs.xyz) (`rapier2d` and its crates). 2D rigid bodies, colliders,
+> Status: `0.1.0-alpha.8` on [scarbs.xyz](https://scarbs.xyz) (`rapier2d` and its crates). 2D rigid bodies, colliders,
 > joints, sensors, events, sleeping, queries and world save / restore; parity status in
 > [`docs/API_PARITY.md`](docs/API_PARITY.md).
 
@@ -16,7 +16,7 @@ so that games can run on **provable physics**.
 
 ## Dependencies
 
-rapier-cairo depends on `fixed` 0.4.0 and `glam_core` 0.4.1 (since DU1; `0.1.0-alpha.7` and earlier used `fixed`
+rapier-cairo depends on `fixed` 0.4.0 and `glam_core` 0.4.1 (since `0.1.0-alpha.8`; `0.1.0-alpha.7` and earlier used `fixed`
 0.3.0 and the `glam` 0.3.0 facade). A consumer that also uses these types must itself be on `fixed` 0.4 and
 `glam` ≥ 0.4.1 (or `glam_core`), otherwise it compiles two generations of the same types. `Vec2` and `Fixed`
 stay available as `rapier2d::prelude::{Vec2, Fixed}`.
@@ -47,7 +47,7 @@ Toolchain: scarb 2.19.4, starknet-foundry 0.61.0 (see `.tool-versions`).
 
 ## Stability
 
-`0.1.0-alpha.7` is an **alpha**: no API or numeric stability. Every alpha is validated against golden vectors
+`0.1.0-alpha.8` is an **alpha**: no API or numeric stability. Every alpha is validated against golden vectors
 recorded from rapier2d-f64 0.35.3 / parry2d-f64 0.30.2 within documented tolerance bands, and
 the deliberate divergences from upstream are listed in
 [`docs/adr/0001-upstream-divergences.md`](https://github.com/bal7hazar/rapier-cairo/blob/main/docs/adr/0001-upstream-divergences.md).

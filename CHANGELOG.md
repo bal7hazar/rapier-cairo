@@ -3,9 +3,18 @@
 All crates of the workspace share one version. Alphas carry no API or numeric stability guarantee; every entry says
 whether simulation results changed.
 
-## Unreleased
+## 0.1.0-alpha.8 — 2026-09-29
 
-**Results:** unchanged since `0.1.0-alpha.7` (the in-process step and every query).
+**Results:** step results unchanged since `0.1.0-alpha.7`: every `steps_*` probe (the game-shaped path included),
+every golden and scene test, every `program.*` and the full `WorldState` codec (serialized felts and Cairo steps of its
+round trips) identical. The basic `WorldState` codec writes and reads the same felts; its round trip costs +5,065 Cairo
+steps (outlined readers, CS7).
+
+### Notes
+- The slim layout (`SlimSplitStages`): caller 67,076 CASM felts (6,652 under 73,728), pile10 reference shot +36.9 %
+  Cairo steps over the in-process step, 4 transactions of ≤ 10M. The classes to declare and their sizes are in
+  `rapier2d_classes`' README; `scripts/bytecode_size.py check` keeps each of them at least 1,000 felts under 73,728.
+- Class hashes change with this release (type paths of `glam_core`, CX2, CS7): games re-declare every class.
 
 ### Changed
 - Depends on `fixed` 0.4.0 and `glam_core` 0.4.1 (was `fixed` 0.3.0 and `glam` 0.3.0); step results, gas and felt
