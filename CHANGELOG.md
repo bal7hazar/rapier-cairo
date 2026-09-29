@@ -8,6 +8,10 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.7` (the in-process step and every query).
 
 ### Changed
+- Depends on `fixed` 0.4.0 and `glam_core` 0.4.1 (was `fixed` 0.3.0 and `glam` 0.3.0); step results, gas and felt
+  counts unchanged; class hashes change (type paths), consumers re-declare; a consumer must itself be on `fixed` 0.4
+  and `glam` ≥ 0.4.1 (or `glam_core`), otherwise it holds two generations of the same types. `rapier2d::prelude`
+  still re-exports `Vec2` and `Fixed` (DU1, #225).
 - `rapier2d_classes` (CX2, #222): `NarrowPhaseClass` computes the polygon-family contacts itself (68,372 CASM felts)
   and previous pairs cross trimmed (`PreviousPair`); the slim layout's pile10 shot 32.97M → 30.77M Cairo steps (+37.2 %
   over in process, 4 transactions of ≤ 10M), its caller 73,204 CASM felts. `NarrowPhaseClass::compute_contacts` has new
