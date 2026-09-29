@@ -90,7 +90,7 @@ pub impl BasicShapesDispatcher of ContactDispatcher {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_geometry2d::contact::ContactManifold;
     use rapier_geometry2d::dispatch::contact_manifold;
     use rapier_geometry2d::shape::{

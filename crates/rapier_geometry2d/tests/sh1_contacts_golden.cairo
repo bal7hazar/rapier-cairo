@@ -6,7 +6,7 @@
 //! tolerance, `~1e-9`); distances as the points. Ambiguous cases (exact touching) only compare
 //! the point count and distances.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::dispatch::{contact_manifold, contact_manifold_step, intersection_test};
 use rapier_geometry2d::query::dispatcher::distance;

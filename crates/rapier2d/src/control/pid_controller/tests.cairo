@@ -2,7 +2,7 @@
 //! live in `tests/control_golden.cairo`.
 
 use fixed::{FRAC_PI_2, Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::rigid_body::axes_mask::{ANG_Z, LIN_X, LIN_Y};
 use rapier_core::rigid_body::{AxesMask, AxesMaskTrait};
 use rapier_dynamics2d::rigid_body::velocity::RigidBodyVelocity;

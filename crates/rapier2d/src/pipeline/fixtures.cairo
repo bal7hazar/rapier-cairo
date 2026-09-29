@@ -2,7 +2,7 @@
 //! rebuilt through the public `World` API, and synthetic layouts.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_core::rigid_body::RigidBodyActivationTrait;

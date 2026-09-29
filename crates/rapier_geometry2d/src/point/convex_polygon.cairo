@@ -4,7 +4,7 @@
 
 use fixed::Fixed;
 use fixed::wide::distance2;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::shape::{ConvexPolygon, ConvexPolygonTrait, Segment};

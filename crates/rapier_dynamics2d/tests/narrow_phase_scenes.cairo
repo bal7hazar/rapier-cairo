@@ -3,7 +3,7 @@
 //! halfspace–cuboid manifold (work package GG replaces it in the pipeline).
 
 use fixed::{Fixed, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::collider::{CoefficientCombineRule, CollisionEventFlagsTrait};

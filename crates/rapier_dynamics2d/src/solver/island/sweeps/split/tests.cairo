@@ -3,7 +3,7 @@
 //! one-point manifold, warm starts and approaching NEW contacts (restitution bounces). Gas and
 //! step probes per stage on the same scene, one `gas_baseline`.
 use fixed::{Fixed, FixedTrait, HALF, ONE};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::{ContactManifold, NEW_CONTACT_BIT};
 use rapier_math::rot2::{Rot2, Rot2Trait};

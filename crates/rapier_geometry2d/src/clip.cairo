@@ -3,7 +3,7 @@
 //! Q64.64 units (coordinates bounded by 8192 are sufficient). Ratios and products floor.
 use core::num::traits::WideMul;
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 
 /// A pair of points and their features: 0 first vertex, 1 interior, 2 second vertex.
 pub type ClippingPoints = (Vec2, Vec2, u32, u32);
@@ -113,7 +113,7 @@ pub fn clip_segment_segment_with_normal(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_testing::opaque;
     use super::{
         clip_segment_segment, clip_segment_segment_with_features, clip_segment_segment_with_normal,

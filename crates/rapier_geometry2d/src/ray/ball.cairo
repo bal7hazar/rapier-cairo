@@ -22,7 +22,7 @@
 
 use core::num::traits::WideMul;
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::{norm2_sq_wide, sq_wide};
 use rapier_math::math_ext::vec2::try_normalize2;
 use crate::feature_id::FeatureIdTrait;
@@ -200,7 +200,7 @@ pub fn cast_local_ray_and_get_normal_ball(
 pub mod alternatives {
     use fixed::wide::norm2;
     use fixed::{Fixed, FixedTrait, ZERO};
-    use glam::vec2::{Vec2, Vec2Trait};
+    use glam_core::vec2::{Vec2, Vec2Trait};
     use crate::shape::Ball;
     use super::super::Ray;
 
@@ -233,7 +233,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
     use crate::shape::{Ball, BallTrait};

@@ -16,7 +16,7 @@
 
 use fixed::wide::mul_add;
 use fixed::{Fixed, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use super::mass_props::RigidBodyMassProps;
 use super::velocity::RigidBodyVelocity;
 
@@ -217,7 +217,7 @@ pub impl RigidBodyForcesImpl of RigidBodyForcesTrait {
 #[cfg(test)]
 mod alternatives {
     use fixed::Fixed;
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use super::RigidBodyForces;
     use super::super::mass_props::RigidBodyMassProps;
     use super::super::velocity::RigidBodyVelocity;
@@ -247,7 +247,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_core::rigid_body::RigidBodyType;
     use rapier_geometry2d::mass::MassProperties;
     use rapier_math::pose2::Pose2;

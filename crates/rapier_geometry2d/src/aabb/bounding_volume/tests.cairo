@@ -1,5 +1,5 @@
 use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 use rapier_testing::opaque;

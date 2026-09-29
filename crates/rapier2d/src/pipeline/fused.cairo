@@ -2,7 +2,7 @@
 //! one walk (see the parent module). Generic over the joint strategy since CS2 (`config`).
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_dynamics2d::collider::Collider;

@@ -16,7 +16,7 @@
 //! Ties: a point projecting on a vertex shared by two segments reports the segment upstream's BVH
 //! visits first, the port the lowest index (`TIE`, the feature must still be a face).
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::feature_id::FeatureIdTrait;
 use rapier_geometry2d::point::PointQuery;
 use rapier_geometry2d::query::{

@@ -41,7 +41,7 @@ pub use capsule::{cast_local_ray_and_get_normal_capsule, cast_local_ray_capsule}
 pub use cast::RayCast;
 pub use cuboid::{cast_local_ray_and_get_normal_cuboid, cast_local_ray_cuboid};
 use fixed::Fixed;
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 pub use halfspace::{cast_local_ray_and_get_normal_halfspace, cast_local_ray_halfspace};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
@@ -251,7 +251,7 @@ pub fn cast_ray_and_get_normal(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

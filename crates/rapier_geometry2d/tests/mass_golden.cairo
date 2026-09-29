@@ -9,7 +9,7 @@
 //! tolerance is `16 + x^2`.
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
 use rapier_geometry2d::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape, ShapeTrait};
 use rapier_golden::compare::abs_diff;

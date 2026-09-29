@@ -1,5 +1,5 @@
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_testing::opaque;
 use crate::aabb::Aabb;
 use crate::feature_id::FeatureIdTrait;

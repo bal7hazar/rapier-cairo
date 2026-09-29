@@ -1,5 +1,5 @@
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_testing::opaque;
 use crate::aabb::Aabb;
 use crate::shape::segment::SegmentTrait;

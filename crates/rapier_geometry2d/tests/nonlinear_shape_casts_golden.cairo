@@ -19,7 +19,7 @@
 //! port answers `Failed` at `t = 0`), and `polygon_capsule/touching` without stopping at
 //! penetration, where upstream's contact query (GJK + EPA) fails and its `??` answers no hit.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::query::nonlinear_shape_cast::{NonlinearRigidMotion, cast_shapes_nonlinear};
 use rapier_golden::compare::abs_diff;
 use rapier_golden::generated::nonlinear_shape_casts;

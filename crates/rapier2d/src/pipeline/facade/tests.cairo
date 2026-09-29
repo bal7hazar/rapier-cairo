@@ -1,7 +1,7 @@
 //! Tests and gas probes of the pipeline objects (`super`).
 
 use fixed::{Fixed, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::integration_parameters::IntegrationParametersTrait;

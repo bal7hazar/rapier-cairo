@@ -6,7 +6,7 @@
 
 use core::num::traits::DivRem;
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier2d::world::{World, WorldTrait};
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};

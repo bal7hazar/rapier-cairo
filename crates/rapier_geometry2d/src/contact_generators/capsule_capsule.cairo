@@ -17,7 +17,7 @@
 use core::num::traits::{DivRem, WideMul};
 use fixed::wide::{dot2, norm2_squared};
 use fixed::{Fixed, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::norm2::{norm2_sq_wide, sq_wide};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
@@ -269,7 +269,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_golden::contact_manifolds::{
         CAPSULE_CAPSULE_DEEP, CAPSULE_CAPSULE_DEGENERATE, CAPSULE_CAPSULE_SEPARATED,
         CAPSULE_CAPSULE_SHALLOW, CAPSULE_CAPSULE_TOUCHING, CAPSULE_CAPSULE_WITHIN_PRED, PREDICTION,

@@ -64,7 +64,7 @@
 //!   deferred.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, TrigTrait, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, SENSOR};
 use rapier_core::collider::{ActiveEventsTrait, ColliderType};

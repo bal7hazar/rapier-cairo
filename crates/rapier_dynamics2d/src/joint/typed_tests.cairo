@@ -1,7 +1,7 @@
 //! Typed joint views (`FixedJoint`, `RevoluteJoint`, `PrismaticJoint`, `PinSlotJoint`, `RopeJoint`,
 //! `SpringJoint`), the `GenericJoint` accessors and the `ImpulseJointSet` queries (JA1).
 use fixed::{Fixed, HALF, MAX, MIN, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use rapier_math::pose2::Pose2;

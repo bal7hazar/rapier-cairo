@@ -1,7 +1,7 @@
 //! `Ball` (Parry `shape/ball.rs`, `bounding_volume/aabb_ball.rs`, `mass_properties_ball.rs`).
 
 use fixed::Fixed;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use crate::aabb::bounding_volume::{BoundingSphere, centered_bounding_sphere};
 use crate::aabb::{Aabb, AabbTrait};
@@ -97,7 +97,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::{Rot2, Rot2Trait};
     use rapier_testing::opaque;

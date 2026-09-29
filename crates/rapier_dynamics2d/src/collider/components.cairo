@@ -175,7 +175,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};
     use rapier_geometry2d::shape::{
         BallTrait, CapsuleTrait, CuboidTrait, HalfSpaceTrait, SegmentTrait, Shape, ShapeTrait,
@@ -361,7 +361,7 @@ mod tests {
 /// `local_up` must be unit and `cos_allowed_angle` must be in [-1, 1].
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct OneWayPlatform {
-    pub local_up: glam::Vec2,
+    pub local_up: glam_core::Vec2,
     pub cos_allowed_angle: fixed::Fixed,
 }
 

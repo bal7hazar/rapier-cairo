@@ -31,7 +31,7 @@
 //!   point inside a collider is at the distance to its boundary.
 
 use fixed::Fixed;
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::Handle;
 use rapier_dynamics2d::collider::ColliderTrait;
 use rapier_geometry2d::aabb::{Aabb, AabbTrait};

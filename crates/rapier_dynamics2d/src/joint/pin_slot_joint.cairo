@@ -2,7 +2,7 @@
 //! their relative rotation free and slide along the joint's X axis. A `GenericJoint` that locks the
 //! local Y axis only, wrapped by a typed view and a builder that build it.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use super::{
     GenericJoint, GenericJointTrait, JointLimits, JointMotor, LOCKED_PIN_SLOT_AXES, MotorModel,

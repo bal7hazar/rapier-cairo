@@ -58,7 +58,7 @@
 //!   65,529).
 
 use fixed::{FRAC_PI_4, Fixed, ONE, ZERO};
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_core::Handle;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::query::ShapeCastHit;

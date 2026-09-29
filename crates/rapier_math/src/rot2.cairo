@@ -1,7 +1,7 @@
 //! Q32.32 unit-complex rotations, the 2D `glamx` layer.
 use fixed::wide::{dot2, mul_add, mul_sub, normalize2};
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use crate::consts::UNIT_TOL_SQ_RAW;
 use crate::math_ext::is_unit2_raw;
 
@@ -108,7 +108,7 @@ pub impl Rot2Mul of Mul<Rot2> {
 #[cfg(test)]
 mod alternatives {
     use fixed::Fixed;
-    use glam::Vec2;
+    use glam_core::Vec2;
     use super::{Rot2, Rot2Trait};
 
     // Composed Vec2 arithmetic rounds each product before the vector addition (<= 1 ulp
@@ -134,7 +134,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, MAX, MIN, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_testing::opaque;
     use super::{IDENTITY, Rot2, Rot2Trait, alternatives};
 

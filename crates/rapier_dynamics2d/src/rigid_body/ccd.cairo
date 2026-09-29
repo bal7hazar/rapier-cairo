@@ -11,7 +11,7 @@
 //! last one the pass computed.
 
 use fixed::{Fixed, FixedTrait, HALF, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2Trait;
 use rapier_math::rot2::Rot2Trait;
 use super::forces::RigidBodyForces;

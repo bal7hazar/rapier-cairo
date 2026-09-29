@@ -14,6 +14,13 @@ so that games can run on **provable physics**.
 - [`benchmarks/numeric/`](benchmarks/numeric) — the reproducible benchmark behind the scalar choice
 - [`AGENTS.md`](AGENTS.md) — how the project is developed (orchestrator + parallel executors)
 
+## Dependencies
+
+rapier-cairo depends on `fixed` 0.4.0 and `glam_core` 0.4.1 (since DU1; `0.1.0-alpha.7` and earlier used `fixed`
+0.3.0 and the `glam` 0.3.0 facade). A consumer that also uses these types must itself be on `fixed` 0.4 and
+`glam` ≥ 0.4.1 (or `glam_core`), otherwise it compiles two generations of the same types. `Vec2` and `Fixed`
+stay available as `rapier2d::prelude::{Vec2, Fixed}`.
+
 ## Design in one paragraph
 
 Signed Q32.32 fixed point in a native `i64`, fused multiply-accumulate kernels (one rescale per

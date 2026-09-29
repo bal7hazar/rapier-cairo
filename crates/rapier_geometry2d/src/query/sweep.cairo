@@ -27,7 +27,7 @@ pub mod composite;
 pub mod proxy;
 pub mod separation;
 use fixed::{Fixed, HALF, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 pub use proxy::{ProxyDistanceOutput, SimplexCache, proxy_distance};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::{Rot2, Rot2Trait};

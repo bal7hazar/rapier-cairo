@@ -1,7 +1,7 @@
 //! Polygon–segment and polygon–capsule SAT, followed by polygonal-feature clipping.
 //! Rounded corners use the closest core edge pair; radius is applied after clipping.
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::contact::{ContactManifold, ContactManifoldTrait};
@@ -116,7 +116,7 @@ pub fn contact_manifold_polygon_capsule(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::consts::UNIT_TOL_SQ_RAW;
     use rapier_math::math_ext::norm2::is_unit2_raw;
     use rapier_math::pose2::{IDENTITY, Pose2, Pose2Trait};

@@ -13,7 +13,7 @@
 
 use fixed::wide::distance2_squared;
 use fixed::{Fixed, ONE};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_geometry2d::closest_points::{
     closest_points_segment_segment, closest_points_segment_segment_with_locations,
 };

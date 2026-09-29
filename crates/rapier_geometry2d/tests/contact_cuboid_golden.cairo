@@ -1,7 +1,7 @@
 //! Eight cuboid fixtures, including weighted-diagonal corner and quarter turn.
 //! Numeric tolerance is the README's 64 raw units; f32 feature ids are exact.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::contact_generators::cuboid_cuboid::{
     contact_manifold_cuboid_cuboid, contact_manifold_cuboid_cuboid_shapes,

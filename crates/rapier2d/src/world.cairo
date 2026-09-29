@@ -36,7 +36,7 @@
 //! with `set_body` / `set_collider`).
 
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_core::rigid_body::RigidBodyType;

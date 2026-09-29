@@ -20,7 +20,7 @@ pub(crate) mod coupled;
 mod helper;
 mod row;
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 pub use helper::{JointConstraintHelper, JointConstraintHelperTrait};
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};

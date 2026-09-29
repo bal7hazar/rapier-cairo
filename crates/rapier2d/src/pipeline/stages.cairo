@@ -44,7 +44,7 @@
 //!   [`errors::KINEMATIC`] at the next step).
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider_set::ColliderSet;

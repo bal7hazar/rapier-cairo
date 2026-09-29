@@ -6,7 +6,7 @@
 //! scenes `balls_halfspace1` and `cuboid_stack1` (`gas_scenes.cairo`).
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier2d::world::{World, WorldTrait};
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;

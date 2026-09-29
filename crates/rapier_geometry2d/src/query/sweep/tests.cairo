@@ -2,7 +2,7 @@
 //! (`sweep_toi.rs`), the proxies of every shape, the sweeps and the distance kernel.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_golden::compare::abs_diff;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;

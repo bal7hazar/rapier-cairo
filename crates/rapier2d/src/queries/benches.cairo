@@ -3,7 +3,7 @@
 //! ray along the first row. Subtract the matching `gas_setup_*` probe to get the query alone.
 
 use fixed::{Fixed, FixedTrait, HALF};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::ray::Ray;

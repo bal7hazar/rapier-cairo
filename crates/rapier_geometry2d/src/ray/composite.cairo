@@ -18,7 +18,7 @@
 //! parallel ray gets upstream's `s = 0` and the projection of its origin as `t`).
 
 use fixed::{Fixed, MAX, ZERO};
-use glam::vec2::Vec2Trait;
+use glam_core::vec2::Vec2Trait;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use crate::aabb::Aabb;
 use crate::feature_id::FeatureIdTrait;

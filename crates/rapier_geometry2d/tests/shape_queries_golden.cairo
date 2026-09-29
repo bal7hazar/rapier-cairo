@@ -26,7 +26,7 @@
 //! must be the flipped one (within `SURFACE`).
 use fixed::wide::norm2;
 use fixed::{Fixed, FixedTrait, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_geometry2d::point::PointQuery;
 use rapier_geometry2d::query::support_map::local_support_point_toward;
 use rapier_geometry2d::query::{

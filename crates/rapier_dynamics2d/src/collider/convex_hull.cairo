@@ -16,7 +16,7 @@
 //! at most 9 passes over the points since a `ConvexPolygon` has at most 8 vertices) and Andrew's
 //! monotone chain (insertion sort and a stack, both in dicts).
 
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::point::cross_wide;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 
@@ -98,7 +98,7 @@ pub fn convex_hull(points: Span<Vec2>) -> Option<Array<Vec2>> {
 #[cfg(test)]
 pub mod alternatives {
     use core::dict::{Felt252Dict, Felt252DictTrait};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use super::{MAX_HULL_VERTICES, lex_less, turn};
 
     /// Andrew's monotone chain: insertion sort of the indices, then the lower and upper chains
@@ -168,7 +168,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_testing::opaque;
     use super::alternatives::convex_hull_monotone;
     use super::convex_hull;

@@ -2,7 +2,7 @@
 mod chains;
 mod construction;
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_geometry2d::mass::MassPropertiesTrait;
 use rapier_math::pose2::Pose2;

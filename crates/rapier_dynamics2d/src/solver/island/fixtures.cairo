@@ -1,6 +1,6 @@
 //! Analytic contacts used only for driver regressions and benchmarks.
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::{ContactManifold, NEW_CONTACT_BIT, SolverContact, SolverFlags};

@@ -20,7 +20,7 @@
 //! per-pair loop); `rapier2d_classes::FamilyBatch` library-calls one class per shape-pair family.
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::collider::CollisionEventFlagsTrait;
 use rapier_dynamics2d::collider_set::ColliderSet;
 use rapier_dynamics2d::events::{

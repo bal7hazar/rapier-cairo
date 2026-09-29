@@ -1,6 +1,6 @@
 //! All 16 upstream cases, both clipping paths, exact order and feature identifiers.
 use fixed::{Fixed, FixedTrait};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::clip::{
     ClippingPoints, clip_segment_segment, clip_segment_segment_with_features,
     clip_segment_segment_with_normal,

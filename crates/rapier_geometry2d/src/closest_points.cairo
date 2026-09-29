@@ -49,7 +49,7 @@
 
 use fixed::wide::{dot2, norm2_squared};
 use fixed::{Fixed, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use crate::point::SegmentPointLocation;
 use crate::point::ratio::clamped_ratio;
@@ -185,7 +185,7 @@ pub fn closest_points_segment_segment(seg1: Segment, seg2: Segment) -> (Vec2, Ve
 pub mod alternatives {
     use fixed::wide::{dot2, mul_add, mul_sub, norm2_squared};
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_math::consts::DEFAULT_EPSILON;
     use crate::shape::{Segment, SegmentTrait};
 
@@ -246,7 +246,7 @@ pub mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, ONE, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::point::SegmentPointLocation;
     use crate::shape::Segment;

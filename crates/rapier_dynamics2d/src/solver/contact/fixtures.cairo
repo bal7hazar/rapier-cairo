@@ -1,6 +1,6 @@
 //! Test-only fixtures, shared by lifecycle/set tests and solver-cost candidates.
 use fixed::{FixedTrait, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::{ContactManifold, SolverContact, SolverFlags};

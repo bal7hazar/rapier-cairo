@@ -8,7 +8,7 @@
 //! When upstream keeps no point the normals are meaningless and are not compared.
 
 use fixed::Fixed;
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::contact_generators::ball_ball::contact_manifold_ball_ball_shapes;
 use rapier_geometry2d::contact_generators::convex_ball::contact_manifold_convex_ball_shapes;

@@ -19,7 +19,7 @@ pub use element::{
 use element::{apply, bounce, coefficients, dot, jv, max, min, solve_normal, solve_tangent, tangent};
 use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, wide_from, wide_mul};
 use fixed::{Fixed, HALF, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::spring::{SoftnessCoefficients, SpringCoefficientsTrait};
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};

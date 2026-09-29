@@ -14,7 +14,7 @@
 //! `mass_golden`: `4 + 2 inv^2` ulp on a stored inverse, 16 ulp on a centre of mass.
 
 use fixed::{Fixed, FixedTrait, PI};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::collider::ColliderChangesTrait;
 use rapier_dynamics2d::collider::{Collider, ColliderBuilder, ColliderBuilderTrait, ColliderTrait};
 use rapier_geometry2d::mass::{MassProperties, MassPropertiesTrait};

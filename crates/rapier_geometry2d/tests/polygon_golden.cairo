@@ -1,6 +1,6 @@
 //! Convex polygons against Parry f64 0.30.2. GJK boundary ties compare distance, not coordinates.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::feature_id::FeatureIdTrait;
 use rapier_geometry2d::point::convex_polygon::{
     distance_to_local_point_convex_polygon, project_local_point_and_get_feature_convex_polygon,

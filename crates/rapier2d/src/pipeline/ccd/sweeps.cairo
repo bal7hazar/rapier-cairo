@@ -14,7 +14,7 @@
 //! into one) and as a target through the composite sweep.
 
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::{ActiveEvents, ColliderEnabled, ColliderType};
 use rapier_core::interaction_groups::{InteractionGroups, InteractionGroupsTrait};

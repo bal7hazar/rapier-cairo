@@ -300,7 +300,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::Handle;
     use rapier_core::collider::ColliderChangesTrait;
     use rapier_core::collider::changes::{PARENT, POSITION as CO_POSITION};

@@ -108,7 +108,7 @@ pub fn collision_inputs_outlined_fallback(
 #[inline(never)]
 fn read_body_info_outlined(
     handle: Handle, ref bodies: RigidBodySet,
-) -> (RigidBodyType, glam::Vec2, i16, bool) {
+) -> (RigidBodyType, glam_core::Vec2, i16, bool) {
     match bodies.get(handle) {
         Some(body) => (
             body.body_type,
@@ -125,7 +125,7 @@ fn scratch_entry(
     handle: Handle,
     collider: Collider,
     body_type: RigidBodyType,
-    world_com: glam::Vec2,
+    world_com: glam_core::Vec2,
     dominance: i16,
 ) -> PairCollider {
     PairCollider {

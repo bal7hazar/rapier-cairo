@@ -10,7 +10,7 @@
 //! `transform_point` at each substep), biased low by a few raw. Since the frozen separation is
 //! rebased on that round trip (upstream's `infos.dist`), the slide's refreshed gap stays positive,
 //! the engine passes every sample and the counterfactual has no row left to flip.
-use glam::Vec2Trait;
+use glam_core::Vec2Trait;
 use rapier2d::pipeline;
 use rapier2d::prelude::{RigidBodyTrait, Vec2, World, WorldTrait};
 use rapier_core::integration_parameters::IntegrationParametersTrait;

@@ -26,7 +26,7 @@
 //! version than [`WORLD_STATE_VERSION`]. The layout is the `Serde` of [`WorldState`], i.e. the
 //! field order below; any change to it, or to the `Serde` of a stored type, bumps the version.
 
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::arena::ArenaState;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::Collider;
@@ -177,7 +177,7 @@ pub mod alternatives {
         pub vels: RigidBodyVelocity,
         pub activation: RigidBodyActivation,
         pub changes: RigidBodyChanges,
-        pub world_com: glam::Vec2,
+        pub world_com: glam_core::Vec2,
         pub effective_world_inv_inertia: Fixed,
     }
 

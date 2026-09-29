@@ -4,7 +4,7 @@
 //! calls, so both sides stay in lock step without a cross-crate test dependency.
 
 use fixed::{Fixed, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::IDENTITY;
 use rapier_testing::opaque;
 use super::{

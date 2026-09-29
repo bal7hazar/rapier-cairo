@@ -17,7 +17,7 @@
 
 use fixed::wide::{dot2, dot3, dot3_add, mul_add, mul_sub};
 use fixed::{Fixed, HALF, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::rigid_body::{RigidBodyDamping, damping_factor};
 use rapier_math::math_ext::scalar::inv;
 use rapier_math::pose2::Pose2;
@@ -308,7 +308,7 @@ pub impl RigidBodyVelocityImpl of RigidBodyVelocityTrait {
 #[cfg(test)]
 mod alternatives {
     use fixed::{Fixed, HALF};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_math::math_ext::scalar::inv;
     use rapier_math::math_ext::vec2::{gcross_sv, gcross_vv};
     use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -363,7 +363,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_core::rigid_body::{RigidBodyDamping, RigidBodyType, damping_factor};
     use rapier_geometry2d::mass::MassProperties;
     use rapier_math::pose2::{Pose2, Pose2Trait};

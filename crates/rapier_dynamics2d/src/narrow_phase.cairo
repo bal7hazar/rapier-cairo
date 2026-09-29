@@ -77,7 +77,7 @@
 use core::num::traits::Zero;
 use fixed::Fixed;
 use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, dot2_add, mul_sub, wide_from, wide_mul};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::collider::{

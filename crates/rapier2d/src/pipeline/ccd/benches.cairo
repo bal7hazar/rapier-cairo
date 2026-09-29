@@ -7,7 +7,7 @@
 //! * `nocache`: the fixed targets and candidates rebuilt before the step (`invalidate`).
 
 use fixed::{Fixed, FixedTrait, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::rigid_body_set::RigidBodyBuilderTrait;

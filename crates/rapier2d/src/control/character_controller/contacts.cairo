@@ -3,7 +3,7 @@
 //! dynamic bodies pushed by the character.
 
 use fixed::{Fixed, FixedTrait, ONE, ZERO};
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait, RigidBodyTrait};
 use rapier_geometry2d::aabb::{Aabb, AabbTrait};

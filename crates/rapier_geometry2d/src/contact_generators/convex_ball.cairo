@@ -49,7 +49,7 @@
 
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
 use fixed::{Fixed, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
@@ -276,7 +276,7 @@ fn write_contact(
 pub mod alternatives {
     use fixed::Fixed;
     use fixed::wide::{NormTrait, RecipTrait, norm2, norm2_wide};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::math_ext::norm2::is_norm2_lt;
     use rapier_math::math_ext::vec2::try_normalize2;
     use rapier_math::pose2::Pose2;

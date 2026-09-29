@@ -11,7 +11,7 @@ publish = false
 
 [dependencies]
 fixed.workspace = true
-glam.workspace = true
+glam_core.workspace = true
 rapier2d = { path = "../rapier2d" }
 rapier2d_classes = { path = "../rapier2d_classes" }
 rapier_geometry2d.workspace = true

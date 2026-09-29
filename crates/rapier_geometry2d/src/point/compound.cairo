@@ -14,7 +14,7 @@
 
 use fixed::wide::distance2;
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use rapier_math::pose2::Pose2Trait;
 use crate::aabb::contains_local_point_aabb;

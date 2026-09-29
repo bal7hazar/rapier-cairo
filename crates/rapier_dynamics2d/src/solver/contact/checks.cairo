@@ -3,7 +3,7 @@
 mod tests {
     use fixed::wide::dot2;
     use fixed::{FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::data::handle::Handle;
     use rapier_core::integration_parameters::IntegrationParametersTrait;
     use rapier_core::integration_parameters::spring::SpringCoefficientsTrait;

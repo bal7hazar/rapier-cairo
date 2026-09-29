@@ -1,7 +1,7 @@
 //! `from_convex_hull` and `offsetted`.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_testing::opaque;
 use super::{ConvexPolygon, ConvexPolygonTrait};
 

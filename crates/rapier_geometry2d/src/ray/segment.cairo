@@ -27,7 +27,7 @@
 use core::num::traits::WideMul;
 use fixed::wide::norm2;
 use fixed::{Fixed, FixedTrait, ZERO};
-use glam::vec2::{Vec2, Vec2Trait};
+use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_math::DEFAULT_EPSILON;
 use rapier_math::math_ext::norm2::{is_zero2, norm2_sq_wide};
 use crate::feature_id::FeatureIdTrait;
@@ -154,7 +154,7 @@ pub fn cast_local_ray_segment(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::vec2::Vec2;
+    use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
     use crate::feature_id::{FeatureId, FeatureIdTrait};
     use crate::shape::{Segment, SegmentTrait};

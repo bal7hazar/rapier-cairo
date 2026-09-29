@@ -8,7 +8,7 @@
 use core::num::traits::WideMul;
 use fixed::wide::norm2;
 use fixed::{Fixed, MAX};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::point::dot_wide;
@@ -331,7 +331,7 @@ pub(crate) fn centered_bounding_sphere(pose: Pose2, radius: Fixed) -> BoundingSp
 pub mod alternatives {
     use fixed::wide::norm2;
     use fixed::{Fixed, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use super::{BoundingSphere, BoundingVolume};
 
     /// Upstream's literal merge: normalise `d`, take the two extreme points along it, and centre

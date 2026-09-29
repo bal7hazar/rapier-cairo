@@ -58,14 +58,16 @@ pub fn segment_segment_endpoints(
         || within(other, segment1.b, radius)
 }
 
-fn within(segment: Segment, pt: glam::Vec2, radius: Fixed) -> bool {
+fn within(segment: Segment, pt: glam_core::Vec2, radius: Fixed) -> bool {
     let proj = project_local_point_segment(segment, pt, true);
     is_norm2_le(pt.x - proj.point.x, pt.y - proj.point.y, radius)
 }
 
 /// Ball–polygon through `crate::point`'s solid projection (exact containment, then the closest
 /// point over every edge).
-pub fn point_polygon_projection(polygon: ConvexPolygon, pt: glam::Vec2, radius: Fixed) -> bool {
+pub fn point_polygon_projection(
+    polygon: ConvexPolygon, pt: glam_core::Vec2, radius: Fixed,
+) -> bool {
     let proj = project_local_point_convex_polygon(polygon, pt, true);
     proj.is_inside || is_norm2_le(pt.x - proj.point.x, pt.y - proj.point.y, radius)
 }

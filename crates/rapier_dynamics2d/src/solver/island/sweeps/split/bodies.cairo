@@ -7,7 +7,7 @@ use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::nullable::{FromNullableResult, NullableTrait, match_nullable};
 use fixed::wide::mul_add;
 use fixed::{Fixed, MAX, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;
 use crate::rigid_body::{RigidBodyVelocity, RigidBodyVelocityTrait};

@@ -5,7 +5,7 @@
 //! The full sweep (scales x sizes x layouts, gas and steps) is in the BS report.
 use core::num::traits::DivRem;
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::HandleTrait;
 use rapier_testing::opaque;
 use crate::aabb::AabbTrait;

@@ -24,7 +24,7 @@
 //! caller, each arm is charged only when taken.
 
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::pose2::Pose2;
 use crate::shape::Shape;
 use super::ball::{
@@ -317,7 +317,7 @@ pub impl DefaultQueryDispatcherImpl of QueryDispatcher<DefaultQueryDispatcher> {
 #[cfg(test)]
 mod tests {
     use fixed::{FixedTrait, HALF, ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::Pose2Trait;
     use rapier_math::rot2::Rot2;
     use crate::shape::{BallTrait, CuboidTrait, HalfSpaceTrait, Shape};

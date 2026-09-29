@@ -12,7 +12,7 @@
 //! world centre of mass is one pose product away from an exact input).
 
 use fixed::{Fixed, ONE, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::rigid_body::{RigidBodyDamping, RigidBodyType};
 use rapier_dynamics2d::rigid_body::forces::{RigidBodyForces, RigidBodyForcesTrait};
 use rapier_dynamics2d::rigid_body::locked_axes::LockedAxesTrait;

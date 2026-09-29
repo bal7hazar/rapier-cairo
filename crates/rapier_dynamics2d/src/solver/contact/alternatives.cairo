@@ -2,7 +2,7 @@
 //! two-stage midpoint halving; world-frame local anchors.
 use fixed::HALF;
 use fixed::wide::{WideNarrow, WideSub, dot2, wide_from, wide_mul};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::SolverContact;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use super::super::body::{SolverBody, read, scatter, velocity};

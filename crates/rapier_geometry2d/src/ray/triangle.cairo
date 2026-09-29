@@ -7,7 +7,7 @@
 //! segment kernel of [`super::segment`].
 
 use fixed::{Fixed, MAX, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use crate::feature_id::FeatureIdTrait;
 use crate::point::wide2::cross_wide;
 use crate::shape::{Segment, Triangle};

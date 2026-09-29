@@ -56,7 +56,7 @@ pub mod support_map;
 pub mod sweep;
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 pub use nonlinear_shape_cast::{
     NonlinearRigidMotion, NonlinearRigidMotionTrait, NonlinearShapeCastMode,
     NonlinearShapeCastModeTrait, cast_shapes_nonlinear,
@@ -246,7 +246,7 @@ pub fn intersection_test(pos1: Pose2, g1: Shape, pos2: Pose2, g2: Shape) -> Opti
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

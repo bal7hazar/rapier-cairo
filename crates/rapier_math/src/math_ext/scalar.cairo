@@ -75,7 +75,7 @@ pub fn smallest_abs_component(x: Fixed, y: Fixed) -> Fixed {
 /// Returns the index (`0` or `1`) of the component of `(x, y)` with the smallest absolute value,
 /// `0` on ties.
 ///
-/// Mirrors `glam::Vec2::min_position` applied to `v.abs()` (see [`smallest_abs_component`]).
+/// Mirrors `glam_core::Vec2::min_position` applied to `v.abs()` (see [`smallest_abs_component`]).
 /// #### Panics
 /// * Never.
 /// #### Deviations

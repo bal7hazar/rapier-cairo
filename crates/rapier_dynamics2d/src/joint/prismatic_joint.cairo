@@ -1,7 +1,7 @@
 //! Typed view of a prismatic joint (upstream `PrismaticJoint`): a `GenericJoint` whose free axes
 //! are the ones listed below. Nothing is added to the generic joint: the view wraps it.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use super::{
     GenericJoint, GenericJointTrait, JointLimits, JointMotor, LOCKED_PRISMATIC_AXES, MotorModel,

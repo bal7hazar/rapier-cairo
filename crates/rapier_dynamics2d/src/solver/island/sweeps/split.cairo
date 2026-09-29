@@ -20,7 +20,7 @@
 //! `bodies`: zero-com translations and zero damping (−4.4k). Rejected ones: `alternatives`.
 use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2_add, mul_add, wide_from, wide_mul};
 use fixed::{Fixed, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_math::pose2::Pose2;

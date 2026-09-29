@@ -3,7 +3,7 @@
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::nullable::{FromNullableResult, NullableTrait, match_nullable};
 use fixed::{Fixed, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::{RigidBodyDamping, RigidBodyType};

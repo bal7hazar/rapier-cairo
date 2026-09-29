@@ -2,7 +2,7 @@
 //! live in `tests/narrow_phase_scenes.cairo`.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
 use rapier_core::collider::{ActiveEventsTrait, CollisionEventFlagsTrait};

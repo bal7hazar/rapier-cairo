@@ -22,7 +22,7 @@
 //! (the dispatcher keeps its existing generators or reports them unsupported).
 
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::contact::{ContactManifold, ContactManifoldTrait};
 use crate::manifold::ManifoldTrait;

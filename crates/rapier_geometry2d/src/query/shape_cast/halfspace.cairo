@@ -3,7 +3,7 @@
 //! half-space, with the exact kernel of `crate::ray::halfspace`.
 
 use fixed::ZERO;
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 use crate::point::wide2::dot_wide;
@@ -76,7 +76,7 @@ pub fn cast_shapes_support_map_halfspace(
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, MAX, ONE, TWO, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_math::pose2::Pose2Trait;
     use rapier_math::rot2::Rot2;
     use rapier_testing::opaque;

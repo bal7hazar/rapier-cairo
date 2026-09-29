@@ -1,6 +1,6 @@
 //! Value builders; setters copy without rounding. Frames must contain unit rotations.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::{Rot2, Rot2Trait};

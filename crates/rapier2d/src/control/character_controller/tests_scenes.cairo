@@ -3,7 +3,7 @@
 //! `gas_move_<scene>` to get the move alone.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::Handle;
 use rapier_dynamics2d::collider::builder::ColliderBuilderTrait;
 use rapier_dynamics2d::rigid_body_set::{RigidBodyBuilderTrait, RigidBodyTrait};

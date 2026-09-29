@@ -21,7 +21,7 @@
 
 use fixed::wide::{NormTrait, norm2_wide};
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::norm2::norm2_sq_wide;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use crate::point::cross_wide;

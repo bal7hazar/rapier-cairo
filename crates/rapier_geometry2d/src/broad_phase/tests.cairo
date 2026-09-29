@@ -1,5 +1,5 @@
 use fixed::{Fixed, ONE};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::data::handle::HandleTrait;
 use rapier_golden::aabb_overlap;
 use rapier_golden::types::AabbOverlapCase;

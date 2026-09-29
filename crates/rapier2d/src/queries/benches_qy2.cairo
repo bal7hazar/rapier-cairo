@@ -3,7 +3,7 @@
 //! queries are probed on the same scene (`*_20`) for comparison.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::ray::Ray;

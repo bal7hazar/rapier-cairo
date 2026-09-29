@@ -374,7 +374,7 @@ def programs_package(work):
     shutil.copy(ROOT / "crates" / PACKAGE / "programs" / "lib.cairo", work / "src" / "lib.cairo")
     shutil.copy(ROOT / "crates" / PACKAGE / "src" / "scene.cairo", work / "src" / "scene.cairo")
     pins = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]
-    deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam")]
+    deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam", "glam_core") if d in pins]
     deps.append(f'rapier2d = {{ path = "{(ROOT / "crates" / "rapier2d").as_posix()}" }}')
     targets = "".join(f'[[target.executable]]\nname = "{n}"\n'
                       f'function = "{PROGRAMS_PACKAGE}::{n}"\n\n' for n in PROGRAMS)
@@ -418,7 +418,7 @@ def temp_package(work, strategy):
     library (for the call graph), with Sierra debug names (dev profile)."""
     shutil.copytree(ROOT / "crates" / PACKAGE / "src", work / "src")
     pins = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]
-    deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam")]
+    deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam", "glam_core") if d in pins]
     deps += [f'{c} = {{ path = "{(ROOT / "crates" / c).as_posix()}" }}' for c in SINK_CRATES]
     cairo = f"\n[cairo]\ninlining-strategy = {strategy_toml(strategy)}\n" if strategy else ""
     (work / "Scarb.toml").write_text(

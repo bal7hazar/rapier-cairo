@@ -8,7 +8,7 @@
 //! exact one, `rcub/out_vertex`, while its distance agrees to `1e-8`); mass and inertia inverses
 //! as the polygon family.
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::feature_id::FeatureIdTrait;
 use rapier_geometry2d::point::PointQuery;
 use rapier_geometry2d::ray::{Ray, cast_ray, cast_ray_and_get_normal};

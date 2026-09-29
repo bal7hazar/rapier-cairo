@@ -6,7 +6,7 @@
 //! matched by their `(fid1, fid2)` pair. Capsule–capsule is the same algorithm and is compared in
 //! order. `ambiguous` cases compare only the point count and the multiset of distances.
 use fixed::{Fixed, FixedTrait};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use rapier_geometry2d::contact_generators::capsule_capsule::contact_manifold_capsule_capsule_shapes;
 use rapier_geometry2d::contact_generators::cuboid_capsule::contact_manifold_cuboid_capsule_shapes;

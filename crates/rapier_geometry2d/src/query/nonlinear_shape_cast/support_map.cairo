@@ -30,7 +30,7 @@
 //! step): see `super` for its metered rotation.
 
 use fixed::{Fixed, FixedTrait, MAX, PI, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_math::consts::{DEFAULT_EPSILON, GJK_EPS_TOL};
 use rapier_math::math_ext::vec2::gcross_sv;
 use rapier_math::pose2::{Pose2, Pose2Trait};

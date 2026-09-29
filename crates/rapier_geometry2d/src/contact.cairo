@@ -8,7 +8,7 @@
 //! `num_points == 0` is legal and is ignored by the solver, never treated as an error.
 
 use fixed::Fixed;
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_core::data::handle::Handle;
 use crate::feature_id::FeatureId;
 
@@ -223,7 +223,7 @@ pub impl ContactManifoldExtImpl of ContactManifoldExt<ContactManifold> {
 #[cfg(test)]
 mod tests {
     use fixed::{FixedTrait, ONE};
-    use glam::vec2::vec2;
+    use glam_core::vec2::vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
     use super::{

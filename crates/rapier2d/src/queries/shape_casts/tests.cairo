@@ -3,7 +3,7 @@
 //! Subtract `gas_setup_20` to get the query alone.
 
 use fixed::{FRAC_PI_2, Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_geometry2d::query::{
     NonlinearRigidMotion, NonlinearRigidMotionTrait, ShapeCastHitTrait, ShapeCastOptions,

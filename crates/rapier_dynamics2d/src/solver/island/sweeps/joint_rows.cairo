@@ -2,7 +2,7 @@
 //! second `prepare`, impulses written into a joint copy between substeps), kept for the
 //! bit-identity fuzz and the per-kind frame probes (`gas_<kind>_{jl,jm}` minus `_setup`).
 use fixed::{Fixed, HALF, MAX, MIN, ONE, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_testing::opaque;
 use crate::joint::{GenericJoint, GenericJointTrait, JointAxesMask};

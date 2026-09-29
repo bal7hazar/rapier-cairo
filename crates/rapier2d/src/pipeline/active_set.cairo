@@ -317,7 +317,7 @@ fn pair_collider(
     handle: Handle,
     collider: @Collider,
     body_type: RigidBodyType,
-    world_com: glam::Vec2,
+    world_com: glam_core::Vec2,
     dominance: i16,
 ) -> PairCollider {
     let (solid, sensor) = match *collider.flags.enabled {

@@ -6,7 +6,7 @@
 //! (`is_inside`, feature, location kind) is exact.
 
 use fixed::{Fixed, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier_geometry2d::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
 use rapier_geometry2d::point::{
     PointProjection, SegmentPointLocation, contains_local_point_ball, contains_local_point_capsule,

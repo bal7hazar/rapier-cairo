@@ -58,7 +58,7 @@ pub(crate) fn prepare_all(ref bodies: RigidBodySet, dt: Fixed) {
 #[cfg(test)]
 mod tests {
     use fixed::{ONE, ZERO};
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_dynamics2d::rigid_body_set::RigidBodyTrait;
     use rapier_testing::opaque;
     use crate::world::WorldTrait;

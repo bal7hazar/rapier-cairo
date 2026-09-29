@@ -12,7 +12,7 @@
 //! Manifolds are matched by their sub-shape ids (upstream's order is its BVH's); feature ids are
 //! not compared (as SH2a: the part pairs run upstream's PFM–PFM generator on SAT here).
 use fixed::Fixed;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_geometry2d::contact::{ContactManifold, ContactManifoldTrait};
 use rapier_geometry2d::dispatch::composite::contact_manifolds_composite;
 use rapier_geometry2d::mass::MassPropertiesTrait;

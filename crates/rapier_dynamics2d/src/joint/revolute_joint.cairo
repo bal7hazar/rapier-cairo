@@ -2,7 +2,7 @@
 //! translation and leaves the angular axis free. Nothing is added to the generic joint.
 use fixed::Fixed;
 use fixed::trig::TrigTrait;
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_core::integration_parameters::spring::SpringCoefficients;
 use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::{

@@ -17,7 +17,7 @@
 //! angular motion of a body into a farthest-point displacement with it.
 
 use fixed::{Fixed, ZERO};
-use glam::{Vec2, Vec2Trait};
+use glam_core::{Vec2, Vec2Trait};
 use rapier_core::rigid_body::{RigidBodyType, RigidBodyTypeTrait};
 use rapier_geometry2d::mass::MassProperties;
 use rapier_math::math_ext::scalar::inv;
@@ -216,7 +216,7 @@ pub impl RigidBodyMassPropsImpl of RigidBodyMassPropsTrait {
 #[cfg(test)]
 mod alternatives {
     use fixed::ZERO;
-    use glam::Vec2;
+    use glam_core::Vec2;
     use rapier_core::rigid_body::{RigidBodyType, RigidBodyTypeTrait};
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use super::RigidBodyMassProps;
@@ -260,7 +260,7 @@ mod alternatives {
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-    use glam::{Vec2, Vec2Trait};
+    use glam_core::{Vec2, Vec2Trait};
     use rapier_core::rigid_body::RigidBodyType;
     use rapier_geometry2d::mass::MassProperties;
     use rapier_math::pose2::Pose2;

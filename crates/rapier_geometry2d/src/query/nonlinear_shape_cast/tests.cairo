@@ -1,7 +1,7 @@
 //! Table-driven tests and `gas_*` probes of the nonlinear shape casts (`super`).
 
 use fixed::{FRAC_PI_2, FRAC_PI_4, Fixed, FixedTrait, HALF, MAX, ONE, PI, TWO, ZERO};
-use glam::Vec2;
+use glam_core::Vec2;
 use rapier_golden::compare::abs_diff;
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;

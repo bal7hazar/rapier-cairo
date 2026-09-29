@@ -3,7 +3,7 @@
 //! API. Every answer is compared with a brute-force pass over all the colliders.
 
 use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
-use glam::vec2::Vec2;
+use glam_core::vec2::Vec2;
 use rapier2d::queries::{
     EXCLUDE_DYNAMIC, EXCLUDE_FIXED, EXCLUDE_KINEMATIC, EXCLUDE_SENSORS, EXCLUDE_SOLIDS,
     ONLY_DYNAMIC, ONLY_FIXED, ONLY_KINEMATIC, QueryFilter, QueryFilterFlags, QueryFilterFlagsTrait,
