@@ -13,6 +13,7 @@ use std::path::Path;
 use std::process::Command;
 
 mod ccd_scenes;
+mod geometry_utils;
 mod kc1;
 mod leaf_families;
 mod levels;
@@ -703,6 +704,7 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("tilted_landing", sf1::tilted_landing(vectors)),
         ("pid_corrections", kc1::pid_corrections(vectors)),
         ("character_moves", kc1::character_moves(vectors)),
+        ("geometry_utils", geometry_utils::generate(vectors)),
     ];
     files.extend(polygons::manifold_files(vectors));
     files.extend(scenes::generate(vectors));
