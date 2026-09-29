@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
 | **total** | **1424** | **0** | **229** | **939** | **2592** | **79.0%** | **86.1%** |
 
-Cairo-only public items not matched to upstream: **1690**.
+Cairo-only public items not matched to upstream: **1680**.
 
 ## Aabb
 
@@ -4852,6 +4852,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Alternatives** method `put_job` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `put_previous` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `put_result` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
+- **Alternatives** method `read_pairs` (`crates/rapier2d/src/world/basic_state/decode/alternatives.cairo`)
 - **Alternatives** method `segment_segment_endpoints` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
 - **Alternatives** method `serialize` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `solve` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
@@ -4904,8 +4905,7 @@ Tier: standard. Depends/context: geometry. Estimate: 1 public items.
 - **Arena** method `capacity` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `contains` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `default` (`crates/rapier_core/src/data/arena.cairo`)
-- **Arena** method `dense` (`crates/rapier2d_classes/src/arena.cairo`)
-- ... 1490 more
+- ... 1480 more
 
 ## Embedded Rust inventory
 

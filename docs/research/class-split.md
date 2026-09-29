@@ -1,4 +1,4 @@
-# Splitting the game's step across declared classes (CS3–CS6)
+# Splitting the game's step across declared classes (CS3–CS7)
 
 Toolchain: scarb / Cairo 2.19.4, snforge 0.61.0. Base: `main` at `0c053ea` (after CN1). Class sizes come from
 `scripts/bytecode_size.py` (`table`, `attribution --by phases`, release profile) on the `crates/rapier_sink` fixtures.
@@ -529,6 +529,100 @@ probes and `program.basic` (231,196 felts, `bytecode_size.py check`) are unchang
 * The pairs with a ball (233 jobs) still cross to `ContactBallClass` (41,560 CASM felts: it does not fit next to the pair
   loop and the polygon family).
 
+## 12. CS7: the slim caller to 67,076 CASM felts, and a World-edits class
+
+Toolchain as above. Base: `main` at `642ee93` (after DU1: `SlimSplitStep` 28,638 / 73,204 felts, the pile10 shot
+30,773,277 steps, both re-measured there). Programme request (2026-09-28): `SlimSplitStep` ≤ 69,891 CASM felts for at
+most +1.5M steps on the shot, same results. Sizes: `scripts/bytecode_size.py` (release) and its `attribution`; steps:
+`snforge test -p rapier2d_classes slim::steps_slim_151 --include-ignored --tracked-resource cairo-steps`.
+
+**Go: the caller is 26,834 / 67,076 felts (−6,128, margin 6,652 under 73,728) and the shot 30,711,536 steps (−61,741,
++36.9 % over in process)**, bit-identical at every tick; no stage class changed (every pinned hash is the same).
+
+### 12.1 Candidates (measurement first)
+
+Exclusive CASM felts of each part of the caller (`attribution --cut`, what leaves with it) and, when built, the caller
+and the shot. The throwaway builds (A1, A2: the sparse step switched off for `SlimSplitStages`, not committed) were measured at
+`9c7372b` (DU1 left the shot's steps unchanged).
+
+| candidate | exclusive | caller | Δ felts | shot | Δ steps | verdict |
+|---|--:|--:|--:|--:|--:|---|
+| sparse step off, set never refreshed (A1) | 15,614 | 57,578 | −15,626 | 32,180,777 | +1,407,500 | no: the saved `WorldState` carries an invalid active set (not bit-identical) |
+| sparse step off, set rebuilt in `ActiveSetClass` each flight tick (A2) | | not measured | | 33,678,063 | +2,904,786 | no: over +1.5M (bit-identical) |
+| user changes (`body_changes`, `collider_changes`) | 5,039 | | | | | not built: of it, 3,885 is the mass crossing (below); the rest needs a crossing on every tick with a change |
+| the whole-step skeleton (`step_internal`: 110 of the shot's 152 steps) | 3,237 own | | | | | not built: a world crossing costs ≈ 105k steps (12.3), ≈ +11.5M |
+| arenas (`ArenaStateImpl`, `ArenaImpl`) | 4,924 own | | | | | out of scope (`rapier_core`), used by every stage |
+| force events out (CS6, `ForceEventsClass`) | 2,277 | 72,609 (CS6) | −572 | | +2.4M | no |
+| **the codec's reader through outlined leaf readers** | 12,360 (decode) | 68,471 | **−4,733** | 30,776,132 | +2,855 | **shipped** |
+| **the mass crossing by the codec's basic collider writer** | 3,885 (mass call) | 67,076 | **−1,395** | 30,711,536 | −64,596 | **shipped** |
+| the contact pairs by the same readers (codec and `NarrowPhaseClass`'s answer) | | 64,978 | −2,098 | 31,703,816 | +927,684 | rejected (`decode::alternatives`) |
+
+The shot takes the sparse step on 42 flight ticks only (2 steps before the flight, 108 after the impact take the whole
+step), so neither skeleton can leave cheaply.
+
+* **The reader** (`rapier2d::world::basic_state::decode`): the derived `Serde` inlines the conversion and the `None`
+  branch of every field (a `Fixed` is a range check), and reads a `[Vec2; 8]` through seven tuple splits (1,255 felts
+  for the polygons alone). One `#[inline(never)]` reader per leaf (`Fixed`, `u32`, `bool`, `Vec2`, handle, pose, mass
+  properties), called by every field, and loops for the arenas' entries: same felts, same values, `None` on malformed
+  input as before. `ActiveSetClass`'s and `MassClass`'s answers use the same readers (`read_active_set`,
+  `read_body_mass_props`), otherwise the derived code stays in the caller next to them. The round trip costs +5,065
+  steps (484,369 against 479,304, `gas_basic_state_round_trip`), once per transaction.
+* **The mass crossing** serialized the colliders with the derived `Serde` (every shape's serializer); the codec's
+  `serialize_collider` writes the same felts for the basic shapes (`MassClass` unchanged).
+* **The pairs** cross 1,428 times on the shot: a call per field costs ≈ 650 steps per pair over the inline derived code.
+
+### 12.2 The caller and the shot
+
+| | Sierra | CASM | shot | Δ vs in process | transactions (≤ 10M, 10-tick granularity) |
+|---|--:|--:|--:|--:|---|
+| CX2 / DU1 (`main`) | 28,638 | 73,204 | 30,773,277 | +37.2 % | 4 |
+| **CS7** | **26,834** | **67,076** | **30,711,536** | **+36.9 %** | 4: 0–60 7.19M; 60–90 8.34M; 90–120 7.47M; 120–151 7.72M (+ one world crossing each) |
+
+Other lines of `gas/bytecode.size` that move: `Levers12Step` 78,382 (−5,084) and `OrchestratorClass` 67,442 (−6,128),
+the same reader; CS5's `Stages*Step` +937 to +992 (their full `WorldState` codec shared the derived collider serializer
+with the mass crossing). Every declared stage class is unchanged.
+
+### 12.3 The World-edits class
+
+`rapier2d_classes::edits`: `WorldEdit` (`Insert` a body with one basic-shape collider and its velocities, `Remove`,
+`Sleep`), `apply_edits` (in process, the `World` methods), `edit_world(class_hash, world, edits)` (the caller's side:
+the world crosses in and out with the basic codec, the edits as the felts of a `Span<WorldEdit>`, forwarded) and
+`WorldEditClass`. Pile10 at tick 60 (a world of 1,839 felts), `tests/edits.cairo`:
+
+| | Sierra | CASM | per call (steps, class − in process) |
+|---|--:|--:|--:|
+| `WorldEditClass` | 17,610 | 51,865 | |
+| `SlimEditStep`: `SlimSplitStep` + `edit_world` | 27,135 | 68,818 (+1,742) | launch 110,590; removal 104,970; the end's sleeps and the pebble's removal 106,357 |
+| `SlimInCallerEditStep`: the same edits in process (loser) | 35,721 | 96,657 (+29,581) | |
+
+The crossing fits and the in-caller edits do not. Bit-identical to the same edits in process on the whole shot (the
+settle's sleeps, the launch, every destruction, the end's sleeps and the pebble's removal) and to the reference shot.
+
+### 12.4 Only declarable classes in the published crate
+
+`OrchestratorClass`, `StoredClassHashes` and `orchestrated_step` (route (b)) moved to `rapier_sink::orchestrator` (still
+built and tracked in `gas/bytecode.size`). Route (b)'s whole-shot tests stayed at `9c7372b`: they declare the stage
+classes, which only `rapier2d_classes`' own tests can. The measured-only stage configurations (`SplitStages`,
+`SplitBatchedStages`, `SplitHybridStages`) stay: they compile no class and the crate's tests run them. The README lists
+the classes a game declares for `SlimSplitStages` and for CS4's layout.
+
+### 12.5 Bit-identity and in-process users
+
+`snforge test -p rapier2d_classes` (58 tests: the slim layout at every tick of the shot and with user changes,
+`removals`, `game_ticks`, the edits), `-p rapier_sink` (58), `test_pinned_class_hashes` (unchanged). `snforge test -p
+rapier2d --include-ignored --tracked-resource cairo-steps` on `642ee93` and on CS7: of the 936 common tests, only five
+codec tests differ (`gas_basic_state_round_trip` and four `test_basic_codec_*`); every `steps_*` probe, `game_path`
+(`steps_game_basic_step` 2,708,888, `_force` 2,709,273, `_despawn` 2,693,233, `_chunked` 2,912,401), the P3, level,
+sleep and CCD tests are identical in steps and builtins. `program.basic` 231,196.
+
+### 12.6 Open
+
+* The game's world class: S36a measured it 3,837 felts over the slim caller (76,920); with this caller it would be
+  ≈ 70,913 if that difference holds (not measured here).
+* `WorldEditClass` is not in `bytecode_size.py`'s `DECLARED` (its SNIP-36 interface was checked by hand: builtins
+  `bitwise`, `range_check`, `segment_arena`; no syscall).
+* The pairs could still cross the caller's boundary in fewer felts (CX2's open items).
+
 ## Appendix: reproduction
 
 ```
@@ -549,4 +643,8 @@ snforge test -p rapier2d_classes test_state_felts --include-ignored
 # CX2: the narrow phase's crossings (the variants' code: `git switch --detach b225f42`)
 snforge test -p rapier2d_classes narrow:: --tracked-resource cairo-steps --detailed-resources
 snforge test -p rapier2d_classes slim::steps_slim_ --include-ignored --max-threads 1 --tracked-resource cairo-steps --detailed-resources
+# CS7: the caller's parts, the edits' calls, the readers
+python3 scripts/bytecode_size.py attribution --class SlimSplitStep --cut 'sparse=active_set::sparse_step' --cut 'decode=basic_state::(BasicWorldStateSerde::deserialize|from_basic_state)'
+snforge test -p rapier2d_classes edits::steps_edit --include-ignored --max-threads 1 --tracked-resource cairo-steps --detailed-resources
+snforge test -p rapier2d basic_state --tracked-resource cairo-steps --detailed-resources
 ```

@@ -1,6 +1,6 @@
 # rapier2d_classes
 
-The `rapier2d` step split across declared Starknet classes (work packages CS4–CS6, CX1, CX2), so that no
+The `rapier2d` step split across declared Starknet classes (work packages CS4–CS7, CX1, CX2), so that no
 class of a game's step exceeds the size limit of a declared class (73,728 Sierra and CASM felts). The
 analysis is in `docs/research/class-split.md`.
 
@@ -27,6 +27,20 @@ that run the stages and the strategies that library-call them:
 | `ActiveSetClass` | the rebuild of the active set | once per step that fills it |
 | `ForceEventsClass` | the contact-force events (optional: not in `SlimSplitStages`) | once per step with force events |
 | `SolverClass` | the island solve alone (CS4's layout, `ContactSolveStepConfig`) | once per step with a touching manifold |
+| `WorldEditClass` | the World edits between steps: insert a body with its collider and velocities, remove bodies, put bodies to sleep (`edits`, CS7) | by the game, once per tick that edits (`edit_world`) |
+
+The classes a game declares:
+
+* **`SlimSplitStages`** (the caller class under the limit): `NarrowPhaseClass`, `ContactBallClass`,
+  `SolveAdvanceClass`, `IslandsClass`, `BroadPhaseClass`, `MassClass`, `ActiveSetClass`; with the
+  force events out, `ForceEventsClass`; with the World edits out of its own class, `WorldEditClass`.
+  Its `ClassHashes` impl must still return a hash for `contact_polygon()` and `solver()`, which it
+  never calls (any value).
+* **CS4's layout** (`ContactSolveStepConfig`, a caller over the limit): `ContactBallClass`,
+  `ContactPolygonClass`, `SolverClass`.
+
+Every class of this crate is one of them (CS7 moved route (b)'s `OrchestratorClass` to the unpublished
+`rapier_sink` fixtures).
 
 A game declares the classes, then compiles its contract's step with `SlimSplitStages<H>`, `H` an
 impl of `ClassHashes` returning the declared hashes as constants, and takes and returns the world
@@ -57,20 +71,26 @@ fn step_state(state: BasicWorldState, steps: u32) -> BasicWorldState {
 }
 ```
 
-The caller class compiled this way (`rapier_sink`'s `SlimSplitStep`) is 73,204 CASM felts; it
+The caller class compiled this way (`rapier_sink`'s `SlimSplitStep`) is 67,076 CASM felts (CS7: the
+basic codec reads the world through outlined readers, `rapier2d::world::basic_state::decode`); it
 supports the worlds of `BasicStepConfig` (balls, cuboids, convex polygons, half-spaces; no sensor,
 composite or impulse joint) without position-based kinematic bodies (rejected with
 `'Step: kinematic disabled'`), and the basic codec rejects any other shape and any joint arena ever
-used. On slingfall's pile10 reference shot it costs 30.77M Cairo steps (+37.2 % over the in-process
+used. On slingfall's pile10 reference shot it costs 30.71M Cairo steps (+36.9 % over the in-process
 step), 4 transactions of ≤ 10M. `SplitStages` (every stage out, the pair loop in the caller: a
-caller over the limit), `SplitBatchedStages`, `SplitHybridStages`, `ContactSolveStepConfig`
-(CS4's layout) and `orchestrator::OrchestratorClass` (CS6's route (b)) are the measured
-alternatives.
+caller over the limit), `SplitBatchedStages`, `SplitHybridStages` and `ContactSolveStepConfig`
+(CS4's layout) are the measured alternatives (stage configurations: they compile no class).
+
+The World edits a game applies between steps go to `WorldEditClass` with `edit_world(class_hash,
+world, edits)`: the world crosses in and out with the basic codec, the edits as the felts of a
+`Span<WorldEdit>` forwarded as they are. Next to `SlimSplitStep`'s step the call costs the caller
+1,742 CASM felts (the same edits in process: +29,581, over the limit) and ≈ 105k to 111k Cairo steps
+per call on pile10 (a world of 1,839 felts).
 
 Results are bit-identical to `BasicStepConfig` (`tests/split.cairo`, `tests/slim.cairo`,
-`tests/route_b.cairo`: every tick of slingfall's pile10 reference shot, and with user changes in
-the middle of it); `tests/steps.cairo`, `tests/slim.cairo` and `tests/route_b.cairo` measure the
-Cairo steps of each layout. The class sizes are tracked in `gas/bytecode.size`
+`tests/edits.cairo`: every tick of slingfall's pile10 reference shot, and with user changes or the
+World edits in the middle of it); `tests/steps.cairo` and `tests/slim.cairo` measure the Cairo steps
+of each layout, `tests/edits.cairo` those of each edit call. The class sizes are tracked in `gas/bytecode.size`
 (`scripts/bytecode_size.py`, which fails when a declared class exceeds 73,728 Sierra or CASM
 felts).
 
