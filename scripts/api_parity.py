@@ -492,7 +492,9 @@ OWNER_ALIASES.update({
     # SH1: Parry's generic `RoundShape<S>` is instantiated as three aliases; its `impl Shape` and
     # `RayCast` are the aliases' (`From<RoundCuboid> for Shape`, `RoundCuboidRayCast`, ...).
     "RoundShape": ("RoundShape", "RoundShapeTrait", "RoundCuboid", "RoundTriangle", "RoundConvexPolygon"),
-    "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase", "NarrowPhaseContactPairs", "NarrowPhaseInteractionGraph"),
+    "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase", "NarrowPhaseContactPairs", "NarrowPhaseInteractionGraph",
+                    # PX5: stage 1 of the step is the free function `pipeline/user_changes.cairo::handle_user_changes` (no facade method).
+                    "UserChanges"),
     "Halfspace": ("HalfSpace",),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
     "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),

@@ -17,16 +17,16 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
-| dynamics | 559 | 0 | 31 | 592 | 1182 | 78.1% | 94.7% |
-| geometry | 252 | 0 | 16 | 47 | 315 | 84.3% | 94.0% |
+| dynamics | 560 | 0 | 30 | 592 | 1182 | 78.2% | 94.9% |
+| geometry | 253 | 0 | 15 | 47 | 315 | 84.6% | 94.4% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 260 | 0 | 20 | 127 | 407 | 86.7% | 92.9% |
 | parry::shape | 234 | 0 | 24 | 122 | 380 | 89.7% | 90.7% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1525** | **0** | **91** | **976** | **2592** | **84.5%** | **94.4%** |
+| **total** | **1527** | **0** | **89** | **976** | **2592** | **84.6%** | **94.5%** |
 
-Cairo-only public items not matched to upstream: **2023**.
+Cairo-only public items not matched to upstream: **2022**.
 
 ## Aabb
 
@@ -1316,7 +1316,7 @@ Cairo-only public items not matched to upstream: **2023**.
 | method `joint_graph` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `joints_between` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `len` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
-| method `map_attached_joints_mut` | dynamics | missing | Not found on Cairo candidate(s): ImpulseJointSet, ImpulseJointSetTrait. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
+| method `map_attached_joints_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `remove` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
 | method `remove_joints_attached_to_rigid_body` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs` |
@@ -1797,7 +1797,7 @@ Cairo-only public items not matched to upstream: **2023**.
 | method `contact_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pairs_with` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pairs_with_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseContactPairs, NarrowPhaseInteractionGraph, NarrowPhaseTrait, NarrowPhaseContactPairsTrait, NarrowPhaseInteractionGraphTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
+| method `handle_user_changes` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
 | method `intersection_graph` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
@@ -4443,8 +4443,7 @@ Cairo-only public items not matched to upstream: **2023**.
 | [Query completion](#wp-query-completion) | 30 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 18 | standard | shape interface |
 | [Collider API completion](#wp-collider-api-completion) | 4 | mechanical | DB/EV |
-| [Joint API completion](#wp-joint-api-completion) | 2 | standard | JL/RJ |
-| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 1 | standard | P1/SL/EV |
+| [Joint API completion](#wp-joint-api-completion) | 1 | standard | JL/RJ |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 1 | mechanical | KD/SL |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 1 | standard | SE sensors |
 
@@ -4556,16 +4555,9 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 4 public items.
 
 ### WP: Joint API completion
 
-Tier: standard. Depends/context: JL/RJ. Estimate: 2 public items.
+Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
 
 - **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
-- **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
-
-### WP: Pipeline and world facade
-
-Tier: standard. Depends/context: P1/SL/EV. Estimate: 1 public items.
-
-- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
 
 ### WP: Rigid-body API completion
 
@@ -4781,7 +4773,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Arena** const `CORRUPT_FREE_LIST` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `GENERATION_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** const `LENGTH_MISMATCH` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1823 more
+- ... 1822 more
 
 ## Embedded Rust inventory
 
