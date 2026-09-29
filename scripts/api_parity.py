@@ -40,12 +40,54 @@ EXCLUSIONS = (
     "trimesh/voxels/3D heightfield", "EPA/GJK internals not exposed",
     "solver / island internals not exposed",
     "f32/f64 conversions and approx traits",
+    "soft bodies are not part of the port",
+    "Q32.32 state cannot become NaN or infinite; nothing to contain",
+    "static dispatch through StepConfig / StageConfig (D10)",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
 # summary reports "raw" parity against them alone, and "in scope" parity against every reason,
 # so closing SOLVER_ISLAND_INTERNALS below cannot quietly raise the headline number.
 SOLVER_ISLAND_REASON = "solver / island internals not exposed"
+
+# Programme decision (2026-09-29): three more closed reasons, each item listed by exact
+# `(owner, kind, name)`; like PX1's they count in "in scope" only, the raw figure ignores them.
+SOFT_CONTACTS_REASON = "soft bodies are not part of the port"
+QUARANTINE_REASON = "Q32.32 state cannot become NaN or infinite; nothing to contain"
+DISPATCHER_REASON = "static dispatch through StepConfig / StageConfig (D10)"
+# Upstream 0.35's soft-body contact detection (`geometry/narrow_phase/soft_contacts/`) and its accessor on
+# `ContactPair`. `SoftEdgePass` / `SoftVolumePatch` used to match the "epa" pattern of the EPA/GJK reason.
+SOFT_CONTACTS: frozenset[tuple[str, str, str]] = frozenset({
+    ("ContactPair", "method", "soft"),
+    ("SoftContactImpulse", "type", "SoftContactImpulse"),
+    ("SoftDetectionCtx", "method", "motion_margin"), ("SoftDetectionCtx", "method", "pieces_of_one_body"),
+    ("SoftEdgeCandidate", "type", "SoftEdgeCandidate"), ("SoftEdgePass", "type", "SoftEdgePass"),
+    ("SoftPairContacts", "method", "disable_all"), ("SoftPairContacts", "method", "impulses"),
+    ("SoftPairContacts", "method", "is_touching"), ("SoftPairContacts", "method", "vertex_pass_on"),
+    ("SoftPairContacts", "type", "SoftPairContacts"), ("SoftRigidPatch", "type", "SoftRigidPatch"),
+    ("SoftSelfContacts", "method", "tangles"), ("SoftVertexCandidate", "type", "SoftVertexCandidate"),
+    ("SoftVertexHits", "type", "SoftVertexHits"), ("SoftVertexPass", "method", "candidates_of"),
+    ("SoftVertexPass", "type", "SoftVertexPass"), ("SoftVolumePatch", "type", "SoftVolumePatch"),
+    ("VolumeBin", "type", "VolumeBin"),
+})
+# Upstream's containment of non-finite state (`pipeline/physics_pipeline/quarantine.rs`). Q32.32 arithmetic panics
+# (`'Fixed: overflow'`, `'Fixed: division by zero'`) instead of producing an invalid value:
+# `crates/rapier2d/tests/finite_state.cairo` (a tiny mass and a huge impulse panic, a small mass stays finite).
+QUARANTINE: frozenset[tuple[str, str, str]] = frozenset({
+    ("PhysicsPipeline", "method", "quarantine"), ("PhysicsWorld", "method", "quarantine"),
+    ("Quarantine", "method", "bodies"), ("Quarantine", "method", "colliders"),
+    ("Quarantine", "method", "is_empty"), ("Quarantine", "type", "Quarantine"),
+})
+# Runtime-pluggable query dispatchers: the port chooses its dispatcher and stages at compile time.
+DISPATCHERS: frozenset[tuple[str, str, str]] = frozenset({
+    ("NarrowPhase", "method", "query_dispatcher"), ("NarrowPhase", "method", "with_query_dispatcher"),
+    ("PersistentQueryDispatcher", "method", "contact_manifold_convex_convex"),
+    ("PersistentQueryDispatcher", "method", "contact_manifolds"),
+    ("PersistentQueryDispatcher", "trait", "PersistentQueryDispatcher"),
+    ("QueryDispatcher", "method", "chain"), ("QueryDispatcherChain", "type", "QueryDispatcherChain"),
+})
+# Every reason added since PX1: they do not count in the raw figure.
+POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON})
 
 # PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
 # broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
@@ -929,6 +971,13 @@ def load_inventory(path: Path) -> list[Item]:
 
 
 def exclusion_reason(item: Item) -> str:
+    # Programme decision (2026-09-29): exact lists first (they override the loose patterns below).
+    if item.key in SOFT_CONTACTS:
+        return SOFT_CONTACTS_REASON
+    if item.key in QUARANTINE:
+        return QUARANTINE_REASON
+    if item.key in DISPATCHERS:
+        return DISPATCHER_REASON
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
     # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
@@ -1015,6 +1064,12 @@ def find_matches(item: Item, cairo: set[tuple[str, str, str]]) -> list[tuple[str
 
 # Items knowingly left missing, with the lot that owns them (instead of the generic "not found").
 MISSING_REASONS: dict[tuple[str, str], str] = {
+    # Programme decision (2026-09-29): algorithms not ported yet, in scope (a game could decompose a concave
+    # level piece into convex colliders off the step path); low priority, no lot.
+    **{(owner, name): "not ported yet (V-HACD / voxelisation)" for owner in ("SharedShape", "ColliderBuilder")
+       for name in ("convex_decomposition", "convex_decomposition_with_params", "round_convex_decomposition",
+                    "round_convex_decomposition_with_params", "voxelized_convex_decomposition",
+                    "voxelized_convex_decomposition_with_params", "voxelized_mesh")},
     # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
     # SH2a: no persistent workspace: the previous manifolds are matched by sub-shape ids.
     **{(t, n): "SH2a: no workspace; previous manifolds are matched by sub-shape ids." for t in (
@@ -1139,7 +1194,8 @@ def render(rust: list[Item], cairo: list[Item]) -> str:
         "",
         "Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the "
         "headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); "
-        f"**in scope** = ported / (items − every excluded item, including `{SOLVER_ISLAND_REASON}`).",
+        "**in scope** = ported / (items − every excluded item, including the reasons added since PX1: "
+        + ", ".join(f"`{r}`" for r in sorted(POST_PX1_REASONS)) + ").",
         "",
         "| Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |",
         "|---|---:|---:|---:|---:|---:|---:|---:|",
@@ -1149,7 +1205,7 @@ def render(rust: list[Item], cairo: list[Item]) -> str:
         owned = [item for item in rust if item.module == module]
         counts = {k: sum(statuses[item][0] == k for item in owned) for k in ("ported", "partial", "missing", "excluded")}
         counts["excluded_new"] = sum(
-            statuses[item][0] == "excluded" and statuses[item][1] == SOLVER_ISLAND_REASON for item in owned)
+            statuses[item][0] == "excluded" and statuses[item][1] in POST_PX1_REASONS for item in owned)
         for k, v in counts.items():
             total[k] += v
         raw_denom = len(owned) - (counts["excluded"] - counts["excluded_new"])

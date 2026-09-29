@@ -8,23 +8,23 @@ Upstream target: rapier-rs `0.35.3+4` 2D plus parry `0.31.1` public items Rapier
 
 Statuses: `ported` means the same public name or a documented owner/name mapping exists in Cairo; `partial` is reserved for split owners; `missing` is the default; `excluded` uses only the closed reasons below.
 
-Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`.
+Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`.
 
 ## Coverage summary
 
-Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including `solver / island internals not exposed`).
+Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Q32.32 state cannot become NaN or infinite; nothing to contain`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `static dispatch through StepConfig / StageConfig (D10)`).
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
 | dynamics | 554 | 0 | 36 | 592 | 1182 | 77.4% | 93.9% |
-| geometry | 209 | 0 | 82 | 24 | 315 | 70.4% | 71.8% |
+| geometry | 209 | 0 | 63 | 43 | 315 | 69.9% | 76.8% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
-| parry::query | 254 | 0 | 31 | 122 | 407 | 84.7% | 89.1% |
+| parry::query | 254 | 0 | 26 | 127 | 407 | 84.7% | 90.7% |
 | parry::shape | 223 | 0 | 38 | 119 | 380 | 85.4% | 85.4% |
-| pipeline | 77 | 0 | 10 | 71 | 158 | 86.5% | 88.5% |
-| **total** | **1456** | **0** | **197** | **939** | **2592** | **80.8%** | **88.1%** |
+| pipeline | 77 | 0 | 4 | 77 | 158 | 86.5% | 95.1% |
+| **total** | **1456** | **0** | **167** | **969** | **2592** | **80.7%** | **89.7%** |
 
 Cairo-only public items not matched to upstream: **1694**.
 
@@ -387,8 +387,8 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_skin` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
 | method `converted_trimesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
-| method `convex_decomposition` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `convex_decomposition_with_params` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `convex_decomposition` | geometry | missing | not ported yet (V-HACD / voxelisation) | `rapier/src/geometry/collider.rs` |
+| method `convex_decomposition_with_params` | geometry | missing | not ported yet (V-HACD / voxelisation) | `rapier/src/geometry/collider.rs` |
 | method `convex_hull` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `convex_polyline` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `cuboid` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -412,8 +412,8 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `restitution` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `restitution_combine_rule` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `rotation` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `round_convex_decomposition` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
-| method `round_convex_decomposition_with_params` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `round_convex_decomposition` | geometry | missing | not ported yet (V-HACD / voxelisation) | `rapier/src/geometry/collider.rs` |
+| method `round_convex_decomposition_with_params` | geometry | missing | not ported yet (V-HACD / voxelisation) | `rapier/src/geometry/collider.rs` |
 | method `round_convex_hull` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `round_convex_polyline` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `round_cuboid` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -813,7 +813,7 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `manifolds` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
 | method `max_impulse` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
 | method `rigid` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `soft` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
+| method `soft` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/contact_pair.rs` |
 | method `solver_manifolds` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
 | method `total_impulse` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
 | method `total_impulse_magnitude` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
@@ -1805,8 +1805,8 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `intersection_pairs_with` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pairs_with_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `new` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/mod.rs` |
-| method `query_dispatcher` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `with_query_dispatcher` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/mod.rs` |
+| method `query_dispatcher` | geometry | excluded | static dispatch through StepConfig / StageConfig (D10) | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `with_query_dispatcher` | geometry | excluded | static dispatch through StepConfig / StageConfig (D10) | `rapier/src/geometry/narrow_phase/mod.rs` |
 | type `NarrowPhase` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/mod.rs` |
 
 ## NeoHookeanConstraint
@@ -1956,9 +1956,9 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `contact_manifold_convex_convex` | parry::query | missing | Not found on Cairo candidate(s): dispatch. | `parry/src/query/query_dispatcher.rs` |
-| method `contact_manifolds` | parry::query | missing | Not found on Cairo candidate(s): dispatch. | `parry/src/query/query_dispatcher.rs` |
-| trait `PersistentQueryDispatcher` | parry::query | missing | Not found on Cairo candidate(s): dispatch. | `parry/src/query/query_dispatcher.rs` |
+| method `contact_manifold_convex_convex` | parry::query | excluded | static dispatch through StepConfig / StageConfig (D10) | `parry/src/query/query_dispatcher.rs` |
+| method `contact_manifolds` | parry::query | excluded | static dispatch through StepConfig / StageConfig (D10) | `parry/src/query/query_dispatcher.rs` |
+| trait `PersistentQueryDispatcher` | parry::query | excluded | static dispatch through StepConfig / StageConfig (D10) | `parry/src/query/query_dispatcher.rs` |
 
 ## PhysicsHooks
 
@@ -1978,7 +1978,7 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `configure_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
 | method `new` | pipeline | ported | Same public name. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
 | method `num_threads` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
-| method `quarantine` | pipeline | missing | Not found on Cairo candidate(s): World, pipeline, PhysicsPipeline, WorldTrait, PhysicsPipelineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| method `quarantine` | pipeline | excluded | Q32.32 state cannot become NaN or infinite; nothing to contain | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 | method `set_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
 | method `step` | pipeline | ported | Same public name. | `rapier/src/pipeline/physics_pipeline/mod.rs` |
 | method `thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_pipeline/mod.rs` |
@@ -2026,7 +2026,7 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `num_threads` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `project_point` | pipeline | ported | Mapped to World.project_point | `rapier/src/pipeline/physics_world.rs` |
 | method `project_point_and_get_feature` | pipeline | ported | Mapped to World.project_point_and_get_feature | `rapier/src/pipeline/physics_world.rs` |
-| method `quarantine` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `quarantine` | pipeline | excluded | Q32.32 state cannot become NaN or infinite; nothing to contain | `rapier/src/pipeline/physics_world.rs` |
 | method `query_pipeline` | pipeline | ported | Mapped to World.query_pipeline | `rapier/src/pipeline/physics_world.rs` |
 | method `query_pipeline_with_filter` | pipeline | ported | Mapped to World.query_pipeline_with_filter | `rapier/src/pipeline/physics_world.rs` |
 | method `remove_body` | pipeline | ported | Mapped to World.remove_body | `rapier/src/pipeline/physics_world.rs` |
@@ -2265,11 +2265,11 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `bodies` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
-| method `colliders` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
-| method `is_empty` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| method `bodies` | pipeline | excluded | Q32.32 state cannot become NaN or infinite; nothing to contain | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| method `colliders` | pipeline | excluded | Q32.32 state cannot become NaN or infinite; nothing to contain | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| method `is_empty` | pipeline | excluded | Q32.32 state cannot become NaN or infinite; nothing to contain | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 | method `soft_bodies` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
-| type `Quarantine` | pipeline | missing | Not found on Cairo candidate(s): Quarantine, QuarantineTrait. | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
+| type `Quarantine` | pipeline | excluded | Q32.32 state cannot become NaN or infinite; nothing to contain | `rapier/src/pipeline/physics_pipeline/quarantine.rs` |
 
 ## QueryDispatcher
 
@@ -2277,7 +2277,7 @@ Cairo-only public items not matched to upstream: **1694**.
 |---|---|---|---|---|
 | method `cast_shapes` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
 | method `cast_shapes_nonlinear` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
-| method `chain` | parry::query | missing | Not found on Cairo candidate(s): QueryDispatcher, QueryDispatcherTrait. | `parry/src/query/query_dispatcher.rs` |
+| method `chain` | parry::query | excluded | static dispatch through StepConfig / StageConfig (D10) | `parry/src/query/query_dispatcher.rs` |
 | method `closest_points` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
 | method `contact` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
 | method `distance` | parry::query | ported | Same public name. | `parry/src/query/query_dispatcher.rs` |
@@ -2288,7 +2288,7 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `QueryDispatcherChain` | parry::query | missing | Not found on Cairo candidate(s): QueryDispatcherChain, QueryDispatcherChainTrait. | `parry/src/query/query_dispatcher.rs` |
+| type `QueryDispatcherChain` | parry::query | excluded | static dispatch through StepConfig / StageConfig (D10) | `parry/src/query/query_dispatcher.rs` |
 
 ## QueryFilter
 
@@ -2990,8 +2990,8 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `capsule_x` | parry::shape | ported | Mapped to Shape.capsule_x | `parry/src/shape/shared_shape.rs` |
 | method `capsule_y` | parry::shape | ported | Mapped to Shape.capsule_y | `parry/src/shape/shared_shape.rs` |
 | method `compound` | parry::shape | ported | Mapped to Shape.compound | `parry/src/shape/shared_shape.rs` |
-| method `convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `convex_decomposition` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
+| method `convex_decomposition_with_params` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
 | method `convex_hull` | parry::shape | ported | Mapped to Shape.convex_hull | `parry/src/shape/shared_shape.rs` |
 | method `convex_polyline` | parry::shape | ported | Mapped to Shape.convex_polyline | `parry/src/shape/shared_shape.rs` |
 | method `convex_polyline_unmodified` | parry::shape | missing | `ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant. | `parry/src/shape/shared_shape.rs` |
@@ -3001,8 +3001,8 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `make_mut` | parry::shape | missing | Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed. | `parry/src/shape/shared_shape.rs` |
 | method `new` | parry::shape | missing | `T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`). | `parry/src/shape/shared_shape.rs` |
 | method `polyline` | parry::shape | ported | Mapped to Shape.polyline | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `round_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_decomposition` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
+| method `round_convex_decomposition_with_params` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_hull` | parry::shape | ported | Mapped to Shape.round_convex_hull | `parry/src/shape/shared_shape.rs` |
 | method `round_convex_polyline` | parry::shape | ported | Mapped to Shape.round_convex_polyline | `parry/src/shape/shared_shape.rs` |
 | method `round_cuboid` | parry::shape | ported | Mapped to Shape.round_cuboid | `parry/src/shape/shared_shape.rs` |
@@ -3011,9 +3011,9 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `triangle` | parry::shape | ported | Mapped to Shape.triangle | `parry/src/shape/shared_shape.rs` |
 | method `trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `trimesh_with_flags` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
-| method `voxelized_convex_decomposition` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `voxelized_convex_decomposition_with_params` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
-| method `voxelized_mesh` | parry::shape | missing | Not found on Cairo candidate(s): Shape, ShapeTrait. | `parry/src/shape/shared_shape.rs` |
+| method `voxelized_convex_decomposition` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
+| method `voxelized_convex_decomposition_with_params` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
+| method `voxelized_mesh` | parry::shape | missing | not ported yet (V-HACD / voxelisation) | `parry/src/shape/shared_shape.rs` |
 | method `voxels` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | method `voxels_from_points` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/shared_shape.rs` |
 | type `SharedShape` | parry::shape | ported | Mapped to Shape.Shape | `parry/src/shape/shared_shape.rs` |
@@ -3439,26 +3439,26 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftContactImpulse` | geometry | missing | Not found on Cairo candidate(s): SoftContactImpulse, SoftContactImpulseTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftContactImpulse` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftDetectionCtx
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `motion_margin` | geometry | missing | Not found on Cairo candidate(s): SoftDetectionCtx, SoftDetectionCtxTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
-| method `pieces_of_one_body` | geometry | missing | Not found on Cairo candidate(s): SoftDetectionCtx, SoftDetectionCtxTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `motion_margin` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `pieces_of_one_body` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftEdgeCandidate
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftEdgeCandidate` | geometry | missing | Not found on Cairo candidate(s): SoftEdgeCandidate, SoftEdgeCandidateTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftEdgeCandidate` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftEdgePass
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftEdgePass` | geometry | excluded | EPA/GJK internals not exposed | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftEdgePass` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftEdgePlasticFlow
 
@@ -3565,11 +3565,11 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `disable_all` | geometry | missing | Not found on Cairo candidate(s): SoftPairContacts, SoftPairContactsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
-| method `impulses` | geometry | missing | Not found on Cairo candidate(s): SoftPairContacts, SoftPairContactsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
-| method `is_touching` | geometry | missing | Not found on Cairo candidate(s): SoftPairContacts, SoftPairContactsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
-| method `vertex_pass_on` | geometry | missing | Not found on Cairo candidate(s): SoftPairContacts, SoftPairContactsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
-| type `SoftPairContacts` | geometry | missing | Not found on Cairo candidate(s): SoftPairContacts, SoftPairContactsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `disable_all` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `impulses` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `is_touching` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `vertex_pass_on` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftPairContacts` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftParticleAttachment
 
@@ -3595,7 +3595,7 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftRigidPatch` | geometry | missing | Not found on Cairo candidate(s): SoftRigidPatch, SoftRigidPatchTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftRigidPatch` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftScalarConstraint
 
@@ -3610,7 +3610,7 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `tangles` | geometry | missing | Not found on Cairo candidate(s): SoftSelfContacts, SoftSelfContactsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_self_contacts.rs` |
+| method `tangles` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_self_contacts.rs` |
 
 ## SoftShapeConstraint
 
@@ -3624,20 +3624,20 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftVertexCandidate` | geometry | missing | Not found on Cairo candidate(s): SoftVertexCandidate, SoftVertexCandidateTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftVertexCandidate` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftVertexHits
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftVertexHits` | geometry | missing | Not found on Cairo candidate(s): SoftVertexHits, SoftVertexHitsTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftVertexHits` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftVertexPass
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `candidates_of` | geometry | missing | Not found on Cairo candidate(s): SoftVertexPass, SoftVertexPassTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
-| type `SoftVertexPass` | geometry | missing | Not found on Cairo candidate(s): SoftVertexPass, SoftVertexPassTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| method `candidates_of` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftVertexPass` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftVolumeContact
 
@@ -3649,7 +3649,7 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SoftVolumePatch` | geometry | excluded | EPA/GJK internals not exposed | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
+| type `SoftVolumePatch` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs` |
 
 ## SoftVolumePiece
 
@@ -4079,7 +4079,7 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `VolumeBin` | geometry | missing | Not found on Cairo candidate(s): VolumeBin, VolumeBinTrait. | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_volume.rs` |
+| type `VolumeBin` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_volume.rs` |
 
 ## VoronoiSimplex
 
@@ -4439,19 +4439,19 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 83 | standard | QP queries |
+| [Query completion](#wp-query-completion) | 59 | standard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 55 | mechanical | AP triage |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 27 | standard | shape interface |
-| [Collider API completion](#wp-collider-api-completion) | 10 | mechanical | DB/EV |
-| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 8 | standard | P1/SL/EV |
+| [Collider API completion](#wp-collider-api-completion) | 9 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
 | [Joint API completion](#wp-joint-api-completion) | 3 | standard | JL/RJ |
+| [Pipeline and world facade](#wp-pipeline-and-world-facade) | 3 | standard | P1/SL/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 3 | standard | SE sensors |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 2 | hard | QP queries |
 
 ### WP: Query completion
 
-Tier: standard. Depends/context: QP queries. Estimate: 83 public items.
+Tier: standard. Depends/context: QP queries. Estimate: 59 public items.
 
 - **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
 - **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
@@ -4471,7 +4471,6 @@ Tier: standard. Depends/context: QP queries. Estimate: 83 public items.
 - **ContactPair** method `manifolds` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `max_impulse` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `rigid` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `soft` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `solver_manifolds` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `total_impulse` (`rapier/src/geometry/contact_pair.rs`)
 - **ContactPair** method `total_impulse_magnitude` (`rapier/src/geometry/contact_pair.rs`)
@@ -4483,8 +4482,6 @@ Tier: standard. Depends/context: QP queries. Estimate: 83 public items.
 - **NarrowPhase** method `contact_pairs` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **NarrowPhase** method `contact_pairs_with` (`rapier/src/geometry/narrow_phase/queries.rs`)
 - **NarrowPhase** method `contact_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `query_dispatcher` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `with_query_dispatcher` (`rapier/src/geometry/narrow_phase/mod.rs`)
 - **NormalConstraints** method `project_local_normal` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraints** method `project_local_normal1` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraints** method `project_local_normal2` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
@@ -4493,14 +4490,9 @@ Tier: standard. Depends/context: QP queries. Estimate: 83 public items.
 - **NormalConstraintsPair** method `project_local_normals` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **NormalConstraintsPair** trait `NormalConstraintsPair` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
 - **PairContacts** type `PairContacts` (`rapier/src/geometry/contact_pair.rs`)
-- **PersistentQueryDispatcher** method `contact_manifold_convex_convex` (`parry/src/query/query_dispatcher.rs`)
-- **PersistentQueryDispatcher** method `contact_manifolds` (`parry/src/query/query_dispatcher.rs`)
-- **PersistentQueryDispatcher** trait `PersistentQueryDispatcher` (`parry/src/query/query_dispatcher.rs`)
 - **PhysicsWorld** method `contact_pairs` (`rapier/src/pipeline/physics_world.rs`)
 - **PhysicsWorld** method `contact_pairs_with` (`rapier/src/pipeline/physics_world.rs`)
 - **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
-- **QueryDispatcher** method `chain` (`parry/src/query/query_dispatcher.rs`)
-- **QueryDispatcherChain** type `QueryDispatcherChain` (`parry/src/query/query_dispatcher.rs`)
 - **QueryPipelineMut** method `as_ref` (`rapier/src/pipeline/query_pipeline.rs`)
 - **QueryPipelineMut** type `QueryPipelineMut` (`rapier/src/pipeline/query_pipeline.rs`)
 - **RigidPairContacts** method `has_any_active_contact` (`rapier/src/geometry/contact_pair.rs`)
@@ -4511,29 +4503,15 @@ Tier: standard. Depends/context: QP queries. Estimate: 83 public items.
 - **ShapeDistance** method `swapped` (`parry/src/query/distance/distance.rs`)
 - **ShapeDistance** method `with_subshapes` (`parry/src/query/distance/distance.rs`)
 - **ShapeDistance** type `ShapeDistance` (`parry/src/query/distance/distance.rs`)
-- **SoftContactImpulse** type `SoftContactImpulse` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftDetectionCtx** method `motion_margin` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftDetectionCtx** method `pieces_of_one_body` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftEdgeCandidate** type `SoftEdgeCandidate` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftPairContacts** method `disable_all` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftPairContacts** method `impulses` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftPairContacts** method `is_touching` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftPairContacts** method `vertex_pass_on` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftPairContacts** type `SoftPairContacts` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftRigidPatch** type `SoftRigidPatch` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftSelfContacts** method `tangles` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_self_contacts.rs`)
-- **SoftVertexCandidate** type `SoftVertexCandidate` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftVertexHits** type `SoftVertexHits` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftVertexPass** method `candidates_of` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
-- **SoftVertexPass** type `SoftVertexPass` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_types.rs`)
 - **SolverContactGeneric** method `contact_indices` (`rapier/src/geometry/contact_pair.rs`)
 - **SolverContactGeneric** type `SolverContactGeneric` (`rapier/src/geometry/contact_pair.rs`)
 - **SolverContacts** type `SolverContacts` (`rapier/src/geometry/contact_pair.rs`)
 - **SolverFlags** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
 - **SubshapePoses** type `SubshapePoses` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
 - **Unsupported** type `Unsupported` (`parry/src/query/error.rs`)
-- **VolumeBin** type `VolumeBin` (`rapier/src/geometry/narrow_phase/soft_contacts/soft_contacts_volume.rs`)
-- ... 3 more
+- **geometry** const `NEW_CONTACT_BIT` (`rapier/src/geometry/contact_pair.rs`)
+- **geometry** function `is_bouncy` (`rapier/src/geometry/contact_pair.rs`)
+- **parry::query** function `contact_manifold_pfm_pfm_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs`)
 
 ### WP: API polish and miscellaneous parity
 
@@ -4629,7 +4607,7 @@ Tier: standard. Depends/context: shape interface. Estimate: 27 public items.
 
 ### WP: Collider API completion
 
-Tier: mechanical. Depends/context: DB/EV. Estimate: 10 public items.
+Tier: mechanical. Depends/context: DB/EV. Estimate: 9 public items.
 
 - **ColliderBuilder** method `convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
@@ -4640,20 +4618,6 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 10 public items.
 - **ColliderSet** method `take_modified` (`rapier/src/geometry/collider_set.rs`)
 - **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
 - **ModifiedColliders** type `ModifiedColliders` (`rapier/src/geometry/collider_set.rs`)
-- **Quarantine** method `colliders` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-
-### WP: Pipeline and world facade
-
-Tier: standard. Depends/context: P1/SL/EV. Estimate: 8 public items.
-
-- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
-- **NarrowPhase** impl `Default` (`rapier/src/geometry/narrow_phase/mod.rs`)
-- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
-- **PhysicsPipeline** method `quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **PhysicsWorld** method `quarantine` (`rapier/src/pipeline/physics_world.rs`)
-- **Quarantine** method `bodies` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** method `is_empty` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
-- **Quarantine** type `Quarantine` (`rapier/src/pipeline/physics_pipeline/quarantine.rs`)
 
 ### WP: Rigid-body API completion
 
@@ -4673,6 +4637,14 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 3 public items.
 - **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
 - **ImpulseJointSet** method `joint_graph` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
 - **ImpulseJointSet** method `map_attached_joints_mut` (`rapier/src/dynamics/joint/impulse_joint/impulse_joint_set.rs`)
+
+### WP: Pipeline and world facade
+
+Tier: standard. Depends/context: P1/SL/EV. Estimate: 3 public items.
+
+- **DefaultBroadPhase** type `DefaultBroadPhase` (`rapier/src/geometry/mod.rs`)
+- **NarrowPhase** impl `Default` (`rapier/src/geometry/narrow_phase/mod.rs`)
+- **NarrowPhase** method `handle_user_changes` (`rapier/src/geometry/narrow_phase/pair_management.rs`)
 
 ### WP: Sensors and intersection events
 
