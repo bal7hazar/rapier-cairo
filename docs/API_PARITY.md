@@ -18,15 +18,15 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
 | dynamics | 554 | 0 | 36 | 592 | 1182 | 77.4% | 93.9% |
-| geometry | 209 | 0 | 63 | 43 | 315 | 69.9% | 76.8% |
+| geometry | 223 | 0 | 49 | 43 | 315 | 74.6% | 82.0% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 254 | 0 | 26 | 127 | 407 | 84.7% | 90.7% |
 | parry::shape | 223 | 0 | 38 | 119 | 380 | 85.4% | 85.4% |
-| pipeline | 77 | 0 | 4 | 77 | 158 | 86.5% | 95.1% |
-| **total** | **1456** | **0** | **167** | **969** | **2592** | **80.7%** | **89.7%** |
+| pipeline | 79 | 0 | 2 | 77 | 158 | 88.8% | 97.5% |
+| **total** | **1472** | **0** | **151** | **969** | **2592** | **81.6%** | **90.7%** |
 
-Cairo-only public items not matched to upstream: **1694**.
+Cairo-only public items not matched to upstream: **1703**.
 
 ## Aabb
 
@@ -728,7 +728,7 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): ContactData, ContactDataTrait. | `rapier/src/geometry/contact_pair.rs` |
+| impl `Default` | geometry | missing | Derived (`#[derive(Default)]`); the matcher reads explicit `impl .. of Default` only. | `rapier/src/geometry/contact_pair.rs` |
 | type `ContactData` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## ContactForceEvent
@@ -770,9 +770,9 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): ContactManifoldData, ContactManifoldDataTrait. | `rapier/src/geometry/contact_pair.rs` |
+| impl `Default` | geometry | missing | Derived (`#[derive(Default)]`); the matcher reads explicit `impl .. of Default` only. | `rapier/src/geometry/contact_pair.rs` |
 | method `num_active_contacts` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
-| method `solver_contact_world_points` | geometry | missing | Not found on Cairo candidate(s): ContactManifoldData, ContactManifoldDataTrait. | `rapier/src/geometry/contact_pair.rs` |
+| method `solver_contact_world_points` | geometry | missing | The port's anchors are world-frame offsets from the centre of mass at the step's start; the bodies have moved since, so no exact answer from the manifold data. | `rapier/src/geometry/contact_pair.rs` |
 | type `ContactManifoldData` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## ContactManifoldExt
@@ -806,17 +806,17 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `clear` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `find_deepest_contact` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
+| impl `Default` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `clear` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `find_deepest_contact` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 | method `has_any_active_contact` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
-| method `manifolds` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `max_impulse` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `rigid` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
+| method `manifolds` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `max_impulse` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `rigid` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 | method `soft` | geometry | excluded | soft bodies are not part of the port | `rapier/src/geometry/contact_pair.rs` |
-| method `solver_manifolds` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `total_impulse` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
-| method `total_impulse_magnitude` | geometry | missing | Not found on Cairo candidate(s): ContactPair, ContactPairTrait. | `rapier/src/geometry/contact_pair.rs` |
+| method `solver_manifolds` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `total_impulse` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| method `total_impulse_magnitude` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 | type `ContactPair` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## ContactRef
@@ -1789,16 +1789,16 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/mod.rs` |
-| method `contact_graph` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| impl `Default` | geometry | missing | Derived (`#[derive(Default)]`); the matcher reads explicit `impl .. of Default` only. | `rapier/src/geometry/narrow_phase/mod.rs` |
+| method `contact_graph` | geometry | missing | No persistent interaction graph: the pair list is rebuilt every step (D7); use `contact_pairs` / `intersection_pairs`. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `contact_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `contact_pair_at_index` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `contact_pair_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `contact_pairs` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `contact_pairs_with` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `contact_pairs_with_unknown_gen` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
-| method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
-| method `intersection_graph` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseTrait. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `contact_pair_at_index` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `contact_pair_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `contact_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `contact_pairs_with` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `contact_pairs_with_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
+| method `handle_user_changes` | geometry | missing | Not found on Cairo candidate(s): NarrowPhase, NarrowPhaseContactPairs, NarrowPhaseTrait, NarrowPhaseContactPairsTrait. | `rapier/src/geometry/narrow_phase/pair_management.rs` |
+| method `intersection_graph` | geometry | missing | No persistent interaction graph: the pair list is rebuilt every step (D7); use `contact_pairs` / `intersection_pairs`. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pair_unknown_gen` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
 | method `intersection_pairs` | geometry | ported | Same public name. | `rapier/src/geometry/narrow_phase/queries.rs` |
@@ -2000,8 +2000,8 @@ Cairo-only public items not matched to upstream: **1694**.
 | method `clear_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `configure_thread_pool` | pipeline | excluded | SIMD/parallel | `rapier/src/pipeline/physics_world.rs` |
 | method `contact_pair` | pipeline | ported | Mapped to World.contact_pair | `rapier/src/pipeline/physics_world.rs` |
-| method `contact_pairs` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
-| method `contact_pairs_with` | pipeline | missing | Not found on Cairo candidate(s): World, WorldTrait. | `rapier/src/pipeline/physics_world.rs` |
+| method `contact_pairs` | pipeline | ported | Mapped to World.contact_pairs | `rapier/src/pipeline/physics_world.rs` |
+| method `contact_pairs_with` | pipeline | ported | Mapped to World.contact_pairs_with | `rapier/src/pipeline/physics_world.rs` |
 | method `cut_soft_body` | pipeline | excluded | soft bodies | `rapier/src/pipeline/physics_world.rs` |
 | method `debug_render` | pipeline | excluded | debug render | `rapier/src/pipeline/physics_world.rs` |
 | method `impulse_joints` | pipeline | ported | Mapped to World.impulse_joints | `rapier/src/pipeline/physics_world.rs` |
@@ -4439,8 +4439,8 @@ Cairo-only public items not matched to upstream: **1694**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Query completion](#wp-query-completion) | 59 | standard | QP queries |
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 55 | mechanical | AP triage |
+| [Query completion](#wp-query-completion) | 43 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 27 | standard | shape interface |
 | [Collider API completion](#wp-collider-api-completion) | 9 | mechanical | DB/EV |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 6 | mechanical | KD/SL |
@@ -4448,70 +4448,6 @@ Cairo-only public items not matched to upstream: **1694**.
 | [Pipeline and world facade](#wp-pipeline-and-world-facade) | 3 | standard | P1/SL/EV |
 | [Sensors and intersection events](#wp-sensors-and-intersection-events) | 3 | standard | SE sensors |
 | [CCD and shape casts](#wp-ccd-and-shape-casts) | 2 | hard | QP queries |
-
-### WP: Query completion
-
-Tier: standard. Depends/context: QP queries. Estimate: 59 public items.
-
-- **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
-- **ContactData** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactId** type `ContactId` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifoldData** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactManifoldData** method `solver_contact_world_points` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `clear` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `find_deepest_contact` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `manifolds` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `max_impulse` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `rigid` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `solver_manifolds` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `total_impulse` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactPair** method `total_impulse_magnitude` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactRef** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
-- **GraphPos** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
-- **NarrowPhase** method `contact_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `contact_pair_at_index` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `contact_pair_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `contact_pairs` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `contact_pairs_with` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NarrowPhase** method `contact_pairs_with_unknown_gen` (`rapier/src/geometry/narrow_phase/queries.rs`)
-- **NormalConstraints** method `project_local_normal` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** method `project_local_normal1` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** method `project_local_normal2` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** method `project_local_normal_mut` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** trait `NormalConstraints` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraintsPair** method `project_local_normals` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraintsPair** trait `NormalConstraintsPair` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **PairContacts** type `PairContacts` (`rapier/src/geometry/contact_pair.rs`)
-- **PhysicsWorld** method `contact_pairs` (`rapier/src/pipeline/physics_world.rs`)
-- **PhysicsWorld** method `contact_pairs_with` (`rapier/src/pipeline/physics_world.rs`)
-- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
-- **QueryPipelineMut** method `as_ref` (`rapier/src/pipeline/query_pipeline.rs`)
-- **QueryPipelineMut** type `QueryPipelineMut` (`rapier/src/pipeline/query_pipeline.rs`)
-- **RigidPairContacts** method `has_any_active_contact` (`rapier/src/geometry/contact_pair.rs`)
-- **RigidPairContacts** method `solver_manifolds` (`rapier/src/geometry/contact_pair.rs`)
-- **RigidPairContacts** type `RigidPairContacts` (`rapier/src/geometry/contact_pair.rs`)
-- **ShapeDistance** impl `From<Real>` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** method `new` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** method `swapped` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** method `with_subshapes` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** type `ShapeDistance` (`parry/src/query/distance/distance.rs`)
-- **SolverContactGeneric** method `contact_indices` (`rapier/src/geometry/contact_pair.rs`)
-- **SolverContactGeneric** type `SolverContactGeneric` (`rapier/src/geometry/contact_pair.rs`)
-- **SolverContacts** type `SolverContacts` (`rapier/src/geometry/contact_pair.rs`)
-- **SolverFlags** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
-- **SubshapePoses** type `SubshapePoses` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **Unsupported** type `Unsupported` (`parry/src/query/error.rs`)
-- **geometry** const `NEW_CONTACT_BIT` (`rapier/src/geometry/contact_pair.rs`)
-- **geometry** function `is_bouncy` (`rapier/src/geometry/contact_pair.rs`)
-- **parry::query** function `contact_manifold_pfm_pfm_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs`)
 
 ### WP: API polish and miscellaneous parity
 
@@ -4572,6 +4508,54 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 55 public items.
 - **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
 - **TypedShape** impl `Debug` (`parry/src/shape/shape.rs`)
 - **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
+
+### WP: Query completion
+
+Tier: standard. Depends/context: QP queries. Estimate: 43 public items.
+
+- **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
+- **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
+- **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
+- **ContactData** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
+- **ContactId** type `ContactId` (`rapier/src/geometry/contact_pair.rs`)
+- **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifoldData** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
+- **ContactManifoldData** method `solver_contact_world_points` (`rapier/src/geometry/contact_pair.rs`)
+- **ContactRef** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
+- **GraphPos** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
+- **NarrowPhase** method `contact_graph` (`rapier/src/geometry/narrow_phase/queries.rs`)
+- **NormalConstraints** method `project_local_normal` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** method `project_local_normal1` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** method `project_local_normal2` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** method `project_local_normal_mut` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraints** trait `NormalConstraints` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraintsPair** method `project_local_normals` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **NormalConstraintsPair** trait `NormalConstraintsPair` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
+- **PairContacts** type `PairContacts` (`rapier/src/geometry/contact_pair.rs`)
+- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
+- **QueryPipelineMut** method `as_ref` (`rapier/src/pipeline/query_pipeline.rs`)
+- **QueryPipelineMut** type `QueryPipelineMut` (`rapier/src/pipeline/query_pipeline.rs`)
+- **RigidPairContacts** method `has_any_active_contact` (`rapier/src/geometry/contact_pair.rs`)
+- **RigidPairContacts** method `solver_manifolds` (`rapier/src/geometry/contact_pair.rs`)
+- **RigidPairContacts** type `RigidPairContacts` (`rapier/src/geometry/contact_pair.rs`)
+- **ShapeDistance** impl `From<Real>` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** method `new` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** method `swapped` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** method `with_subshapes` (`parry/src/query/distance/distance.rs`)
+- **ShapeDistance** type `ShapeDistance` (`parry/src/query/distance/distance.rs`)
+- **SolverContactGeneric** method `contact_indices` (`rapier/src/geometry/contact_pair.rs`)
+- **SolverContactGeneric** type `SolverContactGeneric` (`rapier/src/geometry/contact_pair.rs`)
+- **SolverContacts** type `SolverContacts` (`rapier/src/geometry/contact_pair.rs`)
+- **SolverFlags** impl `Default` (`rapier/src/geometry/contact_pair.rs`)
+- **SubshapePoses** type `SubshapePoses` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **Unsupported** type `Unsupported` (`parry/src/query/error.rs`)
+- **geometry** const `NEW_CONTACT_BIT` (`rapier/src/geometry/contact_pair.rs`)
+- **geometry** function `is_bouncy` (`rapier/src/geometry/contact_pair.rs`)
+- **parry::query** function `contact_manifold_pfm_pfm_shapes` (`parry/src/query/contact_manifolds/contact_manifolds_pfm_pfm.rs`)
 
 ### WP: Additional 2D shapes
 
@@ -4863,7 +4847,7 @@ Tier: hard. Depends/context: QP queries. Estimate: 2 public items.
 - **Arena** method `ascending` (`crates/rapier2d_classes/src/arena.cairo`)
 - **Arena** method `capacity` (`crates/rapier_core/src/data/arena.cairo`)
 - **Arena** method `contains` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1494 more
+- ... 1503 more
 
 ## Embedded Rust inventory
 

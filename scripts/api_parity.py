@@ -473,7 +473,7 @@ OWNER_ALIASES.update({
     # SH1: Parry's generic `RoundShape<S>` is instantiated as three aliases; its `impl Shape` and
     # `RayCast` are the aliases' (`From<RoundCuboid> for Shape`, `RoundCuboidRayCast`, ...).
     "RoundShape": ("RoundShape", "RoundShapeTrait", "RoundCuboid", "RoundTriangle", "RoundConvexPolygon"),
-    "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase",),
+    "BroadPhaseBvh": ("broad_phase",), "NarrowPhase": ("NarrowPhase", "NarrowPhaseContactPairs"),
     "Halfspace": ("HalfSpace",),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
     "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),
@@ -504,6 +504,10 @@ OWNER_ALIASES.update({
     "PackedFeatureId": ("FeatureId",),
     "parry::bounding_volume": ("BoundingVolume",),
     "TypedShape": ("Shape",),
+    # CP3: upstream's `ContactPair` (one pair, all its manifolds) is `ContactPairView`
+    # (`narrow_phase/contact_pairs.cairo`; the pair list keeps one `ContactPair` entry per manifold,
+    # ADR 0001 entry 35); the `NarrowPhase` reads are `NarrowPhaseContactPairsTrait`.
+    "ContactPair": ("ContactPair", "ContactPairView"),
     # SH2a: the composite queries are free functions of `{point,ray,query,dispatch}/composite.cairo`
     # and `query/sweep/composite.cairo` (owner `Composite`), over `Shape::{Polyline, HeightField}`.
     "Heightfield": ("HeightField", "Heightfield", "Composite"),
@@ -1070,6 +1074,14 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
        for name in ("convex_decomposition", "convex_decomposition_with_params", "round_convex_decomposition",
                     "round_convex_decomposition_with_params", "voxelized_convex_decomposition",
                     "voxelized_convex_decomposition_with_params", "voxelized_mesh")},
+    # CP3: no persistent interaction graph (D7) (`query_dispatcher` is excluded above: static dispatch, D10); `Default` is `#[derive(Default)]`,
+    # which the matcher does not read (explicit `impl .. of Default` only).
+    **{("NarrowPhase", n): "No persistent interaction graph: the pair list is rebuilt every step (D7); use `contact_pairs` / `intersection_pairs`."
+       for n in ("contact_graph", "intersection_graph")},
+    **{(t, "Default"): "Derived (`#[derive(Default)]`); the matcher reads explicit `impl .. of Default` only." for t in (
+        "ContactData", "ContactManifoldData", "NarrowPhase")},
+    ("ContactManifoldData", "solver_contact_world_points"):
+        "The port's anchors are world-frame offsets from the centre of mass at the step's start; the bodies have moved since, so no exact answer from the manifold data.",
     # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
     # SH2a: no persistent workspace: the previous manifolds are matched by sub-shape ids.
     **{(t, n): "SH2a: no workspace; previous manifolds are matched by sub-shape ids." for t in (
