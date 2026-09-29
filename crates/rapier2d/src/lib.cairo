@@ -35,6 +35,9 @@ pub mod prelude {
         RopeJointTrait, SpringJoint, SpringJointBuilder, SpringJointBuilderIntoGeneric,
         SpringJointBuilderTrait, SpringJointIntoGeneric, SpringJointTrait,
     };
+    pub use rapier_dynamics2d::narrow_phase::contact_pairs::{
+        ContactPairView, ContactPairViewTrait, NarrowPhaseContactPairsTrait,
+    };
     pub use rapier_dynamics2d::rigid_body::ccd::{RigidBodyCcd, RigidBodyCcdTrait};
     pub use rapier_dynamics2d::rigid_body_set::{
         BodyAngvel, BodyLinvel, BodyPose, BodySleeping, RigidBodyCcdApiTrait,

@@ -930,6 +930,14 @@ def parse_cairo() -> list[Item]:
         for m in re.finditer(r"\bpub\s+(struct|enum|trait|type)\s+([A-Za-z_][A-Za-z0-9_]*)", text):
             if not inside(m.start(), skip):
                 items.add(Item(m.group(2), "trait" if m.group(1) == "trait" else "type", m.group(2), source, source))
+        # After CP3: a derived `Default` / `Debug` is the same impl as upstream's written one.
+        for m in re.finditer(r"#\[derive\(([^)]*)\)\]\s*(?:#\[[^\]]*\]\s*)*pub\s+(?:struct|enum)\s+"
+                             r"([A-Za-z_][A-Za-z0-9_]*)", text):
+            if inside(m.start(), skip):
+                continue
+            for derived in ("Default", "Debug"):
+                if re.search(rf"\b{derived}\b", m.group(1)):
+                    items.add(Item(m.group(2), "impl", derived, source, source))
         for m, opening, end in traits:
             owner = m.group(1)[:-5] if m.group(1).endswith("Trait") else m.group(1)
             body = text[opening + 1:end]
@@ -1074,12 +1082,10 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
        for name in ("convex_decomposition", "convex_decomposition_with_params", "round_convex_decomposition",
                     "round_convex_decomposition_with_params", "voxelized_convex_decomposition",
                     "voxelized_convex_decomposition_with_params", "voxelized_mesh")},
-    # CP3: no persistent interaction graph (D7) (`query_dispatcher` is excluded above: static dispatch, D10); `Default` is `#[derive(Default)]`,
-    # which the matcher does not read (explicit `impl .. of Default` only).
-    **{("NarrowPhase", n): "No persistent interaction graph: the pair list is rebuilt every step (D7); use `contact_pairs` / `intersection_pairs`."
+    # CP3 / programme (2026-09-29): the interaction graph stays in scope; a read-only view over the pair list can
+    # answer most of it (derived `Default` / `Debug` are matched since the CP3 follow-up).
+    **{("NarrowPhase", n): "Not ported yet: a read-only view over the pair list (no persistent graph, D7); meanwhile `contact_pairs` / `intersection_pairs`."
        for n in ("contact_graph", "intersection_graph")},
-    **{(t, "Default"): "Derived (`#[derive(Default)]`); the matcher reads explicit `impl .. of Default` only." for t in (
-        "ContactData", "ContactManifoldData", "NarrowPhase")},
     ("ContactManifoldData", "solver_contact_world_points"):
         "The port's anchors are world-frame offsets from the centre of mass at the step's start; the bodies have moved since, so no exact answer from the manifold data.",
     # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
