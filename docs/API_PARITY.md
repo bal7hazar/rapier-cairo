@@ -8,23 +8,23 @@ Upstream target: rapier-rs `0.35.3+4` 2D plus parry `0.31.1` public items Rapier
 
 Statuses: `ported` means the same public name or a documented owner/name mapping exists in Cairo; `partial` is reserved for split owners; `missing` is the default; `excluded` uses only the closed reasons below.
 
-Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`.
+Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`.
 
 ## Coverage summary
 
-Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Q32.32 state cannot become NaN or infinite; nothing to contain`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `static dispatch through StepConfig / StageConfig (D10)`).
+Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Q32.32 state cannot become NaN or infinite; nothing to contain`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `static dispatch through StepConfig / StageConfig (D10)`).
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
 | dynamics | 554 | 0 | 36 | 592 | 1182 | 77.4% | 93.9% |
-| geometry | 227 | 0 | 45 | 43 | 315 | 75.9% | 83.5% |
+| geometry | 227 | 0 | 41 | 47 | 315 | 75.9% | 84.7% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 254 | 0 | 26 | 127 | 407 | 84.7% | 90.7% |
 | parry::shape | 225 | 0 | 36 | 119 | 380 | 86.2% | 86.2% |
 | pipeline | 79 | 0 | 2 | 77 | 158 | 88.8% | 97.5% |
-| **total** | **1478** | **0** | **145** | **969** | **2592** | **81.9%** | **91.1%** |
+| **total** | **1478** | **0** | **141** | **973** | **2592** | **81.9%** | **91.3%** |
 
 Cairo-only public items not matched to upstream: **2003**.
 
@@ -1345,14 +1345,14 @@ Cairo-only public items not matched to upstream: **2003**.
 | impl `Default` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
 | method `index_interaction` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
 | method `interaction_pair` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `interaction_pair_mut` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interaction_pair_mut` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
 | method `interactions` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
 | method `interactions_between` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
 | method `interactions_with` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
 | method `interactions_with_endpoints` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `interactions_with_mut` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| method `interactions_with_mut` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
 | method `new` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
-| method `raw_graph` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| method `raw_graph` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
 | type `InteractionGraph` | geometry | missing | Not found on Cairo candidate(s): InteractionGraph, InteractionGraphTrait. | `rapier/src/geometry/interaction_graph.rs` |
 
 ## InteractionGroups
@@ -1382,7 +1382,7 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `InteractionsWithMut` | geometry | missing | Not found on Cairo candidate(s): InteractionsWithMut, InteractionsWithMutTrait. | `rapier/src/geometry/interaction_graph.rs` |
+| type `InteractionsWithMut` | geometry | excluded | persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage | `rapier/src/geometry/interaction_graph.rs` |
 
 ## IntersectResult
 
@@ -4439,7 +4439,7 @@ Cairo-only public items not matched to upstream: **2003**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 54 | mechanical | AP triage |
+| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 50 | mechanical | AP triage |
 | [Query completion](#wp-query-completion) | 40 | standard | QP queries |
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 26 | standard | shape interface |
 | [Collider API completion](#wp-collider-api-completion) | 9 | mechanical | DB/EV |
@@ -4451,7 +4451,7 @@ Cairo-only public items not matched to upstream: **2003**.
 
 ### WP: API polish and miscellaneous parity
 
-Tier: mechanical. Depends/context: AP triage. Estimate: 54 public items.
+Tier: mechanical. Depends/context: AP triage. Estimate: 50 public items.
 
 - **CompositeShape** method `bvh` (`parry/src/shape/composite_shape.rs`)
 - **CompositeShape** method `is_deformable` (`parry/src/shape/composite_shape.rs`)
@@ -4461,16 +4461,12 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 54 public items.
 - **InteractionGraph** impl `Default` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `index_interaction` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `interaction_pair` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interaction_pair_mut` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `interactions` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `interactions_between` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `interactions_with` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `interactions_with_endpoints` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `interactions_with_mut` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** method `new` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionGraph** method `raw_graph` (`rapier/src/geometry/interaction_graph.rs`)
 - **InteractionGraph** type `InteractionGraph` (`rapier/src/geometry/interaction_graph.rs`)
-- **InteractionsWithMut** type `InteractionsWithMut` (`rapier/src/geometry/interaction_graph.rs`)
 - **Shape** method `as_shape` (`parry/src/shape/shape.rs`)
 - **Shape** method `as_shape_mut` (`parry/src/shape/shape.rs`)
 - **Shape** method `clone_box` (`parry/src/shape/shape.rs`)
