@@ -17,6 +17,7 @@ pub mod prelude {
     };
     pub use rapier_core::data::handle::Handle;
     pub use rapier_core::integration_parameters::IntegrationParameters;
+    pub use rapier_core::rigid_body::{RigidBodyType, RigidBodyTypeTrait};
     pub use rapier_dynamics2d::collider::builder::{ColliderBuilder, ColliderBuilderTrait};
     pub use rapier_dynamics2d::collider::{Collider, ColliderTrait};
     pub use rapier_dynamics2d::joint::{
@@ -48,7 +49,6 @@ pub mod prelude {
         ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
-    pub use rapier_geometry2d::shape::Shape;
     pub use rapier_geometry2d::shape::compound::{Compound, CompoundTrait};
     pub use rapier_geometry2d::shape::heightfield::{
         HeightField, HeightFieldCellStatus, HeightFieldTrait,
@@ -60,6 +60,10 @@ pub mod prelude {
         RoundConvexPolygon, RoundCuboid, RoundShape, RoundShapeTrait, RoundTriangle,
     };
     pub use rapier_geometry2d::shape::triangle::{Triangle, TriangleTrait};
+    pub use rapier_geometry2d::shape::{
+        Ball, BallTrait, Capsule, CapsuleTrait, ConvexPolygon, ConvexPolygonTrait, Cuboid,
+        CuboidTrait, HalfSpace, HalfSpaceTrait, Segment, SegmentTrait, Shape, ShapeTrait,
+    };
     pub use rapier_math::pose2::{Pose2, Pose2Trait};
     pub use rapier_math::rot2::{Rot2, Rot2Trait};
     pub use crate::control::{
