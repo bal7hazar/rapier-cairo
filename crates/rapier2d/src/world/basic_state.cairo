@@ -14,7 +14,6 @@
 //! a free slot or a removal: [`errors::JOINTS`], when it is read or restored; a joint when it is
 //! written).
 
-use rapier_core::Handle;
 use rapier_core::data::arena::ArenaState;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider::components::BoxedOneWayPlatformSerde;
@@ -61,14 +60,14 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
         Some(
             BasicWorldState {
                 state: WorldState {
-                    version: Serde::deserialize(ref serialized)?,
-                    gravity: Serde::deserialize(ref serialized)?,
-                    integration_parameters: Serde::deserialize(ref serialized)?,
-                    bodies: Serde::deserialize(ref serialized)?,
-                    colliders: deserialize_colliders(ref serialized)?,
+                    version: decode::read_version(ref serialized)?,
+                    gravity: decode::read_gravity(ref serialized)?,
+                    integration_parameters: decode::read_parameters(ref serialized)?,
+                    bodies: decode::read_bodies(ref serialized)?,
+                    colliders: decode::read_colliders(ref serialized)?,
                     impulse_joints: deserialize_joints(ref serialized)?,
                     narrow_phase: Serde::deserialize(ref serialized)?,
-                    active_set: Serde::deserialize(ref serialized)?,
+                    active_set: decode::read_active_set(ref serialized)?,
                 },
             },
         )
@@ -127,23 +126,12 @@ fn serialize_colliders(colliders: @ArenaState<Collider>, ref output: Array<felt2
     }
 }
 
-fn deserialize_colliders(ref serialized: Span<felt252>) -> Option<ArenaState<Collider>> {
-    let generation = Serde::deserialize(ref serialized)?;
-    let capacity = Serde::deserialize(ref serialized)?;
-    let free_list = Serde::deserialize(ref serialized)?;
-    let len: u32 = Serde::deserialize(ref serialized)?;
-    let mut entries = array![];
-    let mut i = 0;
-    while i != len {
-        let handle: Handle = Serde::deserialize(ref serialized)?;
-        entries.append((handle, deserialize_collider(ref serialized)?));
-        i += 1;
-    }
-    Some(ArenaState { generation, capacity, free_list, entries: entries.span() })
-}
-
-/// The derived `Serde` of `Collider`, field by field, the shape by [`serialize_basic_shape`].
-fn serialize_collider(collider: @Collider, ref output: Array<felt252>) {
+/// The derived `Serde` of `Collider`, field by field, the shape by [`serialize_basic_shape`]: the
+/// same felts for a basic shape (also the crossing of `rapier2d_classes`' `MassClass`, CS7).
+///
+/// # Panics
+/// [`errors::NOT_BASIC`] on another shape.
+pub fn serialize_collider(collider: @Collider, ref output: Array<felt252>) {
     collider.co_type.serialize(ref output);
     serialize_basic_shape(collider.shape, ref output);
     collider.mprops.serialize(ref output);
@@ -155,24 +143,6 @@ fn serialize_collider(collider: @Collider, ref output: Array<felt252>) {
     collider.contact_force_event_threshold.serialize(ref output);
     collider.one_way.serialize(ref output);
     collider.user_data.serialize(ref output);
-}
-
-fn deserialize_collider(ref serialized: Span<felt252>) -> Option<Collider> {
-    Some(
-        Collider {
-            co_type: Serde::deserialize(ref serialized)?,
-            shape: deserialize_basic_shape(ref serialized)?,
-            mprops: Serde::deserialize(ref serialized)?,
-            changes: Serde::deserialize(ref serialized)?,
-            parent: Serde::deserialize(ref serialized)?,
-            pos: Serde::deserialize(ref serialized)?,
-            material: Serde::deserialize(ref serialized)?,
-            flags: Serde::deserialize(ref serialized)?,
-            contact_force_event_threshold: Serde::deserialize(ref serialized)?,
-            one_way: Serde::deserialize(ref serialized)?,
-            user_data: Serde::deserialize(ref serialized)?,
-        },
-    )
 }
 
 /// `ShapeSerde`'s tags and payloads of the four basic shapes: ball `0`, cuboid `1`, half-space
@@ -233,13 +203,12 @@ fn serialize_joints(joints: @ArenaState<ImpulseJoint>, ref output: Array<felt252
 }
 
 fn deserialize_joints(ref serialized: Span<felt252>) -> Option<ArenaState<ImpulseJoint>> {
-    let generation = Serde::deserialize(ref serialized)?;
-    let capacity = Serde::deserialize(ref serialized)?;
-    let free_list = Serde::deserialize(ref serialized)?;
-    let len: felt252 = Serde::deserialize(ref serialized)?;
+    let (generation, capacity, free_list, len) = decode::read_joint_bookkeeping(ref serialized)?;
     assert(len == 0, errors::JOINTS);
     Some(ArenaState { generation, capacity, free_list, entries: array![].span() })
 }
 
+/// The reader of the codec (CS7), also used by the crossings of `rapier2d_classes`.
+pub mod decode;
 #[cfg(test)]
 mod tests;

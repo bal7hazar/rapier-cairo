@@ -5,6 +5,8 @@
 
 use rapier2d::pipeline::stages::MassStage;
 use rapier2d::prelude::{Collider, ColliderSet, ColliderSetTrait, Handle, RigidBody};
+use rapier2d::world::basic_state::decode::read_body_mass_props;
+use rapier2d::world::basic_state::serialize_collider;
 use rapier_dynamics2d::rigid_body::mass_props::RigidBodyMassProps;
 use starknet::SyscallResultTrait;
 use starknet::syscalls::library_call_syscall;
@@ -24,10 +26,15 @@ pub impl LibraryCallMass<impl H: ClassHashes> of MassStage {
         }
         let mut calldata = array![];
         body.serialize(ref calldata);
-        found.span().serialize(ref calldata);
+        // CS7: `Span<(Handle, Collider)>`'s felts, the shapes by the basic codec.
+        calldata.append(found.len().into());
+        for (co_handle, collider) in found.span() {
+            co_handle.serialize(ref calldata);
+            serialize_collider(collider, ref calldata);
+        }
         let mut ret = library_call_syscall(H::mass(), selector!("mass_properties"), calldata.span())
             .unwrap_syscall();
-        body.mprops = Serde::deserialize(ref ret).expect(errors::DECODE);
+        body.mprops = read_body_mass_props(ref ret).expect(errors::DECODE);
     }
 }
 

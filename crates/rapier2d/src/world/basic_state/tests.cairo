@@ -1,13 +1,18 @@
 //! The basic codec writes and reads `WorldState`'s felts, and rejects what it does not compile.
 
-use fixed::{HALF, ONE, ZERO};
+use fixed::{FixedTrait, HALF, ONE, ZERO};
+use rapier_core::interaction_groups::{Group, InteractionGroupsTrait, InteractionTestMode};
 use rapier_dynamics2d::collider::ColliderBuilderTrait;
 use rapier_dynamics2d::joint::RevoluteJointBuilderTrait;
-use rapier_dynamics2d::rigid_body_set::RigidBodyTrait;
+use rapier_dynamics2d::rigid_body::RigidBodyMassProps;
+use rapier_dynamics2d::rigid_body_set::{RigidBodyBuilderTrait, RigidBodyTrait};
+use rapier_geometry2d::mass::MassPropertiesTrait;
 use rapier_testing::opaque;
+use crate::pipeline::active_set::ActiveSet;
 use crate::pipeline::config::BasicStepConfig;
 use crate::pipeline::config::tests::{at, ball_over, basic_level, v};
 use crate::world::{World, WorldTrait};
+use super::decode::{read_active_set, read_body_mass_props};
 use super::{BasicWorldState, from_basic_state, into_basic_state};
 
 fn felts<T, +Serde<T>, +Drop<T>>(value: @T) -> Array<felt252> {
@@ -139,4 +144,118 @@ fn gas_world_state_round_trip() {
     let mut span = state.span();
     let read: crate::world::state::WorldState = Serde::deserialize(ref span).unwrap();
     let _ = WorldTrait::from_state(read);
+}
+
+/// CS7: `basic_level(1)` with what the levels leave at their defaults: a body with additional
+/// mass (cold data) and CCD enabled (its extra slot), locked rotations, colliders given a mass
+/// and mass properties, a one-way platform, interaction groups in `Or` mode, a parentless
+/// collider and a removed body (free slots), stepped so that pairs and the active set exist.
+fn rare_layouts() -> World {
+    let mut world = basic_level(1);
+    let body = RigidBodyBuilderTrait::dynamic()
+        .position(at(ONE, FixedTrait::from_int(3)))
+        .additional_mass(HALF)
+        .ccd_enabled(true)
+        .lock_rotations()
+        .user_data(7)
+        .build();
+    let groups = InteractionGroupsTrait::new(
+        Group { bits: 3 }, Group { bits: 5 }, InteractionTestMode::Or,
+    );
+    let _ = world
+        .insert(
+            body,
+            ColliderBuilderTrait::cuboid(HALF, HALF).mass(ONE).collision_groups(groups).build(),
+        );
+    let heavy = RigidBodyBuilderTrait::dynamic()
+        .position(at(FixedTrait::from_int(3), FixedTrait::from_int(3)))
+        .build();
+    let props = MassPropertiesTrait::new(v(ZERO, ZERO), FixedTrait::from_int(2), ONE);
+    let _ = world.insert(heavy, ColliderBuilderTrait::ball(HALF).mass_properties(props).build());
+    let platform = RigidBodyBuilderTrait::fixed().position(at(ZERO, ZERO)).build();
+    let _ = world
+        .insert(
+            platform,
+            ColliderBuilderTrait::cuboid(FixedTrait::from_int(2), HALF)
+                .one_way(v(ZERO, ONE), HALF)
+                .build(),
+        );
+    let _ = world.insert_collider(ColliderBuilderTrait::ball(HALF).build(), None);
+    let gone = RigidBodyBuilderTrait::dynamic()
+        .position(at(FixedTrait::from_int(5), FixedTrait::from_int(5)))
+        .build();
+    let (handle, _) = world.insert(gone, ColliderBuilderTrait::ball(HALF).build());
+    let _ = world.remove_body(handle);
+    let mut k = 0;
+    while k != 4 {
+        let _ = world.step_with_force_events_with::<BasicStepConfig>();
+        k += 1;
+    }
+    world
+}
+
+/// The reader (`decode`) gives the values `WorldState`'s derived `Serde` gives on the layouts the
+/// levels leave out, and `None` on every truncation of a state (as the derived `Serde`).
+#[test]
+fn test_basic_codec_reads_rare_layouts() {
+    let mut world = rare_layouts();
+    let expected = felts(@world.to_state());
+    let mut span = expected.span();
+    let read: BasicWorldState = Serde::deserialize(ref span).unwrap();
+    assert!(span.is_empty());
+    assert!(read.state == world.to_state());
+    for cut in array![1_u32, 2, 30, 31, expected.len() / 2, expected.len() - 1] {
+        let mut short = expected.span().slice(0, cut);
+        let got: Option<BasicWorldState> = Serde::deserialize(ref short);
+        assert!(got.is_none(), "cut {}", cut);
+    }
+}
+
+/// The active set and a body's mass properties of a stepped level, as felts.
+fn reader_felts() -> (Array<felt252>, Array<felt252>) {
+    let mut world = stepped(opaque(2), 12);
+    let state = world.to_state();
+    let (_, body) = *state.bodies.entries[1];
+    (felts(@state.active_set), felts(@body.mprops))
+}
+
+#[test]
+fn test_readers_as_derived() {
+    let (set, mprops) = reader_felts();
+    let (mut a, mut b) = (set.span(), set.span());
+    let derived: ActiveSet = Serde::deserialize(ref a).unwrap();
+    assert!(read_active_set(ref b).unwrap() == derived);
+    let (mut a, mut b) = (mprops.span(), mprops.span());
+    let derived: RigidBodyMassProps = Serde::deserialize(ref a).unwrap();
+    assert!(read_body_mass_props(ref b).unwrap() == derived);
+}
+
+#[test]
+fn gas_read_active_set() {
+    let (set, _) = reader_felts();
+    let mut span = set.span();
+    let _ = opaque(read_active_set(ref span).unwrap().sleeping);
+}
+
+#[test]
+fn gas_read_active_set_derived() {
+    let (set, _) = reader_felts();
+    let mut span = set.span();
+    let read: ActiveSet = Serde::deserialize(ref span).unwrap();
+    let _ = opaque(read.sleeping);
+}
+
+#[test]
+fn gas_read_body_mass_props() {
+    let (_, mprops) = reader_felts();
+    let mut span = mprops.span();
+    let _ = opaque(read_body_mass_props(ref span).unwrap().max_extent);
+}
+
+#[test]
+fn gas_read_body_mass_props_derived() {
+    let (_, mprops) = reader_felts();
+    let mut span = mprops.span();
+    let read: RigidBodyMassProps = Serde::deserialize(ref span).unwrap();
+    let _ = opaque(read.max_extent);
 }

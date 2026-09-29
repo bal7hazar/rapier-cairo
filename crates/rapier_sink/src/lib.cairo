@@ -11,6 +11,8 @@
 //! declared classes of `rapier2d_classes` (CS4) in `classes`.
 
 pub mod classes;
+pub mod edits;
+pub mod orchestrator;
 pub mod scene;
 pub mod sink;
 pub mod split;

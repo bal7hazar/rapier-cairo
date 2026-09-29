@@ -22,6 +22,9 @@ holds their callers, size fixtures: `Split4Step` (`rapier2d_classes::ContactSolv
 `Split3Step` (`ContactClass` and `SolverClass`), CS5's `Stages*Step` (every stage out), and CS6's
 `SlimSplitStep` (`SlimSplitStages` with the basic `WorldState` codec: the caller class under the
 declared-class limit, in `DECLARED`), `Levers12Step` (its levers 1 and 2 alone) and
-`OrchestratedStep` (route (b)'s caller). `tests/` reproduces slingfall's pile10 level and reference shot and
+`OrchestratedStep` (route (b)'s caller). `src/orchestrator.cairo` holds route (b)'s
+`OrchestratorClass` (moved from `rapier2d_classes` by CS7: no game declares it); `src/edits.cairo`
+CS7's `SlimEditStep` (the slim caller with the World edits in `rapier2d_classes`' `WorldEditClass`)
+and `SlimInCallerEditStep` (the same edits in process, over the limit). `tests/` reproduces slingfall's pile10 level and reference shot and
 measures each layout in exact Cairo steps (`snforge test -p rapier_sink --tracked-resource
 cairo-steps --detailed-resources`); the analysis is in `docs/research/class-split.md`.

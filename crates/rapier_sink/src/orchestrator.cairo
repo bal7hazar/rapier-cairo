@@ -1,4 +1,7 @@
-//! Route (b) of CS6, measured and not shipped (`docs/research/class-split.md`, CS6): a second
+//! Route (b) of CS6, measured and not shipped (`docs/research/class-split.md`, CS6; moved here
+//! from `rapier2d_classes` by CS7: no game declares it, so the published crate does not carry it.
+//! Its whole-shot tests stayed behind at `9c7372b`, `rapier2d_classes/tests/route_b.cairo`: they
+//! declare the stage classes, which only that package's tests can): a second
 //! orchestration class. The caller keeps the world between steps (the game's rules run there) and
 //! hands it to `OrchestratorClass` once per step, which runs the step (the stages of
 //! `SlimSplitStages`, each in its class) and returns the world and the force events. The world
@@ -10,9 +13,9 @@
 
 use rapier2d::prelude::ContactForceEvent;
 use rapier2d::world::basic_state::BasicWorldState;
+use rapier2d_classes::hashes::{ClassHashes, errors};
 use starknet::syscalls::{library_call_syscall, storage_read_syscall};
 use starknet::{ClassHash, SyscallResultTrait};
-use crate::hashes::{ClassHashes, errors};
 
 /// The storage slots of the calling contract where [`StoredClassHashes`] reads each class hash.
 pub mod slots {
@@ -92,13 +95,13 @@ pub fn orchestrated_step(
 }
 
 /// The step of a basic world (route (b)): the world crosses in and out; the stages of
-/// `crate::config::SlimSplitStages` (route (a)'s levers: without the pair loop and the rebuild of
-/// the active set in their classes, the orchestrator is 84,291 CASM felts, over the limit).
+/// `rapier2d_classes::SlimSplitStages` (route (a)'s levers: without the pair loop and the rebuild
+/// of the active set in their classes, the orchestrator is 84,291 CASM felts, over the limit).
 #[starknet::contract]
 pub mod OrchestratorClass {
     use rapier2d::prelude::{BasicStepConfig, ContactForceEvent, WorldTrait};
     use rapier2d::world::basic_state::{BasicWorldState, from_basic_state, into_basic_state};
-    use crate::config::SlimSplitStages;
+    use rapier2d_classes::SlimSplitStages;
     use super::StoredClassHashes;
 
     #[storage]
