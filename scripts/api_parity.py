@@ -31,7 +31,7 @@ Zeroable AbsDiffEq RelativeEq UlpsEq Shape PointQuery RayCast PointQueryWithLoca
 """.split())
 CAIRO_IMPL_TRAITS = set("""
 Add AddAssign Sub SubAssign Mul MulAssign Div DivAssign Neg Not BitAnd BitOr BitXor BitNot
-IndexView Default Into TryInto PartialEq Drop Copy Serde Debug PointQuery RayCast PointQueryWithLocation
+IndexView Index Default Into TryInto PartialEq Drop Copy Serde Debug PointQuery RayCast PointQueryWithLocation
 """.split())
 
 EXCLUSIONS = (
@@ -44,6 +44,7 @@ EXCLUSIONS = (
     "Q32.32 state cannot become NaN or infinite; nothing to contain",
     "static dispatch through StepConfig / StageConfig (D10)",
     "persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage",
+    "closed value enum replaces Arc / dyn shapes (SH2a)",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
@@ -95,9 +96,17 @@ MUTABLE_GRAPH: frozenset[tuple[str, str, str]] = frozenset({
     ("InteractionGraph", "method", "raw_graph"), ("InteractionGraph", "method", "interaction_pair_mut"),
     ("InteractionGraph", "method", "interactions_with_mut"), ("InteractionsWithMut", "type", "InteractionsWithMut"),
 })
+# Programme decision (2026-09-29, PX4): the `Arc<dyn Shape>` surface of upstream has no counterpart in a closed
+# `Shape` value enum (ADR 0001 entries 35 and 37): the copy-on-write accessor, the downcast to `&mut dyn`, and the
+# trait-object item itself. Its value meanings (`as_shape`, `clone_box`, `clone_dyn`, `scale_dyn`, `new`, ...) are
+# ported (`shape/dyn_api.cairo`).
+CLOSED_ENUM_REASON = "closed value enum replaces Arc / dyn shapes (SH2a)"
+CLOSED_ENUM: frozenset[tuple[str, str, str]] = frozenset({
+    ("SharedShape", "method", "make_mut"), ("Shape", "method", "as_shape_mut"), ("Shape", "trait", "Shape"),
+})
 # Every reason added since PX1: they do not count in the raw figure.
 POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON,
-                              MUTABLE_GRAPH_REASON})
+                              MUTABLE_GRAPH_REASON, CLOSED_ENUM_REASON})
 
 # PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
 # broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
@@ -528,10 +537,21 @@ OWNER_ALIASES.update({
     # those now match too; only `new`, `make_mut` and `convex_polyline_unmodified` stay `missing`
     # (`MISSING_REASONS`), the `Arc<dyn Shape>` / copy-on-write / unmodified-polyline surface a
     # closed value enum has no counterpart for.
-    "SharedShape": ("Shape",),
+    "SharedShape": ("Shape", "ShapeDyn"),
+    # PX4: the value meanings of the `dyn Shape` API (`as_shape`, `clone_box`, `scale_dyn`, `ccd_thickness`, ...)
+    # are `ShapeDynTrait` (`shape/dyn_api.cairo`); `Index` on the sets is `core::ops::Index` (`collider_set/access.cairo`,
+    # `rigid_body_set/index.cairo`), and `take_modified` is `ColliderSetChangesTrait`. Upstream's `RigidPairContacts`
+    # is CP3's `ContactPairView` (`narrow_phase/contact_pairs/types.cairo`).
+    "Shape": ("Shape", "ShapeDyn"),
+    "ColliderSet": ("ColliderSet", "ColliderSetIndex", "ColliderSetChanges"),
+    "RigidBodySet": ("RigidBodySet", "RigidBodySetIndex"),
+    "RigidPairContacts": ("RigidPairContacts", "ContactPairView"),
 })
 
 METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
+    # PX4: `data::Index` and the typed handles are all `Handle`; the sets implement `core::ops::Index<Set, Handle>`.
+    ("ColliderSet", "Index<ColliderHandle>"): ("Index<Handle>",), ("ColliderSet", "Index<data::Index>"): ("Index<Handle>",),
+    ("RigidBodySet", "Index<RigidBodyHandle>"): ("Index<Handle>",), ("RigidBodySet", "Index<data::Index>"): ("Index<Handle>",),
     # SH2a: one free function per query serves both composite kinds and both argument orders
     # (`*_composite`, the composite shape first or second); `CompositeShapeRef`'s methods are
     # the same functions; `*_mut` accessors are the copy-out reads (values, not references).
@@ -903,7 +923,7 @@ def cairo_impl_item(impl_name: str, trait_expr: str, body: str, fallback: str) -
     if head in ("PointQuery", "RayCast", "PointQueryWithLocation") and args:
         # Parry's shape query traits are generic over the shape in Cairo (`impl BallPointQuery of PointQuery<Ball>`).
         return Item(normalize_owner(args[0]), "impl", head)
-    if head == "IndexView" and len(args) >= 2:
+    if head in ("IndexView", "Index") and len(args) >= 2:
         return Item(owner, "impl", f"Index<{normalize_rhs(args[1])}>")
     if head in ("Add", "AddAssign", "Sub", "SubAssign", "Mul", "MulAssign", "Div", "DivAssign") and args:
         return Item(owner, "impl", f"{head}<{normalize_rhs(args[-1])}>")
@@ -919,7 +939,7 @@ def parse_cairo() -> list[Item]:
     # SH1: an impl may carry generic parameters (`impl RoundShapePointQuery<T, +Drop<T>, ...> of
     # PointQuery<RoundShape<T>>`, possibly wrapped over lines by `scarb fmt`).
     impl_re = re.compile(
-        r"\bpub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*<[^{;]*?>)?\s+of\s+([^{\n]+)\s*\{"
+        r"\bpub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*<[^{;]*?>)?\s+of\s+([^{]+?)\s*\{"
     )
     trait_re = re.compile(r"\bpub\s+trait\s+([A-Za-z_][A-Za-z0-9_]*)[^{]*\{")
     mod_re = re.compile(r"\bpub\s+mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{")
@@ -1002,6 +1022,8 @@ def exclusion_reason(item: Item) -> str:
         return DISPATCHER_REASON
     if item.key in MUTABLE_GRAPH:
         return MUTABLE_GRAPH_REASON
+    if item.key in CLOSED_ENUM:
+        return CLOSED_ENUM_REASON
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
     # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
@@ -1111,10 +1133,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
         ("CompositeShape", "is_deformable"), ("CompositeShape", "map_part_at"),
         ("TypedCompositeShape", "TypedCompositeShape"), ("TypedCompositeShape", "map_typed_part_at"),
         ("TypedCompositeShape", "map_untyped_part_at"), ("CompositeShapeRef", "CompositeShapeRef"))},
-    **{(o, n): "SH2a: ray casts are `ray::cast_ray*` on the `Shape` (per-kind functions in `ray/composite.cairo`)." for o, n in (
-        ("Polyline", "RayCast"), ("Heightfield", "RayCast"))},
-    ("Heightfield", "PointQueryWithLocation"): "SH2a: upstream's heightfield location is unused by Rapier; `project_local_point_heightfield_part` returns the cell.",
-    ("Polyline", "PointQueryWithLocation"): "SH2a: free function `project_local_point_and_get_location_polyline` (no trait impl).",
     # SH2b: parry 0.31's `CompoundFlags::FIX_INTERNAL_EDGES` (pseudo-normals of the parts' outlines)
     # postdates the golden pin (parry2d-f64 0.30.2): no reference to port it against.
     **{(o, n): "SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2)." for o, n in (
@@ -1123,24 +1141,23 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
         ("Compound", "with_flags"), ("CompoundFlags", "CompoundFlags"),
         ("CompoundPseudoNormals", "CompoundPseudoNormals"))},
     ("Compound", "bvh"): "SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`).",
-    # PX2: `SharedShape` -> `Shape` (`OWNER_ALIASES`); every constructor upstream builds through a
-    # concrete shape now has a same-named `ShapeTrait` counterpart (`shape.cairo`), matched by name
-    # without a `METHOD_RENAMES` entry. `SharedShape` itself is not an `Arc<dyn Shape>` here (a
-    # closed value enum), so `new` (generic over any `Shape` impl) and `make_mut` (copy-on-write)
-    # stay unmatched, and so does `convex_polyline_unmodified`: `ConvexPolygonTrait::
-    # from_convex_polyline` always validates convexity, so there is no "leave the input as is"
-    # variant to port.
-    ("SharedShape", "new"): "`T::new(..).into()` per concrete shape (no generic `SharedShape::new`, no `Arc`).",
-    ("SharedShape", "make_mut"): "Values, not `Arc<dyn Shape>`: no copy-on-write accessor needed.",
-    ("SharedShape", "convex_polyline_unmodified"): "`ConvexPolygon::from_convex_polyline` always validates convexity; no unmodified variant.",
+    # PX2 / PX4: `SharedShape` -> `Shape` (`OWNER_ALIASES`); every constructor upstream builds through a
+    # concrete shape has a same-named `ShapeTrait` counterpart, and PX4's `ShapeDynTrait` holds the value meanings
+    # of `new`, `convex_polyline_unmodified`, `as_shape`, `clone_box`, `clone_dyn`, `scale_dyn` and the CCD
+    # thicknesses. `make_mut`, `as_shape_mut` and the trait object are closed by `CLOSED_ENUM`.
     # CC1: upstream compiles no nonlinear half-space kernel (commented out of its `mod.rs` and of
     # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
     **{("parry::query", n): "Not compiled upstream (commented out); the pair is unsupported, as upstream." for n in (
         "cast_shapes_nonlinear_halfspace_support_map", "cast_shapes_nonlinear_support_map_halfspace")},
-    # CC1: `shape.cairo` is outside CC1's scope; the two values are the free functions
-    # `query::nonlinear_shape_cast::{ccd_thickness, ccd_angular_thickness}(shape)`.
-    **{("Shape", n): f"Free function `query::nonlinear_shape_cast::{n}(shape)` (Shape methods: orchestrator)." for n in (
-        "ccd_thickness", "ccd_angular_thickness")},
+    # PX4: Cairo has no `IndexMut` trait (`core::ops` only has `Index` and `IndexView`), and the sets hold values:
+    # `set` writes a changed body / collider back.
+    ("ColliderSet", "IndexMut<ColliderHandle>"): "Cairo has no `IndexMut`: colliders are values, write a change back with `ColliderSetTrait::set`.",
+    ("RigidBodySet", "IndexMut<RigidBodyHandle>"): "Cairo has no `IndexMut`: bodies are values, write a change back with `RigidBodySetTrait::set`.",
+    # PX4: the set keeps no removal list (`remove` returns the collider); `take_modified` is a read of the change
+    # flags (`collider_set/access.cairo`).
+    ("ColliderSet", "take_removed"): "The set records no removals (`remove` returns the collider); recording them would add a field to a stepped struct.",
+    # PX4: joints store no user data (`GenericJoint` has no such field, and a field of a stepped struct is out of scope).
+    ("GenericJointBuilder", "user_data"): "`GenericJoint` stores no user data (a new field of a stepped struct).",
 }
 
 

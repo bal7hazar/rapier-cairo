@@ -48,6 +48,9 @@ rapier_dynamics2d::narrow_phase::contact_pairs::tests::test_contact_pair_at_inde
 rapier_dynamics2d::narrow_phase::contact_pairs::tests::test_contact_pair_lookups 961510
 rapier_dynamics2d::narrow_phase::contact_pairs::tests::test_contact_pairs 1077970
 rapier_dynamics2d::narrow_phase::contact_pairs::tests::test_empty_narrow_phase 20430
+rapier_dynamics2d::narrow_phase::contact_pairs::types::tests::gas_baseline 14120
+rapier_dynamics2d::narrow_phase::contact_pairs::types::tests::gas_pair_contacts_rigid 15420
+rapier_dynamics2d::narrow_phase::contact_pairs::types::tests::test_rigid_pair_contacts_is_the_view 27150
 rapier_dynamics2d::narrow_phase::interaction_graph::tests::gas_baseline 14120
 rapier_dynamics2d::narrow_phase::interaction_graph::tests::gas_contact_graph 313110
 rapier_dynamics2d::narrow_phase::interaction_graph::tests::gas_index_interaction 317900

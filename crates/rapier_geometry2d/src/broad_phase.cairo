@@ -26,6 +26,11 @@ pub struct BroadPhaseProxy {
     pub is_static: bool,
 }
 
+/// The state of the port's broad phase (upstream `DefaultBroadPhase`, an alias of `BroadPhaseBvh`):
+/// the proxies [`find_pairs`] scans. There is no persistent BVH; the pairs are recomputed from the
+/// proxies of each step.
+pub type DefaultBroadPhase = Span<BroadPhaseProxy>;
+
 /// Finds every overlapping non static-static proxy pair.
 ///
 /// The returned pairs are proxy indices, not handles, and are sorted by `(i, j)`.

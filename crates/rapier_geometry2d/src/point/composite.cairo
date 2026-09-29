@@ -275,6 +275,29 @@ pub fn project_local_point_heightfield(
     }
 }
 
+/// Upstream `PointQueryWithLocation::project_local_point_and_get_location` for `HeightField`
+/// (PX4): the projection on the closest enabled cell and `(cell, location on the cell's
+/// segment)`; `pt` outside and `(0, OnVertex(0))` when every cell is removed. Upstream's 2D
+/// heightfield leaves this method `unimplemented!()`; the location is the polyline's.
+pub fn project_local_point_and_get_location_heightfield(
+    heightfield: @HeightField, pt: Vec2, solid: bool,
+) -> (PointProjection, (u32, SegmentPointLocation)) {
+    let mut parts = array![];
+    let mut ids = array![];
+    let mut i: u32 = 0;
+    while i != heightfield.num_cells() {
+        if let Some(seg) = heightfield.segment_at(i) {
+            parts.append(seg);
+            ids.append(i);
+        }
+        i += 1;
+    }
+    match closest_segment(parts.span(), ids.span(), pt, solid) {
+        Some((id, proj, loc)) => (proj, (id, loc)),
+        None => (PointProjectionTrait::new(false, pt), (0, SegmentPointLocation::OnVertex(0))),
+    }
+}
+
 /// Upstream `project_local_point_with_max_dist` for `HeightField`: the projection when it lies
 /// within `max_dist` of `pt`.
 pub fn project_local_point_with_max_dist_heightfield(
@@ -361,6 +384,16 @@ pub impl HeightFieldPointQuery of PointQuery<HeightField> {
     }
 }
 
+pub impl HeightFieldPointQueryWithLocation of PointQueryWithLocation<
+    HeightField, (u32, SegmentPointLocation),
+> {
+    fn project_local_point_and_get_location(
+        self: HeightField, pt: Vec2, solid: bool,
+    ) -> (PointProjection, (u32, SegmentPointLocation)) {
+        project_local_point_and_get_location_heightfield(@self, pt, solid)
+    }
+}
+
 /// The composite arms of `ShapePointQuery::project_local_point`, out of line.
 #[inline(never)]
 pub fn project_local_point_composite(shape: Shape, pt: Vec2, solid: bool) -> PointProjection {
@@ -407,5 +440,65 @@ pub fn contains_local_point_composite(shape: Shape, pt: Vec2) -> bool {
         Shape::Polyline(s) => contains_local_point_polyline(@s.unbox(), pt),
         Shape::Compound(s) => super::compound::contains_local_point_compound(@s.unbox(), pt),
         _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use fixed::{Fixed, FixedTrait, ONE};
+    use glam_core::Vec2;
+    use rapier_math::pose2::{Pose2, Pose2Trait};
+    use rapier_testing::opaque;
+    use crate::shape::{HeightField, HeightFieldTrait};
+    use super::super::query::PointQueryWithLocation;
+    use super::{
+        HeightFieldPointQueryWithLocation, project_local_point_and_get_location_heightfield,
+        project_local_point_heightfield, project_local_point_heightfield_part,
+    };
+
+    fn int(x: i32) -> Fixed {
+        FixedTrait::from_int(x)
+    }
+
+    fn v(x: i32, y: i32) -> Vec2 {
+        Vec2 { x: int(x), y: int(y) }
+    }
+
+    fn heightfield() -> HeightField {
+        HeightFieldTrait::new(array![int(1), int(2), int(1)].span(), v(4, 1))
+    }
+
+    /// The location answer agrees with the projection and the cell of the existing functions.
+    #[test]
+    fn test_heightfield_location_matches_the_projection_and_the_cell() {
+        let h = heightfield();
+        for pt in array![v(0, 5), v(1, 0), v(-3, 1), v(2, 4)].span() {
+            let pt = *pt;
+            let (proj, (cell, _)) = h.project_local_point_and_get_location(pt, true);
+            assert_eq!(proj, project_local_point_heightfield(@h, pt, true));
+            let (part, _) = project_local_point_heightfield_part(@h, pt, true).unwrap();
+            assert_eq!(cell, part);
+        }
+        let (_, (cell, _)) = project_local_point_and_get_location_heightfield(@h, v(-1, 0), false);
+        assert_eq!(cell, 0);
+        let (_, (cell, _)) = project_local_point_and_get_location_heightfield(@h, v(1, 0), false);
+        assert_eq!(cell, 1);
+        let moved: Pose2 = Pose2Trait::new(v(10, 0), rapier_math::rot2::IDENTITY);
+        let (proj, _) = h.project_point_and_get_location(moved, v(11, 5), true);
+        assert_eq!(
+            proj.point,
+            moved.transform_point(project_local_point_heightfield(@h, v(1, 5), true).point),
+        );
+    }
+
+    #[test]
+    fn gas_baseline() {
+        let _ = opaque(ONE);
+    }
+
+    #[test]
+    fn gas_heightfield_location() {
+        let h = opaque(heightfield());
+        let _ = h.project_local_point_and_get_location(opaque(v(1, 5)), true);
     }
 }

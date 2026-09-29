@@ -46,6 +46,10 @@ mod tests;
 /// pair list, valid until the next step; not a persistent graph index (upstream `NodeIndex`).
 pub type ColliderGraphIndex = u32;
 
+/// The index of a rigid body in an [`InteractionGraph`] of joints (upstream `NodeIndex`): its slot
+/// index, as [`ColliderGraphIndex`] for a collider.
+pub type RigidBodyGraphIndex = u32;
+
 /// The index of an edge of an [`InteractionGraph`]: its rank in the graph, i.e. among the pairs of
 /// the step's pair list. Valid until the next step (upstream `EdgeIndex`).
 pub type TemporaryInteractionIndex = u32;

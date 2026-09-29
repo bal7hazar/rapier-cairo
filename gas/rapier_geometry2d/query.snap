@@ -161,6 +161,8 @@ rapier_geometry2d::query::tests::gas_distance_ball_ball 43150
 rapier_geometry2d::query::tests::gas_distance_capsule_segment 212770
 rapier_geometry2d::query::tests::gas_distance_cuboid_cuboid 243190
 rapier_geometry2d::query::tests::gas_intersection_test_cuboid_cuboid 60480
+rapier_geometry2d::query::tests::gas_unsupported 13920
 rapier_geometry2d::query::tests::test_closest_points_methods 22360
 rapier_geometry2d::query::tests::test_contact_methods 37600
+rapier_geometry2d::query::tests::test_unsupported_is_the_none_of_an_unsupported_pair 27980
 rapier_geometry2d::query::tests::test_world_queries_match_local_tables 65283950

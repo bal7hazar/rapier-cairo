@@ -244,6 +244,12 @@ pub fn intersection_test(pos1: Pose2, g1: Shape, pos2: Pose2, g2: Shape) -> Opti
     crate::dispatch::intersection_test(pos1.inv_mul(pos2), g1, g2)
 }
 
+/// The error of a query that has no kernel for the pair of shapes (upstream `Unsupported`, the
+/// `Err` of `QueryDispatcher`'s methods). The port's dispatch functions answer `None` for such a
+/// pair; [`Unsupported`] is the same answer as a `Result` error, for callers that propagate it.
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+pub struct Unsupported {}
+
 #[cfg(test)]
 mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
@@ -256,8 +262,8 @@ mod tests {
         Shape,
     };
     use super::{
-        ClosestPoints, ClosestPointsTrait, Contact, ContactTrait, closest_points, contact,
-        dispatcher, distance, intersection_test,
+        ClosestPoints, ClosestPointsTrait, Contact, ContactTrait, Unsupported, closest_points,
+        contact, dispatcher, distance, intersection_test,
     };
 
     fn v(x: Fixed, y: Fixed) -> Vec2 {
@@ -459,5 +465,23 @@ mod tests {
             opaque(at(ONE, TWO)),
             opaque(Shape::Cuboid(CuboidTrait::new(v(HALF, ONE)))),
         );
+    }
+
+    /// `Unsupported` is the error twin of the `None` of a pair without a kernel.
+    #[test]
+    fn test_unsupported_is_the_none_of_an_unsupported_pair() {
+        let half = Shape::HalfSpace(HalfSpaceTrait::new(v(ZERO, ONE)));
+        let answer: Option<bool> = intersection_test(at(ZERO, ZERO), half, at(ONE, ZERO), half);
+        let as_result: Result<bool, Unsupported> = match answer {
+            Some(hit) => Ok(hit),
+            None => Err(Unsupported {}),
+        };
+        assert_eq!(as_result, Err(Unsupported {}));
+        assert_eq!(Unsupported {}, Unsupported {});
+    }
+
+    #[test]
+    fn gas_unsupported() {
+        let _ = opaque(Unsupported {});
     }
 }

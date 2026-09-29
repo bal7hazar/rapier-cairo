@@ -145,6 +145,60 @@ pub impl ConvexPolygonImpl of ConvexPolygonTrait {
         )
     }
 
+    /// The polygon of the CCW vertices `points` with every vertex kept (upstream
+    /// `from_convex_polyline_unmodified`, PX4): like [`Self::from_convex_polyline`] (whose
+    /// vertices the port never removes either) but collinear vertices are accepted, since
+    /// upstream only computes the face normals and does not look at the other vertices. Returns
+    /// `None` for fewer than 3 or more than 8 points, a zero-length edge (duplicate points) or a
+    /// vertex strictly to the right of an edge (clockwise or concave input; upstream does not
+    /// check convexity at all). Normalisation rounds to nearest.
+    /// #### Panics
+    /// * On coordinate differences / wide sums overflow, as [`Self::from_convex_polyline`].
+    fn from_convex_polyline_unmodified(points: Span<Vec2>) -> Option<ConvexPolygon> {
+        let n = points.len();
+        if n < 3 || n > 8 {
+            return None;
+        }
+        let mut normals = array![];
+        let mut i = 0;
+        while i != n {
+            let a = *points.at(i);
+            let next = if i + 1 == n {
+                0
+            } else {
+                i + 1
+            };
+            let edge = *points.at(next) - a;
+            let mut j = 0;
+            while j != n {
+                if j != i && j != next {
+                    let d = *points.at(j) - a;
+                    if cross_wide(edge.x, edge.y, d.x, d.y) < 0 {
+                        return None;
+                    }
+                }
+                j += 1;
+            }
+            let (x, y) = try_normalize2(edge.y, -edge.x)?;
+            normals.append(Vec2 { x, y });
+            i += 1;
+        }
+        let ns = normals.span();
+        Some(
+            ConvexPolygon {
+                vertices: [
+                    padded(points, 0), padded(points, 1), padded(points, 2), padded(points, 3),
+                    padded(points, 4), padded(points, 5), padded(points, 6), padded(points, 7),
+                ],
+                normals: [
+                    padded(ns, 0), padded(ns, 1), padded(ns, 2), padded(ns, 3), padded(ns, 4),
+                    padded(ns, 5), padded(ns, 6), padded(ns, 7),
+                ],
+                count: n.try_into().unwrap(),
+            },
+        )
+    }
+
     /// The polygon with every vertex multiplied component-wise by `scale` (upstream `scaled`).
     /// Each normal is multiplied by `scale` and normalised again, as upstream does (its
     /// formula, not the inverse transpose: the normals of a non-uniform scale need not stay

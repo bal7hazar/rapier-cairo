@@ -334,6 +334,8 @@ pub mod body_api;
 pub mod builder_api;
 /// The CCD members of [`RigidBody`] (upstream `enable_ccd`, `is_ccd_active`, …), CC2.
 pub mod ccd_api;
+/// `Index` and `RigidBodyIds` (PX4).
+pub mod index;
 pub use body_api::{RigidBodyImpl, RigidBodyTrait};
 pub use builder_api::{
     RigidBodyBuilder, RigidBodyBuilderDefault, RigidBodyBuilderImpl, RigidBodyBuilderTrait,

@@ -15,7 +15,7 @@
 //! The [`Compound`] of work package SH2b (convex parts, each with its pose) is a boxed variant
 //! too; it answers every query through its parts, as the other composites.
 //!
-//! Deferred: `scaled` on `Shape`.
+//! `scaled` on `Shape` is `ShapeDynTrait::scale_dyn`.
 //!
 //! The payloads wider than the capsule (triangle, round triangle, round polygon, polyline,
 //! heightfield, compound) are boxed like the polygon, so that a `Shape` stays six felts; the round
@@ -23,10 +23,11 @@
 //!
 //! Work package PX2: [`ShapeTrait`] also carries the upstream `SharedShape::*` constructors, each
 //! building the same value as its `ColliderBuilderTrait` counterpart (same validation, `None`
-//! cases and argument order). `SharedShape::new`, `make_mut` and `convex_polyline_unmodified` stay
-//! unmatched (`docs/API_PARITY.md`'s `MISSING_REASONS`): a closed value enum has no generic `new`
-//! or copy-on-write accessor, and `ConvexPolygonTrait::from_convex_polyline` always validates
-//! convexity.
+//! cases and argument order). Work package PX4: [`dyn_api`] holds the value meanings of the
+//! `dyn Shape` / `SharedShape` methods (`new`, `as_shape`, `clone_box`, `clone_dyn`, `scale_dyn`,
+//! `ccd_thickness`, `ccd_angular_thickness`, `convex_polyline_unmodified`); `make_mut`,
+//! `as_shape_mut` and the trait object itself are closed (a closed value enum has no copy-on-write
+//! accessor).
 
 pub mod convex_polygon;
 use convex_polygon::{BoxedConvexPolygonPartialEq, BoxedConvexPolygonSerde};
@@ -35,6 +36,7 @@ pub mod ball;
 pub mod capsule;
 pub mod compound;
 pub mod cuboid;
+pub mod dyn_api;
 pub mod halfspace;
 pub mod heightfield;
 pub mod polygonal_feature_map;
@@ -56,6 +58,7 @@ pub use crate::shape::capsule::{Capsule, CapsuleTrait};
 use crate::shape::compound::{BoxedCompoundPartialEq, BoxedCompoundSerde};
 pub use crate::shape::compound::{Compound, CompoundTrait};
 pub use crate::shape::cuboid::{Cuboid, CuboidTrait};
+pub use crate::shape::dyn_api::{ShapeDynImpl, ShapeDynTrait};
 pub use crate::shape::halfspace::{HalfSpace, HalfSpaceTrait};
 use crate::shape::heightfield::{BoxedHeightFieldPartialEq, BoxedHeightFieldSerde};
 pub use crate::shape::heightfield::{HeightField, HeightFieldCellStatus, HeightFieldTrait};

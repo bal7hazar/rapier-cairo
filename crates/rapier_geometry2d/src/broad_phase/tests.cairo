@@ -262,3 +262,21 @@ fn test_large_dispatch_and_large_static() {
         find_pairs(values.span()).span(), super::find_pairs_brute(values.span()).span(),
     );
 }
+
+/// `DefaultBroadPhase` is the proxy span `find_pairs` scans.
+#[test]
+fn test_default_broad_phase_is_the_proxy_span() {
+    let proxies = array![
+        proxy(0, v_raw(0, 0), v_raw(4, 4), false), proxy(1, v_raw(2, 2), v_raw(6, 6), false),
+        proxy(2, v_raw(10, 10), v_raw(12, 12), false),
+    ];
+    let phase: super::DefaultBroadPhase = proxies.span();
+    assert_eq!(find_pairs(phase), array![(0, 1)]);
+}
+
+#[test]
+fn gas_default_broad_phase() {
+    let proxies = array![proxy(0, v_raw(0, 0), v_raw(4, 4), false)];
+    let phase: super::DefaultBroadPhase = opaque(proxies.span());
+    let _ = find_pairs(phase);
+}
