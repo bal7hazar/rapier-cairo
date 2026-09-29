@@ -173,6 +173,40 @@ pub impl PolygonalFeatureImpl of PolygonalFeatureTrait {
             push(ref manifold, a, b, fa, fb, dot(pos12.transform_point(b) - a, sep_axis1), flipped);
         }
     }
+
+    /// The contacts between two faces (upstream `face_face_contacts`): `face1` and `face2` are
+    /// both two-vertex features, `normal1` the separating axis in the frame of `face1`, `pos12`
+    /// the pose of `face2` in that frame. The clipping of [`Self::contacts`]' face-face arm, so
+    /// its rounding and panics apply; no contact when the clipped faces do not overlap.
+    /// #### Panics
+    /// * `'Feature: manifold full'` when the manifold cannot take the (at most two) points.
+    fn face_face_contacts(
+        pos12: Pose2,
+        face1: PolygonalFeature,
+        normal1: Vec2,
+        face2: PolygonalFeature,
+        ref manifold: ContactManifold,
+        flipped: bool,
+    ) {
+        face_face(pos12, face1, normal1, face2, ref manifold, flipped);
+    }
+
+    /// The contact between a face and a vertex (upstream `face_vertex_contacts`): `face1` a
+    /// two-vertex feature, `vertex2` a one-vertex feature, `sep_axis1` the separating axis in
+    /// the frame of `face1`. The face-vertex arm of [`Self::contacts`]: a face perpendicular to
+    /// the axis (zero denominator) gives no contact, where upstream divides by zero.
+    /// #### Panics
+    /// * `'Feature: manifold full'` when the manifold is full.
+    fn face_vertex_contacts(
+        pos12: Pose2,
+        face1: PolygonalFeature,
+        sep_axis1: Vec2,
+        vertex2: PolygonalFeature,
+        ref manifold: ContactManifold,
+        flipped: bool,
+    ) {
+        face_vertex(pos12, face1, sep_axis1, vertex2, ref manifold, flipped);
+    }
 }
 
 fn face_face(
@@ -337,5 +371,46 @@ mod tests {
     #[test]
     fn gas_from_segment() {
         let _: PolygonalFeature = opaque(crate::shape::SegmentTrait::new(O, B)).into();
+    }
+    #[test]
+    fn test_named_face_entry_points_are_the_contacts_arms() {
+        // `face_face_contacts` / `face_vertex_contacts` are the arms `contacts` dispatches to.
+        let a = face();
+        let mut b = a;
+        b.transform_by(Pose2 { translation: Y, ..IDENTITY });
+        let mut named: ContactManifold = Default::default();
+        PolygonalFeatureTrait::face_face_contacts(IDENTITY, a, Y, b, ref named, false);
+        let mut via: ContactManifold = Default::default();
+        PolygonalFeatureTrait::contacts(IDENTITY, IDENTITY, Y, -Y, a, b, ref via, false);
+        assert_eq!(named, via);
+        assert_eq!(named.num_points, 2);
+        let v = PolygonalFeature { vertices: [Y, O], num_vertices: 1, ..a };
+        let mut named: ContactManifold = Default::default();
+        PolygonalFeatureTrait::face_vertex_contacts(IDENTITY, a, Y, v, ref named, true);
+        let mut via: ContactManifold = Default::default();
+        PolygonalFeatureTrait::contacts(IDENTITY, IDENTITY, Y, -Y, a, v, ref via, true);
+        assert_eq!(named, via);
+        assert_eq!(named.num_points, 1);
+        // A face perpendicular to the axis gives no contact (upstream divides by zero).
+        let mut none: ContactManifold = Default::default();
+        PolygonalFeatureTrait::face_vertex_contacts(
+            IDENTITY, a, Vec2 { x: ONE, y: ZERO }, v, ref none, false,
+        );
+        assert_eq!(none.num_points, 0);
+    }
+    #[test]
+    fn gas_face_face_contacts() {
+        let mut m: ContactManifold = Default::default();
+        PolygonalFeatureTrait::face_face_contacts(
+            IDENTITY, opaque(face()), Y, opaque(face()), ref m, false,
+        );
+    }
+    #[test]
+    fn gas_face_vertex_contacts() {
+        let mut m: ContactManifold = Default::default();
+        let v = PolygonalFeature { vertices: [Y, O], num_vertices: 1, ..face() };
+        PolygonalFeatureTrait::face_vertex_contacts(
+            IDENTITY, opaque(face()), Y, opaque(v), ref m, false,
+        );
     }
 }

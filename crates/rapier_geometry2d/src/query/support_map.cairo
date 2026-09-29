@@ -582,6 +582,28 @@ pub fn contact_support_map_support_map(
 }
 
 /// Rejected candidates, kept for the `gas_*` ranking.
+/// The projection of `point` on a support-map shape (upstream
+/// `local_point_projection_on_support_map`), in the local frame of `shape`: onto the filled
+/// shape if `solid`, onto its boundary otherwise; `is_inside` is exact and a boundary point
+/// counts as inside.
+///
+/// Upstream runs GJK on the shape against the point and, for a point inside a hollow shape, EPA.
+/// The closed shape set has an exact projection per shape (ADR 0001 entry 27), so this is the
+/// `PointQuery` of the shape, kept as a function of the support-map shapes: the answer is the
+/// exact closest point where GJK stops within its tolerance and EPA polygonises a rounded shape.
+/// Upstream's `simplex` argument (GJK scratch state) has no counterpart.
+/// #### Panics
+/// * `'Query: not a support map'` for a half-space, a polyline, a heightfield or a compound.
+pub fn local_point_projection_on_support_map(
+    shape: Shape, point: Vec2, solid: bool,
+) -> crate::point::PointProjection {
+    match shape {
+        Shape::HalfSpace(_) | Shape::Polyline(_) | Shape::HeightField(_) |
+        Shape::Compound(_) => core::panic_with_felt252(super::errors::NOT_SUPPORT_MAP),
+        _ => crate::point::query::ShapePointQuery::project_local_point(shape, point, solid),
+    }
+}
+
 #[cfg(test)]
 pub mod alternatives;
 

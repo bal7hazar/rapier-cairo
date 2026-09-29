@@ -52,6 +52,7 @@ pub mod intersection;
 pub mod nonlinear_shape_cast;
 pub mod segment;
 pub mod shape_cast;
+pub mod split;
 pub mod support_map;
 pub mod sweep;
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};

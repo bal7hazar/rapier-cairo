@@ -17,6 +17,7 @@ use glam_core::vec2::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2;
 use rapier_math::{DEFAULT_EPSILON, inv};
+pub mod convex_polygon;
 use crate::point::cross_wide;
 use crate::shape::{ConvexPolygon, ConvexPolygonTrait};
 

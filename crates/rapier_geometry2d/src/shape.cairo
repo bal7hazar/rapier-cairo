@@ -40,6 +40,7 @@ pub mod heightfield;
 pub mod polygonal_feature_map;
 pub mod polyline;
 pub mod round_shape;
+pub mod scaled;
 pub mod segment;
 pub mod support_map;
 pub mod triangle;

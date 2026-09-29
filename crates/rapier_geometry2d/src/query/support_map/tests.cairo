@@ -10,7 +10,7 @@ use crate::shape::{
 use super::alternatives::{distance_exhaustive, distance_witness};
 use super::{
     closest_points_support_map_support_map, contact_support_map_support_map,
-    distance_support_map_support_map, witness,
+    distance_support_map_support_map, local_point_projection_on_support_map, witness,
 };
 
 fn v(x: Fixed, y: Fixed) -> Vec2 {
@@ -244,5 +244,35 @@ fn gas_closest_points_support_map_cuboid_capsule() {
         opaque(cuboid()),
         opaque(Shape::Capsule(capsule())),
         opaque(int(10)),
+    );
+}
+
+#[test]
+fn test_local_point_projection_on_support_map() {
+    // The projection of the shape's own `PointQuery`, on the support-map shapes only.
+    let unit = cuboid();
+    let out = local_point_projection_on_support_map(unit, v(int(3), HALF), true);
+    assert!(!out.is_inside);
+    let inside = local_point_projection_on_support_map(unit, v(HALF, HALF), true);
+    assert_eq!((inside.is_inside, inside.point), (true, v(HALF, HALF)));
+    // A hollow projection of an interior point lands on the boundary.
+    let hollow = local_point_projection_on_support_map(unit, v(HALF, HALF), false);
+    assert!(hollow.is_inside);
+    let b = Shape::Ball(crate::shape::BallTrait::new(int(2)));
+    let on = local_point_projection_on_support_map(b, v(int(2), ZERO), true);
+    assert!(on.is_inside);
+}
+
+#[test]
+#[should_panic(expected: ('Query: not a support map',))]
+fn test_local_point_projection_on_a_half_space_panics() {
+    let h = Shape::HalfSpace(HalfSpaceTrait::new(v(ZERO, ONE)));
+    let _ = local_point_projection_on_support_map(h, v(ZERO, ZERO), true);
+}
+
+#[test]
+fn gas_local_point_projection_on_support_map() {
+    let _ = local_point_projection_on_support_map(
+        opaque(cuboid()), opaque(v(int(3), HALF)), opaque(true),
     );
 }
