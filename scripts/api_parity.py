@@ -43,6 +43,7 @@ EXCLUSIONS = (
     "soft bodies are not part of the port",
     "Q32.32 state cannot become NaN or infinite; nothing to contain",
     "static dispatch through StepConfig / StageConfig (D10)",
+    "persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
@@ -86,8 +87,17 @@ DISPATCHERS: frozenset[tuple[str, str, str]] = frozenset({
     ("PersistentQueryDispatcher", "trait", "PersistentQueryDispatcher"),
     ("QueryDispatcher", "method", "chain"), ("QueryDispatcherChain", "type", "QueryDispatcherChain"),
 })
+# Programme decision (2026-09-29, after CP3): the interaction graph's read-only surface is a view over the pair list
+# (IG1); only the pieces that hand out the persistent graph or mutable references into it are closed.
+MUTABLE_GRAPH_REASON = ("persistent mutable graph not ported (D7): values cannot hand out mutable references into the "
+                        "step's storage")
+MUTABLE_GRAPH: frozenset[tuple[str, str, str]] = frozenset({
+    ("InteractionGraph", "method", "raw_graph"), ("InteractionGraph", "method", "interaction_pair_mut"),
+    ("InteractionGraph", "method", "interactions_with_mut"), ("InteractionsWithMut", "type", "InteractionsWithMut"),
+})
 # Every reason added since PX1: they do not count in the raw figure.
-POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON})
+POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON,
+                              MUTABLE_GRAPH_REASON})
 
 # PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
 # broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
@@ -990,6 +1000,8 @@ def exclusion_reason(item: Item) -> str:
         return QUARANTINE_REASON
     if item.key in DISPATCHERS:
         return DISPATCHER_REASON
+    if item.key in MUTABLE_GRAPH:
+        return MUTABLE_GRAPH_REASON
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
     # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
