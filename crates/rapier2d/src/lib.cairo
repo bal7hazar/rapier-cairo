@@ -20,6 +20,9 @@ pub mod prelude {
     pub use rapier_core::rigid_body::{RigidBodyType, RigidBodyTypeTrait};
     pub use rapier_dynamics2d::collider::builder::{ColliderBuilder, ColliderBuilderTrait};
     pub use rapier_dynamics2d::collider::{Collider, ColliderTrait};
+    pub use rapier_dynamics2d::collider_set::access::{
+        ColliderSetChangesImpl, ColliderSetChangesTrait, ColliderSetIndexImpl, ModifiedColliders,
+    };
     pub use rapier_dynamics2d::joint::{
         FixedJoint, FixedJointBuilder, FixedJointBuilderIntoGeneric, FixedJointBuilderTrait,
         FixedJointIntoGeneric, FixedJointTrait, GenericJoint, GenericJointBuilder,
@@ -36,13 +39,15 @@ pub mod prelude {
         SpringJointBuilderTrait, SpringJointIntoGeneric, SpringJointTrait,
     };
     pub use rapier_dynamics2d::narrow_phase::contact_pairs::{
-        ContactPairView, ContactPairViewTrait, NarrowPhaseContactPairsTrait,
+        ContactId, ContactPairView, ContactPairViewTrait, NarrowPhaseContactPairsTrait,
+        PairContacts, RigidPairContacts,
     };
     pub use rapier_dynamics2d::narrow_phase::interaction_graph::{
         ColliderGraphIndex, InteractionEdge, InteractionGraph, InteractionGraphTrait,
         IntersectionPair, NarrowPhaseInteractionGraphTrait, TemporaryInteractionIndex,
     };
     pub use rapier_dynamics2d::rigid_body::ccd::{RigidBodyCcd, RigidBodyCcdTrait};
+    pub use rapier_dynamics2d::rigid_body_set::index::{RigidBodyIds, RigidBodySetIndexImpl};
     pub use rapier_dynamics2d::rigid_body_set::{
         BodyAngvel, BodyLinvel, BodyPose, BodySleeping, RigidBodyCcdApiTrait,
     };
@@ -57,6 +62,7 @@ pub mod prelude {
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
     pub use rapier_geometry2d::shape::compound::{Compound, CompoundTrait};
+    pub use rapier_geometry2d::shape::dyn_api::{ShapeDynImpl, ShapeDynTrait};
     pub use rapier_geometry2d::shape::heightfield::{
         HeightField, HeightFieldCellStatus, HeightFieldTrait,
     };
@@ -89,7 +95,7 @@ pub mod prelude {
     pub use crate::queries::{
         EXCLUDE_DYNAMIC, EXCLUDE_FIXED, EXCLUDE_KINEMATIC, EXCLUDE_SENSORS, EXCLUDE_SOLIDS,
         ONLY_DYNAMIC, ONLY_FIXED, ONLY_KINEMATIC, QueryFilter, QueryFilterFlags,
-        QueryFilterFlagsTrait, QueryFilterTrait,
+        QueryFilterFlagsTrait, QueryFilterTrait, QueryPipelineMut, QueryPipelineMutTrait,
     };
     pub use crate::world::basic_state::{BasicWorldState, from_basic_state, into_basic_state};
     pub use crate::world::state::{WORLD_STATE_VERSION, WorldState};
