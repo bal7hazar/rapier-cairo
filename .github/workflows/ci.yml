@@ -127,7 +127,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
       - uses: foundry-rs/setup-snfoundry@v6
-      - run: snforge test -p ${{ matrix.package }}
+      # Two test threads: the whole-shot probes of `rapier2d_classes` peak near 4 GB each, and the default (one
+      # thread per vCPU) got a runner shut down on #227.
+      - run: snforge test -p ${{ matrix.package }} --max-threads 2
 
   # Package granularity rule (programme decision 2026-09-28, docs/research/package-cost.md): the
   # published crates and the product closures of consumer_cost.toml against the size gates, all
