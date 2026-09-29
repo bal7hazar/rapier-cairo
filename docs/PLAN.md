@@ -580,7 +580,14 @@ the `execute` job now also runs on every release and dependency PR (#229: `examp
 0.3.0 after DU1). The game is on alpha.8 (slingfall #43: main path bit-identical; the split layout's world class 71,076
 CASM, pile10 35.29M steps in 6 transactions). Prelude: `RigidBodyType`, `ShapeTrait` and the basic shapes (#230).
 **PX3 ✅ #231** (parity filler, Sonnet): 32 Parry geometry utilities in `rapier_geometry2d`, additions only, golden
-family `geometry_utils` (254 cases), step path unchanged — **raw 80.8 %, in scope 88.1 %** (197 missing).
+family `geometry_utils` (254 cases), step path unchanged — **raw 80.8 %, in scope 88.1 %** (197 missing). **Parity
+exclusions (programme decision 2026-09-29):** three new closed reasons, items by exact name, in-scope only — "soft bodies
+are not part of the port" (19, incl. `SoftEdgePass` / `SoftVolumePatch` that used to match the EPA pattern), "Q32.32
+state cannot become NaN or infinite; nothing to contain" (6; proof `tests/finite_state.cairo`), "static dispatch through
+StepConfig / StageConfig (D10)" (7); convex decomposition / voxelisation stay missing ("not ported yet"); the
+interaction graph stays in scope (a read-only view is to be assessed after CP3); PX1's deliberately open solver items
+(`SolverBodies` API, `SolverPose`, `VelocitySolver`, `ContactRef`, `GraphPos` — the (c) class) stay open. **Raw 80.7 %,
+in scope 89.7 %** (167 missing). **CP3 running** (contact-pair read API, Sonnet).
 
 **Feature-parity waves (from AP #119, `docs/API_PARITY.md`: 24.3 % of 1 997 in-scope items ported, 1 511 missing).**
 Every lot closes one AP work package (or part of it) and regenerates the inventory; CI checks it (`api-parity` job).

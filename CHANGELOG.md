@@ -8,6 +8,8 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8`.
 
 ### Added
+- `crates/rapier2d/tests/finite_state.cairo`: Q32.32 state cannot become NaN or infinite (a tiny mass and a huge
+  impulse panic with `'Fixed: overflow'`, a small mass stays finite) — the reason upstream's `Quarantine` is excluded.
 - Parry geometry utilities in `rapier_geometry2d` (PX3, #231; off the step path): `Aabb::{distance_to_origin,
   project_on_axis, scaled_wrt_center, canonical_split, clip_line, clip_line_parameters, clip_ray, clip_ray_parameters,
   clip_segment, clip_polygon, clip_polygon_with_workspace}`, `clip_aabb_line`, `clip_halfspace_polygon`,
