@@ -448,7 +448,13 @@ OWNER_ALIASES.update({
     # `ContactGenerators`) and the clipping kernels (`clip.cairo`) are Parry's `query::` free functions too.
     "parry::query": ("Query", "Ball", "Cuboid", "Segment", "Halfspace", "SupportMap",
                      "ClosestPoints", "dispatch", "Intersection", "Composite", "Compound",
-                     "ContactGenerators", "Clip"),
+                     "ContactGenerators", "Clip", "LineLine"),
+    # PX3: the geometry utilities off the step path. `Aabb` and `Segment` get their clipping,
+    # utility and split methods from extension traits (`aabb/{clip,utils}.cairo`,
+    # `query/split.cairo`); Parry's line-line closest points are `closest_points/line_line.cairo`;
+    # `parry::mass_properties::convex_polygon_area_and_center_of_mass` is `mass/convex_polygon.cairo`.
+    "Aabb": ("Aabb", "AabbClip", "AabbUtils"), "Segment": ("Segment", "SegmentSplit"),
+    "parry::mass_properties": ("ConvexPolygon",),
     # Parry's `ContactManifold` persistence methods are the `ManifoldTrait` of `manifold.cairo`.
     "ContactManifold": ("ContactManifold", "Manifold"),
     # MH1: the frozen `FeatureId` struct is Parry's packed `PackedFeatureId` (one `u32`); Parry's
@@ -546,6 +552,8 @@ METHOD_RENAMES: dict[tuple[str, str], tuple[str, ...]] = {
     ("Aabb", "from_points_ref"): ("from_points",),
     ("parry::bounding_volume", "local_point_cloud_aabb_ref"): ("local_point_cloud_aabb",),
     ("parry::bounding_volume", "point_cloud_aabb_ref"): ("point_cloud_aabb",),
+    # PX3: the support-map AABB is generic over any `SupportMap`.
+    ("parry::bounding_volume", "local_aabb"): ("local_support_map_aabb",),
     # PO1: `dyn Shape` downcasts to a mutable reference; a `Shape` is a value, so the `*_mut`
     # accessors are the copy-out `as_*` reads (build a new `Shape` to change it), as `Collider::shape_mut`.
     ("Shape", "as_ball_mut"): ("as_ball",), ("Shape", "as_capsule_mut"): ("as_capsule",),

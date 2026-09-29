@@ -10,6 +10,13 @@ rapier_geometry2d::point::ball::tests::test_distance_and_containment 84730
 rapier_geometry2d::point::ball::tests::test_feature_is_always_face_zero 37260
 rapier_geometry2d::point::ball::tests::test_projection_table 209850
 rapier_geometry2d::point::ball::tests::test_scale_first_candidate_drifts_far_from_the_centre 40890
+rapier_geometry2d::point::bounding_sphere::tests::gas_baseline 13620
+rapier_geometry2d::point::bounding_sphere::tests::gas_contains_local_point 19670
+rapier_geometry2d::point::bounding_sphere::tests::gas_distance_to_local_point 22890
+rapier_geometry2d::point::bounding_sphere::tests::gas_project_local_point 34170
+rapier_geometry2d::point::bounding_sphere::tests::gas_project_local_point_and_get_feature 33770
+rapier_geometry2d::point::bounding_sphere::tests::test_feature_is_the_face_and_the_projection_is_hollow 41730
+rapier_geometry2d::point::bounding_sphere::tests::test_projection_distance_and_containment 58730
 rapier_geometry2d::point::capsule::tests::gas_baseline 13620
 rapier_geometry2d::point::capsule::tests::gas_contains_local_point_capsule 52240
 rapier_geometry2d::point::capsule::tests::gas_distance_to_local_point_capsule 73520

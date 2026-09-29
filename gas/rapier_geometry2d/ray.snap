@@ -7,6 +7,10 @@ rapier_geometry2d::ray::ball::tests::gas_toi_normalized 46500
 rapier_geometry2d::ray::ball::tests::test_cast_table 1004290
 rapier_geometry2d::ray::ball::tests::test_normals 196300
 rapier_geometry2d::ray::ball::tests::test_ray_toi_and_normal_with_ball 241590
+rapier_geometry2d::ray::bounding_sphere::tests::gas_baseline 13620
+rapier_geometry2d::ray::bounding_sphere::tests::gas_cast_local_ray 77700
+rapier_geometry2d::ray::bounding_sphere::tests::gas_cast_local_ray_and_get_normal 91060
+rapier_geometry2d::ray::bounding_sphere::tests::test_casts_on_the_moved_sphere 347980
 rapier_geometry2d::ray::capsule::tests::gas_baseline 13620
 rapier_geometry2d::ray::capsule::tests::gas_cast_local_ray_and_get_normal_capsule 329700
 rapier_geometry2d::ray::capsule::tests::test_cast_table 6473670
