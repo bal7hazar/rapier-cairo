@@ -28,7 +28,8 @@ already go through `nexus`. A lot is never started with both.
   same worktree; `EXECUTOR_FRESH=1` starts a new claude session there (a lost session, a change of model).
 - The launcher's `codex` runner (`audit-<id>` lots) is retired: reviews and audits run through `nexus review` and
   `nexus audit`.
-- Once a lot's pull request is merged, remove its worktree and its local branch.
+- Once a lot's pull request is merged, archive its `REPORT.md` as `~/orchestrator/logs/rapier-cairo/reports/<id>.md`
+  (with any untracked file worth keeping), then remove its worktree and its local branch, each by its exact name.
 
 ## Model choice
 
