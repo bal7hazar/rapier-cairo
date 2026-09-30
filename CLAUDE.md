@@ -43,7 +43,7 @@ Dependency DAG of the crates: see `docs/PLAN.md`.
 | Steps and builtins of a test | `snforge test <name> --detailed-resources --tracked-resource cairo-steps` |
 | Gas delta vs snapshot | `python3 scripts/gas.py diff` |
 | Regenerate one module's snapshot (executor) | `python3 scripts/gas.py snapshot --filter <crate>::<module>` |
-| Launch / resume an executor (systemd user unit, survives the session) | `scripts/executor-unit.sh <id> <claude:model\|codex:model:effort> <brief.md>` / `scripts/executor-unit.sh resume <id> <runner> "<follow-up>"` |
+| Launch / resume an executor (systemd user unit, survives the session) | `scripts/executor-unit.sh <id> claude:<model> docs/briefs/<id>.md` / `scripts/executor-unit.sh resume <id> claude:<model> "<follow-up>"` |
 | Rank candidates | `python3 scripts/gas.py rank <module_prefix>` |
 | Execute the example (prove/verify with `PROVE=1`, needs > 22 GB) | `scripts/prove-example.sh [ball_drop\|box_stack3\|pendulum] [steps]` |
 | Regenerate every snapshot (orchestrator, toolchain bumps) | `python3 scripts/gas.py snapshot` |
