@@ -160,8 +160,13 @@ the programme session's written go (`docs/ORCHESTRATOR.md` § Releases).
   `Option` for expected absence. No `ByteArray` panics in library code.
 - `lib.cairo` contains only module declarations and re-exports.
 - Core crates stay pure Cairo: no `starknet` dependency.
-- Tests are inline (`#[cfg(test)] mod tests`) at the bottom of each file; `crates/<c>/tests/`
-  holds only cross-module scenarios and golden-vector comparisons.
+- Tests are inline: the unit tests of a module live in that module's file, under `#[cfg(test)] mod tests` at the
+  bottom, never in a separate file unless a measured performance reason is written above the test (owner's rule for
+  every Cairo library, 2026-09-30, `slingfall/OPERATIONS.md` §5). `crates/<c>/tests/` holds only cross-module and
+  integration scenarios, golden-vector comparisons, entrypoint gas benchmarks and parity tables. The rule applies from
+  the next lot: an existing file moves its tests when a lot touches it, never in a migration of its own.
+  `#[cfg(test)]` lines are not library lines for the package size rule, and PK1 (#219) measured that moving every
+  inline test out of the sources would save a consumer at most 0.04 GB: no test needs to move out for size.
 - Compile budget: no file over 800 lines, at most 4 `fuzz_*` tests per module, table-driven tests
   rather than one function per case — test-crate compile time is the first cause of CI failures.
 
