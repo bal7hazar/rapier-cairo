@@ -1,87 +1,82 @@
-# Sub-agent strategy (orchestrator)
+# Orchestrating rapier-cairo
 
-Instructions for the orchestrator session. This file is meant to be pasted verbatim into the
-prompt of an orchestrator of another repository (nalgebra-cairo, rapier-cairo). Porter-side rules
-live in `AGENTS.md`, design decisions in `docs/DESIGN.md`, sequencing in `docs/PLAN.md`.
+What the orchestrator of the rapier track adds to the standard roles of Nexus (`bal7hazar/nexus`: `roles/common.md`,
+`roles/session.md`, `roles/orchestrator.md`, `roles/implementer.md`, `roles/reviewer.md`, and the skills
+`nexus-agents`, `nexus-capacity`, `nexus-handover`) and to the operating document of the project
+(`slingfall/OPERATIONS.md`: models §2, machine and budgets §3, launchers §4, domain rules §5, merge gates and audit
+lenses §6, releases §7). It never restates them; where it would contradict them, they win. The executor-side rules are
+[`AGENTS.md`](../AGENTS.md); sequencing and the status of the track are [`docs/PLAN.md`](PLAN.md).
 
-Role of the main session: orchestrate, split, brief, review, merge. Never implement anything
-large directly.
+## Launching an executor
 
-## Execution: local CLIs, not the Agent tool
+rapier keeps its own launcher until `slingfall/OPERATIONS.md` §4 names `nexus` for the track; reviews and audits
+already go through `nexus`. A lot is never started with both.
 
-- The Agent tool burns the orchestrator session's quota: use it only for short, read-only
-  research.
-- Every sub-task runs in its own git worktree + branch (`feat/<module>`), launched in the
-  background with its output redirected to a log file.
-- **Every implementation lot runs on the `claude` CLI** (its own account, distinct from the
-  session): `claude -p "$(cat brief.md)" --model <sonnet|opus|fable> --dangerously-skip-permissions --name <task>`;
-  resume with context: `claude --continue -p "<follow-up>"` in the same worktree.
-- **`codex` is for audits and second opinions only, used sparingly** (owner's rule, 2026-09-25: its
-  quota is small and shared between the orchestrators): the review of a merged lot, a cross-check
-  of a numeric decision, an independent opinion on a design. Never an implementation lot.
-  `codex exec -C <worktree> -m <model> -c model_reasoning_effort=<medium|high|xhigh> --dangerously-bypass-approvals-and-sandbox -o LAST_MESSAGE.md "$(cat audit.md)"`.
-  `scripts/executor.sh` refuses a codex launch unless the lot id starts with `audit-`. A lot started
-  on codex that hits the quota is handed over to claude in the same worktree
-  (`EXECUTOR_FRESH=1 scripts/executor-unit.sh resume <id> claude:opus "<follow-up>"`).
-- The agent writes a `REPORT.md` (not committed) at the root of its worktree: the orchestrator
-  reads that file and the log, not the transcript.
+- **Before each launch**: the capacity rule of `slingfall/OPERATIONS.md` §3 (for rapier: `free_slots` ≥ 2 and at most
+  one rapier executor at a time), then `nexus resources` and `nexus accounts`, which do not count this launcher's
+  units.
+- **Launch**: `scripts/executor-unit.sh <id> claude:<sonnet|opus|fable> docs/briefs/<id>.md`, the brief committed on
+  `main` first; `<id>` is lowercase, code then slug (`sh2b-compound`). It runs `scripts/executor.sh` in the transient
+  systemd user unit `rapier-exec-<id>`: branch `feat/<id>` cut from `origin/main`, worktree
+  `.claude/worktrees/exec-<id>`, log `~/orchestrator/logs/rapier-cairo/<id>.log`, and the frame
+  `scripts/executor/system-prompt.md` prepended to the brief.
+- **Follow** each executor with one background task that ends when its unit ends
+  (`systemctl --user is-active rapier-exec-<id>`), titled with the model that runs, read from the `"model"` field at
+  the head of its log (`claude:sonnet` ran as `claude-sonnet-5-5` for PX3–PX5): `[Sonnet 5.5] PX5 joint closure`.
+- **Read** `REPORT.md` at the root of the executor's worktree and the log, never the transcript.
+- **Resume, never relaunch**: `scripts/executor-unit.sh resume <id> claude:<model> "<follow-up>"` continues in the
+  same worktree; `EXECUTOR_FRESH=1` starts a new claude session there (a lost session, a change of model).
+- The launcher's `codex` runner (`audit-<id>` lots) is retired: reviews and audits run through `nexus review` and
+  `nexus audit`.
+- Once a lot's pull request is merged, remove its worktree and its local branch.
 
-## Model choice by difficulty
+## Model choice
 
-| difficulty | claude CLI (implementation) | examples |
+The tiers are those of `slingfall/OPERATIONS.md` §2. The runner of each, with rapier examples:
+
+| Tier | Runner | rapier examples |
 |---|---|---|
-| mechanical, well framed | Sonnet 5 | template-generated code, test compaction, spec alignment, benching variants already identified |
-| standard port with numerics | Opus 5.5 | a new module: kernels, tests, golden vectors, benches |
-| genuinely complex | Fable 5.1 (sparingly) | novel numerics, hard debugging, cross-module design, API arbitration |
+| mechanical, well framed | `claude:sonnet` | template-generated code, test compaction, spec alignment, parity leftovers with an explicit item list |
+| standard port or feature with numerics | `claude:opus` | a new module (kernels, tests, golden vectors, benches); anything on the step path |
+| genuinely hard | `claude:opus`; `claude:fable` sparingly, the brief says why | novel numerics, hard debugging, cross-module or cross-class design |
 
-Audits on codex (only `gpt-5.5` and `gpt-6-astra` are available on this login): `gpt-5.5` effort
-`high` for a lot review, `gpt-6-astra` effort `xhigh` for a hard numeric or design cross-check.
+The smaller the model, the tighter the brief.
 
-- The strong models are not the default, but do not rule them out when the problem warrants
-  them.
-- The smaller the model (or the lower the effort), the tighter the brief must be.
+## The brief
 
-## The brief (mandatory, in this order)
-
-1. Files to read first (`AGENTS.md`, `docs/DESIGN.md`, style precedents on `main`).
-2. Strict scope: a file allowlist; everything else is forbidden. Shared files (`lib.cairo`,
-   `Scarb.toml`, CI, design docs, CHANGELOG, status) belong to the orchestrator: the agent lists
-   its needs in an "Escalations" section of the report instead of editing them.
-3. Expected API (exact names from the source being ported), numeric semantics, what is
-   explicitly deferred (DEFER).
-4. Efficiency rules and numeric targets (gas/steps); variants to bench when the formulation is
-   not obvious (the winner in the library, the losers in `benches::alt` with their benches).
-5. Tests: table-driven, compile budget (max file size, max number of fuzz tests), golden vectors
-   from the reference oracle, panics with exact messages.
-6. Definition of done: the full gate run in the **foreground** (never a background command
-   followed by the end of the turn: in headless mode the session stops), gas snapshots
-   regenerated, conventional commits with the trailer, push, PR via `gh pr create` following the
-   template, `gh pr checks --watch` until green, **never merge**, `REPORT.md` in the imposed
-   format (summary, API, gas table, deviations, deferred items, requested re-exports,
-   escalations, PR URL).
-7. "Work autonomously, do not ask questions, do not widen the scope."
+`docs/briefs/<id>.md`, committed before the launch. It carries the content the standard requires (goal, context,
+allowlist, interfaces, acceptance criteria, verification, report expected) in the sections and order of
+[`AGENTS.md`](../AGENTS.md) §3, with the programme's conditions for the lot written in: messages to a running executor
+are held. Two lots run at the same time only when their allowlists share no file, gas snapshots included.
 
 ## Conflict-free parallelism
 
-- Pre-declare every stub (modules, tests, benches, golden files) in the shared files before
-  launching a wave; one gas snapshot per module. Parallel PRs then never touch a common file.
-- Waves follow the dependency graph; a wave starts when its dependencies are merged.
-- After each merge, the orchestrator alone updates re-exports, status, changelog and design
-  decisions, then pushes to `main`.
+- Before a wave, pre-declare every stub in the shared files (modules, test files, benches, golden files,
+  `gas/<crate>/<module>.snap` targets); one gas snapshot per module. Parallel PRs then never touch a common file.
+- Waves follow the dependency graph of `docs/PLAN.md`; a wave starts when its dependencies are merged.
+- Merge golden-table extensions before launching the lots that iterate over them: their gas drifts otherwise.
+- Watch the compile budget of the test crates (`AGENTS.md` §7): it is the first cause of CI failure observed.
 
-## Quality control and quota
+## Closing a lot
 
-- Merge only on green CI + a review of the report (API parity, deviations, gas table).
-- An interrupted agent (rate limit, end of turn) is resumed with `claude --continue -p` rather
-  than relaunched from scratch.
-- Watch the compile budget of the test crates: it is the first cause of CI failure observed.
+1. **The orchestrator's review** of `REPORT.md` and the pull request: scope = allowlist, API parity with upstream,
+   deviations (new divergences go to `docs/adr/0001-upstream-divergences.md`), gas and exact-steps tables.
+2. **The checks of the kind of lot** (`slingfall/OPERATIONS.md` §6). On the step path: before / after
+   `--tracked-resource cairo-steps` tables on the P3, level and game-shaped probes (`AGENTS.md` §7), bit-identity on
+   the reference shots, and a `validation` audit (`nexus audit`) when results change.
+3. **The Codex review**, once CI is green: `nexus review --project slingfall --task <ID> --repository rapier-cairo
+   --branch feat/<id> --brief docs/briefs/<id>.md`, followed like an executor and titled with the reviewer's model
+   (`nexus status`). Findings verified to hold go back to the executor with `scripts/executor-unit.sh resume`, then a
+   new review on the new head; after three fix loops on the same lot, stop and escalate to the project manager. A merge
+   without a review, only in the two cases of the skill `nexus-agents` (documents only; Codex unavailable), writes
+   `Codex review: none — <reason>` in the pull request.
+4. **Squash merge**, then the orchestrator alone updates re-exports, `CHANGELOG.md` (`## Unreleased`), the ADRs, the
+   plan and the status of the track.
 
 ## Releases
 
-No registry release or release tag without **the owner's go or the programme session's written go** (owner's
-standing delegation, confirmed in the rapier session on 2026-09-25; conditions in
-`~/projects/pm/decisions/2026-09-25-release-go-delegated-to-pm.md`: green CI on `main` at the release commit, the
-release checklist, the version policy, the dependency order). The registry token stays in the owner's settings; the
-permission adjustments an orchestrator's guard needs are the owner's to make in that session. rapier-cairo:
-`scripts/release.sh bump <version>` in a release PR, then `scripts/release.sh publish` from a clean `origin/main`
-(publishes `rapier_math` → `rapier_core` → `rapier_geometry2d` → `rapier_dynamics2d` → `rapier2d`, tags `v<version>`).
+The go is the project manager's, in writing (`slingfall/OPERATIONS.md` §7, the owner's delegation of 2026-09-25); the
+registry token stays in the owner's settings. `scripts/release.sh bump <version>` in a release PR (CHANGELOG entry
+included), merge, main CI green at the release commit, then `scripts/release.sh publish` from a clean `origin/main`:
+it publishes `rapier_math` → `rapier_core` → `rapier_geometry2d` → `rapier_dynamics2d` → `rapier2d` →
+`rapier2d_classes`, verifying each against the registry, and tags `v<version>`.

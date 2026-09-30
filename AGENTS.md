@@ -31,46 +31,44 @@ justifies them lives in [`docs/research/`](docs/research).
 
 ## 3. Roles
 
-The orchestrator-side strategy (CLIs, model tiers, brief format, parallelism) is
-[`docs/ORCHESTRATOR.md`](docs/ORCHESTRATOR.md); this section is the porter-side view of it.
+The standard roles of Nexus (`bal7hazar/nexus`, `roles/`) and the operating document of the project
+(`slingfall/OPERATIONS.md`) apply; the orchestrator-side procedure is [`docs/ORCHESTRATOR.md`](docs/ORCHESTRATOR.md).
+This section is the executor-side view of what rapier adds.
 
 | Role | Does | Does not |
 |---|---|---|
-| **Orchestrator** | Owns `docs/PLAN.md`, `docs/interfaces/**`, root `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, every `lib.cairo` and crate `Scarb.toml`; pre-declares the stubs of a wave (modules, test files, snapshot files) before launching it; writes the briefs; reviews `REPORT.md` + CI; merges; updates re-exports/status/decisions after each merge | Large implementation work |
-| **Executor** (headless CLI agent: `claude -p`, own account, own worktree and branch `feat/<id>`) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its PR and drives it to green CI; writes `REPORT.md` (uncommitted) | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, ask questions |
-| **Reviewer** (the orchestrator, or an `audit-<id>` lot on `codex exec`) | Checks API parity with upstream, deviations, gas table, conventions | First implementation |
+| **Orchestrator** | Owns `docs/PLAN.md`, `docs/interfaces/**`, root `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, every `lib.cairo` and crate `Scarb.toml`, `CHANGELOG.md`, `docs/adr/**`; pre-declares the stubs of a wave (modules, test files, snapshot files) before launching it; writes the briefs; reviews `REPORT.md` + CI; has every PR reviewed by Codex; merges; updates re-exports, status and decisions after each merge | Large implementation work |
+| **Executor** (the standard's implementer: headless `claude -p` in the unit `rapier-exec-<id>`, own worktree and branch `feat/<id>`) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its PR and drives it to green CI; writes `REPORT.md` (uncommitted); when resumed with review findings, fixes those it is given and nothing else | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, rebase a pushed branch or force-push, ask questions |
+| **Reviewer** (Codex through `nexus review`, every PR before its merge) | Reads the branch against `main` with its brief, read-only: API parity with upstream, deviations, gas and steps tables, conventions | Implementation |
+| **Auditor** (Codex through `nexus audit`, the lenses of `slingfall/OPERATIONS.md` §6) | Audits a revision against its brief, read-only, e.g. `validation` when a lot changes results on the step | Implementation |
 
 ### Launching executors
 
-`scripts/executor.sh <id> <runner> <brief.md>` with `runner` = `claude:sonnet|opus|fable` for every
-implementation lot; `codex:<model>[:<effort>]` is for audits and second opinions only (owner's rule,
-2026-09-25; the launcher refuses a codex launch unless the id starts with `audit-`).
-`scripts/executor.sh resume <id> <runner> "<follow-up>"` continues an interrupted agent in the same
-worktree (`EXECUTOR_FRESH=1` starts a new claude session there, e.g. to take over a codex lot). The launcher prepends `scripts/executor/system-prompt.md`
-(the frame every executor must obey) to the brief. Logs go to `~/orchestrator/logs/rapier-cairo/<id>.log` (outside every worktree); the
-orchestrator reads `REPORT.md` and the log, never the transcript.
-
-Model choice by difficulty (`docs/ORCHESTRATOR.md`):
-
-| difficulty | claude (implementation) |
-|---|---|
-| mechanical, well framed (generated code, spec alignment, benching already-identified variants) | `sonnet` |
-| standard port with numerics (a new module: kernels, tests, golden vectors, benches) | `opus` |
-| genuinely complex (novel numerics, hard debugging, cross-module design) | `fable`, sparingly |
-
-The smaller the model, the tighter the brief. Audits on codex: only `gpt-5.5` (effort `high`, lot
-reviews) and `gpt-6-astra` (effort `xhigh`, hard numeric or design cross-checks) are accepted on the
-current account.
+`scripts/executor-unit.sh <id> claude:<sonnet|opus|fable> docs/briefs/<id>.md`; resume with
+`scripts/executor-unit.sh resume <id> claude:<model> "<follow-up>"` in the same worktree (details, capacity rule and
+follow-up in `docs/ORCHESTRATOR.md`). The launcher prepends `scripts/executor/system-prompt.md` (the frame every
+executor obeys) to the brief. Models by kind of lot: `slingfall/OPERATIONS.md` §2; implementation never runs on Codex.
+The smaller the model, the tighter the brief.
 
 ### Brief (mandatory sections, in this order)
 
-1. Files to read first (`AGENTS.md`, `docs/PLAN.md`, `docs/interfaces/**`, style precedents on `main`).
+1. Goal and context; files to read first (`AGENTS.md`, `docs/PLAN.md`, `docs/interfaces/**`, style precedents on `main`).
 2. Strict scope: file allowlist; everything else is forbidden (needs go to "Escalations").
-3. Expected API (exact upstream names), numeric semantics, what is explicitly deferred (DEFER).
-4. Efficiency rules and gas targets; variants to bench (winner in the library, losers under `mod alternatives`).
+3. Interfaces: expected API (exact upstream names), numeric semantics, what is explicitly deferred (DEFER).
+4. Efficiency rules and gas / steps targets; variants to bench (winner in the library, losers under `mod alternatives`).
 5. Tests: table-driven, compile budget (≤ 800 lines per file, ≤ 4 `fuzz_*` per module), golden vectors, exact panic messages.
-6. Definition of done: full gate in the foreground, `scripts/gas.py snapshot --filter <crate>::<module>` per owned module, conventional commits with trailer, push, `gh pr create`, `gh pr checks --watch` until green, never merge, `REPORT.md` (Summary · API · Gas table · Deviations · Deferred · Requested re-exports · Escalations · PR URL).
-7. "Work autonomously, do not ask questions, do not widen the scope."
+6. Acceptance criteria, each with the test or command that will show it.
+7. Verification: the crate-scoped gate in the foreground (§6), `scripts/gas.py snapshot --filter <crate>::<module>` per owned module, conventional commits with trailer, push, `gh pr create`, `gh pr checks --watch` until green, never merge.
+8. Report expected: `REPORT.md`, below.
+9. "Work autonomously, do not ask questions, do not widen the scope, foreground only."
+
+### Report (`REPORT.md` at the worktree root, not committed)
+
+The implementer's report of the standard, with rapier's sections in it, in this order: title
+`# [<model you run as>] <ID> — <title>` · Summary (with the PR URL) · Files changed · Commands run · Acceptance
+criteria (each with the test or command that shows it) · API (public items, exact names) · Gas and steps table (net of
+baseline, winners and losers) · Deviations (from the brief and from upstream) · Deferred items · Requested re-exports ·
+Escalations · Open questions. When resumed with review findings: which were fixed, which are disputed and why.
 
 ### Escalation (executor → orchestrator, in `REPORT.md`)
 
