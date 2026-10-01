@@ -87,7 +87,8 @@ on. Never open an upstream issue yourself.
 5. The four tables of §4, exact figures, in the report (summaries) and in the PR description (full tables), every
    figure measured with `RAYON_NUM_THREADS=1`.
 6. **Stability of the current snapshots** (on 2.19.4, before the pins move): `scarb build -p rapier2d_classes` three
-   times with `RAYON_NUM_THREADS=4` (the shims' default) and three times with `=1`, the SHA-256 of each Sierra / CASM
+   times with `RAYON_NUM_THREADS=4` (the shims' default) and three times with `=1`, each a clean build (`scarb clean`
+   first: the incremental cache would hide the variation), the SHA-256 of each Sierra / CASM
    artifact compared; `python3 scripts/bytecode_size.py table` twice with each setting; the gas of
    `snforge test -p rapier2d` with each setting compared entry by entry (`scripts/gas.py diff --from-log`). Report
    whether the committed snapshots were stable under 4 threads, which artifacts or entries moved, and what the shims
