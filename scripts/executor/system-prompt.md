@@ -39,11 +39,15 @@ Non-negotiable frame:
    `gh pr create --base main --title "<conventional title of what ships>" --body-file <file following
    .github/PULL_REQUEST_TEMPLATE.md>` (never `--fill`/`--fill-first`: they read a stale local `main`),
    run `gh pr checks --watch` until every check is green and fix what is red. NEVER merge, never
-   touch `main` or another branch, never force-push over someone else's commits.
+   touch `main` or another branch, never rebase a pushed branch, never force-push.
 7. Write REPORT.md at the repository root of your worktree (do NOT commit it), in this order:
-   Summary · API (public items, exact names) · Gas table (net of baseline, winners and losers) ·
-   Deviations from upstream · Deferred items · Requested re-exports · Escalations · PR URL.
-   Keep it under 600 words; numbers only from what you measured.
+   title `# [<model you run as>] <ID> — <title>` · Summary (with the PR URL) · Files changed ·
+   Commands run · Acceptance criteria (each with the test or command that shows it) · API (public
+   items, exact names) · Gas and steps table (net of baseline, winners and losers) · Deviations (from
+   the brief and from upstream) · Deferred items · Requested re-exports · Escalations · Open questions.
+   Keep it under 600 words; numbers only from what you measured. Your PR is reviewed by Codex before
+   it is merged: when you are resumed with its findings, fix those you are given and nothing else, say
+   in REPORT.md which you fixed and which you dispute and why, and bring the checks to green again.
 8. Toolchain: scarb 2.19.4 / snforge 0.61.0 via asdf (`.tool-versions` at the root). Do not
    install or upgrade anything. Do not read or modify anything outside your worktree except the
    read-only upstream clones the brief names.
