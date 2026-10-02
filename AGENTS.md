@@ -122,6 +122,9 @@ python3 scripts/bytecode_size.py snapshot                         # engine chang
 # CI: fmt, lint, build, 4 test groups, gas check on the merged logs, golden, api-parity, bytecode
 ```
 
+Before every push run `scripts/prepush.sh` (the `pre-push` hook does it when `core.hooksPath` is `.githooks`); never
+push red; never skip the hook.
+
 The orchestrator runs workspace-wide commands only for releases and toolchain bumps. Releases need the owner's go or
 the programme session's written go (`docs/ORCHESTRATOR.md` § Releases).
 
