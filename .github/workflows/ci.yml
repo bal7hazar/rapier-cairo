@@ -55,6 +55,10 @@ jobs:
     # they build in parallel; the `gas` job checks the snapshot on the merged logs.
     name: test (${{ matrix.group }})
     runs-on: ubuntu-latest
+    # Single-threaded compilation: on several threads the compiler places a `withdraw_gas` check in one
+    # function or another, so the Sierra, CASM and gas compared with committed files vary (TC1).
+    env:
+      RAYON_NUM_THREADS: 1
     strategy:
       fail-fast: false
       matrix:
@@ -105,6 +109,10 @@ jobs:
     # Compiled class size of the crates/rapier_sink fixtures (Sierra / CASM felts, class bytes) against
     # gas/bytecode.size: any change fails (deterministic toolchain). Analysis: docs/research/class-size.md.
     runs-on: ubuntu-latest
+    # Single-threaded compilation: on several threads the compiler places a `withdraw_gas` check in one
+    # function or another, so the Sierra, CASM and gas compared with committed files vary (TC1).
+    env:
+      RAYON_NUM_THREADS: 1
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
@@ -119,6 +127,10 @@ jobs:
     # 16 GB. Kept out of the `test` matrix: their logs are not gas-snapshotted.
     name: sink (${{ matrix.package }})
     runs-on: ubuntu-latest
+    # Single-threaded compilation: on several threads the compiler places a `withdraw_gas` check in one
+    # function or another, so the Sierra, CASM and gas compared with committed files vary (TC1).
+    env:
+      RAYON_NUM_THREADS: 1
     strategy:
       fail-fast: false
       matrix:
@@ -139,6 +151,10 @@ jobs:
   consumer-cost:
     name: Consumer cost
     runs-on: ubuntu-latest
+    # Single-threaded compilation: on several threads the compiler places a `withdraw_gas` check in one
+    # function or another, so the Sierra, CASM and gas compared with committed files vary (TC1).
+    env:
+      RAYON_NUM_THREADS: 1
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
