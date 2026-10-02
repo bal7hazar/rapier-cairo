@@ -18,6 +18,10 @@ on:
       - "crates/*/Scarb.toml"
       - "CHANGELOG.md"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   execute:
     runs-on: ubuntu-latest
