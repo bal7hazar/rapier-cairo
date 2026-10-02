@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Active when `git config core.hooksPath .githooks`. Fails the push when the pre-push check fails.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+exec scripts/prepush.sh
