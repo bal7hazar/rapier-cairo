@@ -44,7 +44,7 @@ whether simulation results changed.
 
 ### Changed
 - Toolchain Scarb 2.20.1 (Cairo 2.20.0) / starknet-foundry 0.64.0 (TC1, #250; was Scarb 2.19.4 / snforge 0.61.0):
-  results bit-identical, Cairo steps +1.25 to +1.84 % on the game path (`docs/BUDGETS.md`), class hashes re-pinned from
+  results bit-identical, Cairo steps game path +1.25 to +1.38 %, `rapier2d` probes up to +1.84 % (median +1.33 %), `rapier2d_classes` up to +3.78 % (median +1.61 %) (`docs/BUDGETS.md`), class hashes re-pinned from
   CI's artefact; a consumer on another toolchain re-declares.
 - `NarrowPhaseClass` runs its own pair loop on the previous pairs as they cross (CX3, #253): the slim layout's whole
   shot is −3.53 % Cairo steps for the owner's shot and −3.85 % for the reference shot, bit-identical; a game re-pins

@@ -19,7 +19,7 @@ sequencing and the status of the track are [`docs/PLAN.md`](PLAN.md).
   `docs/briefs/<id>.md` committed first (the thread's first commit may write it); `<id>` is lowercase, code then slug
   (`sh2b-compound`). The profile sets the model: `impl-sonnet` by default, `impl-opus` for the step path and numerics.
 - **Read** the thread's report and its pull request, never its transcript. A thread resumed with findings fixes those
-  it is given and nothing else; a lost thread is restarted from its brief.
+  it is given and nothing else; a stopped thread is prompted to resume, never started again.
 - The thread opens its own pull request, runs `scripts/prepush.sh` before every push (`git -c core.hooksPath=.githooks
   push`; no git config is written) and never merges: it merges only on the orchestrator's line `Merge the PR: ...`
   with the standard's command.
@@ -42,7 +42,7 @@ The tiers are those of `slingfall/OPERATIONS.md` §2. The thread profile of each
 |---|---|---|
 | mechanical, well framed | `impl-sonnet` | template-generated code, test compaction, spec alignment, parity leftovers with an explicit item list |
 | standard port or feature with numerics | `impl-opus` | a new module (kernels, tests, golden vectors, benches); anything on the step path |
-| genuinely hard | `impl-opus`; `impl-fable` sparingly, the brief says why | novel numerics, hard debugging, cross-module or cross-class design |
+| genuinely hard | `impl-opus`; `impl-fable` only when the owner asks for it by name or after `impl-opus` failed twice on the same task, never because a task looks hard; the brief says why | novel numerics, hard debugging, cross-module or cross-class design |
 
 The smaller the model, the tighter the brief.
 
@@ -67,11 +67,14 @@ allowlist, interfaces, acceptance criteria, verification, report expected) in th
 2. **The checks of the kind of lot** (`slingfall/OPERATIONS.md` §6). On the step path: before / after
    `--tracked-resource cairo-steps` tables on the P3, level and game-shaped probes (`AGENTS.md` §7), bit-identity on
    the reference shots, and a `validation` audit when results change.
-3. **The review thread**, started with the pull request (`slingfall/OPERATIONS.md` §2): `review` when Opus or Fable
+3. **The review thread**, started when the checks are green (temporarily, until the weekly quota reset: at once while the
+   pool is above 20 %) (`slingfall/OPERATIONS.md` §2): `review` when Opus or Fable
    wrote it, `review-opus` when Sonnet did, read-only, on the exact head. Findings verified to hold go back to the
    thread, batched into one push, then a new review on the new head; after three fix loops on the same lot, stop and
    escalate to the project manager. An audit is the exception, for the kinds of lot of `slingfall/OPERATIONS.md` §6. A
-   pull request of documents only needs no review when the project manager says so (`Review: none — documents`).
+   track's documents get a short review on another model like any pull request (`slingfall/OPERATIONS.md` §6); the
+   no-review path (`Review: none — documents`) is only for the programme's own documents written on the project
+   manager's instruction.
 4. **Squash merge** after a review that does not oppose it and green checks (the thread on the orchestrator's line, or
    the coordinator that started the review thread), never `--admin`; then the orchestrator alone updates re-exports, `CHANGELOG.md` (`## Unreleased`), the ADRs, the
    plan and the status of the track.
@@ -84,5 +87,6 @@ owner's settings. `scripts/release.sh bump <version>` in a release PR (CHANGELOG
 at the release commit. The orchestrator then publishes each package by hand with `scarb publish -p <package>` from a
 clean checkout of that commit, after comparing the archive's sha256, in dependency order (`rapier_math` →
 `rapier_core` → `rapier_geometry2d` → `rapier_dynamics2d` → `rapier2d` → `rapier2d_classes`), reading each back from
-the registry, then tags `v<version>`. `scripts/release.sh publish`, which publishes all six at once, is not used for a
+the registry, then tags `v<version>` and creates the release, records the publication and sends the registry
+read-back to the project manager; the owner is told afterwards. `scripts/release.sh publish`, which publishes all six at once, is not used for a
 publication. Never a thread or CI.

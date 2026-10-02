@@ -20,7 +20,7 @@ Per tick (slim, before → after): owner's flight tick 30 26,554 → 25,119, imp
 caller and every other class unchanged (`SlimSplitStep` 26,844 / 67,108, margin 6,620 CASM). Proofs (estimate, the game's
 basis of 154 L2 gas per step): the owner's shot 5.445e9 − 0.168e9 = 5.28e9 virtual L2 gas, still 6 proofs (5 need
 ≤ 5.0e9, ≈ 1.8M more steps); the reference shot 2.645e9 − 0.074e9 = 2.57e9, still 3. The absolute figures are the
-game's cost sheet on alpha.8 (Scarb 2.19.4, before TC1), not re-measured after TC1 (+1.25 to +1.84 % steps on the game
+game's cost sheet on alpha.8 (Scarb 2.19.4, before TC1), not re-measured after TC1 (+1.25 to +1.38 % steps on the game
 path): they are lower bounds. Details:
 `docs/research/class-split.md`, section 13.
 

@@ -13,7 +13,7 @@ Orchestrateur rapier — slingfall", from 2026-10-02. Implementers, reviewers an
 
 **Merged on 2026-10-02:**
 - #249 IT1 step 1: the impact tick's steps, profile and levers (`docs/research/impact-tick.md`).
-- #250 TC1: toolchain Scarb 2.20.1 (Cairo 2.20.0) / snforge 0.64.0, results bit-identical, steps +1.25 to +1.84 %.
+- #250 TC1: toolchain Scarb 2.20.1 (Cairo 2.20.0) / snforge 0.64.0, results bit-identical, steps: game path +1.25 to +1.38 %, `rapier2d` probes up to +1.84 % (median +1.33 %), `rapier2d_classes` up to +3.78 % (median +1.61 %).
 - #251 PP1 step A: `scripts/prepush.sh` and its pre-push hook.
 - #252 PP1 step B: scarb / snforge download retries, PR-only cancel of superseded CI runs.
 - #253 CX3: `NarrowPhaseClass` runs its own pair loop, the slim shot −3.53 % (owner's) / −3.85 % (reference).
@@ -787,22 +787,21 @@ EPA, mesh `transformation/`, serde/rkyv, debug-render, profiling counters, `dyn`
 
 ## 5. Orchestration protocol
 
-The procedure is [`docs/ORCHESTRATOR.md`](ORCHESTRATOR.md), on top of the standard roles of Nexus and
-`slingfall/OPERATIONS.md`. In short:
+The procedure is [`docs/ORCHESTRATOR.md`](ORCHESTRATOR.md), on top of the standard of the organisation and
+`slingfall/OPERATIONS.md`; since 2026-10-02 the orchestrator is a herdr coordinator and the tasks are herdr threads. In short:
 
 1. Before a wave, the orchestrator merges the interface it depends on and **pre-declares the stubs**
    (module lines in `lib.cairo`, empty test files, `gas/<crate>/<module>.snap` targets) so that
    parallel PRs never touch a common file.
 2. One brief per package in the mandatory format of `AGENTS.md` §3 (`docs/briefs/<id>.md`), committed,
-   then launched with `scripts/executor-unit.sh <id> claude:<model> docs/briefs/<id>.md` (a systemd
-   user unit) under the capacity rule — the claude CLI on the workers' account; model tier by
-   difficulty; the in-session Agent tool only for short read-only research.
-3. Each executor runs the gate in the foreground, regenerates the snapshot of its own modules,
-   pushes, opens its PR, drives CI to green, never merges, and writes `REPORT.md`.
-4. The orchestrator reads `REPORT.md` + the log, reviews them (API parity, deviations, gas and
-   steps tables), has the PR reviewed by Codex (`nexus review`) once CI is green, merges, then alone
+   then started as a herdr thread with a profile (`impl-sonnet`, `impl-opus`) on the machine that
+   `machine-capacity` and the placement rule give; the in-session Agent tool only for short read-only research.
+3. Each thread runs the gate in the foreground, regenerates the snapshot of its own modules, runs
+   `scripts/prepush.sh`, pushes, opens its PR, drives CI to green, never merges, and writes its report.
+4. The orchestrator reads the report, reviews it (API parity, deviations, gas and steps tables), has the PR
+   reviewed by a review thread on another model, has it merged on its line `Merge the PR: ...`, then alone
    updates re-exports, status, decisions and this file.
-5. An interrupted executor is resumed (`scripts/executor-unit.sh resume …`), not relaunched.
+5. A stopped thread is prompted to resume, not started again.
 
 Executor runs so far (claude CLI, second account; before the per-module snapshot and self-opened
 PR flow): G1 Sonnet 50 turns $1.6 · C2 Sonnet 72 turns $3.5 · M3 Opus 121 turns $15.2 ·

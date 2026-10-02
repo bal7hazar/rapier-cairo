@@ -45,7 +45,7 @@ herdr coordinator and the other roles are herdr threads. This section is the thr
 ### Launching executors
 
 The orchestrator starts one herdr thread per lot, with a profile (`impl-sonnet` by default, `impl-opus` for the step
-path and numerics, `impl-fable` only when the brief says why) on the machine that `machine-capacity` and the programme's
+path and numerics, `impl-fable` only when the owner asks for it by name or after `impl-opus` failed twice on the same task, never because a task looks hard; the brief says why) on the machine that `machine-capacity` and the programme's
 placement rule give (details in `docs/ORCHESTRATOR.md`). The brief is committed in `docs/briefs/<id>.md`. The thread
 opens its own PR and never merges; every PR gets a review thread on another model than its writer. Models by kind of
 lot: `slingfall/OPERATIONS.md` §2. The smaller the model, the tighter the brief.
