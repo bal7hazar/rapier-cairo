@@ -78,8 +78,9 @@ pub impl SplitHybridStages<impl H: ClassHashes> of StageConfig {
 }
 
 /// [`SplitStages`] for a caller class under the declared-class limit (CS6): the narrow phase's
-/// pair loop in `NarrowPhaseClass` (`LibraryCallNarrowPhase`, the contact generation batched per
-/// family from there), the rebuild of the active set in `ActiveSetClass`
+/// pair loop in `NarrowPhaseClass` (`LibraryCallNarrowPhase`, the contact generation in the loop
+/// there, a pair with a ball by one call of `ContactBallClass`, CX3), the rebuild of the active set
+/// in `ActiveSetClass`
 /// (`LibraryCallActiveSet`), no pair-free fast path (the ordinary path, same results), the
 /// bounding boxes of the basic shapes only (`BasicShapeKernels`), no position-based kinematic body.
 /// With the basic `WorldState` codec (`rapier2d::world::basic_state`), the caller compiles no

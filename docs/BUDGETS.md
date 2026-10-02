@@ -1,5 +1,27 @@
 # Step Budgets
 
+## CX3 — slim crossings (2026-10-02)
+
+`NarrowPhaseClass` runs its own pair loop on the previous pairs as they cross, each pair's contacts generated where the
+loop reaches it (a pair with a ball by one `ContactBallClass` call), instead of CX2's jobs then loop. Results
+bit-identical (every test and `*_bit_identical` probe unchanged; the reference shot checked at every tick, slim against
+in process). Exact Cairo steps, Scarb 2.20.1 / snforge 0.64.0, `RAYON_NUM_THREADS=1`, on the Mac (Apple silicon arm64),
+build path `/Users/bal7hazar/.herdr/worktrees/rapier-cairo/hp-slingfall-rapier-t-0017-cx3-slim-crossings-x1`, before =
+`main` after TC1 (`5bfc4d3`):
+
+| pile10 shot | in process | slim before | slim after | Δ |
+|---|--:|--:|--:|--:|
+| owner's (−1022, −63), 151 ticks | 22,867,951 | 30,941,790 (+35.3 %) | 29,849,153 (+30.5 %) | −1,092,637 (−3.53 %) |
+| reference (−604, −392), 107 ticks | 8,752,430 | 12,548,826 (+43.4 %) | 12,065,485 (+37.9 %) | −483,341 (−3.85 %) |
+
+Per tick (slim, before → after): owner's flight tick 30 26,554 → 25,119, impact tick 42 527,257 → 525,985, collapse tick
+50 275,932 → 264,857; reference impact tick 82 531,265 → 529,995, collapse tick 90 383,852 → 369,291; build and settle
+497,850 → 484,856. `NarrowPhaseClass` 22,027 / 68,470 → 22,667 / 67,179 Sierra / CASM felts (margin 51,061 / 6,549); the
+caller and every other class unchanged (`SlimSplitStep` 26,844 / 67,108, margin 6,620 CASM). Proofs (estimate, the game's
+basis of 154 L2 gas per step): the owner's shot 5.445e9 − 0.168e9 = 5.28e9 virtual L2 gas, still 6 proofs (5 need
+≤ 5.0e9, ≈ 1.8M more steps); the reference shot 2.645e9 − 0.074e9 = 2.57e9, still 3. Details:
+`docs/research/class-split.md`, section 13.
+
 ## Toolchain 2.20.1 / 0.64.0 (TC1, 2026-10-02)
 
 Scarb 2.19.4 / snforge 0.61.0 → Scarb 2.20.1 (Cairo 2.20.0) / snforge 0.64.0; results bit-identical (every test and
