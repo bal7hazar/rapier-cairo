@@ -120,6 +120,16 @@ jobs:
         run: |
           set -o pipefail
           python3 scripts/bytecode_size.py check | tee -a "$GITHUB_STEP_SUMMARY"
+      # gas/bytecode.size holds `sierra_bytes`, which depend on the absolute build path: the committed file is
+      # this artifact, generated on the runner (programme rule, grimworld #283).
+      - name: Snapshot class sizes
+        if: always()
+        run: python3 scripts/bytecode_size.py snapshot
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bytecode-snapshot
+          path: gas/bytecode.size
 
   sink:
     # The declared-class crates' own tests (CS3: the split layouts are bit-identical to the in-process step over the
@@ -142,6 +152,22 @@ jobs:
       # Two test threads: the whole-shot probes of `rapier2d_classes` peak near 4 GB each, and the default (one
       # thread per vCPU) got a runner shut down on #227.
       - run: snforge test -p ${{ matrix.package }} --max-threads 2
+      # Class hashes depend on the absolute build path: the pins of crates/rapier2d_classes/tests/hashes.cairo come
+      # from this artifact, with the runner's root path beside them (programme rule, grimworld #283).
+      - name: Declared class hashes
+        if: always() && matrix.package == 'rapier2d_classes'
+        continue-on-error: true
+        run: |
+          {
+            echo "root: $GITHUB_WORKSPACE"
+            snforge test -p rapier2d_classes test_pinned_class_hashes --include-ignored --max-threads 2 || true
+          } > class-hashes.txt 2>&1
+          cat class-hashes.txt
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.package == 'rapier2d_classes'
+        with:
+          name: class-hashes
+          path: class-hashes.txt
 
   # Package granularity rule (programme decision 2026-09-28, docs/research/package-cost.md): the
   # published crates and the product closures of consumer_cost.toml against the size gates, all
