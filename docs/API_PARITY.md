@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
 | **total** | **1527** | **0** | **89** | **976** | **2592** | **84.6%** | **94.5%** |
 
-Cairo-only public items not matched to upstream: **2022**.
+Cairo-only public items not matched to upstream: **2029**.
 
 ## Aabb
 
@@ -4659,6 +4659,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** const `CUBOID_CUBOID` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `OTHER` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** impl `Serde` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
+- **Alternatives** method `batched_in_class` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `cast_conservative_advancement` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `cast_ray_aabb_pretest` (`crates/rapier2d/src/queries/alternatives.cairo`)
 - **Alternatives** method `cast_ray_grid` (`crates/rapier2d/src/queries/alternatives.cairo`)
@@ -4689,6 +4690,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `contact_manifold_plain_outlined` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_shapes_chain` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
 - **Alternatives** method `contact_manifold_step_fallback` (`crates/rapier_geometry2d/src/dispatch/alternatives.cairo`)
+- **Alternatives** method `contact_pair` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `correction_mask_mul` (`crates/rapier2d/src/control/pid_controller/alternatives.cairo`)
 - **Alternatives** method `cso_cast_clipped` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `cuboid_cuboid_upstream_sat` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
@@ -4719,6 +4721,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `local_world_frame` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
 - **Alternatives** method `manifolds_metered` (`crates/rapier2d/src/control/character_controller/alternatives.cairo`)
 - **Alternatives** method `midpoint_two_stage` (`crates/rapier_dynamics2d/src/solver/contact/alternatives.cairo`)
+- **Alternatives** method `new_contact` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `on_face_every_face` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `pair_key` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
 - **Alternatives** method `point_polygon_projection` (`crates/rapier_geometry2d/src/dispatch/intersection/alternatives.cairo`)
@@ -4770,10 +4773,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
-- **Arena** const `CORRUPT_FREE_LIST` (`crates/rapier_core/src/data/arena.cairo`)
-- **Arena** const `GENERATION_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
-- **Arena** const `LENGTH_MISMATCH` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1822 more
+- ... 1829 more
 
 ## Embedded Rust inventory
 

@@ -634,7 +634,10 @@ cairo-profiler 0.17.0 and IT1's `stages.py`. The probes (pile10's owner's and re
 **Shipped: the owner's slim shot 30,941,790 → 29,849,153 steps (−1,092,637, +30.5 % over in process instead of
 +35.3 %), the reference shot 12,548,826 → 12,065,485 (−483,341)**, bit-identical, `NarrowPhaseClass` 68,470 → 67,179
 CASM felts, the caller unchanged. The estimate of IT1 (−2 to −4M on the owner's shot) is not reached: one proof of the
-owner's shot needs ≈ −2.89M.
+owner's shot needs ≈ −2.89M. On the game's basis (154 L2 gas per step) the owner's shot goes from 5.445e9 to ≈ 5.28e9
+virtual L2 gas, still 6 proofs, and the reference shot from 2.645e9 to ≈ 2.57e9, still 3; those absolute figures are the
+game's cost sheet on alpha.8 (Scarb 2.19.4, before TC1), not re-measured after TC1 (+1.25 to +1.84 % steps on the game
+path), so they are lower bounds.
 
 ### 13.1 Where a collapse tick's crossings go
 
@@ -693,7 +696,7 @@ the generators over the jobs (`family_local_polygon`), then walked the pairs aga
 | `NarrowPhaseClass` | 22,027 → 22,667 | 68,470 → 67,179 | 51,061 / 6,549 |
 
 Every other declared class is unchanged; only `NarrowPhaseClass`'s hash moves. `snforge test -p rapier2d_classes` (59
-tests) and its 20 ignored `*_bit_identical` tests pass unchanged (the slim layout at every tick of the owner's shot, with
+tests: the 58 of `main` and this lot's `test_new_pair_round_trip`) and its 20 ignored `*_bit_identical` tests pass unchanged (the slim layout at every tick of the owner's shot, with
 user changes, `removals`, `game_ticks`, `edits`, `split`); the reference shot was checked at every tick, slim against in
 process, by an uncommitted probe (the whole world's digest). No engine file changed: the in-process shots are identical
 in steps (22,867,951 and 8,752,430).
