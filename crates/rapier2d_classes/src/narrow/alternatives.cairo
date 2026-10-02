@@ -629,5 +629,98 @@ pub fn batched_in_class(
     (narrow.pairs, events)
 }
 
+/// A new pair as it would cross back with only what the caller cannot derive (CX3, measured and
+/// rejected): one record per candidate pair of two solid colliders, in candidate order, without
+/// the colliders' handles and the bodies (the caller's own pair colliders give them) and with an
+/// unused solver contact slot as `None` when it is the default. On pile10's owner's shot the slim
+/// layout pays 191,670 more Cairo steps than the whole pair (Scarb 2.20.1): rebuilding a pair in
+/// the caller ([`contact_pair`]) costs about what deserializing its 64 felts does, and the class
+/// pays for the slot tests (`docs/research/class-split.md`, section 13).
+#[derive(Copy, Drop, Serde)]
+pub enum NewPair {
+    /// A filtered pair: the default manifold, its event status.
+    Filtered: PairEventStatus,
+    /// Any other pair.
+    Contact: NewContact,
+}
+
+/// A new pair's event status and manifold but its bodies.
+#[derive(Copy, Drop, Serde)]
+pub struct NewContact {
+    pub event_status: PairEventStatus,
+    pub geometry: ManifoldGeometry,
+    pub solver_flags: SolverFlags,
+    pub normal: Vec2,
+    pub first: Option<SolverContact>,
+    pub second: Option<SolverContact>,
+    pub num_solver_contacts: u8,
+    pub relative_dominance: i16,
+    pub user_data: u32,
+    pub friction: Fixed,
+    pub restitution: Fixed,
+}
+
+/// What would cross of a pair the loop does not filter.
+pub fn new_contact(manifold: ContactManifold, event_status: PairEventStatus) -> NewPair {
+    let data = manifold.data;
+    let [first, second] = data.solver_contacts;
+    let count = data.num_solver_contacts;
+    NewPair::Contact(
+        NewContact {
+            event_status,
+            geometry: rapier2d::pipeline::stages::narrow::geometry(@manifold),
+            solver_flags: data.solver_flags,
+            normal: data.normal,
+            first: if count != 0 || first != Default::default() {
+                Some(first)
+            } else {
+                None
+            },
+            second: if count == 2 || second != Default::default() {
+                Some(second)
+            } else {
+                None
+            },
+            num_solver_contacts: count,
+            relative_dominance: data.relative_dominance,
+            user_data: data.user_data,
+            friction: data.friction,
+            restitution: data.restitution,
+        },
+    )
+}
+
+/// The pair of `record` between `co1` and `co2`.
+pub fn contact_pair(record: NewPair, co1: @PairCollider, co2: @PairCollider) -> ContactPair {
+    let (collider1, collider2) = (*co1.handle, *co2.handle);
+    match record {
+        NewPair::Filtered(event_status) => ContactPair {
+            collider1, collider2, manifold: Default::default(), event_status,
+        },
+        NewPair::Contact(contact) => {
+            let data = ContactManifoldData {
+                rigid_body1: *co1.body,
+                rigid_body2: *co2.body,
+                solver_flags: contact.solver_flags,
+                normal: contact.normal,
+                solver_contacts: [
+                    contact.first.unwrap_or_default(), contact.second.unwrap_or_default(),
+                ],
+                num_solver_contacts: contact.num_solver_contacts,
+                relative_dominance: contact.relative_dominance,
+                user_data: contact.user_data,
+                friction: contact.friction,
+                restitution: contact.restitution,
+            };
+            ContactPair {
+                collider1,
+                collider2,
+                manifold: rapier2d::pipeline::stages::narrow::with_geometry(contact.geometry, data),
+                event_status: contact.event_status,
+            }
+        },
+    }
+}
+
 #[cfg(test)]
 mod tests;

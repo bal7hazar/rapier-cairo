@@ -323,3 +323,23 @@ fn gas_current_lanes() {
     }
     opaque(back);
 }
+
+/// CX3's rejected new-pair record rebuilds the pair it was made of.
+#[test]
+fn test_new_pair_round_trip() {
+    let colliders = colliders();
+    let (co1, co2) = (colliders.at(0), colliders.at(1));
+    for pair in pairs() {
+        let mut pair = pair;
+        pair.collider1 = *co1.handle;
+        pair.collider2 = *co2.handle;
+        pair.manifold.data.rigid_body1 = *co1.body;
+        pair.manifold.data.rigid_body2 = *co2.body;
+        pair.manifold.data.num_solver_contacts = 1;
+        let mut felts = array![];
+        super::new_contact(pair.manifold, pair.event_status).serialize(ref felts);
+        let mut felts = felts.span();
+        let record = Serde::deserialize(ref felts).unwrap();
+        assert(super::contact_pair(record, co1, co2) == pair, 'new pair');
+    }
+}
