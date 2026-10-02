@@ -18,8 +18,9 @@
 #                 PACKAGES.md   crate sources, manifests, consumer_cost.*   -> warns (generated in CI only)
 #
 # It checks HEAD plus the working tree, not the refs being pushed (an uncommitted fix can let a red commit pass), and
-# compiles only the touched crates: CI catches their dependents. `scarb` on PATH must be the build shim (a warning says
-# when it is not). The heavy-lock wait is capped at 90 s (PREPUSH_LOCK_WAIT_MAX), then the compile is left to CI.
+# compiles only the touched crates: CI catches their dependents. `scarb` on PATH must be the build shim: when it is
+# not, the compile is skipped with the busy line ("heavy lock busy: Cairo compile left to CI"), never run unlocked. The
+# heavy-lock wait is capped at 90 s (PREPUSH_LOCK_WAIT_MAX), then the compile is left to CI the same way.
 #
 # Never `snforge test --workspace`, never a whole-shot suite (`rapier2d_classes`, `rapier_sink`): those stay in CI.
 # Builds go through the build shim, under this script's own `flock -w` on heavy-build.lock. Every build runs with RAYON_NUM_THREADS=1. Exits non-zero on the first failing stage and names it.
