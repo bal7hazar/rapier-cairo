@@ -1,4 +1,4 @@
-# Splitting the game's step across declared classes (CS3–CS7)
+# Splitting the game's step across declared classes (CS3–CS7, CX1–CX3)
 
 Toolchain: scarb / Cairo 2.19.4, snforge 0.61.0. Base: `main` at `0c053ea` (after CN1). Class sizes come from
 `scripts/bytecode_size.py` (`table`, `attribution --by phases`, release profile) on the `crates/rapier_sink` fixtures.
@@ -623,6 +623,92 @@ sleep and CCD tests are identical in steps and builtins. `program.basic` 231,196
   `bitwise`, `range_check`, `segment_arena`; no syscall).
 * The pairs could still cross the caller's boundary in fewer felts (CX2's open items).
 
+## 13. CX3: the slim layout's crossings (IT1 step 2, lever X1)
+
+Toolchain: Scarb 2.20.1 / snforge 0.64.0 (TC1). Base: `main` at `5bfc4d3`. Exact Cairo steps
+(`--tracked-resource cairo-steps`), `RAYON_NUM_THREADS=1`, `--max-threads 2`, on the Mac (Apple silicon arm64), build
+path `/Users/bal7hazar/.herdr/worktrees/rapier-cairo/hp-slingfall-rapier-t-0017-cx3-slim-crossings-x1`; profiles with
+cairo-profiler 0.17.0 and IT1's `stages.py`. The probes (pile10's owner's and reference shots built, launched and run
+`N` ticks, then a digest, as IT1's) stayed uncommitted.
+
+**Shipped: the owner's slim shot 30,941,790 → 29,849,153 steps (−1,092,637, +30.5 % over in process instead of
++35.3 %), the reference shot 12,548,826 → 12,065,485 (−483,341)**, bit-identical, `NarrowPhaseClass` 68,470 → 67,179
+CASM felts, the caller unchanged. The estimate of IT1 (−2 to −4M on the owner's shot) is not reached: one proof of the
+owner's shot needs ≈ −2.89M. On the game's basis (154 L2 gas per step) the owner's shot goes from 5.445e9 to ≈ 5.28e9
+virtual L2 gas, still 6 proofs, and the reference shot from 2.645e9 to ≈ 2.57e9, still 3; those absolute figures are the
+game's cost sheet on alpha.8 (Scarb 2.19.4, before TC1), not re-measured after TC1 (+1.25 to +1.84 % steps on the game
+path), so they are lower bounds.
+
+### 13.1 Where a collapse tick's crossings go
+
+Owner's tick 50 (all bodies awake, 15–19 pairs), slim 275,932 steps against 197,135 in process (`main`):
+
+| | steps |
+|---|--:|
+| narrow phase: the caller's side (previous pairs and colliders written, the new pairs read: `ContactPairSerde` 14,448) | 22,924 |
+| narrow phase: the class's arguments read (`PreviousPair` 7,792, `PairCollider` 3,553) and its answer written | 15,889 |
+| narrow phase: the class's own work (`NarrowPhaseClass::compute_contacts`) | 64,866 |
+| in process, the whole narrow phase | 44,672 |
+| solve and advance: the caller's side (`encode` ≈ 5.5k, `write_back` 13,545, the answer read) | 24,278 |
+| solve and advance: the class's arguments read (`MotionBody` 3,240, `TouchingManifold` 3,051) and its answer written | 8,529 |
+
+The class's narrow phase cost 20k more than in process: CX2's batched body rebuilt every previous pair whole
+(`pair_of`), built a job per pair (`contact_jobs`: the pose, both shapes and the previous geometry copied, 11.8k), ran
+the generators over the jobs (`family_local_polygon`), then walked the pairs again over the results.
+
+### 13.2 Candidates
+
+| candidate | owner's shot | Δ | reference shot | Δ | verdict |
+|---|--:|--:|--:|--:|---|
+| `main` (CX2's crossing) | 30,941,790 | | 12,548,826 | | |
+| **the class's own pair loop** (`narrow::pair_loop`) | **29,849,153** | **−1,092,637** | **12,065,485** | **−483,341** | **shipped** |
+| and the new pairs back without what the caller derives (`narrow::alternatives::NewPair`) | 30,040,823 | +191,670 | 12,146,515 | +81,030 | rejected |
+| the pairs with a ball batched again (one call per step) | not built | | | | estimate ≈ 0 |
+| the touching manifolds forwarded from the narrow phase to the advance class | not built | | | | estimate ≤ 0 |
+
+* **The pair loop** walks the `PreviousPair`s as they cross (no whole pair rebuilt) and generates a pair's contacts where
+  it reaches it: the polygon family in the class, a pair with a ball by one call of `ContactBallClass`'s
+  `contact_geometry` entry (the per-pair entry CS4 already declares). Each generator gets what its job carried (the pose
+  of collider 2 in collider 1's frame, the shapes, the previous geometry found by the same walk, default solver data) and
+  the manifold gets the previous solver data back before `solver_data_supported`, so pairs and events are those of
+  `compute_contacts_with_results`. The collapse tick: 275,932 → 264,857 (class work 64,866 → 53,801). The ball calls cost
+  632,321 steps over the owner's shot (≈ 233 pairs, of which ≈ 337k is crossing); CX2's batched body is kept as
+  `narrow::alternatives::batched_in_class`.
+* **The new pairs' wire** (one record per candidate pair of two solid colliders: no handles, no bodies, an unused solver
+  contact slot as `None` when it is the default, 40 + 8 felts per used slot instead of 64): the caller's decoding loop
+  costs 17,330 steps at the collapse tick against 14,448 for the whole pairs, and the class pays for the slot tests.
+  Rebuilding a pair costs about what deserializing it does: dropping derivable felts pays only where nothing has to be
+  rebuilt (CX2's previous pairs).
+* **Not built.** Batching the pairs with a ball again saves ≈ 1k per extra call on the ticks with two or more of them but
+  needs a pre-pass on every step (≈ 233 pairs on 152 steps: the two cancel, estimate). Forwarding the touching manifolds
+  as felts from `NarrowPhaseClass` to `SolveAdvanceClass` saves only the caller's `touching_manifold` writes (≈ 2.5k per
+  collapse tick), moves the work into the narrow class and breaks when the island stage revives dormant pairs between
+  the two calls. Dropping the solver contacts' tangent velocities (always zero from the narrow phase) is not exact for a
+  restored world whose dormant pairs carry other values. The advance write-back (`write_back`, 13.5k per collapse tick)
+  is the in-process stage's own write-back (`scatter_impulses`, the bodies' world mass properties, the colliders'
+  poses), not crossing.
+
+### 13.3 Classes, bit-identity, in-process users
+
+| class | Sierra | CASM | margin (Sierra / CASM) |
+|---|--:|--:|--:|
+| `SlimSplitStep` (caller) | 26,844 | 67,108 | 46,884 / 6,620 (unchanged) |
+| `NarrowPhaseClass` | 22,027 → 22,667 | 68,470 → 67,179 | 51,061 / 6,549 |
+
+Every other declared class is unchanged; only `NarrowPhaseClass`'s hash moves. `snforge test -p rapier2d_classes` (59
+tests: the 58 of `main` and this lot's `test_new_pair_round_trip`) and its 20 ignored `*_bit_identical` tests pass unchanged (the slim layout at every tick of the owner's shot, with
+user changes, `removals`, `game_ticks`, `edits`, `split`); the reference shot was checked at every tick, slim against in
+process, by an uncommitted probe (the whole world's digest). No engine file changed: the in-process shots are identical
+in steps (22,867,951 and 8,752,430).
+
+### 13.4 Open
+
+* The crossings left on a collapse tick, ≈ 39k (narrow phase) and ≈ 32k (solve and advance), are per-felt reads and
+  writes of what the classes need (CX2: ≈ 18 steps per felt both ways); the one large cut left is fewer crossings (the
+  narrow phase, the islands and the solve in fewer classes), bounded by the 73,728 limit (`NarrowPhaseClass` margin
+  6,549 CASM felts, `SolveAdvanceClass` 15,181).
+* The in-scope engine levers (IT1 §4, the next lot) apply to the slim layout but N1.
+
 ## Appendix: reproduction
 
 ```
@@ -647,4 +733,6 @@ snforge test -p rapier2d_classes slim::steps_slim_ --include-ignored --max-threa
 python3 scripts/bytecode_size.py attribution --class SlimSplitStep --cut 'sparse=active_set::sparse_step' --cut 'decode=basic_state::(BasicWorldStateSerde::deserialize|from_basic_state)'
 snforge test -p rapier2d_classes edits::steps_edit --include-ignored --max-threads 1 --tracked-resource cairo-steps --detailed-resources
 snforge test -p rapier2d basic_state --tracked-resource cairo-steps --detailed-resources
+# CX3: IT1's pile10 probes (uncommitted) before / after, profiles with cairo-profiler 0.17.0
+snforge test -p rapier2d_classes <probe> --include-ignored --tracked-resource cairo-steps --build-profile --max-threads 2
 ```

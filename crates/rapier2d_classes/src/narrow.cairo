@@ -4,10 +4,12 @@
 //! the jobs, their contact generation, the loop with its filters, one-way platforms, solver data
 //! and events) and returns the new pairs and the collision events.
 //!
-//! CX2: the class is also the polygon family's (`crate::contact::family_local_polygon`): the
-//! pairs without a ball get their contacts in the class, only the pairs with a ball call
-//! `ContactBallClass` (whose hash crosses with the call: a declared class cannot be compiled with
-//! the game's constants before they exist). A previous pair crosses as a [`PreviousPair`]: the
+//! CX2: the class is also the polygon family's: the pairs without a ball get their contacts in
+//! the class, only the pairs with a ball call `ContactBallClass` (whose hash crosses with the
+//! call: a declared class cannot be compiled with the game's constants before they exist). CX3:
+//! the class runs its own pair loop ([`pair_loop`]) on the previous pairs as they cross, each
+//! pair's contacts generated where the loop reaches it (a pair with a ball by one call), instead
+//! of the batched narrow phase's jobs then loop. A previous pair crosses as a [`PreviousPair`]: the
 //! loop rewrites every field of its solver data but the contact count and the user data. CS6's
 //! crossing (whole previous pairs, both families called) and the packed wires of
 //! [`alternatives`] are the measured losers (`docs/research/class-split.md`, section 11).
@@ -19,17 +21,25 @@
 
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use rapier2d::pipeline::stages::NarrowPhaseStage;
-use rapier2d::pipeline::stages::narrow::ManifoldGeometry;
-use rapier2d::prelude::{Fixed, Handle};
+use rapier2d::pipeline::stages::narrow::{ManifoldGeometry, geometry, with_geometry};
+use rapier2d::prelude::{Fixed, Handle, Pose2, Shape, ShapeTrait};
 use rapier2d::world::basic_state::{deserialize_basic_shape, serialize_basic_shape};
+use rapier_core::collider::CollisionEventFlagsTrait;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider::components::BoxedOneWayPlatformSerde;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
-use rapier_dynamics2d::events::{CollisionEvent, PairEventStatus, PairEventStatusTrait};
-use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, PairCollider};
+use rapier_dynamics2d::events::{
+    CollisionEvent, PairEventStatus, PairEventStatusTrait, START_EVENT_EMITTED, started, stopped,
+};
+use rapier_dynamics2d::narrow_phase::strategies::errors::{COMPOSITE, SENSOR};
+use rapier_dynamics2d::narrow_phase::{
+    ContactPair, ContactPairTrait, NarrowPhase, PairCollider, dropped_event, events_on, key_before,
+    pair_filtered, pair_pose, solver_data_supported,
+};
 use rapier_geometry2d::contact::ContactManifoldData;
-use starknet::SyscallResultTrait;
 use starknet::syscalls::library_call_syscall;
+use starknet::{ClassHash, SyscallResultTrait};
+use crate::contact::{ball_family, contact_manifold_polygon_family};
 use crate::hashes::{ClassHashes, errors};
 
 /// Measured and rejected: the packed wires (CX2).
@@ -174,10 +184,145 @@ pub fn pair_of(previous: PreviousPair) -> ContactPair {
     }
 }
 
+/// The pair loop of `BatchedNarrowPhase<FamilyBatch, NoSensors>` (`rapier2d::pipeline::stages::
+/// narrow::compute_contacts_with_results`) on the previous pairs as they cross (CX3): a pair's
+/// contact generation runs where the loop reaches it, the pairs without a ball here
+/// (`contact_manifold_polygon_family`), a pair with a ball by one call of `ContactBallClass` (at
+/// `contact_ball`). The generator of each pair gets what its batch job carried (the pose of
+/// collider 2 in collider 1's frame, the shapes, the geometry of the previous manifold of the pair
+/// found by the loop's walk, or a default one) and the new manifold is the geometry it leaves with
+/// the previous solver data ([`pair_of`]): same pairs and events. CX2's batched body (the jobs,
+/// then the loop over their results) is the measured loser (`alternatives::batched_in_class`).
+///
+/// # Panics
+/// As `compute_contacts_with_results::<NoSensors>`: `errors::SENSOR` on a sensor pair,
+/// `UNSUPPORTED` on a shape that is not basic; `crate::hashes::errors::DECODE` when the ball class
+/// returns something else than its result.
+pub fn pair_loop(
+    contact_ball: ClassHash,
+    previous: Span<PreviousPair>,
+    prediction: Fixed,
+    scratch: Span<PairCollider>,
+    pairs: Span<(u32, u32)>,
+    ref colliders: ColliderSet,
+) -> (Array<ContactPair>, Array<CollisionEvent>) {
+    let fresh = previous_of(@ContactPairTrait::new(Default::default(), Default::default()));
+    let mut cursor: u32 = 0;
+    let mut current = array![];
+    let mut events = array![];
+    let mut transitions = array![];
+    for (i, j) in pairs {
+        let co1 = *scratch.at(*i);
+        let co2 = *scratch.at(*j);
+        if !(co1.solid && co2.solid) {
+            if (co1.solid || co1.sensor) && (co2.solid || co2.sensor) {
+                core::panic_with_felt252(SENSOR);
+            }
+            continue;
+        }
+        let h1 = co1.handle;
+        let h2 = co2.handle;
+        let mut found = fresh;
+        while let Some(boxed) = previous.get(cursor) {
+            let head = boxed.unbox();
+            let a1 = *head.collider1;
+            let a2 = *head.collider2;
+            if key_before(a1, a2, h1, h2) {
+                dropped_event(a1, a2, *head.event_status, ref colliders, ref events);
+                cursor += 1;
+                continue;
+            }
+            if a1.index == h1.index && a2.index == h2.index {
+                cursor += 1;
+                if a1 == h1 && a2 == h2 && !(*head.event_status).is_intersection_pair() {
+                    found = *head;
+                } else {
+                    dropped_event(a1, a2, *head.event_status, ref colliders, ref events);
+                }
+            }
+            break;
+        }
+        let status = found.event_status;
+        let had_contact = found.num_solver_contacts != 0;
+        if pair_filtered(co1, co2) {
+            let mut event_status = status;
+            if had_contact && events_on(co1, co2) {
+                event_status.bits = event_status.bits & 252;
+                transitions.append(stopped(h1, h2, CollisionEventFlagsTrait::empty()));
+            }
+            current
+                .append(
+                    ContactPair {
+                        collider1: h1, collider2: h2, manifold: Default::default(), event_status,
+                    },
+                );
+            continue;
+        }
+        let pos12 = pair_pose(co1, co2);
+        let (supported, new_geometry) = if ball_family(co1.shape, co2.shape) {
+            ball_geometry(contact_ball, pos12, co1.shape, co2.shape, prediction, found.geometry)
+        } else {
+            let mut manifold = with_geometry(found.geometry, Default::default());
+            let supported = contact_manifold_polygon_family(
+                pos12, co1.shape, co2.shape, prediction, ref manifold,
+            );
+            (supported, geometry(@manifold))
+        };
+        let mut manifold = pair_of(PreviousPair { geometry: new_geometry, ..found }).manifold;
+        if !supported {
+            assert(!co1.shape.is_composite() && !co2.shape.is_composite(), COMPOSITE);
+            manifold.num_points = 0;
+        }
+        let manifold = solver_data_supported(prediction, co1, co2, manifold);
+        let has_contact = manifold.data.num_solver_contacts != 0;
+        let mut event_status = status;
+        if has_contact != had_contact && events_on(co1, co2) {
+            if has_contact {
+                event_status.bits = event_status.bits | START_EVENT_EMITTED.bits;
+                transitions.append(started(h1, h2));
+            } else {
+                event_status.bits = event_status.bits & 252;
+                transitions.append(stopped(h1, h2, CollisionEventFlagsTrait::empty()));
+            }
+        }
+        current.append(ContactPair { collider1: h1, collider2: h2, manifold, event_status });
+    }
+    while let Some(boxed) = previous.get(cursor) {
+        let head = boxed.unbox();
+        dropped_event(
+            *head.collider1, *head.collider2, *head.event_status, ref colliders, ref events,
+        );
+        cursor += 1;
+    }
+    events.append_span(transitions.span());
+    (current, events)
+}
+
+/// The geometry of a pair with a ball, by `ContactBallClass` (at `contact_ball`, its
+/// `contact_geometry` entry).
+fn ball_geometry(
+    contact_ball: ClassHash,
+    pos12: Pose2,
+    shape1: Shape,
+    shape2: Shape,
+    prediction: Fixed,
+    geometry: ManifoldGeometry,
+) -> (bool, ManifoldGeometry) {
+    let mut calldata = array![];
+    pos12.serialize(ref calldata);
+    shape1.serialize(ref calldata);
+    shape2.serialize(ref calldata);
+    prediction.serialize(ref calldata);
+    geometry.serialize(ref calldata);
+    let mut ret = library_call_syscall(contact_ball, selector!("contact_geometry"), calldata.span())
+        .unwrap_syscall();
+    Serde::deserialize(ref ret).expect(errors::DECODE)
+}
+
 /// The pair loop library-called in `NarrowPhaseClass` (at `H::narrow_phase()`), one call per step
 /// with a candidate or a previous pair, the pairs with a ball in `ContactBallClass` (at
-/// `H::contact_ball()`), the others in `NarrowPhaseClass` (CX2). Same results as
-/// `PairLoopNarrowPhase<FamilyDispatcher<H>, NoSensors, NoComposites>`.
+/// `H::contact_ball()`, one call per pair, CX3), the others in `NarrowPhaseClass` (CX2). Same
+/// results as `PairLoopNarrowPhase<FamilyDispatcher<H>, NoSensors, NoComposites>`.
 ///
 /// # Panics
 /// `errors::DECODE` when the class returns something else than its result; as the class (a shape
@@ -222,20 +367,17 @@ pub impl LibraryCallNarrowPhase<impl H: ClassHashes> of NarrowPhaseStage {
 #[starknet::contract]
 pub mod NarrowPhaseClass {
     use fixed::ONE;
-    use rapier2d::pipeline::stages::narrow::{compute_contacts_with_results, contact_jobs};
     use rapier2d::prelude::{ColliderBuilderTrait, Fixed, Handle};
     use rapier_dynamics2d::events::CollisionEvent;
-    use rapier_dynamics2d::narrow_phase::strategies::NoSensors;
-    use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase, PairCollider};
+    use rapier_dynamics2d::narrow_phase::{ContactPair, PairCollider};
     use starknet::ClassHash;
     use super::{PairColliderSerde, PreviousPair};
 
     #[storage]
     struct Storage {}
 
-    /// `BatchedNarrowPhase<FamilyBatch, NoSensors>` on `previous` (the step's previous pairs,
-    /// see [`super::pair_of`]), the pairs without a ball computed here: the new pairs and the
-    /// collision events. `alive`: see [`super::alive`].
+    /// [`super::pair_loop`] on `previous` (the step's previous pairs as they cross): the new
+    /// pairs and the collision events. `alive`: see [`super::alive`].
     #[external(v0)]
     fn compute_contacts(
         self: @ContractState,
@@ -246,21 +388,7 @@ pub mod NarrowPhaseClass {
         pairs: Span<(u32, u32)>,
         alive: Span<Handle>,
     ) -> (Array<ContactPair>, Array<CollisionEvent>) {
-        let mut before = array![];
-        for pair in previous {
-            before.append(super::pair_of(*pair));
-        }
-        let mut narrow = NarrowPhase { pairs: before };
         let mut colliders = super::set_of(alive, ColliderBuilderTrait::ball(ONE).build());
-        let jobs = contact_jobs(narrow.pairs.span(), scratch, pairs);
-        let results = if jobs.is_empty() {
-            array![].span()
-        } else {
-            crate::contact::family_local_polygon(contact_ball, prediction, jobs.span())
-        };
-        let events = compute_contacts_with_results::<
-            NoSensors,
-        >(ref narrow, prediction, scratch, pairs, ref colliders, results);
-        (narrow.pairs, events)
+        super::pair_loop(contact_ball, previous, prediction, scratch, pairs, ref colliders)
     }
 }
