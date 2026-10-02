@@ -5,7 +5,7 @@ whether simulation results changed.
 
 ## Unreleased
 
-**Results:** unchanged since `0.1.0-alpha.8`.
+**Results:** unchanged since `0.1.0-alpha.8` (the toolchain bump and the slim crossings are bit-identical).
 
 ### Added
 - `ImpulseJointSet::map_attached_joints_mut` (PX5, #242): the user's closure is called on a copy of each joint attached
@@ -41,6 +41,17 @@ whether simulation results changed.
   constructors) and the basic shapes with their traits (`Ball`, `Cuboid`, `ConvexPolygon`, `HalfSpace`, `Capsule`,
   `Segment`): a game builds a `rapier2d_classes::BodyInsert` without depending on `rapier_core` or
   `rapier_geometry2d` (programme request after slingfall's alpha.8 bump).
+
+### Changed
+- Toolchain Scarb 2.20.1 (Cairo 2.20.0) / starknet-foundry 0.64.0 (TC1, #250; was Scarb 2.19.4 / snforge 0.61.0):
+  results bit-identical, Cairo steps game path +1.25 to +1.38 %, `rapier2d` probes up to +1.84 % (median +1.33 %), `rapier2d_classes` up to +3.78 % (median +1.61 %) (`docs/BUDGETS.md`), class hashes re-pinned from
+  CI's artefact; a consumer on another toolchain re-declares.
+- `NarrowPhaseClass` runs its own pair loop on the previous pairs as they cross (CX3, #253): the slim layout's whole
+  shot is −3.53 % Cairo steps for the owner's shot and −3.85 % for the reference shot, bit-identical; a game re-pins
+  `NarrowPhaseClass` only (the caller and every other class are unchanged).
+- CI: the scarb / snforge downloads are retried (#252) and a new push cancels the superseded run of a pull request
+  only, never a run on `main`; `scripts/prepush.sh` and its `.githooks/pre-push` hook run what CI would reject before a
+  push (PP1, #251).
 
 ## 0.1.0-alpha.8 — 2026-09-29
 

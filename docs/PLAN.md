@@ -1,21 +1,26 @@
 # rapier-cairo — execution plan
 
-Status: **v2.97, 2026-09-30** (v2: scalar delegated to glam-cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched; v2.37: KD merged; v2.38: EV launched; v2.39: EV merged, ADR 18–19; v2.40: RJ merged, repo renames, parry-split proposal, paused; v2.41: resumed for feature parity, AP + SE; v2.42: AP merged, parity waves 9–14, api-parity CI job, RB; v2.43: programme target (game), G0, machine rule; v2.44: cost of a level, BT wave, release assessment; v2.45: crate-scoped local gate for executors (CI is the full gate), CW brief; v2.46: SE merged, codex for audits only; v2.47: WS world-state lot (programme G1b), client-side step figures; v2.48: RB merged, WS launched; v2.49: WS merged, CW launched; v2.50: `0.1.0-alpha.1` published on scarbs.xyz, G0 merged, BT decided and briefed, parry split after M6; v2.51: CW merged, BT1 launched; v2.52: BT2 launched, slingfall G3 findings folded into BT2; v2.53: BT1 merged (−41 % steps at impact), BT3 briefed; v2.54: BT3 launched, class-size blocker (CS1 / CS2); v2.55: BT2 merged (sleeping bodies free, D7 / D9 amended, `WorldState` v2), CS1 launched; v2.56: `0.1.0-alpha.2` published, BT3 merged, BT4 launched; v2.57: CS1 merged — one class cannot hold the step; v2.58: SNIP-36 in-class path closed for the MVP, CS2 to the backlog, QY1 launched; v2.59: BT4 merged, alpha.3 go requested, JA1 briefed; v2.60: `0.1.0-alpha.3` published, QY1 merged; v2.61: JA1 merged, MH1 queued; v2.62: MH1 merged, parity inventory refreshed (dim3-only methods, `pub type`), 54.1 %; v2.63: QY2 merged, CHANGELOG `Unreleased`; v2.64: PO1 merged, LO1 / SH1 launched; v2.65: LO1 merged; v2.66: programme order CC → SH2 (KC deferred), CC1 briefed, alpha.4 go after SH1; v2.67: SH1 merged, CC1 launched, parity inventory follows the module tree; v2.68: `0.1.0-alpha.4` published, LO2 merged; v2.69: CC1 merged, CC2 briefed; v2.70: CC2 merged, SH2a briefed; v2.71: SH2a merged, SH2b briefed, alpha.5 = CC1 + CC2 + LO2 + SH2a; v2.72: alpha.5 published, SH2b merged, RG1 / SF1 running, CS2 back; v2.73: RG1 merged, CS2 launched, RG2 briefed; v2.74: SF1 merged (a port defect, results change), alpha.6 = SH2b + RG1 + RG2 + SF1; v2.75: CS2 merged (−59.1 % program), alpha.6 += CS2; v2.76: RG2 merged, `0.1.0-alpha.6` published, parity closeout options; v2.77: programme decisions — PX1 closeout, prelude selectors, KC1; (c) / (d) parked; v2.78: PX1 merged — raw 74.0 %, in scope 81.0 %; v2.79: KC1 merged, parity inventory drops dim3-only module declarations — raw 77.2 %, in scope 84.2 %, CN1 briefed; v2.80: PX2 merged — raw 78.2 %, in scope 85.2 %; CN1 launched; v2.81: CN1 merged; v2.82: CS3 class-split study launched, parity matcher finds the contact generators — raw 79.0 %, in scope 86.1 %; v2.83: CS3 merged — no cut fits yet, SN1 / CS4–CS6 proposed; v2.84: SN1 positive, CS4 merged, CS5 launched; v2.85: CS5 merged, CS6 + CX1 running; v2.86: CS6 merged — the caller fits; v2.87: CX1 merged, CX2 + PK1 running; v2.88: PK1 merged, `0.1.0-alpha.7` published, package gates 1–3 enforced; v2.89: CX2 merged — the slim shot at +37.2 %, DU1 running; v2.90: DU1 and CS7 merged, alpha.8 go; v2.91: `0.1.0-alpha.8` published, PX3 merged; v2.92: parity exclusions, CP3 merged; v2.93: IG1 merged; v2.94: PX4 merged, the rapier queue idle; v2.95: PX5 merged; v2.96: resume point, the owner's pause; v2.97: new orchestrator session under the Nexus standard, orchestration documents aligned). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
+Status: **v2.98, 2026-10-02** (v2: scalar delegated to glam-cairo's `fixed`; v2.1: wave 1 merged; v2.2: `fixed` consumed, C2 + M3 merged; v2.3: C3 + G2 merged; v2.4: glam `Vec2` consumed, M2 + F3 merged, wave 3 launched; v2.5: wave 3 merged, wave 4 in progress; v2.6: DB, DE, GH merged, orchestrator moved to a new machine, rest of wave 4 launched; v2.7: G3, GF1, GF2, GF4, DD merged, GF3 running, DF launched; v2.8: GF3, DF merged, GG running, wave-5 stubs + P1 brief; v2.9: GG merged, wave 4 complete, P1 launched; v2.10: P1 merged, prelude, GM/P2/P3/P4 launched; v2.11: GM, P2, P3 merged, SD launched, prover finding; v2.12: SD, P4 merged, DM launched, nightly execute job; v2.13: paused, DM wip pushed; v2.14: resumed, BX/GS briefs, glam 0.3.0 plan; v2.15: DM, BX merged, GS + OS running; v2.16: GS merged, OP launched; v2.17: OS merged, BP launched; v2.18: OP merged, OI launched; v2.19: OI merged, budgets refreshed, SO launched; v2.20: BP merged, OJ launched; v2.21: SO merged, D8 amended, DO launched; v2.22: OJ merged, BG launched; v2.23: DO merged, ON launched; v2.24: BG merged, budgets and ceilings refreshed; v2.25: ON merged, CL and BS launched; v2.26: CL, BS, parallel CI merged, AS launched; v2.27: phase 2 wave 6 (SL, QP) planned and launched; v2.28: QP merged, JL launched; v2.29: SL merged, SC launched; v2.30: JL merged, SI launched; v2.31: SI merged, ADR 0001; v2.32: CP1 launched; v2.33: SC merged, JM launched; v2.34: CP1 merged, CP2 prepared; v2.35: CP2 merged, wave 8 KD launched; v2.36: JM merged, KD bug found, RJ launched; v2.37: KD merged; v2.38: EV launched; v2.39: EV merged, ADR 18–19; v2.40: RJ merged, repo renames, parry-split proposal, paused; v2.41: resumed for feature parity, AP + SE; v2.42: AP merged, parity waves 9–14, api-parity CI job, RB; v2.43: programme target (game), G0, machine rule; v2.44: cost of a level, BT wave, release assessment; v2.45: crate-scoped local gate for executors (CI is the full gate), CW brief; v2.46: SE merged, codex for audits only; v2.47: WS world-state lot (programme G1b), client-side step figures; v2.48: RB merged, WS launched; v2.49: WS merged, CW launched; v2.50: `0.1.0-alpha.1` published on scarbs.xyz, G0 merged, BT decided and briefed, parry split after M6; v2.51: CW merged, BT1 launched; v2.52: BT2 launched, slingfall G3 findings folded into BT2; v2.53: BT1 merged (−41 % steps at impact), BT3 briefed; v2.54: BT3 launched, class-size blocker (CS1 / CS2); v2.55: BT2 merged (sleeping bodies free, D7 / D9 amended, `WorldState` v2), CS1 launched; v2.56: `0.1.0-alpha.2` published, BT3 merged, BT4 launched; v2.57: CS1 merged — one class cannot hold the step; v2.58: SNIP-36 in-class path closed for the MVP, CS2 to the backlog, QY1 launched; v2.59: BT4 merged, alpha.3 go requested, JA1 briefed; v2.60: `0.1.0-alpha.3` published, QY1 merged; v2.61: JA1 merged, MH1 queued; v2.62: MH1 merged, parity inventory refreshed (dim3-only methods, `pub type`), 54.1 %; v2.63: QY2 merged, CHANGELOG `Unreleased`; v2.64: PO1 merged, LO1 / SH1 launched; v2.65: LO1 merged; v2.66: programme order CC → SH2 (KC deferred), CC1 briefed, alpha.4 go after SH1; v2.67: SH1 merged, CC1 launched, parity inventory follows the module tree; v2.68: `0.1.0-alpha.4` published, LO2 merged; v2.69: CC1 merged, CC2 briefed; v2.70: CC2 merged, SH2a briefed; v2.71: SH2a merged, SH2b briefed, alpha.5 = CC1 + CC2 + LO2 + SH2a; v2.72: alpha.5 published, SH2b merged, RG1 / SF1 running, CS2 back; v2.73: RG1 merged, CS2 launched, RG2 briefed; v2.74: SF1 merged (a port defect, results change), alpha.6 = SH2b + RG1 + RG2 + SF1; v2.75: CS2 merged (−59.1 % program), alpha.6 += CS2; v2.76: RG2 merged, `0.1.0-alpha.6` published, parity closeout options; v2.77: programme decisions — PX1 closeout, prelude selectors, KC1; (c) / (d) parked; v2.78: PX1 merged — raw 74.0 %, in scope 81.0 %; v2.79: KC1 merged, parity inventory drops dim3-only module declarations — raw 77.2 %, in scope 84.2 %, CN1 briefed; v2.80: PX2 merged — raw 78.2 %, in scope 85.2 %; CN1 launched; v2.81: CN1 merged; v2.82: CS3 class-split study launched, parity matcher finds the contact generators — raw 79.0 %, in scope 86.1 %; v2.83: CS3 merged — no cut fits yet, SN1 / CS4–CS6 proposed; v2.84: SN1 positive, CS4 merged, CS5 launched; v2.85: CS5 merged, CS6 + CX1 running; v2.86: CS6 merged — the caller fits; v2.87: CX1 merged, CX2 + PK1 running; v2.88: PK1 merged, `0.1.0-alpha.7` published, package gates 1–3 enforced; v2.89: CX2 merged — the slim shot at +37.2 %, DU1 running; v2.90: DU1 and CS7 merged, alpha.8 go; v2.91: `0.1.0-alpha.8` published, PX3 merged; v2.92: parity exclusions, CP3 merged; v2.93: IG1 merged; v2.94: PX4 merged, the rapier queue idle; v2.95: PX5 merged; v2.96: resume point, the owner's pause; v2.97: new orchestrator session under the Nexus standard, orchestration documents aligned; v2.98: TC1, IT1 step 1, CX3 and PP1 merged, the orchestrator moves to herdr, documents aligned). Owner of this file: the orchestrator session (see [`AGENTS.md`](../AGENTS.md)).
 
 Goal: a Cairo port of [Rapier](https://github.com/dimforge/rapier) good enough to build a complete
 game whose physics is provable, with gas tracked per feature from the first line of code.
 
-## Status of the track (2026-09-30)
+## Status of the track (2026-10-02)
 
-**Orchestrator.** The session "[Opus 5.5] Orchestrateur rapier — slingfall", created on 2026-09-30 by the project
-manager under the standard roles of Nexus (`bal7hazar/nexus`); it replaces "Orchestrateur rapier.cairo (fork)",
-retired. Its objectives: `/home/claude/projects/pm/messages/orchestrators/rapier-2026-09-30.md` (the project manager's
-notebook). Objective 1, the orchestration documents aligned with the standard and `slingfall/OPERATIONS.md`
-(`docs/ORCHESTRATOR.md`, `AGENTS.md` §3, `scripts/executor/system-prompt.md`, §5 below), is this revision.
+**Orchestrator.** The coordinator of the herdr project `slingfall-rapier`, successor of the Nexus session "[Opus 5.5]
+Orchestrateur rapier — slingfall", from 2026-10-02. Implementers, reviewers and auditors are herdr threads
+(`docs/ORCHESTRATOR.md`, `slingfall/OPERATIONS.md`).
 
-**State.** The rapier queue is idle by programme decision; no executor runs, no release is pending. Work reopens only
-on a game need (slingfall) relayed by the project manager or on its request; a release (alpha.9) needs its written go
-(owner's delegation of 2026-09-25).
+**Merged on 2026-10-02:**
+- #249 IT1 step 1: the impact tick's steps, profile and levers (`docs/research/impact-tick.md`).
+- #250 TC1: toolchain Scarb 2.20.1 (Cairo 2.20.0) / snforge 0.64.0, results bit-identical, steps: game path +1.25 to +1.38 %, `rapier2d` probes up to +1.84 % (median +1.33 %), `rapier2d_classes` up to +3.78 % (median +1.61 %).
+- #251 PP1 step A: `scripts/prepush.sh` and its pre-push hook.
+- #252 PP1 step B: scarb / snforge download retries, PR-only cancel of superseded CI runs.
+- #253 CX3: `NarrowPhaseClass` runs its own pair loop, the slim shot −3.53 % (owner's) / −3.85 % (reference).
+
+**State.** No release is pending. Held: EL1, the in-scope engine levers of `docs/research/impact-tick.md` §4, until the
+owner's physics-rate study reports. A release (alpha.9) needs the project manager's written go per package
+(`docs/ORCHESTRATOR.md`, Releases).
 
 **Published: `0.1.0-alpha.8`** (tag `v0.1.0-alpha.8`, release commit 5a3c0fc; six crates: rapier_math, rapier_core,
 rapier_geometry2d, rapier_dynamics2d, rapier2d, rapier2d_classes). It holds DU1 (`fixed` 0.4.0, `glam_core` 0.4.1),
@@ -25,12 +30,12 @@ Step results unchanged since alpha.7 (full `WorldState` codec included); the sli
 steps in 4 transactions of ≤ 10M. The game (slingfall #43) is on alpha.8: world class 71,076 CASM, pile10 35.29M steps
 in 6 transactions.
 
-**On `main` since alpha.8 (unreleased, additions only, step path proven unchanged):** prelude exports
-(`RigidBodyType`, `ShapeTrait`, the basic shapes, contact-pair / interaction-graph views, set `Index`, …), PX3 (Parry
-geometry utilities), CP3 (`ContactPairView` read API), IG1 (read-only `InteractionGraph`), PX4 (cheap API items), PX5
-(`map_attached_joints_mut`), `tests/finite_state.cairo`, `docs/PACKAGES.md`, and CI: the `execute` job also runs on
-release / dependency PRs, `sink` jobs per crate with 2 threads, package gates 1–3 enforced, declared classes gated with
-a 1,000-felt margin.
+**On `main` since alpha.8 (unreleased, step results unchanged; TC1 and CX3 move Cairo steps only):** prelude exports (`RigidBodyType`,
+`ShapeTrait`, the basic shapes, contact-pair / interaction-graph views, set `Index`, …), PX3 (Parry geometry utilities),
+CP3 (`ContactPairView` read API), IG1 (read-only `InteractionGraph`), PX4 (cheap API items), PX5
+(`map_attached_joints_mut`), TC1 (toolchain 2.20.1 / 0.64.0), CX3 (`NarrowPhaseClass` pair loop),
+`tests/finite_state.cairo`, `docs/PACKAGES.md`, and CI: the `execute` job also runs on release / dependency PRs, `sink`
+jobs per crate with 2 threads, package gates 1–3 enforced, declared classes gated with a 1,000-felt margin.
 
 **Parity:** raw 84.6 %, in scope 94.5 % (1,527 ported, 89 missing, 976 excluded of 2,592). Package sizes
 (`docs/PACKAGES.md`): every gate passes, tightest `rapier_geometry2d` lines at +42 % margin.
@@ -46,10 +51,7 @@ a 1,000-felt margin.
 - Missing by decision: V-HACD / voxelisation ("not ported yet", low priority), `solver_contact_world_points` (no exact
   answer), `IndexMut`, `take_removed`, `GenericJointBuilder::user_data` (they would widen stepped structs).
 
-**Launch rule (programme, 2026-09-29; procedure in `docs/ORCHESTRATOR.md`):** launch an executor only when `~/orchestrator/capacity.json` is under 5 minutes
-old, `can_launch` is true, `oom_kills_30min` is 0 and `free_slots` ≥ 2, with at most one rapier executor at a time
-(`scripts/executor-unit.sh`, heavy builds through `scripts/build-shims/`); never touch `~/orchestrator/slots`. The
-programme's conditions go into the brief before a launch (messages to a running executor are held).
+**Launch rule (programme, 2026-10-02; procedure in `docs/ORCHESTRATOR.md`):** a thread starts only after `machine-capacity` and the programme's placement rule (the Mac for builds that write no pin, the VPS for the rest, one heavy suite at a time there); the conditions of the programme go into the brief.
 
 ## 1. What the research established
 
@@ -785,22 +787,21 @@ EPA, mesh `transformation/`, serde/rkyv, debug-render, profiling counters, `dyn`
 
 ## 5. Orchestration protocol
 
-The procedure is [`docs/ORCHESTRATOR.md`](ORCHESTRATOR.md), on top of the standard roles of Nexus and
-`slingfall/OPERATIONS.md`. In short:
+The procedure is [`docs/ORCHESTRATOR.md`](ORCHESTRATOR.md), on top of the standard of the organisation and
+`slingfall/OPERATIONS.md`; since 2026-10-02 the orchestrator is a herdr coordinator and the tasks are herdr threads. In short:
 
 1. Before a wave, the orchestrator merges the interface it depends on and **pre-declares the stubs**
    (module lines in `lib.cairo`, empty test files, `gas/<crate>/<module>.snap` targets) so that
    parallel PRs never touch a common file.
 2. One brief per package in the mandatory format of `AGENTS.md` §3 (`docs/briefs/<id>.md`), committed,
-   then launched with `scripts/executor-unit.sh <id> claude:<model> docs/briefs/<id>.md` (a systemd
-   user unit) under the capacity rule — the claude CLI on the workers' account; model tier by
-   difficulty; the in-session Agent tool only for short read-only research.
-3. Each executor runs the gate in the foreground, regenerates the snapshot of its own modules,
-   pushes, opens its PR, drives CI to green, never merges, and writes `REPORT.md`.
-4. The orchestrator reads `REPORT.md` + the log, reviews them (API parity, deviations, gas and
-   steps tables), has the PR reviewed by Codex (`nexus review`) once CI is green, merges, then alone
+   then started as a herdr thread with a profile (`impl-sonnet`, `impl-opus`) on the machine that
+   `machine-capacity` and the placement rule give; the in-session Agent tool only for short read-only research.
+3. Each thread runs the gate in the foreground, regenerates the snapshot of its own modules, runs
+   `scripts/prepush.sh`, pushes, opens its PR, drives CI to green, never merges, and writes its report.
+4. The orchestrator reads the report, reviews it (API parity, deviations, gas and steps tables), has the PR
+   reviewed by a review thread on another model, has it merged on its line `Merge the PR: ...`, then alone
    updates re-exports, status, decisions and this file.
-5. An interrupted executor is resumed (`scripts/executor-unit.sh resume …`), not relaunched.
+5. A stopped thread is prompted to resume, not started again.
 
 Executor runs so far (claude CLI, second account; before the per-module snapshot and self-opened
 PR flow): G1 Sonnet 50 turns $1.6 · C2 Sonnet 72 turns $3.5 · M3 Opus 121 turns $15.2 ·

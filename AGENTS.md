@@ -31,24 +31,27 @@ justifies them lives in [`docs/research/`](docs/research).
 
 ## 3. Roles
 
-The standard roles of Nexus (`bal7hazar/nexus`, `roles/`) and the operating document of the project
-(`slingfall/OPERATIONS.md`) apply; the orchestrator-side procedure is [`docs/ORCHESTRATOR.md`](docs/ORCHESTRATOR.md).
-This section is the executor-side view of what rapier adds.
+The standard of the organisation and the operating document of the programme (`slingfall/OPERATIONS.md`) apply; the
+orchestrator-side procedure is [`docs/ORCHESTRATOR.md`](docs/ORCHESTRATOR.md). Since 2026-10-02 the orchestrator is a
+herdr coordinator and the other roles are herdr threads. This section is the thread-side view of what rapier adds.
 
 | Role | Does | Does not |
 |---|---|---|
-| **Orchestrator** | Owns `docs/PLAN.md`, `docs/interfaces/**`, root `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, every `lib.cairo` and crate `Scarb.toml`, `CHANGELOG.md`, `docs/adr/**`; pre-declares the stubs of a wave (modules, test files, snapshot files) before launching it; writes the briefs; reviews `REPORT.md` + CI; has every PR reviewed by Codex; merges; updates re-exports, status and decisions after each merge | Large implementation work |
-| **Executor** (the standard's implementer: headless `claude -p` in the unit `rapier-exec-<id>`, own worktree and branch `feat/<id>`) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its PR and drives it to green CI; writes `REPORT.md` (uncommitted); when resumed with review findings, fixes those it is given and nothing else | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, rebase a pushed branch or force-push, ask questions |
-| **Reviewer** (Codex through `nexus review`, every PR before its merge) | Reads the branch against `main` with its brief, read-only: API parity with upstream, deviations, gas and steps tables, conventions | Implementation |
-| **Auditor** (Codex through `nexus audit`, the lenses of `slingfall/OPERATIONS.md` §6) | Audits a revision against its brief, read-only, e.g. `validation` when a lot changes results on the step | Implementation |
+| **Orchestrator** | Owns `docs/PLAN.md`, `docs/interfaces/**`, root `Scarb.toml`, `.tool-versions`, `scripts/**`, `.github/**`, every `lib.cairo` and crate `Scarb.toml`, `CHANGELOG.md`, `docs/adr/**`; pre-declares the stubs of a wave (modules, test files, snapshot files) before launching it; writes the briefs; reviews the thread's report + CI; has every PR reviewed by a review thread; has the PR merged on its line `Merge the PR: ...`; updates re-exports, status and decisions after each merge | Large implementation work |
+| **Executor** (an implementer thread: profile `impl-sonnet` or `impl-opus`, own worktree and branch) | Implements exactly one brief inside its file allowlist, with tests and gas probes; regenerates the gas snapshot of **its own modules**; opens its own PR and drives it to green CI; writes its report; when resumed with review findings, fixes those it is given and nothing else | Edit shared files (it lists needs under "Escalations" in the report), change frozen interfaces, merge, rebase a pushed branch or force-push, ask questions |
+| **Reviewer** (a review thread: `review` for Opus or Fable code, `review-opus` for Sonnet code; every PR before its merge) | Reads the branch against `main` with its brief, read-only: API parity with upstream, deviations, gas and steps tables, conventions | Implementation |
+| **Auditor** (an `audit` thread, the exception, the lenses of `slingfall/OPERATIONS.md` §6) | Audits a revision against its brief, read-only, e.g. `validation` when a lot changes results on the step | Implementation |
 
 ### Launching executors
 
-`scripts/executor-unit.sh <id> claude:<sonnet|opus|fable> docs/briefs/<id>.md`; resume with
-`scripts/executor-unit.sh resume <id> claude:<model> "<follow-up>"` in the same worktree (details, capacity rule and
-follow-up in `docs/ORCHESTRATOR.md`). The launcher prepends `scripts/executor/system-prompt.md` (the frame every
-executor obeys) to the brief. Models by kind of lot: `slingfall/OPERATIONS.md` §2; implementation never runs on Codex.
-The smaller the model, the tighter the brief.
+The orchestrator starts one herdr thread per lot, with a profile (`impl-sonnet` by default, `impl-opus` for the step
+path and numerics, `impl-fable` only when the owner asks for it by name or after `impl-opus` failed twice on the same task, never because a task looks hard; the brief says why) on the machine that `machine-capacity` and the programme's
+placement rule give (details in `docs/ORCHESTRATOR.md`). The brief is committed in `docs/briefs/<id>.md`. The thread
+opens its own PR and never merges; every PR gets a review thread on another model than its writer. Models by kind of
+lot: `slingfall/OPERATIONS.md` §2. The smaller the model, the tighter the brief.
+
+**Build path.** Class hashes, Sierra bytes and `gas/bytecode.size` come from CI's artefacts (`bytecode-snapshot`,
+`class-hashes`) with CI's root path recorded; felt counts, CASM, gas and steps are path-free.
 
 ### Brief (mandatory sections, in this order)
 
@@ -58,7 +61,7 @@ The smaller the model, the tighter the brief.
 4. Efficiency rules and gas / steps targets; variants to bench (winner in the library, losers under `mod alternatives`).
 5. Tests: table-driven, compile budget (≤ 800 lines per file, ≤ 4 `fuzz_*` per module), golden vectors, exact panic messages.
 6. Acceptance criteria, each with the test or command that will show it.
-7. Verification: the crate-scoped gate in the foreground (§6), `scripts/gas.py snapshot --filter <crate>::<module>` per owned module, conventional commits with trailer, push, `gh pr create`, `gh pr checks --watch` until green, never merge.
+7. Verification: the crate-scoped gate in the foreground (§6), `scripts/gas.py snapshot --filter <crate>::<module>` per owned module, conventional commits with trailer, `scripts/prepush.sh` before every push (push with `git -c core.hooksPath=.githooks push`, no git config written), `gh pr create`, `gh pr checks --watch` until green, never merge. An implementer may run `asdf install <tool> <version>` and `asdf plugin add` (user-local); a system package stays the owner's.
 8. Report expected: `REPORT.md`, below.
 9. "Work autonomously, do not ask questions, do not widen the scope, foreground only."
 

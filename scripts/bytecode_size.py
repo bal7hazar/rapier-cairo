@@ -223,6 +223,18 @@ def scarb(cwd, args, note="", profile="dev"):
         sys.exit("scarb failed:\n" + "\n".join(out[-60:]))
 
 
+def toolchain_version():
+    """The Cairo version of the workspace (root `Scarb.toml`, `workspace.package.cairo-version`): the
+    temporary packages depend on the same `starknet` / `cairo_execute` release, never a number of their own."""
+    return tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["package"]["cairo-version"]
+
+
+def pin_toolchain(work):
+    """Copy the repository's `.tool-versions` into the temporary package: asdf resolves the scarb shim from the
+    working directory upwards, and `work` lies outside the repository ("No version is set for command scarb")."""
+    shutil.copy(ROOT / ".tool-versions", work / ".tool-versions")
+
+
 def compact(obj):
     return json.dumps(obj, separators=(",", ":"))
 
@@ -376,6 +388,7 @@ def print_declared(rows):
 
 def programs_package(work):
     """The executable fixtures as a standalone package (its own workspace) in `work`."""
+    pin_toolchain(work)
     (work / "src").mkdir()
     shutil.copy(ROOT / "crates" / PACKAGE / "programs" / "lib.cairo", work / "src" / "lib.cairo")
     shutil.copy(ROOT / "crates" / PACKAGE / "src" / "scene.cairo", work / "src" / "scene.cairo")
@@ -386,7 +399,7 @@ def programs_package(work):
                       f'function = "{PROGRAMS_PACKAGE}::{n}"\n\n' for n in PROGRAMS)
     (work / "Scarb.toml").write_text(
         f'[package]\nname = "{PROGRAMS_PACKAGE}"\nversion = "0.1.0"\nedition = "2024_07"\n\n'
-        "[dependencies]\n" + "\n".join(deps) + '\ncairo_execute = "2.19.4"\n\n' + targets
+        "[dependencies]\n" + "\n".join(deps) + '\ncairo_execute = "' + toolchain_version() + '"\n\n' + targets
         + "[cairo]\nenable-gas = false\n")
 
 
@@ -422,6 +435,7 @@ def strategy_toml(strategy):
 def temp_package(work, strategy):
     """The fixtures as a standalone package (its own workspace) in `work`, also built as a
     library (for the call graph), with Sierra debug names (dev profile)."""
+    pin_toolchain(work)
     shutil.copytree(ROOT / "crates" / PACKAGE / "src", work / "src")
     pins = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]
     deps = [f'{d} = "{pins[d]}"' for d in ("fixed", "glam", "glam_core") if d in pins]
@@ -429,7 +443,7 @@ def temp_package(work, strategy):
     cairo = f"\n[cairo]\ninlining-strategy = {strategy_toml(strategy)}\n" if strategy else ""
     (work / "Scarb.toml").write_text(
         f'[package]\nname = "{PACKAGE}"\nversion = "0.1.0"\nedition = "2024_07"\n\n'
-        "[dependencies]\n" + "\n".join(deps) + '\nstarknet = "2.19.4"\n\n'
+        "[dependencies]\n" + "\n".join(deps) + '\nstarknet = "' + toolchain_version() + '"\n\n'
         "[lib]\nsierra = true\n\n[[target.starknet-contract]]\nsierra = true\ncasm = true\n"
         + cairo)
 
