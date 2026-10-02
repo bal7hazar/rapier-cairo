@@ -20,6 +20,12 @@ one function or another), 2.19.4 the same; with `RAYON_NUM_THREADS=1`, 6 of 6 id
 every snapshot regeneration and every build whose Sierra or CASM is hashed or sized runs with `RAYON_NUM_THREADS=1`
 exported**, on 2.19.4 as on 2.20.1 (the build shims keep a value already set; their default is 4).
 
+**Machine rule** (programme rule of 2026-10-02, from Grim World): a class built single-threaded has a different Sierra
+text and class hash on the Mac and on the VPS (same CASM; each machine stable by itself). So every committed file that
+pins a hash, class bytes, a class size or a declared-class margin (`gas/bytecode.size`, the declared-class tables of
+§4.1 and of `docs/BUDGETS.md`) is generated and checked on Linux only, the VPS or CI, never from a Mac build. The lot
+runs on the Mac: the Mac runs the tests and the measurements that produce no such file (snforge tests, steps, gas).
+
 Read first: `AGENTS.md` (§3 the report, §6 validation, §7 the steps rule: "exact steps unchanged" needs before / after
 tables on the P3, level **and** game-shaped probes), `CLAUDE.md` (stack, commands), `docs/BUDGETS.md` (how figures are
 recorded), `scripts/gas.py` and `scripts/bytecode_size.py` (their docstrings), `.github/workflows/ci.yml`.
@@ -56,7 +62,8 @@ this worktree before any pin moves) and **after** (2.20.1 / 0.64.0):
 
 1. Declared classes (`scripts/bytecode_size.py`, `DECLARED`, the caller class of `crates/rapier_sink` included): Sierra
    and CASM felts, before / after, and the margin under `DECLARED_LIMIT` = 73,728 (CI gate: ≥ 1,000). The slim caller
-   first.
+   first. Taken from CI logs (`bytecode` job of `main` for before, of the PR for after) or from a VPS run, never from
+   the Mac (§1 machine rule).
 2. Cairo steps (`--tracked-resource cairo-steps`) of every `steps_*` probe of `crates/rapier2d/tests/` (`game_path`,
    `level_budget`, `sleep_budget`, `gas_scenes`) and `crates/rapier2d_classes/tests/` (`steps`, `slim`, `edits`),
    crate-scoped runs, before / after.
@@ -94,7 +101,7 @@ on. Never open an upstream issue yourself.
    artifact compared; `python3 scripts/bytecode_size.py table` twice with each setting; the gas of
    `snforge test -p rapier2d` with each setting compared entry by entry, each log against the committed snapshot (`python3 scripts/gas.py diff --from-log <log> --filter rapier2d`). Report
    whether the committed snapshots were stable under 4 threads, which artifacts or entries moved, and what the shims
-   (`scripts/build-shims/lock.sh`, the machine shims) should set. Report the 4-thread variance in this verdict, not as a compile drift (§5). On 2.20.1, the clean-build SHA-256 and `bytecode_size.py table` comparison for `rapier2d_classes`.
+   (`scripts/build-shims/lock.sh`, the machine shims) should set. Report the 4-thread variance in this verdict, not as a compile drift (§5). These runs may be on the Mac as measurements, but every hash reported names its machine; a Mac / VPS difference is not a regression and not a compile drift: report both figures, each with its machine. On 2.20.1, the clean-build SHA-256 and `bytecode_size.py table` comparison for `rapier2d_classes`.
 7. CI wall time of the changed jobs before / after (`RAYON_NUM_THREADS: 1` may slow compilation); a job above 15
    minutes is reported under Escalations, not split.
 
@@ -103,7 +110,7 @@ on. Never open an upstream issue yourself.
 - `export RAYON_NUM_THREADS=1` for every command of this lot except the deliberate 4-thread runs of §6.6.
 - **Before anything else**, while `.tool-versions` still reads 2.19.4: the stability runs of §6.6, then the "before"
   figures of §4.1 and §4.2
-  (`python3 scripts/bytecode_size.py table`; `snforge test -p rapier2d steps_ --tracked-resource cairo-steps`,
+  (the declared-class "before" from the `bytecode` job log of `main`, not from the Mac; `snforge test -p rapier2d steps_ --tracked-resource cairo-steps`,
   `snforge test -p rapier2d_classes steps_ --tracked-resource cairo-steps --max-threads 2`), logs kept in the worktree (uncommitted).
 - Check `asdf list scarb` / `asdf list starknet-foundry` show 2.20.1 / 0.64.0. **If either is missing, stop: do not
   install anything** (installing is the owner's); report it under Escalations.
@@ -112,10 +119,11 @@ on. Never open an upstream issue yourself.
   `rapier_sink` add `--max-threads 2`, as the CI `sink` job does (`snforge test -p <crate> --max-threads 2`).
 - Heavy whole-shot runs (the §6.6 stability runs, the `steps_` runs of `rapier2d_classes`,
   `scripts/bytecode_size.py snapshot`) run only on the machine the orchestrator places the lot on (the Mac), one heavy
-  run at a time.
+  run at a time, except `bytecode_size.py snapshot`, which is never run on the Mac (§1 machine rule).
 - Gas snapshots: crate-scoped `python3 scripts/gas.py snapshot --filter <crate>::` per crate and per
   `<crate>_integrationtest::`, or `python3 scripts/gas.py snapshot --from-log <merged CI snforge logs>` from the PR's
-  artifacts `snforge-*`. Class sizes: `python3 scripts/bytecode_size.py snapshot` (heavy: nothing else in parallel).
+  artifacts `snforge-*`. Class sizes: `gas/bytecode.size` comes from CI or a VPS run, not from the Mac. If CI does not give it, push everything
+  else and list it under Escalations: the orchestrator has it generated on the VPS.
 - "After" figures of §4; `docs/BUDGETS.md`: one new section "Toolchain 2.20.1 / 0.64.0 (TC1, <date>)" with the
   declared-class table and a steps summary (min / max / median change, and any probe that moved).
 - Conventional commits with the trailer, push, `gh pr create` per the template, `gh pr checks --watch` until green,
@@ -125,7 +133,8 @@ on. Never open an upstream issue yourself.
 
 `REPORT.md` as `AGENTS.md` §3 says, title `# [<model you run as>] TC1 — toolchain bump`. Lead the Summary with the
 declared-class margins (slim caller first), then: steps changed or not, gas delta summary, bit-identity verdict, the
-thread-count stability verdict and the recommended shim setting.
+thread-count stability verdict and the recommended shim setting. For every pinned or measured hash or class size, say
+which machine it comes from.
 
 ## 9. Autonomy
 
