@@ -22,7 +22,7 @@
 # when it is not). The heavy-lock wait is capped at 90 s (PREPUSH_LOCK_WAIT_MAX), then the compile is left to CI.
 #
 # Never `snforge test --workspace`, never a whole-shot suite (`rapier2d_classes`, `rapier_sink`): those stay in CI.
-# Builds go through the build shims (heavy-build.lock). Every build runs with RAYON_NUM_THREADS=1. Exits non-zero on the first failing stage and names it.
+# Builds go through the build shim, under this script's own `flock -w` on heavy-build.lock. Every build runs with RAYON_NUM_THREADS=1. Exits non-zero on the first failing stage and names it.
 set -euo pipefail
 
 export RAYON_NUM_THREADS=1
@@ -68,35 +68,37 @@ fi
 compile_skipped=0
 lock_wait_total=0
 
-# locked_run <cmd...>: run a build command (the shim on PATH takes the lock before it execs scarb, so the first output
-# line marks the moment the lock was acquired). The reported "lock wait" is an upper bound: lock wait plus scarb
-# start-up.
+# locked_run <shell command>: run a build command. Where the lock exists the script takes it itself, with
+# `flock -w <max>` (exit 99 on timeout; nothing is killed, the lock file is touched only through flock), and runs the
+# command under it with HEAVY_BUILD_LOCK_HELD=1, which the VPS scarb shim (~/.local/bin/scarb) documents as a
+# pass-through: its `scarb` then execs the real asdf binary under `nice` instead of waiting on the lock a second time.
+# The variable is set only for the command under the flock. That shim takes no per-project lock. The lock wait printed
+# is exact: the command first records the time it got the lock.
+lock_wait_total=0
 locked_run() {
   [ "$compile_skipped" = 1 ] && return 0
-  local t0=$SECONDS first="" out rcf pid rc
-  out=$(mktemp); rcf=$(mktemp)
-  setsid bash -c 'o=$0; r=$1; shift; "$@" >"$o" 2>&1; echo $? >"$r"' "$out" "$rcf" "$@" &
-  pid=$!
-  while [ ! -s "$rcf" ]; do
-    if [ -z "$first" ] && [ -s "$out" ]; then
-      first=$((SECONDS - t0))
-      lock_wait_total=$((lock_wait_total + first))
-      note "lock wait (upper bound): $first s ($*)"
-    fi
-    if [ -z "$first" ] && [ "$capped" = 1 ] && [ $((SECONDS - t0)) -ge "$lock_max" ] && [ ! -s "$rcf" ]; then
-      kill -- "-$pid" 2>/dev/null || true
-      lock_wait_total=$((lock_wait_total + SECONDS - t0))
+  local t0 acq rc=0 stamp
+  t0=$(date +%s)
+  if [ "$capped" = 1 ]; then
+    stamp=$(mktemp)
+    flock -w "$lock_max" -E 99 "$shim_lock" \
+      env HEAVY_BUILD_LOCK_HELD=1 RAYON_NUM_THREADS=1 \
+      bash -c 'date +%s >"$0"; exec bash -c "$1"' "$stamp" "$1" || rc=$?
+    if [ "$rc" = 99 ]; then
+      rm -f "$stamp"
+      lock_wait_total=$((lock_wait_total + $(date +%s) - t0))
       compile_skipped=1
-      rm -f "$out" "$rcf"
       echo "heavy lock busy: Cairo compile left to CI"
       return 0
     fi
-    sleep 1
-  done
-  wait "$pid" 2>/dev/null || true
-  sed 's/^/    /' "$out"
-  rc=$(cat "$rcf"); rm -f "$out" "$rcf"
-  return "${rc:-1}"
+    acq=$(cat "$stamp"); rm -f "$stamp"
+    acq=$((acq - t0))
+    lock_wait_total=$((lock_wait_total + acq))
+    note "lock wait: $acq s"
+  else
+    bash -c "$1" || rc=$?
+  fi
+  return "$rc"
 }
 
 # Changed files: merge base .. working tree, plus untracked, one per line.
@@ -128,8 +130,7 @@ end
 begin "build/lint"
 if [ "$full" = 1 ] || grep -Eq '^(Scarb\.toml|Scarb\.lock|\.tool-versions)$' <<<"$changed"; then
   note "root manifest, lock, toolchain or PREPUSH_FULL: whole workspace"
-  locked_run scarb lint --workspace --deny-warnings
-  locked_run scarb build --workspace
+  locked_run 'scarb lint --workspace --deny-warnings && scarb build --workspace'
 else
   # Only Cairo sources and manifests count: a README or a snapshot does not change what compiles.
   crates=$(sed -nE 's#^crates/([^/]+)/(Scarb\.toml|(src|tests|programs)/.*\.cairo)$#\1#p' <<<"$changed" | sort -u)
@@ -140,8 +141,7 @@ else
     # A crate removed by the branch has no manifest left.
     [ -f "crates/$c/Scarb.toml" ] || continue
     note "crate $c"
-    locked_run scarb lint -p "$c" --deny-warnings
-    locked_run scarb build -p "$c"
+    locked_run "scarb lint -p $c --deny-warnings && scarb build -p $c"
   done
 fi
 end
@@ -174,4 +174,4 @@ if changed_any '^(crates/[^/]+/src/.*|crates/[^/]+/Scarb\.toml|Scarb\.toml|consu
 fi
 end
 
-echo "prepush: OK ($((SECONDS - start)) s, of which waiting for the build lock, upper bound: $lock_wait_total s)"
+echo "prepush: OK ($((SECONDS - start)) s, of which waiting for the build lock: $lock_wait_total s)"
