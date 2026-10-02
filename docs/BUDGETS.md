@@ -1,5 +1,27 @@
 # Step Budgets
 
+## Toolchain 2.20.1 / 0.64.0 (TC1, 2026-10-02)
+
+Scarb 2.19.4 / snforge 0.61.0 → Scarb 2.20.1 (Cairo 2.20.0) / snforge 0.64.0; results bit-identical (every test and
+`*_bit_identical` probe passes unchanged). Every figure with `RAYON_NUM_THREADS=1`. Felt counts are path-free: measured
+on the Mac (`scripts/bytecode_size.py table`, worktree
+`/Users/bal7hazar/.herdr/worktrees/rapier-cairo/hp-slingfall-rapier-t-0007-tc1-toolchain-bump`); the same run on 2.19.4
+equals the committed `gas/bytecode.size` (Linux) for all 32 classes. Declared classes against 73,728 felts:
+
+| declared class | Sierra felts | CASM felts | margin (Sierra / CASM) |
+|---|--:|--:|--:|
+| `SlimSplitStep` (caller) | 26,834 → 26,844 | 67,076 → 67,108 | 46,884 / 6,620 (−32) |
+| `SlimEditStep` (caller) | 27,135 → 27,145 | 68,818 → 68,850 | 46,583 / 4,878 (−32) |
+| `NarrowPhaseClass` | 22,008 → 22,027 | 68,372 → 68,470 | 51,701 / 5,258 (−98) |
+| `IslandsClass` | 7,952 → 7,970 | 19,083 → 19,228 | 65,758 / 54,500 (−145) |
+| the 9 others | unchanged | unchanged | unchanged (smallest: `SolveAdvanceClass` CASM 15,181) |
+
+Programs: `full` 565,378 → 566,269 felts, `basic` 231,196 → 231,554. Exact Cairo steps of the `steps_*` probes: rapier2d
+50 probes, 44 moved, +0 to +1.84 % (median +1.33 %; game path +1.25 to +1.38 %, `steps_impact_level20` 3,401,223 →
+3,463,774, free fall unchanged); `rapier2d_classes` 111 probes, 110 moved, median +1.61 %, max +3.78 % on a shot
+(`steps_batched_in_process_0`), `steps_install_stored` 6,246 → 7,746, `steps_install` unchanged. Sierra gas: the snforge
+harness −7,710 per test, net of it median 0, whole shots up to +1.8 %.
+
 ## Composite grounds (SH2a #184, 2026-09-27)
 
 Per step, one body resting on the ground (Sierra gas / Cairo steps): ball on a 10- / 50-segment polyline 3.58M / 30.8k,

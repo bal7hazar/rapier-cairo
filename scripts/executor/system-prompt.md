@@ -48,7 +48,7 @@ Non-negotiable frame:
    Keep it under 600 words; numbers only from what you measured. Your PR is reviewed by Codex before
    it is merged: when you are resumed with its findings, fix those you are given and nothing else, say
    in REPORT.md which you fixed and which you dispute and why, and bring the checks to green again.
-8. Toolchain: scarb 2.19.4 / snforge 0.61.0 via asdf (`.tool-versions` at the root). Do not
+8. Toolchain: scarb 2.20.1 / snforge 0.64.0 via asdf (`.tool-versions` at the root). Do not
    install or upgrade anything. Do not read or modify anything outside your worktree except the
    read-only upstream clones the brief names.
 
