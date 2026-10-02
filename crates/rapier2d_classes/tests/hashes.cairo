@@ -14,24 +14,25 @@ use starknet::syscalls::{storage_read_syscall, storage_write_syscall};
 use starknet::{ClassHash, SyscallResultTrait};
 
 /// The class hashes snforge declares for this package's classes (`test_pinned_class_hashes`
-/// prints the new ones when the classes change).
+/// prints the new ones when the classes change). Pinned from CI (Scarb 2.20.1, TC1): root path
+/// `/home/runner/work/rapier-cairo/rapier-cairo`, run 37017663782, artifact `class-hashes`.
 pub const CONTACT_BALL_HASH: felt252 =
-    0x4efa41be660cdf0afad6953de378645d439efea43d9409603db060d432c38df;
+    0x5f9b275f6554d67248a2d06302bc48eb7fc08854ab213a36cd558dc9ef7d08b;
 pub const CONTACT_POLYGON_HASH: felt252 =
-    0x7bfd56046f343075ac1c74a80bec6e00f3d3ba5c605b865e10e965ff403204c;
-pub const SOLVER_HASH: felt252 = 0x4cfc36dee6ae77a422c0db5333a91991141b907d937ceecde7c1fb155027737;
+    0xfb2be1deb70c09f61be9f7869281ae68ae8a89d3d67a05bdb47ef4ed2bd1e5;
+pub const SOLVER_HASH: felt252 = 0x47eb41954b4ef81971087190121a3589cecbde08bedb5dc0707aa00842c3743;
 pub const SOLVE_ADVANCE_HASH: felt252 =
-    0x6f22ca2b78b9955a5b288e4e80663a65fcb997739e11b68bf5c2226022b72d3;
-pub const ISLANDS_HASH: felt252 = 0x640435f9c277ebb55e1c01979eeb2cf84948424dcacbd669e11055d12b78bde;
+    0xb0f496a340509f79c875459843cbf6870aa01f35231b72ecaf0d9403ed36d2;
+pub const ISLANDS_HASH: felt252 = 0x3e2a3e1ff275efee0257ef842298712e98b6b555203048a5b9b2648e24c9a46;
 pub const BROAD_PHASE_HASH: felt252 =
-    0x63c302fc078a15b81bc53c4d4bbc7c3c10920773cedcf9c4edf5a64c8e7a2b8;
-pub const MASS_HASH: felt252 = 0x59bd3e4c27c773dc1cd65d09408315b6344aad370a0ef1c60f8b24af42c0fce;
+    0x53423c89826872bf0609676dde383e1e7fd4716d8c76c4964785c1e73a51014;
+pub const MASS_HASH: felt252 = 0x60051ffb6f7fe7e5a29c6ac58db800bafcfa716e79b3d97a058a71027e10c3b;
 pub const NARROW_PHASE_HASH: felt252 =
-    0x447bcf48b1735aaba6fdfaa632aed8582d115764ae676fdda24c31b20a10dbd;
+    0x7c3425c0a8f5c38a3941fdb3f41d495729347b049ca3eb8934adf80b6366502;
 pub const ACTIVE_SET_HASH: felt252 =
-    0x74d52fcda3b1da92328620cffef1ff1b9563f36b5cb02512dd1505a5fe12b14;
+    0x5ea0e678c30220f403888fa50bf0b304040ee2628f14edfa4158cf082e90e9b;
 pub const FORCE_EVENTS_HASH: felt252 =
-    0x79868c1cabc3ba4f2fb06394abfa8365c2670b7aff7f9cf94faeb9d9fac7c8e;
+    0x6d12b463e71aee6dc0000a8c5ff76ba33f93b0780d3d738242de68e6dcd87f9;
 
 /// The declared classes: name, pinned hash, storage slot of [`StoredHashes`], call counter of
 /// [`CountingHashes`].
