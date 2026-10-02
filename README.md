@@ -43,7 +43,7 @@ snforge test --workspace
 python3 scripts/gas.py diff
 ```
 
-Toolchain: scarb 2.19.4, starknet-foundry 0.61.0 (see `.tool-versions`).
+Toolchain: scarb 2.20.1 (Cairo 2.20.0), starknet-foundry 0.64.0 (see `.tool-versions`).
 
 ## Stability
 
