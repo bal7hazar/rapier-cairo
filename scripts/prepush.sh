@@ -18,7 +18,7 @@
 #                 PACKAGES.md   crate sources, manifests, consumer_cost.*   -> warns (generated in CI only)
 #
 # Never `snforge test --workspace`, never a whole-shot suite (`rapier2d_classes`, `rapier_sink`): those stay in CI.
-# Every build runs with RAYON_NUM_THREADS=1. Exits non-zero on the first failing stage and names it.
+# Builds go through the build shims (heavy-build.lock). Every build runs with RAYON_NUM_THREADS=1. Exits non-zero on the first failing stage and names it.
 set -euo pipefail
 
 export RAYON_NUM_THREADS=1
@@ -45,6 +45,26 @@ end() {
 }
 
 note() { echo "    $*"; }
+
+# locked_run <cmd...>: run a build command (always through the build shims on PATH, never a bare scarb binary: the
+# shims take ~/orchestrator/heavy-build.lock) and tell the time spent waiting for the lock. The shim takes the locks
+# before it execs scarb, so the first output line marks the moment the lock was acquired.
+lock_wait_total=0
+locked_run() {
+  local t0=$SECONDS first="" rcf line
+  rcf=$(mktemp)
+  while IFS= read -r line; do
+    if [ -z "$first" ]; then
+      first=$((SECONDS - t0))
+      lock_wait_total=$((lock_wait_total + first))
+      note "lock wait: $first s ($*)"
+    fi
+    echo "    $line"
+  done < <("$@" 2>&1; echo $? >"$rcf")
+  local rc
+  rc=$(cat "$rcf"); rm -f "$rcf"
+  return "${rc:-1}"
+}
 
 # Changed files: merge base .. working tree, plus untracked, one per line.
 if base=$(git merge-base HEAD origin/main 2>/dev/null); then
@@ -75,19 +95,20 @@ end
 begin "build/lint"
 if [ "$full" = 1 ] || grep -Eq '^(Scarb\.toml|Scarb\.lock|\.tool-versions)$' <<<"$changed"; then
   note "root manifest, lock, toolchain or PREPUSH_FULL: whole workspace"
-  scarb lint --workspace --deny-warnings
-  scarb build --workspace
+  locked_run scarb lint --workspace --deny-warnings
+  locked_run scarb build --workspace
 else
-  crates=$(sed -nE 's#^crates/([^/]+)/.*#\1#p' <<<"$changed" | sort -u)
+  # Only Cairo sources and manifests count: a README or a snapshot does not change what compiles.
+  crates=$(sed -nE 's#^crates/([^/]+)/(Scarb\.toml|(src|tests|programs)/.*\.cairo)$#\1#p' <<<"$changed" | sort -u)
   if [ -z "$crates" ]; then
-    note "no crate changed"
+    note "no Cairo source or manifest changed: compile skipped"
   fi
   for c in $crates; do
     # A crate removed by the branch has no manifest left.
     [ -f "crates/$c/Scarb.toml" ] || continue
     note "crate $c"
-    scarb lint -p "$c" --deny-warnings
-    scarb build -p "$c"
+    locked_run scarb lint -p "$c" --deny-warnings
+    locked_run scarb build -p "$c"
   done
 fi
 end
@@ -120,4 +141,4 @@ if changed_any '^(crates/[^/]+/src/.*|crates/[^/]+/Scarb\.toml|Scarb\.toml|consu
 fi
 end
 
-echo "prepush: OK ($((SECONDS - start)) s)"
+echo "prepush: OK ($((SECONDS - start)) s, of which waiting for the build lock: $lock_wait_total s)"
