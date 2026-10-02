@@ -595,5 +595,39 @@ pub fn take_current(ref wire: Span<felt252>) -> ContactPair {
     }
 }
 
+/// CX2's `NarrowPhaseClass` body, measured against `crate::narrow::pair_loop` (CX3): the previous
+/// pairs rebuilt whole (`crate::narrow::pair_of`), the jobs of the pairs that reach the contact
+/// generation (`contact_jobs`), their geometries (`crate::contact::family_local_polygon`: the
+/// pairs with a ball in one call of `ContactBallClass`), then the loop over the results
+/// (`compute_contacts_with_results`). Same pairs and events; on pile10's owner's shot the slim
+/// layout pays 1,092,637 more Cairo steps (Scarb 2.20.1, `docs/research/class-split.md`, section
+/// 13).
+pub fn batched_in_class(
+    contact_ball: starknet::ClassHash,
+    previous: Span<crate::narrow::PreviousPair>,
+    prediction: Fixed,
+    scratch: Span<PairCollider>,
+    pairs: Span<(u32, u32)>,
+    ref colliders: rapier_dynamics2d::collider_set::ColliderSet,
+) -> (Array<ContactPair>, Array<rapier_dynamics2d::events::CollisionEvent>) {
+    let mut before = array![];
+    for pair in previous {
+        before.append(crate::narrow::pair_of(*pair));
+    }
+    let mut narrow = rapier_dynamics2d::narrow_phase::NarrowPhase { pairs: before };
+    let jobs = rapier2d::pipeline::stages::narrow::contact_jobs(
+        narrow.pairs.span(), scratch, pairs,
+    );
+    let results = if jobs.is_empty() {
+        array![].span()
+    } else {
+        crate::contact::family_local_polygon(contact_ball, prediction, jobs.span())
+    };
+    let events = rapier2d::pipeline::stages::narrow::compute_contacts_with_results::<
+        rapier_dynamics2d::narrow_phase::strategies::NoSensors,
+    >(ref narrow, prediction, scratch, pairs, ref colliders, results);
+    (narrow.pairs, events)
+}
+
 #[cfg(test)]
 mod tests;

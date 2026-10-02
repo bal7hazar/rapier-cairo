@@ -147,7 +147,7 @@ pub impl FamilyDispatcher<impl H: ClassHashes> of ContactDispatcher {
 
 /// A pair with a ball goes to `ContactBallClass`, any other to `ContactPolygonClass`.
 #[inline(always)]
-fn ball_family(shape1: Shape, shape2: Shape) -> bool {
+pub fn ball_family(shape1: Shape, shape2: Shape) -> bool {
     match (shape1, shape2) {
         (Shape::Ball(_), _) | (_, Shape::Ball(_)) => true,
         _ => false,
