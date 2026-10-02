@@ -50,53 +50,60 @@ end() {
 
 note() { echo "    $*"; }
 
-# Where the VPS heavy-build lock exists (and `scarb` on PATH is its shim) a compile may queue behind other projects'
-# builds: wait for it at most PREPUSH_LOCK_WAIT_MAX seconds (90), always through the shim, never around it. If the
-# lock is not obtained in time, the compile is skipped (one line) and left to CI; the stage still passes. Where there
-# is no such lock (the Mac: no ~/orchestrator/heavy-build.lock, or no shim) the compile always runs.
+# Where the VPS heavy-build lock exists, the compile never runs unlocked: it waits for the lock at most
+# PREPUSH_LOCK_WAIT_MAX seconds (90) and otherwise is skipped (one line) and left to CI; the stage still passes. Where
+# there is no such lock (the Mac: no ~/orchestrator/heavy-build.lock) the compile always runs.
+# The lock is taken here, with `flock -w` (exit 99 on timeout; nothing is killed, the lock file is touched only through
+# flock), once for the whole stage, and the build runs under it with HEAVY_BUILD_LOCK_HELD=1, the pass-through that the
+# VPS scarb shim (~/.local/bin/scarb) documents: its `scarb` then execs the real asdf binary under `nice` instead of
+# waiting on the lock a second time. The variable is set only for the command under the flock. That shim takes no
+# per-project lock. The lock wait printed is exact: the command first records the time it got the lock.
+# `scarb` on PATH is recognised as that shim when it mentions HEAVY_BUILD_LOCK_HELD. The repo's own
+# scripts/build-shims/scarb wrapper is NOT recognised (it only forwards to lock.sh): where the lock exists and `scarb`
+# is not recognised, the compile is skipped, never run unlocked.
 lock_max="${PREPUSH_LOCK_WAIT_MAX:-90}"
 shim_lock="${HEAVY_BUILD_LOCK:-$HOME/orchestrator/heavy-build.lock}"
 scarb_bin=$(command -v scarb || true)
-capped=0
+lock_mode=none          # none: no lock on this machine; shim: take it here; unrecognised: never build
 if [ -e "$shim_lock" ]; then
-  if [ -n "$scarb_bin" ] && grep -qs 'HEAVY_BUILD_LOCK\|heavy-build\.lock' "$scarb_bin"; then
-    capped=1
+  if [ -n "$scarb_bin" ] && grep -qs 'HEAVY_BUILD_LOCK_HELD' "$scarb_bin"; then
+    lock_mode=shim
   else
-    echo "prepush: WARNING $shim_lock exists but \`scarb\` on PATH (${scarb_bin:-none}) is not the shim that takes it: builds run unlocked" >&2
+    lock_mode=unrecognised
   fi
 fi
 compile_skipped=0
 lock_wait_total=0
 
-# locked_run <shell command>: run a build command. Where the lock exists the script takes it itself, with
-# `flock -w <max>` (exit 99 on timeout; nothing is killed, the lock file is touched only through flock), and runs the
-# command under it with HEAVY_BUILD_LOCK_HELD=1, which the VPS scarb shim (~/.local/bin/scarb) documents as a
-# pass-through: its `scarb` then execs the real asdf binary under `nice` instead of waiting on the lock a second time.
-# The variable is set only for the command under the flock. That shim takes no per-project lock. The lock wait printed
-# is exact: the command first records the time it got the lock.
-lock_wait_total=0
+# locked_run <shell command>: run the build command under the lock (see above).
 locked_run() {
-  [ "$compile_skipped" = 1 ] && return 0
   local t0 acq rc=0 stamp
-  t0=$(date +%s)
-  if [ "$capped" = 1 ]; then
-    stamp=$(mktemp)
-    flock -w "$lock_max" -E 99 "$shim_lock" \
-      env HEAVY_BUILD_LOCK_HELD=1 RAYON_NUM_THREADS=1 \
-      bash -c 'date +%s >"$0"; exec bash -c "$1"' "$stamp" "$1" || rc=$?
-    if [ "$rc" = 99 ]; then
-      rm -f "$stamp"
-      lock_wait_total=$((lock_wait_total + $(date +%s) - t0))
+  case "$lock_mode" in
+    unrecognised)
+      echo "heavy lock busy: Cairo compile left to CI (scarb on PATH, ${scarb_bin:-none}, is not the heavy-lock shim: not building unlocked)"
       compile_skipped=1
-      echo "heavy lock busy: Cairo compile left to CI"
-      return 0
-    fi
-    acq=$(cat "$stamp"); rm -f "$stamp"
-    acq=$((acq - t0))
-    lock_wait_total=$((lock_wait_total + acq))
+      return 0 ;;
+    none)
+      bash -c "$1" || rc=$?
+      return "$rc" ;;
+  esac
+  t0=$(date +%s)
+  stamp=$(mktemp)
+  flock -w "$lock_max" -E 99 "$shim_lock" \
+    env HEAVY_BUILD_LOCK_HELD=1 RAYON_NUM_THREADS=1 \
+    bash -c 'date +%s >"$0"; exec bash -c "$1"' "$stamp" "$1" || rc=$?
+  acq=$(cat "$stamp"); rm -f "$stamp"
+  if [ "$rc" = 99 ] && [ -z "$acq" ]; then
+    # flock timed out: the command never started
+    lock_wait_total=$(( $(date +%s) - t0 ))
+    compile_skipped=1
+    echo "heavy lock busy: Cairo compile left to CI"
+    return 0
+  fi
+  if [ -n "$acq" ]; then
+    acq=$((acq - t0)); [ "$acq" -ge 0 ] || acq=0
+    lock_wait_total=$acq
     note "lock wait: $acq s"
-  else
-    bash -c "$1" || rc=$?
   fi
   return "$rc"
 }
@@ -134,15 +141,19 @@ if [ "$full" = 1 ] || grep -Eq '^(Scarb\.toml|Scarb\.lock|\.tool-versions)$' <<<
 else
   # Only Cairo sources and manifests count: a README or a snapshot does not change what compiles.
   crates=$(sed -nE 's#^crates/([^/]+)/(Scarb\.toml|(src|tests|programs)/.*\.cairo)$#\1#p' <<<"$changed" | sort -u)
-  if [ -z "$crates" ]; then
-    note "no Cairo source or manifest changed: compile skipped"
-  fi
+  cmd=""
   for c in $crates; do
     # A crate removed by the branch has no manifest left.
     [ -f "crates/$c/Scarb.toml" ] || continue
     note "crate $c"
-    locked_run "scarb lint -p $c --deny-warnings && scarb build -p $c"
+    cmd="${cmd:+$cmd && }scarb lint -p $c --deny-warnings && scarb build -p $c"
   done
+  if [ -z "$cmd" ]; then
+    note "no Cairo source or manifest changed: compile skipped"
+  else
+    # One lock hold for the whole stage: the 90 s cap is for the stage, not per crate.
+    locked_run "$cmd"
+  fi
 fi
 end
 
