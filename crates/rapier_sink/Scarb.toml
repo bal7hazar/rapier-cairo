@@ -15,7 +15,7 @@ glam_core.workspace = true
 rapier2d = { path = "../rapier2d" }
 rapier2d_classes = { path = "../rapier2d_classes" }
 rapier_geometry2d.workspace = true
-starknet = "2.19.4"
+starknet = "2.20.0"
 
 [dev-dependencies]
 snforge_std.workspace = true

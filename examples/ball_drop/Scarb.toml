@@ -3,7 +3,7 @@ name = "ball_drop"
 description = "rapier-cairo example: a physics scene stepped in an executable, for scarb execute and scarb prove."
 version = "0.1.0"
 edition = "2024_07"
-cairo-version = "2.19.4"
+cairo-version = "2.20.0"
 license = "MIT"
 
 [dependencies]
@@ -13,11 +13,11 @@ glam_core = "0.4.1"
 # By path, so that the example (run by the `execute` CI job) tracks `main`; games pin the registry version,
 # e.g. `rapier2d = "0.1.0-alpha.8"`.
 rapier2d = { path = "../../crates/rapier2d" }
-cairo_execute = "2.19.4"
+cairo_execute = "2.20.0"
 
 [dev-dependencies]
-assert_macros = "2.19.4"
-cairo_test = "2.19.4"
+assert_macros = "2.20.0"
+cairo_test = "2.20.0"
 
 [executable]
 
