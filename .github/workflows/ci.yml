@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   fmt:
@@ -15,6 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - run: scarb fmt --check --workspace
 
   lint:
@@ -22,6 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - run: scarb lint --workspace --deny-warnings
       # Package granularity rule (docs/research/package-cost.md): the proxy gate, report only.
       - name: Library lines of the published crates (proxy of the package size gate, report only)
@@ -48,6 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - run: scarb build --workspace
 
   test:
@@ -74,7 +86,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - uses: foundry-rs/setup-snfoundry@v6
+        id: snfoundry
+        continue-on-error: true
+      - if: steps.snfoundry.outcome == 'failure'
+        uses: foundry-rs/setup-snfoundry@v6
       - name: Run tests
         run: |
           set -o pipefail
@@ -116,6 +136,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - name: Check class sizes
         run: |
           set -o pipefail
@@ -148,7 +172,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - uses: foundry-rs/setup-snfoundry@v6
+        id: snfoundry
+        continue-on-error: true
+      - if: steps.snfoundry.outcome == 'failure'
+        uses: foundry-rs/setup-snfoundry@v6
       # Two test threads: the whole-shot probes of `rapier2d_classes` peak near 4 GB each, and the default (one
       # thread per vCPU) got a runner shut down on #227.
       - run: snforge test -p ${{ matrix.package }} --max-threads 2
@@ -185,6 +217,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - name: Measure the published crates and the closures (cold builds, interleaved rounds)
         run: |
           set +e
@@ -226,6 +262,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:

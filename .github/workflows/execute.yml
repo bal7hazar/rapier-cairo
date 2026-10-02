@@ -18,12 +18,20 @@ on:
       - "crates/*/Scarb.toml"
       - "CHANGELOG.md"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   execute:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
+        id: scarb
+        continue-on-error: true
+      - if: steps.scarb.outcome == 'failure'
+        uses: software-mansion/setup-scarb@v1
       - name: Execute 10 steps of ball_drop
         run: scripts/prove-example.sh ball_drop 10
       - name: Execute 10 steps of box_stack3
