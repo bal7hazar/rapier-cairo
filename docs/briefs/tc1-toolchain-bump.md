@@ -73,7 +73,7 @@ Escalations with the failing tests and values. Do not adjust the test.** A chang
 does not stop it: regenerate, report the tables.
 
 **Compile drift.** If the new toolchain fails to compile, panics, or rejects code that 2.19.4 accepted, or if the
-thread-count comparison (§6.6) shows a rapier artifact that changes between identical builds: reduce it to a minimal
+thread-count comparison (§6.6) shows a rapier artifact that changes between identical single-threaded builds: reduce it to a minimal
 case, run that case on Scarb 2.20.1, and report it (code, command, output) under Escalations; the orchestrator passes it
 on. Never open an upstream issue yourself.
 
@@ -92,9 +92,9 @@ on. Never open an upstream issue yourself.
    times with `RAYON_NUM_THREADS=4` (the shims' default) and three times with `=1`, each a clean build (`scarb clean`
    first: the incremental cache would hide the variation), the SHA-256 of each Sierra / CASM
    artifact compared; `python3 scripts/bytecode_size.py table` twice with each setting; the gas of
-   `snforge test -p rapier2d` with each setting compared entry by entry, each log against the committed snapshot (`scripts/gas.py diff --from-log`). Report
+   `snforge test -p rapier2d` with each setting compared entry by entry, each log against the committed snapshot (`python3 scripts/gas.py diff --from-log <log> --filter rapier2d`). Report
    whether the committed snapshots were stable under 4 threads, which artifacts or entries moved, and what the shims
-   (`scripts/build-shims/lock.sh`, the machine shims) should set. The same comparison on 2.20.1 for `rapier2d_classes`.
+   (`scripts/build-shims/lock.sh`, the machine shims) should set. Report the 4-thread variance in this verdict, not as a compile drift (§5). On 2.20.1, the clean-build SHA-256 and `bytecode_size.py table` comparison for `rapier2d_classes`.
 7. CI wall time of the changed jobs before / after (`RAYON_NUM_THREADS: 1` may slow compilation); a job above 15
    minutes is reported under Escalations, not split.
 
@@ -104,7 +104,7 @@ on. Never open an upstream issue yourself.
 - **Before anything else**, while `.tool-versions` still reads 2.19.4: the stability runs of §6.6, then the "before"
   figures of §4.1 and §4.2
   (`python3 scripts/bytecode_size.py table`; `snforge test -p rapier2d steps_ --tracked-resource cairo-steps`,
-  `snforge test -p rapier2d_classes steps_ --tracked-resource cairo-steps`), logs kept in the worktree (uncommitted).
+  `snforge test -p rapier2d_classes steps_ --tracked-resource cairo-steps --max-threads 2`), logs kept in the worktree (uncommitted).
 - Check `asdf list scarb` / `asdf list starknet-foundry` show 2.20.1 / 0.64.0. **If either is missing, stop: do not
   install anything** (installing is the owner's); report it under Escalations.
 - Move the pins; `scarb fmt --workspace`; per crate `scarb lint -p <crate> --deny-warnings && scarb build -p <crate>`;
