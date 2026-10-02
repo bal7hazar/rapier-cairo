@@ -48,6 +48,13 @@ identical tests (`it1_<layout>_<shot>_<NNN>`, the shot built, launched and run `
 The slim owner's shot (30,710,422) matches the plan's alpha.8 figure (30,773,277 − CS7's 61,741 = 30,711,536 within
 1,114 steps; the difference is the probe's digest).
 
+**Against the earlier impact figures.** BUDGETS ("The game on 0.1.0-alpha.6", CS2) records a pile10 impact *step* of
+391,314 steps. The step alone of this impact tick is 466,039 − 71,988 (`remove_body` × 3, after the step) − 13,185 (the
+probe's damage rule and loop) = **380,866**, i.e. −10,448 since alpha.6, in line with the CX / CS7 / DU1 lots since
+(step path untouched, bit-identical). PLAN's "impact tick 1.02M (six `remove_body` ≈ 90k)" and the game's 652k (alpha.2)
+/ 557k (alpha.3) are game-side ticks (rules included) measured before BT1–BT4 or before CS2, on the game's own
+reference shot of the time: not comparable with these figures.
+
 **What the impact tick does** (census, uncommitted `it1_census_*`, after the step): the pebble meets the sleeping pile,
 **11 bodies awake, 30 contact pairs, 23 touching manifolds, 43 solver points, 8–9 force events, 3 bodies destroyed**
 (damage rule, then three `World::remove_body`), identical on both shots. The owner's shot removes 2 more bodies at
@@ -84,7 +91,7 @@ exactly to the tick.
 | solver: PGS sweeps (stage 1) | 42,260 | 9.1 | 42,260 | 42,691 | 42,691 |
 | solver: constraint generation | 46,826 | 10.0 | 46,826 | 46,986 | 46,986 |
 | solver: bodies (forces, integrate, damp, finish) | 17,431 | 3.7 | 17,431 | 17,431 | 17,431 |
-| solver: final writeback (stage 4) + `impulses_of` | 5,952 | 1.3 | 5,952 | 5,952 | 5,952 |
+| solver: final restitution pass (stage 4: 3,175) + impulse write-back `impulses_of` (2,777) | 5,952 | 1.3 | 5,952 | 5,952 | 5,952 |
 | solve glue (gather, advance, write bodies, mass, body status) | 42,855 | 9.2 | 35,362 | 44,683 | 37,115 |
 | solve glue: `scatter_impulses` | 12,927 | 2.8 | (in the crossing) | 12,927 | (in the crossing) |
 | `remove_body` × 3 (wake partners 40,976, release pairs 25,896) | 71,988 | 15.4 | 71,988 | 71,772 | 71,772 |
@@ -112,7 +119,7 @@ only the pebble's pair is generated; the solver then solves the whole woken pile
 
 | function | steps | role |
 |---|---:|---|
-| `solver::island::sweeps::split::banked` | 148,895 | stages 5 / 0 / 2 / 4 sweep loop and kernels |
+| `solver::island::sweeps::split::banked` | 148,895 | stages 5 / 0 / 2 and the final stage-4 (restitution) pass: loop and kernels |
 | `sweeps::split::generation::generate` | 45,636 | constraint generation (2.0k per manifold) |
 | `sweeps::split::sweep` | 41,618 | stage 1 sweep loop and kernels |
 | `core::array::SpanIterator::next` | 27,895 | ≈ 12 walks of the 30-pair `narrow_phase.pairs`: wake ×3 and release ×3 (6,513 each), `link_pairs`, solve, `scatter_impulses`, `split_at_positions`, `split_dormant` (≈ 2.1–2.2k each) |
@@ -123,14 +130,18 @@ only the pebble's pair is generated; the solver then solves the whole woken pile
 | `force_events::collect_body` | 12,896 (20,044 cum) | |
 | `ordering::scatter_impulses` | 8,462 (12,927 cum) | |
 
-Per point and substep, the three sweeps cost (94,041 + 52,481 + 42,260 + 3,175) / (43 × 4) = **1,116 steps** (≈ 370
-per point per sweep), generation 2,036 per manifold: BT3's floor (≈ 17 steps per fixed-point rescale) is what is left.
+Per point and substep, the sweeps cost (94,041 stage 2 + 52,481 stages 5 / 0 + 42,260 stage 1 + 3,175 for the one
+stage-4 restitution pass after the last substep) / (43 × 4) = **1,116 steps** (≈ 370 per point per sweep). This
+**excludes** constraint generation (2,036 per manifold) and the bodies; the whole solver of the tick, the quantity of
+BT3's "per point per substep 1,473" (L10 level impact tick, `solve_island`), is 258,991 / (43 × 4) = **1,506**, on
+another scene (43 points of an 11-body pile against BT3's L10 pile). BT3's floor (≈ 17 steps per fixed-point rescale)
+is what is left in the kernels.
 
 ## 3. The ticks around it, for scale
 
 | stage | flight (owner tick 30), in process | flight, slim | collapse (owner tick 50), in process | collapse, slim | collapse (reference tick 90), in process | collapse, slim |
 |---|---:|---:|---:|---:|---:|---:|
-| solver sweeps (stages 0–5) | — | — | 61,826 | 61,826 | 133,041 | 133,041 |
+| solver sweeps (stages 0, 1, 2, 5 and the stage-4 pass) | — | — | 61,826 | 61,826 | 133,041 | 133,041 |
 | constraint generation | — | — | 17,162 | 17,162 | 30,895 | 30,895 |
 | solver bodies + `impulses_of` | — | — | 12,416 | 12,416 | 13,193 | 13,193 |
 | solve glue | 3,520 | 3,063 | 34,099 | 21,375 | 40,644 | 27,776 |
@@ -158,34 +169,54 @@ construction" means the same arithmetic in the same order on the same values (on
 | # | lever | mechanism | impact tick (est.) | owner shot (est.) | reference shot (est.) | bit-identical | files | risk | in IT1 step 2 scope |
 |---|---|---|---:|---:|---:|---|---|---|---|
 | X1 | **class crossings of the slim layout** | the slim shot pays +8,344,423 (owner, +37.3 %) / +3,803,112 (reference, +44.0 %) over in process, measured: crossings 74–84k per collapse tick, 82.7k at the impact, 12.6k per flight tick; `NarrowPhaseClass` generation +19–23k per collapse tick. A CX3-like lot (awake-only narrow-phase wire, advance write-back) | −20 to −40k | −2 to −4M | −0.6 to −1.2M | yes (codec only) | `crates/rapier2d_classes/src/**` | medium (caller size, 73,728 gate) | **no** (classes are out of scope) |
-| N1 | narrow-phase pair loop glue | per pair, `*found.unbox().manifold` copied, `solver_data_supported` rebuilt, `ContactPair` appended: 22.5k flat over 15–19 pairs per collapse tick (inlined dispatch code included, to attribute with an `inlining-strategy = "avoid"` build first) | ≈ 0 (3.4k narrow phase) | −0.45 to −0.95M (−4 to −9k × 108) | −0.1 to −0.2M | yes, if the manifold operations are unchanged | `rapier_dynamics2d/src/narrow_phase.cairo` | medium | yes (in process; the slim layout only if `NarrowPhaseClass` calls it) |
+| N1 | narrow-phase pair loop glue | per pair, `*found.unbox().manifold` copied, `solver_data_supported` rebuilt, `ContactPair` appended: 22.5k flat over 15–19 pairs per collapse tick (inlined dispatch code included, to attribute with an `inlining-strategy = "avoid"` build first) | ≈ 0 (3.4k narrow phase) | −0.45 to −0.95M (−4 to −9k × 108) | −0.1 to −0.2M | yes, if the manifold operations are unchanged | `rapier_dynamics2d/src/narrow_phase.cairo` | medium | yes, **in process only** (`NarrowPhaseClass` runs `stages::narrow::compute_contacts_with_results`, not this function) |
 | F1 | force events without whole-collider reads | `collect_body` reads both colliders whole (`Arena::get`, 5.9k at impact) and rebuilds the pair list for every pair; read the flags / threshold through a field accessor or the step's `PairCollider` scratch, rebuild only pairs whose status bit changes | −6 to −10k | −0.35 to −0.55M (−3 to −5k × 108) | −0.08 to −0.13M | yes (same values read, same bits written) | `rapier2d/src/pipeline/force_events.cairo` (+ a `ColliderSet` accessor in `rapier_dynamics2d`) | low | yes |
 | S1 | solver sweep data movement | `banked` / `sweep` pop and re-append `Hot` (10 felts) and `Bank` (8 felts) of every constraint on each of 13 calls per step; a tighter state layout or fewer rebuilds | −8 to −12k (≈ 5 % of 192k) | −0.3 to −0.4M | −0.15 to −0.2M | yes if the kernels' arithmetic is untouched | `rapier_dynamics2d/src/solver/island/sweeps/split.cairo` | medium (BT1 / BT3 benched most variants; losers under `alternatives`) | yes |
 | W1 | fewer walks of `narrow_phase.pairs` in the step glue | ≈ 12 walks per impact tick (`SpanIterator::next` 27.9k), `scatter_impulses` 12.9k, `split_dormant` 9.9k, `split_at_positions` 5.0k, `link_pairs` 7.5k: fuse the scatter into the solve's write-back, the dormant split into the active-set split | −8 to −15k | −0.25 to −0.45M (−2 to −4k × 108) | −0.06 to −0.1M | yes if the write order is kept | `rapier2d/src/pipeline/{fused,ordering,sleeping,active_set}.cairo` | medium | yes |
 | U1 | dense step's user-change scan on all-awake ticks | 6.4k per collapse tick (`Arena::to_array` 3.3k, census, body infos) although nothing changed between steps | 0 | −0.2 to −0.3M (−2 to −3k × 108) | −0.05 to −0.07M | yes | `rapier2d/src/pipeline.cairo`, `pipeline/user_changes.cairo` | low–medium | yes |
-| R1 | `remove_body` in one walk | `wake_contact_partners` walks the pair list twice per removal (`wake_partners` 13.7k, `release_removed_pairs` 8.6k per removal): one fused walk that wakes and releases | **−25 to −33k** (−5 to −7 % of the impact tick) | −0.05M (5 removals) | −0.03M (3 removals) | yes (body writes and pair rewrites are independent and keep their order) | `rapier2d/src/world.cairo`, `rapier2d/src/pipeline/sleeping.cairo` | low | yes |
+| R1 | `remove_body` in one walk | `wake_contact_partners` walks the pair list twice per removal; one fused walk that wakes and releases. Retained: `release_removed_pairs` whole (25,896: the copy and rebuild of every pair and its `== removed` test) and `wake_parent` (7,383: the reads and writes of the woken bodies). Removed: the rest of `wake_partners`, 33,593 for 3 removals (its walk 6,513, its inner loop over `touched` 8,014, its own per-pair code 19,066). Lower bound: only the walk and the inner loop go (14.5k), if the 19k of per-pair code (≈ 212 steps per pair visit, not attributed further) has to be repeated in the fused loop; upper bound: all of it, since the fused loop's involvement test is release's existing `== removed` test | **−15 to −34k** (−3 to −7 % of the impact tick) | −0.03 to −0.06M (5 removals, ≈ 5–11k each) | −0.015 to −0.034M (3 removals) | yes (body writes and pair rewrites are independent and keep their order) | `rapier2d/src/world.cairo`, `rapier2d/src/pipeline/sleeping.cairo` | low | yes |
 | G1 | constraint generation | 2.0k per manifold (46.8k at impact, 17–31k per collapse tick); BT3 floor | −2 to −3k | −0.1M | −0.03M | depends | `sweeps/split/generation.cairo` | medium | yes |
 | — | dormant pairs out of `narrow_phase.pairs` | removes most walks and copies of sleeping pairs (L20's mixed-tick excess) | — | — | — | yes | `WorldState` v3 | — | **no** (codec change, parked) |
 | — | a pile that sleeps again | 6–8 bodies stay awake to the end of both shots; every collapse tick is 190–380k | — | the bulk of the shot | | **no** (sleep thresholds change results) | engine parameters / game rules | — | **no** (numeric; the game's calm rule) |
 | — | (c) solver-graph order, (A) scalar API, (B) composites, (E) sub-shapes, (F) `contact_skin`, (e) `core_witness`, (f) sweep normal | parked by `docs/PLAN.md`; none shows in these profiles as a step cost of the reference shots | — | — | — | — | — | — | **no** (parked) |
 
-**In-scope levers together (N1, F1, S1, W1, U1, R1, G1), estimate:** the impact tick −50 to −75k (−11 to −16 %); the
-owner's shot −1.7 to −2.8M in process (−7.6 to −12.5 %), the same absolute amount on the slim shot (−5.5 to −9.1 % of
-30.7M) wherever the lever runs in the caller (F1, W1, U1, R1, and N1 / S1 / G1 only if the classes call the same
-functions); the reference shot −0.5 to −0.75M.
+**In-scope levers together, estimate.** In process (N1, F1, S1, W1, U1, R1, G1): the impact tick −39 to −74k (−8 to
+−16 %), the owner's shot −1.7 to −2.8M (−7.5 to −12.5 % of 22.37M), the reference shot −0.5 to −0.75M.
 
-**Proof count (estimate, from the cost sheet).** The game packs chunks into proofs of ≤ 1.0e9 virtual L2 gas at about
-150 L2 gas per step on heavy ticks: the owner's shot is 5.445e9 in 6 proofs, the reference shot 2.645e9 in 3. Dropping
-the owner's shot to 5 proofs needs ≈ −8 % of its virtual L2 gas (≈ −2.9M steps at 150 gas per step), and chunk
-boundaries make it non-linear: the in-scope levers reach it only at their upper estimate. The reference shot needs
-≈ −24 % for 2 proofs: out of reach of the in-scope levers. X1 (crossings) is the lever that can move a proof; it is
-outside IT1's step-2 allowlist.
+**On the slim layout (what the game proves), N1 does not apply:** `NarrowPhaseClass` runs
+`rapier2d::pipeline::stages::narrow::compute_contacts_with_results` / `contact_jobs` (owner tick 50 profile), not
+`rapier_dynamics2d::narrow_phase::compute_contacts_from_scratch_with`. S1 and G1 do apply (the solver rows of the slim
+profiles are the same `rapier_dynamics2d::solver` functions with the same steps, run inside `SolveAdvanceClass`; the
+class is rebuilt from them), F1, U1 and R1 run in the caller, W1 only partly (its `scatter_impulses` part runs in the
+advance class's write-back on the slim layout). Without N1: **owner's slim shot −1.2 to −1.85M (−4.0 to −6.0 % of
+30.71M)**, reference slim shot −0.4 to −0.55M (−3.1 to −4.5 % of 12.45M).
+
+**Proof count (estimate, from the cost sheet).** Source: slingfall `docs/proving.md` "Cost sheet on alpha.8" (lot B6,
+`origin/main` `d0d0eaa`, read in a local clone): the game packs chunks into proofs of ≤ 1.0e9 virtual L2 gas; the
+owner's shot is 5,445,013,440 virtual L2 gas in 6 proofs for **35.29M snforge steps of the game's chunk** (rapier's
+slim step plus the game's rules, codec round trips and bindings: more than rapier's 30.71M here), the reference shot
+2.645e9 in 3 proofs (the sheet gives no step count for it). **Basis: 5.445e9 / 35.29M = 154 L2 gas per step**, the
+whole-shot average of the game's own figures, consistent with the sheet's "about 150 L2 gas per step on the heavy
+ticks" (W3 measured ≈ 111 on a light chunk). Dividing by rapier's 30.71M instead (177) would charge the game's own
+steps to the engine.
+
+Five proofs for the owner's shot need ≤ 5.0e9, i.e. ≥ −0.445e9 = **≥ −2.89M steps** at 154 (a lower bound: chunk
+boundaries must also fall right). **The in-scope levers do not reach 5 proofs on their own numbers:** −1.2 to −1.85M on
+the slim shot without N1 (−2.8M even with N1, which does not apply there) is short of −2.89M. The reference shot needs
+≈ −24 % (−0.645e9, ≈ −4.2M steps at 154) for 2 proofs: out of reach. The in-scope levers lower the steps and the L2 gas
+of every shot (the proofs' gas cost, the client's run, the local proofs), not the proof count. X1 (crossings, −2 to
+−4M estimate) is the only lever of this list that can move a proof, alone or with the in-scope ones; it is outside
+IT1's step-2 allowlist.
 
 ## 5. What the profile rules out
 
 - The narrow phase is **not** a lever at the impact tick (3.4k: dormant manifolds are reused); BT3's "narrow phase ≈ 101k
   per impact tick" was the G0 level, whose pebble wakes a pile that has to regenerate its pairs.
-- Six `remove_body` ≈ 90k (alpha.1) are now three at 72k on the reference shots' impact tick.
+- Removals got **dearer per body**, not cheaper: PLAN's six `remove_body` ≈ 90k (alpha.1, the game's reference shot
+  of the time, pre-BT) are 15k per removal; here three cost 71,988, **24.0k per removal**. Each removal walks the whole
+  pair list twice and copies it once (`wake_partners`, `release_removed_pairs`), and since BT2 the list keeps the
+  sleeping pile's dormant pairs (30 pairs at the impact), so the cost grows with the pile, not with the removed body's
+  own contacts. This supports R1 (and the parked "dormant pairs out of `narrow_phase.pairs`").
 - The solver kernels themselves (fused wide sums, skipped exact zeros, unit warm start) are at BT3's floor: what is left
   in the sweeps is data movement (S1), not arithmetic.
 
@@ -204,6 +235,10 @@ snforge test -p rapier2d_classes it1::it1_slim_owner_151 --include-ignored --tra
 ```
 
 ## 7. Measurement material (uncommitted)
+
+Kept uncommitted in the lot's worktree (`hp/slingfall-rapier/t-0008-it1-impact-tick-measure`) for step 2, which
+recommits the probes it needs for its before / after tables:
+
 
 - `crates/rapier2d_classes/tests/it1.cairo` (+ `mod it1;` in `tests/lib.cairo`): `it1_basic_{owner,reference}_NNN`
   (owner 0–80, reference 0–110), `it1_slim_*` pairs around ticks 30, 42, 50, 82, 90, the whole shots, `it1_census_*`.
