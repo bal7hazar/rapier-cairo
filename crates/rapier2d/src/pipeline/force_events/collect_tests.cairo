@@ -253,3 +253,41 @@ fn gas_collect_convex_single_loop() {
 fn gas_collect_composite_single_loop() {
     probe(true, Some(8));
 }
+
+/// EL1 (F1): the shipped `collect` (pairs rebuilt only from the first changed status bit)
+/// against `alternatives::collect_body_rebuilding` (every pair rebuilt), over two passes.
+#[test]
+fn test_rebuilding_agrees() {
+    for composite in array![false, true] {
+        let mut image = array![];
+        scene(composite).into_state().serialize(ref image);
+        let mut shipped = restore(image.span());
+        let mut other = restore(image.span());
+        let dt = shipped.integration_parameters.dt;
+        for _ in 0..2_u32 {
+            let expected = collect(dt, ref shipped.narrow_phase, ref shipped.colliders);
+            let got = super::alternatives::collect_body_rebuilding(
+                dt, ref other.narrow_phase, ref other.colliders, true,
+            );
+            assert!(got == expected, "events");
+            assert!(other.narrow_phase == shipped.narrow_phase, "pairs");
+        }
+    }
+}
+
+fn probe_rebuilding(composite: bool) {
+    let mut world = scene(opaque(composite));
+    let dt = world.integration_parameters.dt;
+    let _ = super::alternatives::collect_body_rebuilding(
+        dt, ref world.narrow_phase, ref world.colliders, true,
+    );
+    let _ = opaque(world.gravity);
+}
+#[test]
+fn gas_collect_convex_rebuilding() {
+    probe_rebuilding(false);
+}
+#[test]
+fn gas_collect_composite_rebuilding() {
+    probe_rebuilding(true);
+}
