@@ -5,7 +5,13 @@ whether simulation results changed.
 
 ## Unreleased
 
-**Results:** unchanged since `0.1.0-alpha.8` (the toolchain bump and the slim crossings are bit-identical).
+## 0.1.0-alpha.9 — 2026-10-03
+
+The toolchain moves to Scarb 2.20.1 / snforge 0.64.0, the engine's step gets cheaper (EL1, CX3), and the API parity
+surface grows (PX3 to PX7, CP3, IG1) off the step path.
+
+**Results:** bit-identical since `0.1.0-alpha.8` (the toolchain bump, the slim crossings and the step levers change no
+result), and Cairo steps lower (EL1, CX3; the toolchain bump itself raised them, see Changed).
 
 ### Added
 - API parity (PX7): the project manager's decisions of 2026-10-03 as table rules: three matcher gaps now `ported` (`is_bouncy`, `NEW_CONTACT_BIT`, `ShapeDistance::from`), 25 items closed with four new reasons (no `IndexMut`, no faithful `Default` for the contact-graph order, no faithful solver-contact form, V-HACD / voxelisation) or the existing closed-enum one; 74 → 46 `missing`. Table and script only, no library code.
