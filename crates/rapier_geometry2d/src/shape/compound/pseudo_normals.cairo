@@ -162,7 +162,9 @@ mod tests {
             (normals(array![pinned(y), pinned(x)]), y, Some(y)),
             (normals(array![pinned(y), pinned(x)]), x, Some(x)),
             // A direction reaching the part from behind is dropped.
-            (normals(array![pinned(y)]), -y, None), // A wedge tip's normal is clamped onto its one boundary edge.
+            (
+                normals(array![pinned(y)]), -y, None,
+            ), // A wedge tip's normal is clamped onto its one boundary edge.
             (normals(array![pinned(ramp)]), -x, Some(ramp)),
         ];
         for (n, dir, expected) in cases {

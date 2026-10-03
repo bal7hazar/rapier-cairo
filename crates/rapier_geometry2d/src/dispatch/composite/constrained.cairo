@@ -256,3 +256,159 @@ pub fn contact_manifolds_composite_constrained(
         _ => contact_manifolds_composite(pos12, shape1, shape2, prediction, previous),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
+    use glam_core::Vec2;
+    use rapier_math::pose2::Pose2;
+    use rapier_testing::opaque;
+    use crate::contact::ContactManifold;
+    use crate::dispatch::composite::contact_manifolds_composite;
+    use crate::shape::{
+        BallTrait, Compound, CompoundTrait, ConvexPolygonTrait, CuboidTrait, FIX_INTERNAL_EDGES,
+        Shape,
+    };
+    use super::contact_manifolds_composite_constrained;
+
+    fn v(x: Fixed, y: Fixed) -> Vec2 {
+        Vec2 { x, y }
+    }
+
+    /// `n / 100`.
+    fn c(n: i64) -> Fixed {
+        Fixed { raw: n * 0x1_0000_0000 / 100 }
+    }
+
+    fn at(x: Fixed, y: Fixed) -> Pose2 {
+        Pose2 { translation: v(x, y), ..Default::default() }
+    }
+
+    fn square(polygon: bool, h: Fixed) -> Shape {
+        if polygon {
+            ConvexPolygonTrait::from_convex_polyline(
+                array![v(-h, -h), v(h, -h), v(h, h), v(-h, h)].span(),
+            )
+                .unwrap()
+                .into()
+        } else {
+            CuboidTrait::new(v(h, h)).into()
+        }
+    }
+
+    /// Two unit squares meeting along `x = 0.5`, flagged or not.
+    fn floor(polygon: bool, flagged: bool) -> Shape {
+        let parts = array![
+            (at(ZERO, ZERO), square(polygon, HALF)), (at(ONE, ZERO), square(polygon, HALF)),
+        ]
+            .span();
+        let compound: Compound = if flagged {
+            CompoundTrait::with_flags(parts, FIX_INTERNAL_EDGES, None)
+        } else {
+            CompoundTrait::new(parts)
+        };
+        Shape::Compound(BoxTrait::new(compound))
+    }
+
+    fn manifolds(shape1: Shape, shape2: Shape, pos12: Pose2) -> Span<ContactManifold> {
+        contact_manifolds_composite_constrained(pos12, shape1, shape2, c(2), array![].span())
+            .unwrap()
+            .span()
+    }
+
+    /// An unflagged compound gets the unconstrained strategy's manifolds, in either order.
+    #[test]
+    fn test_unflagged_is_unconstrained() {
+        let ball = Shape::Ball(BallTrait::new(HALF));
+        let pos = at(c(45), c(95));
+        for (polygon, other) in array![(false, ball), (true, square(true, c(25)))] {
+            let plain = floor(polygon, false);
+            assert_eq!(
+                manifolds(plain, other, pos),
+                contact_manifolds_composite(pos, plain, other, c(2), array![].span())
+                    .unwrap()
+                    .span(),
+            );
+        }
+    }
+
+    /// A ball resting on the seam: unflagged, part 1's corner pushes it back along a tilted
+    /// normal; flagged, that normal leaves part 1's cones towards the flat top, the recast ray
+    /// misses part 1 and its manifold is dropped. Part 0's is the same either way. The flipped
+    /// order (ball first) agrees.
+    #[test]
+    fn test_ball_across_the_seam() {
+        let ball = Shape::Ball(BallTrait::new(HALF));
+        let pos = at(c(45), c(95));
+        let plain = manifolds(floor(false, false), ball, pos);
+        let fixed = manifolds(floor(false, true), ball, pos);
+        assert_eq!((plain.len(), fixed.len()), (2, 2));
+        assert_eq!(*plain.at(0), *fixed.at(0));
+        let corner = *plain.at(1);
+        assert_eq!(corner.num_points, 1);
+        assert!(corner.local_n1.x < ZERO, "tilted back");
+        assert_eq!(*fixed.at(1).num_points, 0);
+        let flipped = contact_manifolds_composite_constrained(
+            Pose2 { translation: v(-c(45), -c(95)), ..Default::default() },
+            ball,
+            floor(false, true),
+            c(2),
+            array![].span(),
+        )
+            .unwrap();
+        assert_eq!(*flipped.at(1).num_points, 0);
+        assert_eq!(*flipped.at(0).num_points, 1);
+    }
+
+    /// Two cuboids ignore the cones, as upstream's cuboid–cuboid generator.
+    #[test]
+    fn test_box_pairs_ignore_the_cones() {
+        let other = square(false, c(25));
+        let pos = at(c(26), c(74));
+        assert_eq!(
+            manifolds(floor(false, true), other, pos), manifolds(floor(false, false), other, pos),
+        );
+    }
+
+    /// A polygon nosing over the seam: SAT picks part 1's cut face (`-x`, 0.005 deep against
+    /// 0.01 on top); flagged, no cone of part 1 faces that way and its manifold is dropped.
+    #[test]
+    fn test_polygon_across_the_seam() {
+        let other = square(true, c(25));
+        let pos = Pose2 {
+            translation: v(Fixed { raw: c(25).raw + c(1).raw / 2 }, c(74)), ..Default::default(),
+        };
+        let plain = manifolds(floor(true, false), other, pos);
+        let fixed = manifolds(floor(true, true), other, pos);
+        assert_eq!((plain.len(), fixed.len()), (2, 2));
+        assert_eq!(*plain.at(0), *fixed.at(0));
+        assert_eq!(*plain.at(1).local_n1, v(-ONE, ZERO));
+        assert!(*plain.at(1).num_points > 0);
+        assert_eq!(*fixed.at(1).num_points, 0);
+    }
+
+    #[test]
+    fn gas_baseline() {}
+
+    #[test]
+    fn gas_ball_across_the_seam_flagged() {
+        let _ = contact_manifolds_composite_constrained(
+            opaque(at(c(45), c(95))),
+            opaque(floor(false, true)),
+            Shape::Ball(BallTrait::new(HALF)),
+            c(2),
+            array![].span(),
+        );
+    }
+
+    #[test]
+    fn gas_polygon_across_the_seam_flagged() {
+        let _ = contact_manifolds_composite_constrained(
+            opaque(at(c(26), c(74))),
+            opaque(floor(true, true)),
+            square(true, c(25)),
+            c(2),
+            array![].span(),
+        );
+    }
+}

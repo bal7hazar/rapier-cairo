@@ -370,3 +370,180 @@ pub fn compute_pseudo_normals(
     }
     out.span()
 }
+
+#[cfg(test)]
+mod tests {
+    use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
+    use glam_core::Vec2;
+    use rapier_math::pose2::Pose2;
+    use rapier_math::rot2::Rot2;
+    use rapier_testing::opaque;
+    use crate::shape::compound::{
+        Compound, CompoundFlagsTrait, CompoundPseudoNormals, CompoundTrait, FIX_INTERNAL_EDGES,
+    };
+    use crate::shape::{BallTrait, CuboidTrait, Shape, TriangleTrait};
+    use super::weld_corners;
+
+    fn v(x: Fixed, y: Fixed) -> Vec2 {
+        Vec2 { x, y }
+    }
+
+    fn at(x: Fixed, y: Fixed) -> Pose2 {
+        Pose2 { translation: v(x, y), ..Default::default() }
+    }
+
+    fn unit_box() -> Shape {
+        CuboidTrait::new(v(HALF, HALF)).into()
+    }
+
+    /// Two unit boxes meeting along `x = 0.5`, the second one shifted right by `dx` raw.
+    fn pair(dx: i64, tolerance: Option<Fixed>) -> Compound {
+        CompoundTrait::with_flags(
+            array![(at(ZERO, ZERO), unit_box()), (at(ONE + Fixed { raw: dx }, ZERO), unit_box())]
+                .span(),
+            FIX_INTERNAL_EDGES,
+            tolerance,
+        )
+    }
+
+    fn cones(c: @Compound, i: u32) -> CompoundPseudoNormals {
+        c.part_normal_constraints(i).unwrap()
+    }
+
+    /// `(1, 1) / sqrt(2)` as `normalize_or` rounds it, and its mirror.
+    fn diag(sx: i64, sy: i64) -> Vec2 {
+        let h: i64 = 3037000499;
+        Vec2 { x: Fixed { raw: sx * h }, y: Fixed { raw: sy * h } }
+    }
+
+    /// Upstream's `with_flags` example: the shared edge is interior, so each part keeps three.
+    #[test]
+    fn test_shared_edge_is_dropped() {
+        let c = pair(0, None);
+        assert_eq!(c.flags(), FIX_INTERNAL_EDGES);
+        assert_eq!(cones(@c, 0).boundary_edges.len(), 3);
+        assert_eq!(cones(@c, 1).boundary_edges.len(), 3);
+        // Part 0 (outline from its bottom-left corner): bottom, top, left. Its top edge runs into
+        // the cut at its clockwise end, where the outline continues flat into part 1, and turns
+        // the convex corner at its counter-clockwise end.
+        let top = *cones(@c, 0).boundary_edges.at(1);
+        assert_eq!(top.face, v(ZERO, ONE));
+        assert_eq!(top.clockwise_limit, v(ZERO, ONE));
+        let ccw = top.counter_clockwise_limit;
+        assert!((ccw.x - diag(-1, 1).x).abs().raw <= 2 && (ccw.y - diag(-1, 1).y).abs().raw <= 2);
+    }
+
+    /// Corners within the tolerance weld, absolute and per axis; `Some(0)` welds only exact ones.
+    #[test]
+    fn test_weld_tolerance() {
+        assert_eq!(cones(@pair(3, None), 0).boundary_edges.len(), 3);
+        assert_eq!(cones(@pair(4, None), 0).boundary_edges.len(), 3);
+        assert_eq!(cones(@pair(5, None), 0).boundary_edges.len(), 4);
+        assert_eq!(cones(@pair(3, Some(ZERO)), 0).boundary_edges.len(), 4);
+        assert_eq!(cones(@pair(0, Some(ZERO)), 0).boundary_edges.len(), 3);
+        // A chain of near corners collapses to one vertex whatever the order.
+        let r = Fixed { raw: 3 };
+        let ids = weld_corners(array![v(ZERO, ZERO), v(r + r, ZERO), v(r, ZERO)].span(), r);
+        assert_eq!(ids, array![0, 0, 0].span());
+        let ids = weld_corners(array![v(ZERO, ZERO), v(ONE, ZERO), v(ZERO, ZERO)].span(), r);
+        assert_eq!(ids, array![0, 1, 0].span());
+    }
+
+    /// A part with curved sides constrains nothing; flags come and go with `set_flags`.
+    #[test]
+    fn test_flags_and_non_polygonal_parts() {
+        let parts = array![
+            (at(ZERO, ZERO), unit_box()), (at(ONE + ONE, ZERO), BallTrait::new(HALF).into()),
+            (
+                at(ZERO, ONE),
+                TriangleTrait::new(v(-HALF, -HALF), v(HALF, -HALF), v(ZERO, HALF)).into(),
+            ),
+        ]
+            .span();
+        let plain = CompoundTrait::new(parts);
+        assert_eq!(plain.flags(), CompoundFlagsTrait::empty());
+        assert!(plain.part_normal_constraints(0).is_none());
+        let mut c = CompoundTrait::with_flags(parts, FIX_INTERNAL_EDGES, None);
+        assert!(c.part_normal_constraints(1).is_none());
+        // The triangle stands on the box's top edge, which both drop.
+        assert_eq!(cones(@c, 0).boundary_edges.len(), 3);
+        assert_eq!(cones(@c, 2).boundary_edges.len(), 2);
+        c.set_flags(CompoundFlagsTrait::empty(), None);
+        assert_eq!(c, plain);
+    }
+
+    /// A turned part states its cones in its own frame.
+    #[test]
+    fn test_cones_in_the_part_frame() {
+        let quarter = Pose2 { translation: v(ONE, ZERO), rotation: Rot2 { re: ZERO, im: ONE } };
+        let c = CompoundTrait::with_flags(
+            array![(at(ZERO, ZERO), unit_box()), (quarter, unit_box())].span(),
+            FIX_INTERNAL_EDGES,
+            None,
+        );
+        // Part 1's cut edge is its local top (`+y` turned to `-x`, facing part 0).
+        for cone in cones(@c, 1).boundary_edges {
+            assert!(*cone.face != v(ZERO, ONE));
+        }
+        assert_eq!(cones(@c, 1).boundary_edges.len(), 3);
+    }
+
+    /// A flag-free compound serialises as before the flags (the derived layout of its three
+    /// fields); a flagged one packs its flag above the part count and round-trips.
+    #[test]
+    fn test_serde_layout() {
+        let plain = CompoundTrait::new(array![(at(ZERO, ZERO), unit_box())].span());
+        let mut out = array![];
+        Serde::serialize(@plain, ref out);
+        let mut derived = array![];
+        Serde::serialize(@plain.shapes(), ref derived);
+        Serde::serialize(@plain.aabbs(), ref derived);
+        Serde::serialize(@plain.local_aabb(), ref derived);
+        assert_eq!(out, derived);
+        let mut span = out.span();
+        assert_eq!(Serde::<Compound>::deserialize(ref span), Some(plain));
+        assert!(span.is_empty());
+
+        let flagged = pair(0, None);
+        let mut out = array![];
+        Serde::serialize(@flagged, ref out);
+        assert_eq!(*out.at(0), 2 + 0x1_0000_0000);
+        let mut span = out.span();
+        assert_eq!(Serde::<Compound>::deserialize(ref span), Some(flagged));
+        assert!(span.is_empty());
+        // Through the shape enum, as a `WorldState` carries it.
+        let shape: Shape = Shape::Compound(BoxTrait::new(flagged));
+        let mut out = array![];
+        Serde::serialize(@shape, ref out);
+        let mut span = out.span();
+        assert_eq!(Serde::<Shape>::deserialize(ref span), Some(shape));
+    }
+
+    #[test]
+    fn gas_baseline() {}
+
+    #[test]
+    fn gas_with_flags_pair() {
+        let _ = CompoundTrait::with_flags(
+            opaque(array![(at(ZERO, ZERO), unit_box()), (at(ONE, ZERO), unit_box())].span()),
+            FIX_INTERNAL_EDGES,
+            None,
+        );
+    }
+
+    #[test]
+    fn gas_deserialize_flag_free() {
+        let mut out = array![];
+        Serde::serialize(@CompoundTrait::new(array![(at(ZERO, ZERO), unit_box())].span()), ref out);
+        let mut span = opaque(out.span());
+        let _: Option<Compound> = Serde::deserialize(ref span);
+    }
+
+    #[test]
+    fn gas_deserialize_flagged() {
+        let mut out = array![];
+        Serde::serialize(@pair(0, None), ref out);
+        let mut span = opaque(out.span());
+        let _: Option<Compound> = Serde::deserialize(ref span);
+    }
+}
