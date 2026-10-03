@@ -8,25 +8,27 @@ Upstream target: rapier-rs `0.35.3+4` 2D plus parry `0.31.1` public items Rapier
 
 Statuses: `ported` means the same public name or a documented owner/name mapping exists in Cairo; `partial` is reserved for split owners; `missing` is the default; `excluded` uses only the closed reasons below.
 
-Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `Cairo has no `IndexMut` / `&mut` index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`.
+Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `Cairo has no IndexMut / &mut index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps`.
+
+Of these, the project manager's decisions of 2026-10-03 are: `Cairo has no IndexMut / &mut index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps` (the first four from PX7, the last two from PX8); the closed-enum reason also covers the composite traits of PX7.
 
 ## Coverage summary
 
-Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Cairo has no `IndexMut` / `&mut` index`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `persisted contact-graph order, no faithful Default`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `static dispatch through StepConfig / StageConfig (D10)`).
+Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Cairo has no IndexMut / &mut index`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `persisted contact-graph order, no faithful Default`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `static dispatch through StepConfig / StageConfig (D10)`).
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
-| dynamics | 561 | 0 | 26 | 595 | 1182 | 78.4% | 95.6% |
-| geometry | 258 | 0 | 3 | 54 | 315 | 86.3% | 98.9% |
+| dynamics | 561 | 0 | 0 | 621 | 1182 | 78.4% | 100.0% |
+| geometry | 258 | 0 | 0 | 57 | 315 | 86.3% | 100.0% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
-| parry::query | 273 | 0 | 7 | 127 | 407 | 91.0% | 97.5% |
-| parry::shape | 235 | 0 | 8 | 137 | 380 | 90.0% | 96.7% |
+| parry::query | 280 | 0 | 0 | 127 | 407 | 93.3% | 100.0% |
+| parry::shape | 235 | 0 | 9 | 136 | 380 | 89.7% | 96.3% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1547** | **0** | **44** | **1001** | **2592** | **85.8%** | **97.2%** |
+| **total** | **1554** | **0** | **9** | **1029** | **2592** | **86.1%** | **99.4%** |
 
-Cairo-only public items not matched to upstream: **2065**.
+Cairo-only public items not matched to upstream: **2071**.
 
 ## Aabb
 
@@ -321,7 +323,7 @@ Cairo-only public items not matched to upstream: **2065**.
 | method `compute_collision_aabb` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `compute_swept_aabb` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `contact_skin` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
+| method `contact_skin` | geometry | excluded | contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps | `rapier/src/geometry/collider.rs` |
 | method `copy_from` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `deformable_mesh_ref` | geometry | excluded | soft bodies | `rapier/src/geometry/collider.rs` |
 | method `density` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -343,7 +345,7 @@ Cairo-only public items not matched to upstream: **2065**.
 | method `set_active_hooks` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `set_collision_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `set_contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `set_contact_skin` | geometry | missing | Not found on Cairo candidate(s): Collider, ColliderTrait. | `rapier/src/geometry/collider.rs` |
+| method `set_contact_skin` | geometry | excluded | contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps | `rapier/src/geometry/collider.rs` |
 | method `set_density` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `set_enabled` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `set_friction` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
@@ -385,7 +387,7 @@ Cairo-only public items not matched to upstream: **2065**.
 | method `collision_groups` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `compound` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
 | method `contact_force_event_threshold` | geometry | ported | Same public name. | `rapier/src/geometry/collider.rs` |
-| method `contact_skin` | geometry | missing | Not found on Cairo candidate(s): ColliderBuilder, ColliderBuilderTrait. | `rapier/src/geometry/collider.rs` |
+| method `contact_skin` | geometry | excluded | contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps | `rapier/src/geometry/collider.rs` |
 | method `converted_trimesh` | geometry | excluded | trimesh/voxels/3D heightfield | `rapier/src/geometry/collider.rs` |
 | method `convex_decomposition` | geometry | excluded | construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need | `rapier/src/geometry/collider.rs` |
 | method `convex_decomposition_with_params` | geometry | excluded | construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need | `rapier/src/geometry/collider.rs` |
@@ -518,7 +520,7 @@ Cairo-only public items not matched to upstream: **2065**.
 |---|---|---|---|---|
 | impl `Index<ColliderHandle>` | geometry | ported | Mapped to ColliderSetIndex.Index<Handle> | `rapier/src/geometry/collider_set.rs` |
 | impl `Index<data::Index>` | geometry | ported | Mapped to ColliderSetIndex.Index<Handle> | `rapier/src/geometry/collider_set.rs` |
-| impl `IndexMut<ColliderHandle>` | geometry | excluded | Cairo has no `IndexMut` / `&mut` index | `rapier/src/geometry/collider_set.rs` |
+| impl `IndexMut<ColliderHandle>` | geometry | excluded | Cairo has no IndexMut / &mut index | `rapier/src/geometry/collider_set.rs` |
 | method `contains` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `get` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `get_mut` | geometry | ported | Mapped to ColliderSet.get | `rapier/src/geometry/collider_set.rs` |
@@ -649,7 +651,7 @@ Cairo-only public items not matched to upstream: **2065**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CompoundEdgeCone` | parry::shape | excluded | dim3-only | `parry/src/shape/compound_pseudo_normals.rs` |
+| type `CompoundEdgeCone` | parry::shape | missing | Not found on Cairo candidate(s): CompoundEdgeCone, CompoundEdgeConeTrait. | `parry/src/shape/compound_pseudo_normals.rs` |
 
 ## CompoundFlags
 
@@ -691,7 +693,7 @@ Cairo-only public items not matched to upstream: **2065**.
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
 | method `transform1_by_mut` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
 | method `transform_by_mut` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
-| method `with_subshapes` | parry::query | missing | Not found on Cairo candidate(s): Contact, ContactTrait. | `parry/src/query/contact/contact.rs` |
+| method `with_subshapes` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
 | type `Contact` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## ContactConstraintNormalPart
@@ -755,10 +757,10 @@ Cairo-only public items not matched to upstream: **2065**.
 | method `match_contacts` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `match_contacts_using_positions` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `set_subshape_pos1` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `set_subshape_pos2` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `subshape_pos1` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `subshape_pos2` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `set_subshape_pos1` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `set_subshape_pos2` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `subshape_pos1` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `subshape_pos2` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `take` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `try_update_contacts` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `try_update_contacts_eps` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
@@ -2117,7 +2119,7 @@ Cairo-only public items not matched to upstream: **2065**.
 | method `is_inside_eps` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | method `transform_by` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
-| method `with_subshape` | parry::query | missing | Not found on Cairo candidate(s): PointProjection, PointProjectionTrait. | `parry/src/query/point/point_query.rs` |
+| method `with_subshape` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | type `PointProjection` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## PointQuery
@@ -2378,7 +2380,7 @@ Cairo-only public items not matched to upstream: **2065**.
 |---|---|---|---|---|
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
 | method `transform_by` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
-| method `with_subshape` | parry::query | missing | Not found on Cairo candidate(s): RayIntersection, RayIntersectionTrait. | `parry/src/query/ray/ray.rs` |
+| method `with_subshape` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
 | type `RayIntersection` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## RevoluteJoint
@@ -2691,7 +2693,7 @@ Cairo-only public items not matched to upstream: **2065**.
 |---|---|---|---|---|
 | impl `Index<RigidBodyHandle>` | dynamics | ported | Mapped to RigidBodySetIndex.Index<Handle> | `rapier/src/dynamics/rigid_body_set.rs` |
 | impl `Index<data::Index>` | dynamics | ported | Mapped to RigidBodySetIndex.Index<Handle> | `rapier/src/dynamics/rigid_body_set.rs` |
-| impl `IndexMut<RigidBodyHandle>` | dynamics | excluded | Cairo has no `IndexMut` / `&mut` index | `rapier/src/dynamics/rigid_body_set.rs` |
+| impl `IndexMut<RigidBodyHandle>` | dynamics | excluded | Cairo has no IndexMut / &mut index | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `contains` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `get` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
 | method `get_mut` | dynamics | ported | Same public name. | `rapier/src/dynamics/rigid_body_set.rs` |
@@ -3666,18 +3668,18 @@ Cairo-only public items not matched to upstream: **2065**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | method `assert_ids_in_range` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `clear` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `copy_from` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `clear` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `copy_from` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `gather_poses` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `gather_transforms` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `gather_vels` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `get_pose` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `get_vel` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `len` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `resize` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `get_pose` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `get_vel` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `len` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `resize` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `scatter_vels` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `set_vel` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| type `SolverBodies` | dynamics | missing | Not found on Cairo candidate(s): SolverBodies, SolverBodiesTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `set_vel` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| type `SolverBodies` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 
 ## SolverContact
 
@@ -3709,48 +3711,48 @@ Cairo-only public items not matched to upstream: **2065**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `Default` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| impl `Default` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `gather` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `inverse_transform_point` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `pose` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `transform_point` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| type `SolverPose` | dynamics | missing | Not found on Cairo candidate(s): SolverPose, SolverPoseTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `inverse_transform_point` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `pose` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `transform_point` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| type `SolverPose` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 
 ## SolverPoseRepr
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `identity` | dynamics | missing | Not found on Cairo candidate(s): SolverPoseRepr, SolverPoseReprTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `identity` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 
 ## SolverTransform
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | method `gather` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `transform_point` | dynamics | missing | Not found on Cairo candidate(s): SolverTransform, SolverTransformTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| type `SolverTransform` | dynamics | missing | Not found on Cairo candidate(s): SolverTransform, SolverTransformTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `transform_point` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| type `SolverTransform` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 
 ## SolverVel
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| impl `AddAssign` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| impl `Sub` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| impl `SubAssign` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `as_mut_slice` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `as_slice` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `as_vector_slice` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `as_vector_slice_mut` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| impl `AddAssign` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| impl `Sub` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| impl `SubAssign` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `as_mut_slice` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `as_slice` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `as_vector_slice` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `as_vector_slice_mut` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `gather` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
 | method `scatter` | dynamics | excluded | SIMD/parallel | `rapier/src/dynamics/solver/solver_body.rs` |
-| method `zero` | dynamics | missing | Not found on Cairo candidate(s): SolverVel, SolverVelTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `zero` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 | type `SolverVel` | dynamics | ported | Same public name. | `rapier/src/dynamics/solver/solver_body.rs` |
 
 ## SolverVelRepr
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `zero` | dynamics | missing | Not found on Cairo candidate(s): SolverVelRepr, SolverVelReprTrait. | `rapier/src/dynamics/solver/solver_body.rs` |
+| method `zero` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/solver_body.rs` |
 
 ## SplitResult
 
@@ -4073,7 +4075,7 @@ Cairo-only public items not matched to upstream: **2065**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `new` | dynamics | missing | Not found on Cairo candidate(s): VelocitySolver, VelocitySolverTrait. | `rapier/src/dynamics/solver/velocity_solver.rs` |
+| method `new` | dynamics | excluded | solver / island internals not exposed (dynamics::solver is pub(crate) upstream) | `rapier/src/dynamics/solver/velocity_solver.rs` |
 
 ## VolumeBin
 
@@ -4439,59 +4441,11 @@ Cairo-only public items not matched to upstream: **2065**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 26 | mechanical | AP triage |
-| [Query completion](#wp-query-completion) | 9 | standard | QP queries |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 8 | standard | shape interface |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 1 | standard | SE sensors |
-
-### WP: API polish and miscellaneous parity
-
-Tier: mechanical. Depends/context: AP triage. Estimate: 26 public items.
-
-- **SolverBodies** method `clear` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `copy_from` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `get_pose` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `get_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `len` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `resize` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** method `set_vel` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverBodies** type `SolverBodies` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** impl `Default` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** method `inverse_transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** method `pose` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPose** type `SolverPose` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverPoseRepr** method `identity` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverTransform** method `transform_point` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverTransform** type `SolverTransform` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** impl `AddAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** impl `Sub` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** impl `SubAssign` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_mut_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_vector_slice` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `as_vector_slice_mut` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVel** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **SolverVelRepr** method `zero` (`rapier/src/dynamics/solver/solver_body.rs`)
-- **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
-
-### WP: Query completion
-
-Tier: standard. Depends/context: QP queries. Estimate: 9 public items.
-
-- **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
-- **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 9 | standard | shape interface |
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 8 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 9 public items.
 
 - **Compound** const `DEFAULT_WELD_TOLERANCE` (`parry/src/shape/compound.rs`)
 - **Compound** method `bvh` (`parry/src/shape/compound.rs`)
@@ -4499,14 +4453,9 @@ Tier: standard. Depends/context: shape interface. Estimate: 8 public items.
 - **Compound** method `part_normal_constraints` (`parry/src/shape/compound.rs`)
 - **Compound** method `set_flags` (`parry/src/shape/compound.rs`)
 - **Compound** method `with_flags` (`parry/src/shape/compound.rs`)
+- **CompoundEdgeCone** type `CompoundEdgeCone` (`parry/src/shape/compound_pseudo_normals.rs`)
 - **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
 - **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
-
-### WP: Sensors and intersection events
-
-Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
-
-- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
 
 ## Cairo public items without upstream match
 
@@ -4710,7 +4659,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `words_lane` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
-- ... 1865 more
+- ... 1871 more
 
 ## Embedded Rust inventory
 

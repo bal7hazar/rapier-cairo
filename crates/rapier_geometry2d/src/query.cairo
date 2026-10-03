@@ -55,6 +55,7 @@ pub mod segment;
 pub mod shape_cast;
 pub mod shape_distance;
 pub mod split;
+pub mod subshape;
 pub mod support_map;
 pub mod sweep;
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
@@ -70,6 +71,8 @@ pub use shape_cast::{
     ShapeCastHit, ShapeCastHitTrait, ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
     cast_shapes,
 };
+use crate::feature_id::SubShapeId;
+use crate::query::subshape::SubshapeContact;
 use crate::shape::Shape;
 
 pub mod errors {
@@ -176,6 +179,17 @@ pub impl ContactImpl of ContactTrait {
     fn transform1_by_mut(ref self: Contact, pos: Pose2) {
         self.point1 = pos.transform_point(self.point1);
         self.normal1 = pos.rotation.rotate(self.normal1);
+    }
+
+    /// The contact with the sub-shapes of its two sides (upstream `with_subshapes`).
+    /// #### Deviations
+    /// * Upstream sets two fields of `Contact`; the port keeps `Contact` at its width (ADR 35)
+    ///   and returns the twin value [`SubshapeContact`].
+    #[inline(always)]
+    fn with_subshapes(
+        self: Contact, subshape1: SubShapeId, subshape2: SubShapeId,
+    ) -> SubshapeContact {
+        SubshapeContact { contact: self, subshape1, subshape2 }
     }
 }
 

@@ -3,7 +3,7 @@
 ## WS3 — dormant pairs kept apart, `WorldState` v4 (2026-10-03)
 
 `World::keep_dormant_pairs_apart(true)` keeps the dormant pairs of a valid active set out of `narrow_phase.pairs`
-(opt-in: existing code reads that list as the whole one, ADR 0001 entry 46); `ColliderSet::take_removed` and
+(opt-in: existing code reads that list as the whole one, ADR 0001 entry 47); `ColliderSet::take_removed` and
 `GenericJointBuilder::user_data` (parity); `WorldState` version 4 with the migration of version 3. Results
 bit-identical: every test unchanged, and the per-tick digests of the version-3 felts of the state equal before and
 after in both modes (pile10 both shots in process and slim, 520 ticks; levels 10 and 20, 90 ticks each). Exact Cairo
