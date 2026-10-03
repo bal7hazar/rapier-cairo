@@ -1,7 +1,7 @@
 {
   "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
   "rapier": "rapier2d-f64 0.35.3",
-  "parry": "parry2d-f64 0.30.2",
+  "parry": "parry2d-f64 0.31.1",
   "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
   "family": "composite_queries",
   "composites": [
@@ -168,7 +168,7 @@
         "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
         "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
         "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
-        "feature": { "kind": "face", "code": 0 },
+        "feature": { "kind": "vertex", "code": 1 },
         "distance": { "f64": 0.5, "raw": 2147483648 },
         "contains": false
       }
@@ -187,7 +187,7 @@
           "point": { "f64": [2.0, 1.0], "raw": [8589934592, 4294967296] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 1 },
+        "feature": { "kind": "vertex", "code": 1 },
         "distance": { "f64": 0.9433981132451484, "raw": 4051864043 },
         "contains": false
       }
@@ -209,7 +209,7 @@
           "point": { "f64": [0.10000000009313226, 0.05000000004656613], "raw": [429496730, 214748365] },
           "is_inside": true
         },
-        "feature": { "kind": "face", "code": 1 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 0.0, "raw": 0 },
         "contains": true
       }
@@ -222,7 +222,7 @@
         "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
         "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
         "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
-        "feature": { "kind": "face", "code": 1 },
+        "feature": { "kind": "vertex", "code": 0 },
         "distance": { "f64": 0.5590169943749475, "raw": 2400959709 },
         "contains": false
       }
@@ -244,7 +244,7 @@
           "point": { "f64": [0.7529411765144152, 0.1882352941286038], "raw": [3233857729, 808464432] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 5 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 1.8675243127684698, "raw": 8020955848 },
         "contains": false
       }
@@ -266,7 +266,7 @@
           "point": { "f64": [-1.7307692306882911, 0.2461538461967614], "raw": [-7433597243, 1057222719] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 3 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.15689290797040048, "raw": 673849909 },
         "contains": false
       }
@@ -279,7 +279,7 @@
         "projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
         "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
         "feature_projection": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": false },
-        "feature": { "kind": "face", "code": 4 },
+        "feature": { "kind": "vertex", "code": 1 },
         "distance": { "f64": 0.5, "raw": 2147483648 },
         "contains": false
       }
@@ -301,7 +301,7 @@
           "point": { "f64": [2.518337408302074, 0.07775061119703718], "raw": [10816176809, 333936332] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 7 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.12361704411022612, "raw": 530931162 },
         "contains": false
       }
@@ -323,7 +323,7 @@
           "point": { "f64": [0.1058823530397871, 0.026470588259946776], "raw": [454761244, 113690311] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 5 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.024253562526221187, "raw": 104168258 },
         "contains": false
       }
@@ -345,7 +345,7 @@
           "point": { "f64": [0.11764705882352941, 0.029411764705882353], "raw": [505290270, 126322568] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 5 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 0.5457051563317492, "raw": 2343785800 },
         "contains": false
       }
@@ -736,7 +736,7 @@
           "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 2 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.0, "raw": 4294967296 },
         "contains": false
       }
@@ -758,7 +758,7 @@
           "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 3 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 0.6999999999534339, "raw": 3006477107 },
         "contains": false
       }
@@ -771,7 +771,7 @@
         "projection": { "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }, "is_inside": true },
         "projection_solid": { "point": { "f64": [0.0, -0.5], "raw": [0, -2147483648] }, "is_inside": true },
         "feature_projection": { "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] }, "is_inside": true },
-        "feature": { "kind": "face", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": -0.5, "raw": -2147483648 },
         "contains": true
       }
@@ -793,7 +793,7 @@
           "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 1 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.5, "raw": 6442450944 },
         "contains": false
       }
@@ -837,7 +837,7 @@
           "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
           "is_inside": true
         },
-        "feature": { "kind": "face", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": -0.5, "raw": -2147483648 },
         "contains": true
       }
@@ -859,7 +859,7 @@
           "point": { "f64": [0.30000000004656613, 1.0], "raw": [1288490189, 4294967296] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 2 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.0, "raw": 4294967296 },
         "contains": false
       }
@@ -881,7 +881,7 @@
           "point": { "f64": [-1.0, 0.39999999990686774], "raw": [-4294967296, 1717986918] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 3 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 0.6999999999534339, "raw": 3006477107 },
         "contains": false
       }
@@ -897,7 +897,7 @@
           "point": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.5, "raw": 2147483648 },
         "contains": false
       }
@@ -919,7 +919,7 @@
           "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 1 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.5, "raw": 6442450944 },
         "contains": false
       }
@@ -963,7 +963,7 @@
           "point": { "f64": [0.25, -1.0], "raw": [1073741824, -4294967296] },
           "is_inside": false
         },
-        "feature": { "kind": "face", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.5, "raw": 2147483648 },
         "contains": false
       }
@@ -1242,7 +1242,7 @@
           "hit": {
             "time_of_impact": { "f64": 3.0, "raw": 12884901888 },
             "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
-            "feature": { "kind": "face", "code": 6 }
+            "feature": { "kind": "face", "code": 1 }
           }
         },
         "hollow": {
@@ -1250,7 +1250,7 @@
           "hit": {
             "time_of_impact": { "f64": 3.0, "raw": 12884901888 },
             "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
-            "feature": { "kind": "face", "code": 6 }
+            "feature": { "kind": "face", "code": 1 }
           }
         }
       }
@@ -1271,7 +1271,7 @@
           "hit": {
             "time_of_impact": { "f64": 3.333333332815932, "raw": 14316557651 },
             "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
-            "feature": { "kind": "face", "code": 6 }
+            "feature": { "kind": "face", "code": 1 }
           }
         },
         "hollow": {
@@ -1279,7 +1279,7 @@
           "hit": {
             "time_of_impact": { "f64": 3.333333332815932, "raw": 14316557651 },
             "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
-            "feature": { "kind": "face", "code": 6 }
+            "feature": { "kind": "face", "code": 1 }
           }
         }
       }
@@ -1300,7 +1300,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
             "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
-            "feature": { "kind": "face", "code": 2 }
+            "feature": { "kind": "face", "code": 0 }
           }
         },
         "hollow": {
@@ -1308,7 +1308,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.0, "raw": 8589934592 },
             "normal": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
-            "feature": { "kind": "face", "code": 2 }
+            "feature": { "kind": "face", "code": 0 }
           }
         }
       }
@@ -1341,7 +1341,7 @@
           "hit": {
             "time_of_impact": { "f64": 3.347907980004369, "raw": 14379155284 },
             "normal": { "f64": [0.5, -0.8660254038404673], "raw": [2147483648, -3719550787] },
-            "feature": { "kind": "face", "code": 5 }
+            "feature": { "kind": "face", "code": 1 }
           }
         },
         "hollow": {
@@ -1349,7 +1349,7 @@
           "hit": {
             "time_of_impact": { "f64": 3.347907980004369, "raw": 14379155284 },
             "normal": { "f64": [0.5, -0.8660254038404673], "raw": [2147483648, -3719550787] },
-            "feature": { "kind": "face", "code": 5 }
+            "feature": { "kind": "face", "code": 1 }
           }
         }
       }
@@ -1370,7 +1370,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.4099999999720607, "raw": 10350871183 },
             "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
-            "feature": { "kind": "face", "code": 7 }
+            "feature": { "kind": "face", "code": 1 }
           }
         },
         "hollow": {
@@ -1378,7 +1378,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.4099999999720607, "raw": 10350871183 },
             "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
-            "feature": { "kind": "face", "code": 7 }
+            "feature": { "kind": "face", "code": 1 }
           }
         }
       }
@@ -1399,7 +1399,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.666666666407966, "raw": 11453246122 },
             "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
-            "feature": { "kind": "face", "code": 7 }
+            "feature": { "kind": "face", "code": 1 }
           }
         },
         "hollow": {
@@ -1407,7 +1407,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.666666666407966, "raw": 11453246122 },
             "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
-            "feature": { "kind": "face", "code": 7 }
+            "feature": { "kind": "face", "code": 1 }
           }
         }
       }
@@ -1428,7 +1428,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.5599999999953433, "raw": 10995116278 },
             "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
-            "feature": { "kind": "face", "code": 2 }
+            "feature": { "kind": "face", "code": 0 }
           }
         },
         "hollow": {
@@ -1436,7 +1436,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.5599999999953433, "raw": 10995116278 },
             "normal": { "f64": [0.28734788560726493, -0.9578262852088756], "raw": [1234149771, -4113832570] },
-            "feature": { "kind": "face", "code": 2 }
+            "feature": { "kind": "face", "code": 0 }
           }
         }
       }
@@ -1469,7 +1469,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.565629185119534, "raw": 11019293444 },
             "normal": { "f64": [0.7277637112801738, -0.6858279526533987], "raw": [3125721339, -2945608627] },
-            "feature": { "kind": "face", "code": 7 }
+            "feature": { "kind": "face", "code": 1 }
           }
         },
         "hollow": {
@@ -1477,7 +1477,7 @@
           "hit": {
             "time_of_impact": { "f64": 2.565629185119534, "raw": 11019293444 },
             "normal": { "f64": [0.7277637112801738, -0.6858279526533987], "raw": [3125721339, -2945608627] },
-            "feature": { "kind": "face", "code": 7 }
+            "feature": { "kind": "face", "code": 1 }
           }
         }
       }

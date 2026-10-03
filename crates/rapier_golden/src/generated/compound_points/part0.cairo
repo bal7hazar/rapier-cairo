@@ -18,7 +18,7 @@ pub const ELL_P0: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -2147483648, y: 7516192768 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Vertex(0),
     distance: 3599838568,
     contains: false,
 };
@@ -34,7 +34,7 @@ pub const ELL_P1: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -2147483648, y: 5153960755 }, is_inside: true,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(0),
     distance: -1073741824,
     contains: true,
 };
@@ -46,7 +46,7 @@ pub const ELL_P2: CompositePointCase = CompositePointCase {
     projection: ProjectionRaw { point: Vec2Raw { x: 0, y: 1073741824 }, is_inside: true },
     projection_solid: ProjectionRaw { point: Vec2Raw { x: 0, y: 0 }, is_inside: true },
     feature_projection: ProjectionRaw { point: Vec2Raw { x: 0, y: 1073741824 }, is_inside: true },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(1),
     distance: -1073741824,
     contains: true,
 };
@@ -62,7 +62,7 @@ pub const ELL_P3: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 4294967296, y: 858993459 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(0),
     distance: 6442450944,
     contains: false,
 };
@@ -78,7 +78,7 @@ pub const ELL_P4: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -1932735283, y: 1073741824 }, is_inside: true,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(1),
     distance: -214748365,
     contains: true,
 };
@@ -96,7 +96,7 @@ pub const ELL_P5: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 1073741824, y: -1073741824 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(3),
     distance: 5368709120,
     contains: false,
 };
@@ -112,7 +112,7 @@ pub const TRIO_P0: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 3179757569, y: 2537878977 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(0),
     distance: 6340683675,
     contains: false,
 };
@@ -130,7 +130,7 @@ pub const TRIO_P1: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -3382333289, y: 1287373162 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(0),
     distance: 3869942550,
     contains: false,
 };
@@ -144,7 +144,7 @@ pub const TRIO_P2: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -440689599, y: 1210784723 }, is_inside: true,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(1),
     distance: -1288490189,
     contains: true,
 };
@@ -160,7 +160,7 @@ pub const TRIO_P3: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 4294967296, y: 858993459 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(0),
     distance: 6442450944,
     contains: false,
 };
@@ -176,7 +176,7 @@ pub const TRIO_P4: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -1871262627, y: 690098723 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(1),
     distance: 179734024,
     contains: false,
 };
@@ -194,7 +194,7 @@ pub const TRIO_P5: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -681736331, y: -1619314351 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(3),
     distance: 5132674755,
     contains: false,
 };

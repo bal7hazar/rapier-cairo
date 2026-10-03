@@ -116,7 +116,7 @@ pub const SQUARE_P0: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 1288490189, y: 4294967296 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Face(2),
+    feature: PointFeatureRaw::Face(0),
     distance: 4294967296,
     contains: false,
 };
@@ -134,7 +134,7 @@ pub const SQUARE_P1: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -4294967296, y: 1717986918 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Face(3),
+    feature: PointFeatureRaw::Face(0),
     distance: 3006477107,
     contains: false,
 };
@@ -146,7 +146,7 @@ pub const SQUARE_P2: CompositePointCase = CompositePointCase {
     projection: ProjectionRaw { point: Vec2Raw { x: 0, y: -4294967296 }, is_inside: true },
     projection_solid: ProjectionRaw { point: Vec2Raw { x: 0, y: -2147483648 }, is_inside: true },
     feature_projection: ProjectionRaw { point: Vec2Raw { x: 0, y: -4294967296 }, is_inside: true },
-    feature: PointFeatureRaw::Face(0),
+    feature: PointFeatureRaw::Face(1),
     distance: -2147483648,
     contains: true,
 };
@@ -162,7 +162,7 @@ pub const SQUARE_P3: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 4294967296, y: 858993459 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Face(1),
+    feature: PointFeatureRaw::Face(0),
     distance: 6442450944,
     contains: false,
 };
@@ -194,7 +194,7 @@ pub const SQUARE_P5: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 1073741824, y: -4294967296 }, is_inside: true,
     },
-    feature: PointFeatureRaw::Face(0),
+    feature: PointFeatureRaw::Face(1),
     distance: -2147483648,
     contains: true,
 };

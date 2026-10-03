@@ -140,7 +140,7 @@ pub(crate) fn cases() -> Vec<Case> {
 
 fn run(case: &Case) -> Value {
     let (shape1, shape2) = (case.shape1.shared(), case.shape2.shared());
-    let answer = DefaultQueryDispatcher.intersection_test(&case.pos12.p(), &*shape1.0, &*shape2.0);
+    let answer = DefaultQueryDispatcher.intersection_test(&case.pos12.p(), &*shape1.0, &*shape2.0).map(|i| i.intersecting);
     json!({
         "id": format!("{}/{}", case.pair, case.regime),
         "pair": case.pair,

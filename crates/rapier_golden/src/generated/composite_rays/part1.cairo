@@ -23,7 +23,7 @@ pub const FLAT_UP: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 8589934592,
             normal: Vec2Raw { x: 0, y: -4294967296 },
-            feature: PointFeatureRaw::Face(2),
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -33,7 +33,7 @@ pub const FLAT_UP: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 8589934592,
             normal: Vec2Raw { x: 0, y: -4294967296 },
-            feature: PointFeatureRaw::Face(2),
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -86,7 +86,7 @@ pub const FLAT_POSED: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 14379155284,
             normal: Vec2Raw { x: 2147483648, y: -3719550787 },
-            feature: PointFeatureRaw::Face(5),
+            feature: PointFeatureRaw::Face(1),
         },
     },
     hollow: RayAnswerRaw {
@@ -96,7 +96,7 @@ pub const FLAT_POSED: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 14379155284,
             normal: Vec2Raw { x: 2147483648, y: -3719550787 },
-            feature: PointFeatureRaw::Face(5),
+            feature: PointFeatureRaw::Face(1),
         },
     },
 };
@@ -117,7 +117,7 @@ pub const HILLS_DOWN: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 10350871183,
             normal: Vec2Raw { x: 1234149771, y: -4113832570 },
-            feature: PointFeatureRaw::Face(7),
+            feature: PointFeatureRaw::Face(1),
         },
     },
     hollow: RayAnswerRaw {
@@ -127,7 +127,7 @@ pub const HILLS_DOWN: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 10350871183,
             normal: Vec2Raw { x: 1234149771, y: -4113832570 },
-            feature: PointFeatureRaw::Face(7),
+            feature: PointFeatureRaw::Face(1),
         },
     },
 };
@@ -148,7 +148,7 @@ pub const HILLS_SLANT: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 11453246122,
             normal: Vec2Raw { x: 1234149771, y: -4113832570 },
-            feature: PointFeatureRaw::Face(7),
+            feature: PointFeatureRaw::Face(1),
         },
     },
     hollow: RayAnswerRaw {
@@ -158,7 +158,7 @@ pub const HILLS_SLANT: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 11453246122,
             normal: Vec2Raw { x: 1234149771, y: -4113832570 },
-            feature: PointFeatureRaw::Face(7),
+            feature: PointFeatureRaw::Face(1),
         },
     },
 };
@@ -179,7 +179,7 @@ pub const HILLS_UP: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 10995116278,
             normal: Vec2Raw { x: 1234149771, y: -4113832570 },
-            feature: PointFeatureRaw::Face(2),
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -189,7 +189,7 @@ pub const HILLS_UP: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 10995116278,
             normal: Vec2Raw { x: 1234149771, y: -4113832570 },
-            feature: PointFeatureRaw::Face(2),
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -242,7 +242,7 @@ pub const HILLS_POSED: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 11019293444,
             normal: Vec2Raw { x: 3125721339, y: -2945608627 },
-            feature: PointFeatureRaw::Face(7),
+            feature: PointFeatureRaw::Face(1),
         },
     },
     hollow: RayAnswerRaw {
@@ -252,7 +252,7 @@ pub const HILLS_POSED: CompositeRayCase = CompositeRayCase {
             hit: true,
             time_of_impact: 11019293444,
             normal: Vec2Raw { x: 3125721339, y: -2945608627 },
-            feature: PointFeatureRaw::Face(7),
+            feature: PointFeatureRaw::Face(1),
         },
     },
 };

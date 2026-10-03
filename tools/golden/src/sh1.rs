@@ -388,8 +388,8 @@ fn run(case: &Case, prediction: Q) -> Value {
         })
         .collect();
     let identity = Pose::IDENTITY;
-    let intersects = query::intersection_test(&identity, &*shape1.0, &pos12, &*shape2.0);
-    let distance = query::distance(&identity, &*shape1.0, &pos12, &*shape2.0);
+    let intersects = query::intersection_test(&identity, &*shape1.0, &pos12, &*shape2.0).map(|i| i.intersecting);
+    let distance = query::distance(&identity, &*shape1.0, &pos12, &*shape2.0).map(|d| d.distance);
     json!({
         "id": id,
         "pair": case.pair,
