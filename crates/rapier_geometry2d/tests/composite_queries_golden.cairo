@@ -2,10 +2,8 @@
 //! `contact`, `closest_points`, `cast_shapes`) of the polyline and the heightfield against Parry
 //! f64 0.31.1, with upstream's support matrix (`None` where upstream answers `Unsupported`).
 //!
-//! Features: parry 0.31.1 reports a point projection's and a ray hit's feature on the hit segment
-//! (`Face(0 / 1)`, `Vertex(0 / 1)`, the segment in `subshape`); the port keeps 0.30.2's
-//! polyline-wide id. The moved features are compared with the frozen 0.30.2 copy
-//! (`frozen_parry030`, ADR 0001 entry 48), every other field with 0.31.1.
+//! Features: a point projection and a ray hit report the hit segment's own feature (`Face(0 / 1)`,
+//! `Vertex(0 / 1)`, the segment in `subshape`), as parry 0.31.1 (CE; ADR 0001 entry 48 closed).
 //!
 //! Bands (raw Q32.32 units): `EXACT` for the point and ray queries (segment kernels on exact
 //! decisions); `BAND` for the pair queries (the convex part kernels against upstream's GJK / EPA
@@ -30,9 +28,7 @@ use rapier_geometry2d::query::{
 };
 use rapier_geometry2d::ray::{Ray, cast_ray, cast_ray_and_get_normal};
 use rapier_golden::compare::{abs_diff, vec2_within};
-use rapier_golden::generated::{
-    composite_pairs, composite_points, composite_rays, composite_shapes, frozen_parry030,
-};
+use rapier_golden::generated::{composite_pairs, composite_points, composite_rays, composite_shapes};
 use rapier_golden::types::{PointFeatureRaw, RayAnswerRaw, Vec2Raw};
 use super::composite_contacts_golden::{composite_shape, pose};
 use super::sh1_contacts_golden::shape;
@@ -74,8 +70,7 @@ fn test_composite_point_queries_golden() {
         if *c.id == TIE {
             assert!(f.is_face(), "{} tie", *c.id);
         } else {
-            let e = frozen_parry030::composite_point_feature(*c.id, *c.feature);
-            assert!(feature_eq(f, e), "{} feature {:?}", *c.id, f);
+            assert!(feature_eq(f, *c.feature), "{} feature {:?}", *c.id, f);
         }
         let d = s.distance_to_local_point(pt, false);
         assert!(abs_diff(d.raw, *c.distance) <= EXACT, "{} distance {:?}", *c.id, d);
@@ -104,8 +99,7 @@ fn check_ray(
     if let Some(h) = hit {
         assert!(abs_diff(h.time_of_impact.raw, e.hit.time_of_impact) <= EXACT, "{} hit toi", id);
         assert!(vec2_within(raw(h.normal), e.hit.normal, EXACT), "{} normal {:?}", id, h);
-        let feature = frozen_parry030::composite_ray_feature(id, solid, e.hit.feature);
-        assert!(feature_eq(h.feature, feature), "{} feature {:?}", id, h);
+        assert!(feature_eq(h.feature, e.hit.feature), "{} feature {:?}", id, h);
     }
 }
 

@@ -10,8 +10,9 @@
 //! * Heightfield: upstream's walk, ported as is: the ray is clipped to the local box, the cell
 //!   under its entry point is tested (`s >= 0`), then the cells it crosses in `x` order until the
 //!   ray's parameter at a cell boundary reaches the clipped exit; `solid` is ignored. The hit's
-//!   normal is the cell's `normal()` whatever the side, and its feature is `Face(cell)` from above,
-//!   `Face(cell + num_cells)` from below. A vertical ray only tests the first cell.
+//!   normal is the cell's `normal()` whatever the side, and its feature is the cell segment's own
+//!   side, `Face(0)` from above, `Face(1)` from below (parry 0.31: the cell is the hit's
+//!   `subshape`, answered by the `*_part` function). A vertical ray only tests the first cell.
 //!
 //! The line parameters are the exact cross-product ratios of `crate::ray::segment` (upstream:
 //! `closest_points_line_line_parameters`, which gives the same values for crossing lines; a
@@ -167,16 +168,14 @@ fn line_params(ray: Ray, seg: Segment) -> (i128, i128, i128) {
     }
 }
 
-/// The hit of cell `cell` (segment `seg`) at `s = s_num / den`: the cell's normal, the feature
-/// by side.
-fn cell_hit(
-    h: @HeightField, cell: u32, seg: Segment, ray: Ray, s_num: i128, den: i128,
-) -> RayIntersection {
+/// The hit of a cell (segment `seg`) at `s = s_num / den`: the cell's normal, the segment's side
+/// as the feature.
+fn cell_hit(seg: Segment, ray: Ray, s_num: i128, den: i128) -> RayIntersection {
     let n = seg.normal().unwrap();
     let side = if n.dot(ray.dir) > ZERO {
-        cell + h.num_cells()
+        1
     } else {
-        cell
+        0
     };
     RayIntersection {
         time_of_impact: ratio(s_num, den), normal: n, feature: FeatureIdTrait::face(side),
@@ -209,7 +208,7 @@ pub fn cast_local_ray_and_get_normal_heightfield_part(
     if let Some(seg) = h.segment_at(curr) {
         let (s_num, t_num, den) = line_params(ray, seg);
         if s_num >= 0 && t_num >= 0 && t_num <= den {
-            return Some((curr, cell_hit(h, curr, seg, ray, s_num, den)));
+            return Some((curr, cell_hit(seg, ray, s_num, den)));
         }
     }
     if ray.dir.x == ZERO {
@@ -235,7 +234,7 @@ pub fn cast_local_ray_and_get_normal_heightfield_part(
             if t_num >= 0 && t_num <= den {
                 let s = ratio(s_num, den);
                 if s <= max_time_of_impact {
-                    return Some((curr, cell_hit(h, curr, seg, ray, s_num, den)));
+                    return Some((curr, cell_hit(seg, ray, s_num, den)));
                 }
             }
         }

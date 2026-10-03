@@ -13,7 +13,6 @@ use std::path::Path;
 use std::process::Command;
 
 mod ccd_scenes;
-mod frozen;
 mod geometry_utils;
 mod kc1;
 mod leaf_families;
@@ -706,7 +705,6 @@ pub fn generate(vectors: &Path, crate_dir: &Path) {
         ("pid_corrections", kc1::pid_corrections(vectors)),
         ("character_moves", kc1::character_moves(vectors)),
         ("geometry_utils", geometry_utils::generate(vectors)),
-        ("frozen_parry030", frozen::generate(vectors)),
     ];
     files.extend(polygons::manifold_files(vectors));
     files.extend(scenes::generate(vectors));

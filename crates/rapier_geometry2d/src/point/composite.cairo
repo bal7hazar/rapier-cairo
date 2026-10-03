@@ -123,8 +123,10 @@ pub fn project_local_point_polyline(polyline: @Polyline, pt: Vec2, solid: bool) 
 }
 
 /// Upstream `PointQuery::project_local_point_and_get_feature` for `Polyline`: the closest
-/// segment's projection (its feature decides the pseudo-normal of an `ORIENTED` polyline) and the
-/// polyline feature `Face(segment)`; `pt` outside and `Unknown` for an empty polyline.
+/// segment's projection (its feature decides the pseudo-normal of an `ORIENTED` polyline) and that
+/// segment's own feature (`Vertex(0 / 1)` or `Face(0 / 1)`, parry 0.31: the segment is the
+/// projection's `subshape`, answered by [`project_local_point_and_get_location_polyline_part`]);
+/// `pt` outside and `Unknown` for an empty polyline.
 pub fn project_local_point_and_get_feature_polyline(
     polyline: @Polyline, pt: Vec2,
 ) -> (PointProjection, FeatureId) {
@@ -157,7 +159,7 @@ pub fn project_local_point_and_get_feature_polyline(
         };
         proj.is_inside = (pt - proj.point).dot(n) <= ZERO;
     }
-    (proj, polyline.segment_feature_to_polyline_feature(seg_id, feature))
+    (proj, feature)
 }
 
 /// Upstream's default `distance_to_local_point` on the polyline projection: the distance, negated
