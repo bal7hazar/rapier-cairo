@@ -249,7 +249,6 @@ jobs:
       # from this artifact, with the runner's root path beside them (programme rule, grimworld #283).
       - name: Declared class hashes
         if: always() && matrix.package == 'rapier2d_classes'
-        continue-on-error: true
         run: |
           {
             echo "root: $GITHUB_WORKSPACE"
@@ -261,6 +260,19 @@ jobs:
         with:
           name: class-hashes
           path: class-hashes.txt
+      # The gate (CI2): the capture above never fails (`|| true`, so the artifact exists when the pins differ); this
+      # step fails when `test_pinned_class_hashes` did not pass or printed a `pinned ... declared ...` difference.
+      - name: Pinned class hashes match CI's build
+        if: always() && matrix.package == 'rapier2d_classes'
+        run: |
+          if grep -q '^Tests: 1 passed, 0 failed' class-hashes.txt && ! grep -q 'pinned .*declared ' class-hashes.txt; then
+            echo "pinned class hashes match CI's build"
+            exit 0
+          fi
+          echo "::error::the class hashes pinned in crates/rapier2d_classes/tests/hashes.cairo differ from CI's build"
+          grep -E 'pinned .*declared |^Tests: |^root: ' class-hashes.txt || true
+          echo "The new values are in the class-hashes artifact of this run, with CI's root path beside them."
+          exit 1
 
   # Package granularity rule (programme decision 2026-09-28, docs/research/package-cost.md): the
   # published crates and the product closures of consumer_cost.toml against the size gates, all
