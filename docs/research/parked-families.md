@@ -105,6 +105,11 @@ Measured on the prototype, steps net of the module's `gas_baseline` (63 steps):
 | `SolverVel`: `+=`, `-=`, `-` | **146 steps** (209 − 63), 21 `range_check` | `gas_solver_vel_sub_add` |
 | class sizes | 0 | no declared class reaches the module (a class compiles only what its entry points reach) |
 
+Parity effect, measured by regenerating `docs/API_PARITY.md` with the prototype files present (then restored):
+**18 of the 26 items match** (missing 46 → 28 overall, in-scope 97.1 % → 98.2 % with family 2's prototype present,
+which matches none, see 2.3). The 8 left are the 5 to close by reason and the 3 operator impls: the matcher did not
+take `pub impl SolverVelSub of Sub<SolverVel>` declared outside `SolverVel`'s module.
+
 A lot would declare the `Sub` / `AddAssign` / `SubAssign` impls in `solver/body.cairo`, beside `SolverVel`. Declared in
 another module, they must be imported at every use (the prototype's own test needed the import).
 
@@ -177,6 +182,11 @@ module's `gas_baseline` (63 steps):
 | `Contact::with_subshapes` | **50 steps** (113 − 63) | `gas_contact_with_subshapes` |
 | `subshape_pos1` on a 2-part compound | **553 steps** (616 − 63), *including* building the compound (`CompoundTrait::new` computes the part boxes); the read alone is a `match` and one `part_pose` (estimate < 60 steps) | `gas_manifold_subshape_pos1_compound` |
 | class sizes | 0 | no declared class calls the new functions |
+
+Parity effect, measured the same way: **0 of the 7 items match** as prototyped, because the matcher looks for
+the methods on `Contact` / `ContactTrait`, `PointProjection` / `PointProjectionTrait`, `RayIntersection` /
+`RayIntersectionTrait` and `ContactManifold` / `ContactManifoldTrait`, not on the prototype's separate traits. A lot
+puts them in those traits, or adds owner aliases to the script.
 
 Moving the three builders into the existing traits (`ContactTrait`, …) adds functions to impls that the step uses. The
 measurement above does not cover that layout: a lot must repeat the before / after comparison and add the step-path
