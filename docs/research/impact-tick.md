@@ -372,3 +372,33 @@ range check): every fused multiply (`mul_add`, `mul`, `dot2*`, `mul_sub`) is abo
 about 12. `mul_add` alone is 5.7 % of all probe steps and 11 % of the pile10 shot (the solver's `apply`: six
 `mul_add` per impulse). A cheaper rescale in `fixed` would move every family; the `Vec2` component-wise operations are
 two scalar operations each (no extra cost).
+
+## 10. WS3 — dormant pairs out of the pair list (2026-10-03)
+
+Lot WS3 (`docs/briefs/ws3-dormant-pairs.md`): IT1's parked lever (§4, "dormant pairs out of `narrow_phase.pairs`").
+Figures, toolchain and build path: `docs/BUDGETS.md` (WS3). What the measurement found:
+
+- **Opt-in, not default.** With the dormant pairs out of `narrow_phase.pairs` after every step, 14 existing tests fail
+  without any result changing: golden scenes, the SI sleep diagnostics and the staged-against-fused comparisons read
+  `world.narrow_phase.pairs` as the whole list or drive the public stage functions on it. The brief keeps those tests
+  unchanged, so the layout is `World::keep_dormant_pairs_apart(true)`; by default the step runs BT4's code on the whole
+  list.
+- **Where it pays.** The sparse step no longer gathers the live pairs by position, compares them, nor writes the whole
+  list back (`write_live` / `merge_live`), and the island fallback no longer splits it: level 20's mixed ticks lose
+  ≈ 20k each (−4.46 % over 60 ticks), a pile10 flight tick ≈ 0.9k, the impact tick 4.3k. After the pile10 impact
+  every body is awake, the dense path runs with nothing dormant, and the lever does nothing: on the owner's shot (108
+  of 151 ticks after the impact) it only offsets the default's own overhead (−2.5k in process, +1.4k slim). IT1's
+  "most walks of sleeping pairs" are walks of a pile that is asleep only until the impact.
+- **The positions stay.** The active set keeps the positions of the live pairs in the whole list in both modes (the
+  migration, `v3::downgrade` and the stale positions of an invalid set need them); the sparse step recomputes them only
+  when the live keys change (`live_positions`, keys only, no list built).
+- **Overhead by default.** Two boxed cells (`World::dormant`, the removed colliders of `ColliderSet::take_removed`)
+  ride along every `ref` of the world and of the collider set: +0.15 to +0.6 % per tick. Two unboxed `World` fields
+  cost twice as much (measured, replaced).
+- **Bit-identity.** Per-tick Poseidon digests of the version-3 felts of the whole state (`v3::downgrade`), the tick's
+  force events and the entities: 520 pile10 ticks (both shots, in process and slim) and 180 level ticks, equal to
+  alpha.9's in both modes; `level_budget`'s impact digests keep their version-3 pins (and gain version-4 ones).
+
+Probes (uncommitted, in the lot's worktree): `crates/rapier2d_classes/tests/ws3.cairo` (EL1's `el1.cairo` with an
+`_apart` twin of every shot and the per-tick traces) and `crates/rapier2d/tests/ws3_probes.cairo` (level windows,
+traces); the committed `steps_*` probes were run "apart" by building with the switch on by default (uncommitted).

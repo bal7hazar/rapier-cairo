@@ -1,5 +1,46 @@
 # Step Budgets
 
+## WS3 — dormant pairs kept apart, `WorldState` v4 (2026-10-03)
+
+`World::keep_dormant_pairs_apart(true)` keeps the dormant pairs of a valid active set out of `narrow_phase.pairs`
+(opt-in: existing code reads that list as the whole one, ADR 0001 entry 46); `ColliderSet::take_removed` and
+`GenericJointBuilder::user_data` (parity); `WorldState` version 4 with the migration of version 3. Results
+bit-identical: every test unchanged, and the per-tick digests of the version-3 felts of the state equal before and
+after in both modes (pile10 both shots in process and slim, 520 ticks; levels 10 and 20, 90 ticks each). Exact Cairo
+steps, Scarb 2.20.1 / snforge 0.64.0, `RAYON_NUM_THREADS=1`, on the Mac (Apple silicon arm64), build path
+`/Users/bal7hazar/.herdr/worktrees/rapier-cairo/hp-slingfall-rapier-t-0047-ws3-dormant-pairs-codec`, before = `main`
+at `b1670ed` (alpha.9, code of `51dd962`); "apart" is the same probe with `keep_dormant_pairs_apart(true)` after the
+build (uncommitted probes, `docs/research/impact-tick.md` §10):
+
+| probe | before | default | Δ | apart | Δ |
+|---|--:|--:|--:|--:|--:|
+| pile10 owner's shot, in process (151 ticks) | 22,507,444 | 22,548,015 | +40,571 (+0.18 %) | 22,504,974 | −2,470 (−0.01 %) |
+| pile10 owner's shot, slim | 29,500,630 | 29,545,087 | +44,457 (+0.15 %) | 29,502,046 | +1,416 (+0.00 %) |
+| pile10 reference shot, in process (107 ticks) | 8,585,434 | 8,605,573 | +20,139 (+0.23 %) | 8,520,532 | −64,902 (−0.76 %) |
+| pile10 reference shot, slim | 11,906,622 | 11,929,051 | +22,429 (+0.19 %) | 11,844,010 | −62,612 (−0.53 %) |
+| owner's impact tick (42), slim | 498,535 | 499,389 | +854 | 494,225 | −4,310 (−0.86 %) |
+| owner's collapse tick (50), slim | 261,121 | 261,502 | +381 | 261,502 | +381 |
+| level 20, 60 ticks (mixed ticks from 26) | 15,237,617 | 15,270,457 | +32,840 (+0.22 %) | 14,558,771 | −678,846 (−4.46 %) |
+| level 20, 90 ticks | 36,222,242 | 36,280,813 | +58,571 (+0.16 %) | 35,532,576 | −689,666 (−1.90 %) |
+| level 10, 60 ticks | 13,063,354 | 13,088,285 | +24,931 (+0.19 %) | 13,055,291 | −8,063 (−0.06 %) |
+| `steps_impact_level20` | 3,457,133 | 3,467,846 | +10,713 (+0.31 %) | 3,359,813 | −97,320 (−2.82 %) |
+| `steps_flight_level10` | 899,780 | 905,331 | +5,551 (+0.62 %) | 877,515 | −22,265 (−2.47 %) |
+| `steps_game_step` | 2,726,098 | 2,732,416 | +6,318 (+0.23 %) | 2,699,220 | −26,878 (−0.99 %) |
+| `steps_asleep_level20` | 968,713 | 971,684 | +2,971 (+0.31 %) | 980,054 | +11,341 (+1.17 %) |
+| P3 `steps_step_*` (17) | | | +420 to +2,187 (+0.22 to +2.16 %) | | same as default |
+
+The lever pays where pairs sleep next to awake ones (level 20's second structure: ≈ −20k per mixed tick) and on the
+flight and impact ticks of a sleeping pile (−0.9k per flight tick, −4.3k at the impact); after the pile10 impact every
+body is awake and nothing is dormant. A removal while pairs are apart merges them back (the asleep windows' pebble
+removal, +1.2 %). By default the boxed `World::dormant` and the collider set's removed list cost +0.15 to +0.6 % per
+tick (`take_removed` alone ≈ +0.1 to +0.2 %). Sierra gas (`gas/rapier2d*/**`, `gas/rapier_dynamics2d*/**`): median
++0.21 %. Proofs (estimate, the game's basis of 154 L2 gas per step, EL1's figures): owner's shot 5.226e9 virtual L2 gas
+by default +6.8M, apart +0.2M, still 6 proofs; reference shot 2.546e9 by default +3.5M, apart −9.6M, still 3. Declared
+classes (felt counts, path-free, `scripts/bytecode_size.py table`): `SlimSplitStep` 66,890 → 70,632 CASM (margin
+3,096), `SlimEditStep` 68,632 → 72,441 (**margin 1,287**), `WorldEditClass` 51,380 → 53,735; the basic codec's version-3
+migration was taken out of the callers (−720). Classes whose hash changes: `SolverClass`, `SolveAdvanceClass`,
+`IslandsClass`, `MassClass`, `NarrowPhaseClass`, `ForceEventsClass`.
+
 ## EL1 — engine levers (2026-10-03)
 
 IT1's in-scope step levers (`docs/research/impact-tick.md` §8). R1: `remove_body` wakes and releases a collider's pairs
