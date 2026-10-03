@@ -26,7 +26,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
 | **total** | **1545** | **0** | **46** | **1001** | **2592** | **85.6%** | **97.1%** |
 
-Cairo-only public items not matched to upstream: **2038**.
+Cairo-only public items not matched to upstream: **2042**.
 
 ## Aabb
 
@@ -4724,7 +4724,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1838 more
+- ... 1842 more
 
 ## Embedded Rust inventory
 

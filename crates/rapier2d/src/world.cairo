@@ -213,17 +213,14 @@ pub impl WorldImpl of WorldTrait {
     /// `collider` (upstream `NarrowPhase::remove_collider`: the contact graph only; its
     /// intersection pairs wake nobody), and clears the body links of all its pairs
     /// (`pipeline::sleeping::release_removed_pairs`) so that the next step ends them, dormant or
-    /// not, with their `REMOVED` event.
+    /// not, with their `REMOVED` event. One walk of the pairs for both
+    /// (`pipeline::sleeping::wake_and_release_removed`).
     fn wake_contact_partners(ref self: World, collider: Handle) {
-        let mut touched = array![collider];
-        let _ = crate::pipeline::sleeping::wake_touched_partners(
-            touched.span(), self.narrow_phase.pairs.span(), ref self.bodies, ref self.colliders,
-        );
         self
             .narrow_phase
             .pairs =
-                crate::pipeline::sleeping::release_removed_pairs(
-                    self.narrow_phase.pairs.span(), collider,
+                crate::pipeline::sleeping::wake_and_release_removed(
+                    self.narrow_phase.pairs.span(), collider, ref self.bodies, ref self.colliders,
                 );
     }
 

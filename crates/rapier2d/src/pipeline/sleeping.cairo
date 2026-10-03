@@ -127,6 +127,30 @@ pub fn release_removed_pairs(pairs: Span<ContactPair>, removed: Handle) -> Array
     out
 }
 
+/// [`wake_touched_partners`] for the single collider `removed`, then [`release_removed_pairs`],
+/// in one walk of `pairs` (lot EL1, lever R1): the parents of every contact pair of `removed`
+/// are woken in pair order (first collider, then second) and its pairs lose their body links.
+/// The wakes write bodies only and the release rewrites pairs only, so the result is the two
+/// passes' exactly.
+pub fn wake_and_release_removed(
+    pairs: Span<ContactPair>, removed: Handle, ref bodies: RigidBodySet, ref colliders: ColliderSet,
+) -> Array<ContactPair> {
+    let mut out = array![];
+    for pair in pairs {
+        let mut pair = *pair;
+        if pair.collider1 == removed || pair.collider2 == removed {
+            if !pair.is_intersection_pair() {
+                let _ = wake_parent(pair.collider1, ref bodies, ref colliders);
+                let _ = wake_parent(pair.collider2, ref bodies, ref colliders);
+            }
+            pair.manifold.data.rigid_body1 = None;
+            pair.manifold.data.rigid_body2 = None;
+        }
+        out.append(pair);
+    }
+    out
+}
+
 /// Whether `handle` is in `colliders` (ascending slot, dense): the entry of a live collider is
 /// at most at its slot index, so the search starts there and walks down over the free slots.
 pub fn collider_exists(colliders: Span<(Handle, Collider)>, handle: Handle) -> bool {

@@ -1,8 +1,9 @@
 //! Post-solver force events, in ascending collider-pair order.
 use fixed::{Fixed, FixedTrait, ZERO};
 use glam_core::{Vec2, Vec2Trait};
+use rapier_core::ArenaField;
 use rapier_core::collider::ActiveEventsTrait;
-use rapier_core::collider::events::CONTACT_FORCE_EVENTS;
+use rapier_core::collider::events::{ActiveEvents, CONTACT_FORCE_EVENTS};
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent, ContactForceEventTrait};
@@ -124,6 +125,25 @@ pub(crate) fn gas_wallet() {
 pub(crate) fn threshold(collider: Collider) -> Fixed {
     if collider.flags.active_events.contains(CONTACT_FORCE_EVENTS) {
         collider.contact_force_event_threshold
+    } else {
+        Fixed { raw: 9223372036854775807 }
+    }
+}
+
+/// What [`collect`] reads of a collider (EL1, F1): its active events, its force-event threshold
+/// and whether its shape is composite, without copying the rest of the collider out of the set.
+pub(crate) impl ForceEventReads of ArenaField<Collider, (ActiveEvents, Fixed, bool)> {
+    #[inline(always)]
+    fn read(value: Collider) -> (ActiveEvents, Fixed, bool) {
+        (value.flags.active_events, value.contact_force_event_threshold, value.shape.is_composite())
+    }
+}
+
+/// [`threshold`] from the reads of [`ForceEventReads`].
+#[inline(always)]
+fn threshold_of(events: ActiveEvents, limit: Fixed) -> Fixed {
+    if events.contains(CONTACT_FORCE_EVENTS) {
+        limit
     } else {
         Fixed { raw: 9223372036854775807 }
     }
@@ -288,6 +308,11 @@ pub(crate) fn collect_either(
 }
 
 /// The body of [`collect`] (`groups`, a constant after inlining) and [`collect_convex`].
+///
+/// EL1 (F1): the pair list is rebuilt from the first pair whose status bit changes; when none
+/// changes (most steps), the list is kept and no pair is copied. The rebuild of every pair is
+/// `el1_alternatives::collect_body_rebuilding`; the colliders are read through [`ForceEventReads`]
+/// (whole reads: `el1_alternatives::collect_body_whole_reads`).
 #[inline(always)]
 fn collect_body(
     dt: Fixed, ref narrow: NarrowPhase, ref colliders: ColliderSet, groups: bool,
@@ -299,37 +324,92 @@ fn collect_body(
     };
     let mut events = array![];
     let mut pairs = array![];
-    let mut rest = narrow.pairs.span();
+    let mut rebuilt = false;
+    let all = narrow.pairs.span();
+    let mut rest = all;
     let mut composite = false;
     while let Some(old) = rest.pop_front() {
-        let mut pair = *old;
-        let co1 = colliders.get(pair.collider1).unwrap();
-        let co2 = colliders.get(pair.collider2).unwrap();
-        if (co1.flags.active_events | co2.flags.active_events).contains(CONTACT_FORCE_EVENTS) {
-            if co1.shape.is_composite() || co2.shape.is_composite() {
+        let (events1, limit1, composite1) = colliders
+            .get_field::<_, ForceEventReads>(*old.collider1)
+            .unwrap();
+        let (events2, limit2, composite2) = colliders
+            .get_field::<_, ForceEventReads>(*old.collider2)
+            .unwrap();
+        // Upstream visits only enabled force-event pairs. Preserve inactive bookkeeping,
+        // including when some unrelated collider keeps the global collection pass enabled.
+        let mut bits = *old.event_status.bits;
+        if (events1 | events2).contains(CONTACT_FORCE_EVENTS) {
+            if composite1 || composite2 {
                 composite = true;
                 break;
             }
-            let limit = threshold(co1).min(threshold(co2));
-            convex_event(dt, inv_dt, limit, ref pair, ref events);
+            let limit = threshold_of(events1, limit1).min(threshold_of(events2, limit2));
+            bits = convex_status(dt, inv_dt, limit, old, ref events);
         }
-        // Upstream visits only enabled force-event pairs. Preserve inactive bookkeeping,
-        // including when some unrelated collider keeps the global collection pass enabled.
-        pairs.append(pair);
+        if !rebuilt && bits != *old.event_status.bits {
+            pairs.append_span(all.slice(0, all.len() - rest.len() - 1));
+            rebuilt = true;
+        }
+        if rebuilt {
+            let mut pair = *old;
+            pair.event_status.bits = bits;
+            pairs.append(pair);
+        }
     }
     if composite {
         if !groups {
             core::panic_with_felt252(errors::COMPOSITE);
         }
         // Back to the composite pair: `rest` starts after it.
-        let all = narrow.pairs.span();
         let start = all.len() - rest.len() - 1;
+        if !rebuilt {
+            pairs.append_span(all.slice(0, start));
+            rebuilt = true;
+        }
         collect_groups(
             dt, inv_dt, all.slice(start, rest.len() + 1), ref pairs, ref events, ref colliders,
         );
     }
-    narrow.pairs = pairs;
+    if rebuilt {
+        narrow.pairs = pairs;
+    }
     events
+}
+
+/// The status bits of `pair` after [`convex_event`], read through the snapshot: the event, if
+/// any, is appended to `events`, and the pair itself is not copied.
+#[inline(always)]
+fn convex_status(
+    dt: Fixed,
+    inv_dt: Fixed,
+    limit: Fixed,
+    pair: @ContactPair,
+    ref events: Array<ContactForceEvent>,
+) -> u8 {
+    let contacts = *pair.manifold.data.num_solver_contacts;
+    let flags = *pair.manifold.data.solver_flags.bits;
+    let magnitude = if contacts == 0 || flags == 0 {
+        ZERO
+    } else {
+        let [a, b] = *pair.manifold.points;
+        let first = if *pair.manifold.num_points != 0 {
+            a.data.impulse
+        } else {
+            ZERO
+        };
+        let second = if *pair.manifold.num_points > 1 {
+            b.data.impulse
+        } else {
+            ZERO
+        };
+        (first + second) * inv_dt
+    };
+    if magnitude > limit && contacts != 0 && flags != 0 {
+        events.append(ContactForceEventTrait::from_contact_pair(dt, pair, magnitude));
+        *pair.event_status.bits | 2
+    } else {
+        *pair.event_status.bits & 253
+    }
 }
 
 /// The force event of the one-entry pair `pair`, if its force is above `limit`, and its status
@@ -584,3 +664,6 @@ mod alternatives;
 
 #[cfg(test)]
 mod collect_tests;
+
+#[cfg(test)]
+mod el1_alternatives;

@@ -247,3 +247,128 @@ recommits the probes it needs for its before / after tables:
 - `stages.py`: per-stage table of two cairo-profiler profiles (`go tool pprof -raw`, first match from the root of each
   sampled stack; the solver refined by sweep stage; codec frames under a library call counted as crossing).
 - cairo-profiler 0.17.0 (asdf, user-local, already installed), `go tool pprof`.
+
+## 8. EL1 — the in-scope levers, measured (2026-10-03)
+
+Lot EL1 (`docs/briefs/el1-engine-levers.md`). Exact Cairo steps, Scarb 2.20.1 / snforge 0.64.0, on the Mac (Apple
+silicon arm64), build path `/Users/bal7hazar/.herdr/worktrees/rapier-cairo/hp-slingfall-rapier-t-0035-el1-engine-levers`,
+`RAYON_NUM_THREADS=1`, before = `main` after CX3 and CI2 (`665e999`). Probes: CX3's `cx3.cairo` copied as an uncommitted
+`el1.cairo` (the pile10 shots built, launched, run `NNN` ticks, digest), plus two uncommitted probes that print the
+digest of every tick of both shots in both layouts. Every lever's per-tick digests are equal to the before run's (520
+lines), and every result test passes unchanged.
+
+| lever | estimate (owner's shot, IT1 §4) | measured: owner's shot, in process / slim | reference shot, in process / slim | kept |
+|---|---|--:|--:|---|
+| R1 `remove_body` in one walk (`sleeping::wake_and_release_removed`) | −0.03 to −0.06M | −31,289 / −31,289 | −23,461 / −23,461 | yes |
+| F1 force events: pair list kept when no status bit changes | −0.35 to −0.55M (F1 as a whole) | −207,332 / −207,332 | −89,141 / −89,141 | yes |
+| F1 force events: three collider fields read (`ColliderSetTrait::get_field`) | (in the line above) | −107,744 / −107,744 | −44,104 / −44,104 | yes |
+| W1 `body_status` reads the slot's entry before walking | −0.25 to −0.45M (W1 as a whole) | −14,142 / −2,158 | −10,290 / −2,157 | yes |
+| N1 pair loop: one unbox of the previous pair | −0.45 to −0.95M (in process) | 0 / 0 | 0 / 0 | no (the compiler already shares it) |
+| S1, U1, G1, the rest of N1 and W1 | see below | not implemented | | |
+
+The impact tick loses 28,421–28,425 steps in process (−6.0 %) and 27,446–27,450 slim (−5.2 %). Each tick after the
+impact loses 2.8–4.6k (−1.1 to −1.6 %), which is about ¼ of IT1's estimate (−8 to −16 k per collapse tick for all
+in-scope levers). Why the rest was not implemented (reference shot, in process, from the HP profile below):
+
+- **S1.** Of the 2,605,823 steps of `split::banked`, the arrays' own movement is `array_append` 61,776 and
+  `array_pop_front` 13,728. The rest is the kernels' arithmetic and its `store_temp` (1,365,229). Rebuilding `Hot` /
+  `Bank` is inherent to immutable arrays, and BT1 / BT3 benched the layouts (`split/alternatives.cairo`). No
+  bit-identical candidate is left.
+- **N1.** The pair loop costs 1,364,656: generators 679,476, `solver_data_supported` 236,601 (combine rules 60,576,
+  in `rapier_core`, out of scope), `append` 72,704, `SpanImpl::at` 56,800 (the two `PairCollider` copies, which the
+  callees take by value). Sharing the unbox changed nothing. N1 does not apply to the slim layout.
+- **W1.** `scatter_impulses` (224,063) rebuilds the pair list after the solve, and the force-event pass walks it
+  again. Fusing them would cross the boundary between `SolveAdvanceClass` and the force-event stage in the slim
+  layout (classes are out of scope). The `body_status` part above is the part found inside the allowed files.
+- **U1.** `user_changes_bodies_for_step` costs 229,461 over the shot. 98,320 of it is the two set snapshots
+  (`Arena::to_array`) the rest of the step reads, and 84,621 is the body loop that builds them. Skipping the
+  change-flag scan when the arena is unmodified is not safe: a `WorldState` round trip (which the game does every
+  tick) restores an unmodified set whose flags may be raised.
+- **G1.** Generation (789,915) is BT3's direct split; no step was found to remove without changing an operation.
+
+Proofs (estimate, the game's basis of 154 L2 gas per step, CX3's figures after TC1): owner's shot 5.28e9 − 348,523 ×
+154 = 5.226e9, still 6 proofs (5 need ≈ 1.47M more steps); reference shot 2.57e9 − 158,863 × 154 = 2.546e9, still 3.
+
+## 9. HP — hot-path profile of the `fixed` and `glam_core` operations (2026-10-03)
+
+For the glam track: the operations of the `fixed` and `glam_core` dependencies ranked by their Cairo steps.
+
+**How.** The setup is that of §8, at commit `2a80232` (main + R1; R1 changes no `fixed` / `glam_core` call). The
+tests were run with `--save-trace-data` on a build with `[profile.dev.cairo]
+unstable-add-statements-functions-debug-info = true` and `unstable-add-statements-code-locations-debug-info = true`
+(uncommitted; I checked that the steps are identical with and without them). The profiles come from
+**cairo-profiler 0.17.0** with `--show-inlined-functions --show-libfuncs --max-function-stack-trace-depth 1000`, each
+on a frozen copy of the Sierra file the trace was made with.
+
+- **Stack depth.** The default depth (100) truncates the deep stacks of the game and shot probes, and their steps
+  land on outer frames: the reference shot showed 1.4 % `fixed` + `glam_core` at depth 100 against 38.8 % at
+  depth 1000.
+- **Inlined code.** Every `fixed` / `glam_core` function is `#[inline(always)]`, so a step goes to the inlined
+  frames of its statement. A row is the **outermost** `fixed::` / `glam_core::` frame, i.e. the operation as rapier
+  calls it, inclusive of what it inlines.
+- **Call counts.** Exact, but derived: cairo-profiler counts only contract calls, and cairo-coverage 0.6.1's line
+  hits are not call counts. Each operation is counted through a libfunc of fixed CASM cost that it runs a known
+  number of times per call: `bounded_int_div_rem` inside `narrow32` (7 steps, once per rescale; twice for a `Vec2`
+  component-wise product), `u128_sqrt` (9), or `i64_overflowing_add` / `sub` (6). A libfunc's cost is the gcd of its
+  steps over all stacks. Comparisons (`gt`, `eq`) have no such libfunc: "—".
+- **Coverage gaps.** The owner's shot (22.8M steps) could not be profiled on the Mac: the profiler needs about 41 GB
+  for the reference shot and swapped on the owner's. The slim shots could not be profiled either: on snforge 0.64's
+  traces, cairo-profiler 0.17.0 stops with "Failed to map function to SyscallSelector … VariantNotFound". The classes
+  run the same engine functions, so the in-process reference shot stands for the pile10 family.
+
+| family (probes) | Cairo steps | `fixed` + `glam_core` | of which `narrow32` (the Q64.64 → Q32.32 rescale) |
+|---|--:|--:|--:|
+| P3 `steps_step_*` (17) | 4,401,279 | 1,171,569 (26.6 %) | 588,294 (13.4 %) |
+| levels `steps_{flight,impact,load}_level{10,20}` (6) | 9,754,110 | 2,463,439 (25.3 %) | 1,291,117 (13.2 %) |
+| game `game_path::steps_game_*` (12) | 31,429,657 | 9,027,677 (28.7 %) | 4,809,742 (15.3 %) |
+| pile10 reference shot, in process (1) | 8,728,969 | 3,387,651 (38.8 %) | 2,003,956 (23.0 %) |
+| **total** (36) | **54,314,015** | **16,050,336 (29.6 %)** | **8,693,109 (16.0 %)** |
+
+Top 10, all families together (each operation's steps per call is close to its per-family value):
+
+| # | operation | calls | steps / call | steps | share |
+|---|---|--:|--:|--:|--:|
+| 1 | `fixed::wide::mul_add` | 201,841 | 15.2 | 3,067,293 | 5.65 % |
+| 2 | `fixed::fixed::FixedMul::mul` | 106,849 | 13.8 | 1,469,881 | 2.71 % |
+| 3 | `fixed::wide::dot2_add` | 73,560 | 17.8 | 1,311,688 | 2.42 % |
+| 4 | `fixed::wide::mul_sub` | 50,016 | 15.6 | 781,835 | 1.44 % |
+| 5 | `fixed::wide::dot2` | 45,451 | 15.3 | 696,625 | 1.28 % |
+| 6 | `fixed::fixed::FixedPartialOrd::gt` | — | — | 628,693 | 1.16 % |
+| 7 | `fixed::internal::acc::W3Narrow::narrow` | 40,520 | 14.5 | 589,232 | 1.08 % |
+| 8 | `fixed::fixed::FixedSub::sub` | 86,405 | 6.5 | 560,896 | 1.03 % |
+| 9 | `glam_core::vec2::Vec2Sub::sub` | 42,983 | 12.7 | 546,194 | 1.01 % |
+| 10 | `glam_core::vec2::Vec2Mul::mul` | 19,420 | 26.4 | 513,200 | 0.94 % |
+
+Per family (top 10 each):
+
+| P3 | calls | steps / call | steps | share | | levels | calls | steps / call | steps | share |
+|---|--:|--:|--:|--:|---|---|--:|--:|--:|--:|
+| `wide::dot2_add` | 7,404 | 17.9 | 132,604 | 3.01 % | | `wide::mul_add` | 23,000 | 15.2 | 350,502 | 3.59 % |
+| `FixedMul::mul` | 9,484 | 13.4 | 127,292 | 2.89 % | | `wide::dot2_add` | 13,572 | 17.8 | 242,194 | 2.48 % |
+| `Vec2Mul::mul` | 3,375 | 26.5 | 89,394 | 2.03 % | | `FixedMul::mul` | 14,895 | 13.7 | 204,549 | 2.10 % |
+| `wide::mul_sub` | 4,632 | 15.6 | 72,370 | 1.64 % | | `wide::dot2` | 9,000 | 15.3 | 137,847 | 1.41 % |
+| `wide::mul_add` | 4,093 | 15.6 | 63,735 | 1.45 % | | `wide::mul_sub` | 8,749 | 15.6 | 136,665 | 1.40 % |
+| `wide::normalize2` | 1,166 | 48.0 | 55,968 | 1.27 % | | `Vec2Sub::sub` | 8,506 | 12.6 | 106,995 | 1.10 % |
+| `Vec2Sub::sub` | 4,167 | 13.1 | 54,532 | 1.24 % | | `W3Narrow::narrow` | 6,790 | 14.5 | 98,486 | 1.01 % |
+| `wide::dot2` | 3,171 | 15.4 | 48,935 | 1.11 % | | `FixedPartialOrd::gt` | — | — | 95,154 | 0.98 % |
+| `Vec2Add::add` | 3,531 | 13.3 | 46,830 | 1.06 % | | `Vec2Add::add` | 6,004 | 13.1 | 78,872 | 0.81 % |
+| `FixedImpl::recip` | 1,120 | 40.2 | 45,001 | 1.02 % | | `FixedSub::sub` | 12,135 | 6.5 | 78,603 | 0.81 % |
+
+| game | calls | steps / call | steps | share | | reference shot | calls | steps / call | steps | share |
+|---|--:|--:|--:|--:|---|---|--:|--:|--:|--:|
+| `wide::mul_add` | 111,527 | 15.2 | 1,696,213 | 5.40 % | | `wide::mul_add` | 63,221 | 15.1 | 956,843 | 10.96 % |
+| `FixedMul::mul` | 57,842 | 13.8 | 797,061 | 2.54 % | | `FixedMul::mul` | 24,628 | 13.8 | 340,979 | 3.91 % |
+| `wide::dot2_add` | 39,908 | 17.8 | 711,574 | 2.26 % | | `wide::dot2_add` | 12,676 | 17.8 | 225,316 | 2.58 % |
+| `wide::mul_sub` | 28,497 | 15.6 | 445,569 | 1.42 % | | `FixedSub::sub` | 21,397 | 6.5 | 139,666 | 1.60 % |
+| `wide::dot2` | 26,771 | 15.3 | 409,764 | 1.30 % | | `FixedPartialOrd::gt` | — | — | 137,540 | 1.58 % |
+| `FixedPartialOrd::gt` | — | — | 361,830 | 1.15 % | | `W3Narrow::narrow` | 8,956 | 14.4 | 128,672 | 1.47 % |
+| `W3Narrow::narrow` | 22,522 | 14.6 | 328,406 | 1.04 % | | `wide::mul_sub` | 8,138 | 15.6 | 127,231 | 1.46 % |
+| `FixedSub::sub` | 49,887 | 6.5 | 323,385 | 1.03 % | | `W7Narrow::narrow` | 8,012 | 13.0 | 104,156 | 1.19 % |
+| `Vec2Sub::sub` | 23,486 | 12.6 | 297,001 | 0.94 % | | `wide::dot2` | 6,509 | 15.4 | 100,079 | 1.15 % |
+| `Vec2Mul::mul` | 9,818 | 26.4 | 259,206 | 0.82 % | | `Vec2Mul::mul` | 3,379 | 26.5 | 89,380 | 1.02 % |
+
+**Reading.** More than half of the dependency steps are the rescale `narrow32` (`div_rem` by 2^64 plus the `u128`
+range check): every fused multiply (`mul_add`, `mul`, `dot2*`, `mul_sub`) is about 13–18 steps, of which `narrow32` is
+about 12. `mul_add` alone is 5.7 % of all probe steps and 11 % of the pile10 shot (the solver's `apply`: six
+`mul_add` per impulse). A cheaper rescale in `fixed` would move every family; the `Vec2` component-wise operations are
+two scalar operations each (no extra cost).
