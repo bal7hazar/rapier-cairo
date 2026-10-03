@@ -31,6 +31,10 @@ pub use feature_id::{SubShapeId, UnpackedFeatureId};
 pub use mass::MassPropertiesTrait;
 pub use point::{PointProjection, PointQuery, PointQueryWithLocation, SegmentPointLocation};
 pub use query::intersection::{ShapeIntersection, ShapeIntersectionTrait};
+pub use query::normal_constraints::{
+    LocalNormalProjector, NormalConstraints, NormalConstraintsPair, UnitLocalNormalProjector,
+};
+pub use query::shape_distance::{ShapeDistance, ShapeDistanceTrait};
 pub use query::sweep::{SweepToiStatus, sweep_time_of_impact};
 pub use query::{
     ClosestPoints, Contact, NonlinearRigidMotion, NonlinearRigidMotionTrait, ShapeCastHit,
@@ -48,4 +52,5 @@ pub use shape::round_shape::{
 };
 pub use shape::support_map::SupportMap;
 pub use shape::triangle::{Triangle, TriangleTrait};
+pub use shape::triangle_pseudo_normals::TrianglePseudoNormals;
 pub use shape::{Shape, ShapeTrait, ShapeType};

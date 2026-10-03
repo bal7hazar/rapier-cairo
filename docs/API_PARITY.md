@@ -18,15 +18,15 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
 | dynamics | 560 | 0 | 30 | 592 | 1182 | 78.2% | 94.9% |
-| geometry | 253 | 0 | 15 | 47 | 315 | 84.6% | 94.4% |
+| geometry | 255 | 0 | 13 | 47 | 315 | 85.3% | 95.1% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
-| parry::query | 260 | 0 | 20 | 127 | 407 | 86.7% | 92.9% |
-| parry::shape | 234 | 0 | 24 | 122 | 380 | 89.7% | 90.7% |
+| parry::query | 272 | 0 | 8 | 127 | 407 | 90.7% | 97.1% |
+| parry::shape | 235 | 0 | 23 | 122 | 380 | 90.0% | 91.1% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1527** | **0** | **89** | **976** | **2592** | **84.6%** | **94.5%** |
+| **total** | **1542** | **0** | **74** | **976** | **2592** | **85.5%** | **95.4%** |
 
-Cairo-only public items not matched to upstream: **2029**.
+Cairo-only public items not matched to upstream: **2041**.
 
 ## Aabb
 
@@ -1842,18 +1842,18 @@ Cairo-only public items not matched to upstream: **2029**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `project_local_normal` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraints, NormalConstraintsTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
-| method `project_local_normal1` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraints, NormalConstraintsTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
-| method `project_local_normal2` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraints, NormalConstraintsTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
-| method `project_local_normal_mut` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraints, NormalConstraintsTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
-| trait `NormalConstraints` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraints, NormalConstraintsTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| method `project_local_normal` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| method `project_local_normal1` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| method `project_local_normal2` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| method `project_local_normal_mut` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| trait `NormalConstraints` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
 
 ## NormalConstraintsPair
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `project_local_normals` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraintsPair, NormalConstraintsPairTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
-| trait `NormalConstraintsPair` | parry::query | missing | Not found on Cairo candidate(s): NormalConstraintsPair, NormalConstraintsPairTrait. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| method `project_local_normals` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
+| trait `NormalConstraintsPair` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/normals_constraint.rs` |
 
 ## OctantPattern
 
@@ -2958,10 +2958,10 @@ Cairo-only public items not matched to upstream: **2029**.
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
 | impl `From<Real>` | parry::query | missing | Not found on Cairo candidate(s): ShapeDistance, ShapeDistanceTrait. | `parry/src/query/distance/distance.rs` |
-| method `new` | parry::query | missing | Not found on Cairo candidate(s): ShapeDistance, ShapeDistanceTrait. | `parry/src/query/distance/distance.rs` |
-| method `swapped` | parry::query | missing | Not found on Cairo candidate(s): ShapeDistance, ShapeDistanceTrait. | `parry/src/query/distance/distance.rs` |
-| method `with_subshapes` | parry::query | missing | Not found on Cairo candidate(s): ShapeDistance, ShapeDistanceTrait. | `parry/src/query/distance/distance.rs` |
-| type `ShapeDistance` | parry::query | missing | Not found on Cairo candidate(s): ShapeDistance, ShapeDistanceTrait. | `parry/src/query/distance/distance.rs` |
+| method `new` | parry::query | ported | Same public name. | `parry/src/query/distance/distance.rs` |
+| method `swapped` | parry::query | ported | Same public name. | `parry/src/query/distance/distance.rs` |
+| method `with_subshapes` | parry::query | ported | Same public name. | `parry/src/query/distance/distance.rs` |
+| type `ShapeDistance` | parry::query | ported | Same public name. | `parry/src/query/distance/distance.rs` |
 
 ## ShapeIntersection
 
@@ -3689,8 +3689,8 @@ Cairo-only public items not matched to upstream: **2029**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| method `contact_indices` | geometry | missing | Not found on Cairo candidate(s): SolverContactGeneric, SolverContactGenericTrait. | `rapier/src/geometry/contact_pair.rs` |
-| type `SolverContactGeneric` | geometry | missing | Not found on Cairo candidate(s): SolverContactGeneric, SolverContactGenericTrait. | `rapier/src/geometry/contact_pair.rs` |
+| method `contact_indices` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
+| type `SolverContactGeneric` | geometry | ported | Same public name. | `rapier/src/geometry/contact_pair.rs` |
 
 ## SolverContacts
 
@@ -3817,7 +3817,7 @@ Cairo-only public items not matched to upstream: **2029**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `SubshapePoses` | parry::query | missing | Not found on Cairo candidate(s): SubshapePoses, SubshapePosesTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| type `SubshapePoses` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 
 ## SupportMap
 
@@ -4040,7 +4040,7 @@ Cairo-only public items not matched to upstream: **2029**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `TrianglePseudoNormals` | parry::shape | missing | Not found on Cairo candidate(s): TrianglePseudoNormals, TrianglePseudoNormalsTrait. | `parry/src/shape/triangle_pseudo_normals.rs` |
+| type `TrianglePseudoNormals` | parry::shape | ported | Same public name. | `parry/src/shape/triangle_pseudo_normals.rs` |
 
 ## TypedCompositeShape
 
@@ -4440,8 +4440,8 @@ Cairo-only public items not matched to upstream: **2029**.
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
 | [API polish and miscellaneous parity](#wp-api-polish-and-miscellaneous-parity) | 34 | mechanical | AP triage |
-| [Query completion](#wp-query-completion) | 30 | standard | QP queries |
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 18 | standard | shape interface |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 17 | standard | shape interface |
+| [Query completion](#wp-query-completion) | 16 | standard | QP queries |
 | [Collider API completion](#wp-collider-api-completion) | 4 | mechanical | DB/EV |
 | [Joint API completion](#wp-joint-api-completion) | 1 | standard | JL/RJ |
 | [Rigid-body API completion](#wp-rigid-body-api-completion) | 1 | mechanical | KD/SL |
@@ -4486,44 +4486,9 @@ Tier: mechanical. Depends/context: AP triage. Estimate: 34 public items.
 - **TypedCompositeShape** trait `TypedCompositeShape` (`parry/src/shape/composite_shape.rs`)
 - **VelocitySolver** method `new` (`rapier/src/dynamics/solver/velocity_solver.rs`)
 
-### WP: Query completion
-
-Tier: standard. Depends/context: QP queries. Estimate: 30 public items.
-
-- **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
-- **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
-- **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
-- **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifoldData** method `solver_contact_world_points` (`rapier/src/geometry/contact_pair.rs`)
-- **ContactRef** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
-- **GraphPos** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
-- **NormalConstraints** method `project_local_normal` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** method `project_local_normal1` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** method `project_local_normal2` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** method `project_local_normal_mut` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraints** trait `NormalConstraints` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraintsPair** method `project_local_normals` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **NormalConstraintsPair** trait `NormalConstraintsPair` (`parry/src/query/contact_manifolds/normals_constraint.rs`)
-- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
-- **ShapeDistance** impl `From<Real>` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** method `new` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** method `swapped` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** method `with_subshapes` (`parry/src/query/distance/distance.rs`)
-- **ShapeDistance** type `ShapeDistance` (`parry/src/query/distance/distance.rs`)
-- **SolverContactGeneric** method `contact_indices` (`rapier/src/geometry/contact_pair.rs`)
-- **SolverContactGeneric** type `SolverContactGeneric` (`rapier/src/geometry/contact_pair.rs`)
-- **SolverContacts** type `SolverContacts` (`rapier/src/geometry/contact_pair.rs`)
-- **SubshapePoses** type `SubshapePoses` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **geometry** const `NEW_CONTACT_BIT` (`rapier/src/geometry/contact_pair.rs`)
-- **geometry** function `is_bouncy` (`rapier/src/geometry/contact_pair.rs`)
-
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 18 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 17 public items.
 
 - **ColliderBuilder** method `round_convex_decomposition` (`rapier/src/geometry/collider.rs`)
 - **ColliderBuilder** method `round_convex_decomposition_with_params` (`rapier/src/geometry/collider.rs`)
@@ -4542,7 +4507,27 @@ Tier: standard. Depends/context: shape interface. Estimate: 18 public items.
 - **SharedShape** method `voxelized_convex_decomposition` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_convex_decomposition_with_params` (`parry/src/shape/shared_shape.rs`)
 - **SharedShape** method `voxelized_mesh` (`parry/src/shape/shared_shape.rs`)
-- **TrianglePseudoNormals** type `TrianglePseudoNormals` (`parry/src/shape/triangle_pseudo_normals.rs`)
+
+### WP: Query completion
+
+Tier: standard. Depends/context: QP queries. Estimate: 16 public items.
+
+- **Collider** method `contact_skin` (`rapier/src/geometry/collider.rs`)
+- **Collider** method `set_contact_skin` (`rapier/src/geometry/collider.rs`)
+- **ColliderBuilder** method `contact_skin` (`rapier/src/geometry/collider.rs`)
+- **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
+- **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
+- **ContactManifoldData** method `solver_contact_world_points` (`rapier/src/geometry/contact_pair.rs`)
+- **ContactRef** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
+- **GraphPos** impl `Default` (`rapier/src/dynamics/solver/solver_contact_graph.rs`)
+- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
+- **ShapeDistance** impl `From<Real>` (`parry/src/query/distance/distance.rs`)
+- **SolverContacts** type `SolverContacts` (`rapier/src/geometry/contact_pair.rs`)
+- **geometry** const `NEW_CONTACT_BIT` (`rapier/src/geometry/contact_pair.rs`)
+- **geometry** function `is_bouncy` (`rapier/src/geometry/contact_pair.rs`)
 
 ### WP: Collider API completion
 
@@ -4773,7 +4758,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1829 more
+- ... 1841 more
 
 ## Embedded Rust inventory
 
