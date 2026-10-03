@@ -56,6 +56,10 @@ pub mod prelude {
         ContactForceEventTrait, ContactPair, ContactPairTrait, OneWayPlatform, RigidBody,
         RigidBodyBuilder, RigidBodyBuilderTrait, RigidBodySet, RigidBodySetTrait, RigidBodyTrait,
     };
+    pub use rapier_geometry2d::query::normal_constraints::{
+        LocalNormalProjector, NormalConstraints, NormalConstraintsPair,
+    };
+    pub use rapier_geometry2d::query::shape_distance::{ShapeDistance, ShapeDistanceTrait};
     pub use rapier_geometry2d::query::{
         NonlinearRigidMotion, NonlinearRigidMotionTrait, ShapeCastHit, ShapeCastHitTrait,
         ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
@@ -72,7 +76,9 @@ pub mod prelude {
     pub use rapier_geometry2d::shape::round_shape::{
         RoundConvexPolygon, RoundCuboid, RoundShape, RoundShapeTrait, RoundTriangle,
     };
+    pub use rapier_geometry2d::shape::segment::SegmentPseudoNormals;
     pub use rapier_geometry2d::shape::triangle::{Triangle, TriangleTrait};
+    pub use rapier_geometry2d::shape::triangle_pseudo_normals::TrianglePseudoNormals;
     pub use rapier_geometry2d::shape::{
         Ball, BallTrait, Capsule, CapsuleTrait, ConvexPolygon, ConvexPolygonTrait, Cuboid,
         CuboidTrait, HalfSpace, HalfSpaceTrait, Segment, SegmentTrait, Shape, ShapeTrait,

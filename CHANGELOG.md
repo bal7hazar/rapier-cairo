@@ -8,6 +8,12 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8` (the toolchain bump and the slim crossings are bit-identical).
 
 ### Added
+- API parity (PX7): the project manager's decisions of 2026-10-03 as table rules: three matcher gaps now `ported` (`is_bouncy`, `NEW_CONTACT_BIT`, `ShapeDistance::from`), 25 items closed with four new reasons (no `IndexMut`, no faithful `Default` for the contact-graph order, no faithful solver-contact form, V-HACD / voxelisation) or the existing closed-enum one; 74 → 46 `missing`. Table and script only, no library code.
+- API parity (PX6): `NormalConstraints` / `NormalConstraintsPair` (value style, `LocalNormalProjector` is the required
+  method) with `SegmentPseudoNormals` and the new `TrianglePseudoNormals` as projectors (`project_into_cone` in Q32.32),
+  `ShapeDistance`, `SubshapePoses` (plain data), `is_bouncy`, `SolverContactGeneric` / `contact_indices` (one-lane alias);
+  the main ones in the prelude. No result changed; the 74 items still `missing` are parked families (sub-shape widening,
+  `contact_skin`, composites, the solver's scalar API, V-HACD) or need a table rule (see the PX6 report).
 - `ImpulseJointSet::map_attached_joints_mut` (PX5, #242): the user's closure is called on a copy of each joint attached
   to a body and returns the edited joint, written back (Cairo closures have no `&mut`).
 - Cheap API items off the step path (PX4, #240): `Index` on `ColliderSet` / `RigidBodySet` (`set[handle]`),

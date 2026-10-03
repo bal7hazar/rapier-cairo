@@ -200,6 +200,12 @@ rapier_geometry2d::shape::polyline::tests::test_scaled_reverse_set_vertices_comp
 rapier_geometry2d::shape::polyline::tests::test_serde_round_trip 562730
 rapier_geometry2d::shape::polyline::tests::test_set_vertices_count 207060
 rapier_geometry2d::shape::polyline::tests::test_tree_prefilter_matches_linear_scan 6792840
+rapier_geometry2d::shape::pseudo_normals::tests::gas_baseline 5910
+rapier_geometry2d::shape::pseudo_normals::tests::gas_project_into_cone 62550
+rapier_geometry2d::shape::pseudo_normals::tests::test_degenerate_cone_collapses_to_face 184760
+rapier_geometry2d::shape::pseudo_normals::tests::test_direction_along_the_face_has_no_correction_axis 62750
+rapier_geometry2d::shape::pseudo_normals::tests::test_direction_inside_the_cone_is_kept 118730
+rapier_geometry2d::shape::pseudo_normals::tests::test_direction_outside_the_cone_is_clamped 63830
 rapier_geometry2d::shape::scaled::tests::gas_arc_points 300950
 rapier_geometry2d::shape::scaled::tests::gas_arc_points_divided 341600
 rapier_geometry2d::shape::scaled::tests::gas_ball_outline 301490
@@ -228,6 +234,7 @@ rapier_geometry2d::shape::segment::tests::gas_length 11510
 rapier_geometry2d::shape::segment::tests::gas_local_support_point 12340
 rapier_geometry2d::shape::segment::tests::gas_normal 16850
 rapier_geometry2d::shape::segment::tests::gas_point_at 18440
+rapier_geometry2d::shape::segment::tests::gas_pseudo_normals_projection 68490
 rapier_geometry2d::shape::segment::tests::gas_scaled_direction 8490
 rapier_geometry2d::shape::segment::tests::gas_transformed 21590
 rapier_geometry2d::shape::segment::tests::test_aabb_and_mass 16790
@@ -237,6 +244,8 @@ rapier_geometry2d::shape::segment::tests::test_from_array 5910
 rapier_geometry2d::shape::segment::tests::test_from_array_and_pseudo_normals 5910
 rapier_geometry2d::shape::segment::tests::test_point_at_bad_vertex_panics 12980
 rapier_geometry2d::shape::segment::tests::test_point_at_table 70600
+rapier_geometry2d::shape::segment::tests::test_pseudo_normals_degenerate_cone_collapses_to_face 130790
+rapier_geometry2d::shape::segment::tests::test_pseudo_normals_projection 359920
 rapier_geometry2d::shape::segment::tests::test_swap_transformed_support 26860
 rapier_geometry2d::shape::serde_tests::gas_baseline 6410
 rapier_geometry2d::shape::serde_tests::gas_round_trip_new_mixed 720680
@@ -287,3 +296,10 @@ rapier_geometry2d::shape::triangle::tests::test_orientation_area_center_perimete
 rapier_geometry2d::shape::triangle::tests::test_support_face_ids_and_core_mapping 612480
 rapier_geometry2d::shape::triangle::tests::test_support_point_edge_and_extents 118100
 rapier_geometry2d::shape::triangle::tests::test_vertices_edges_reverse_and_from_array 21420
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::gas_baseline 5910
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::gas_project_local_normal_mut 78510
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::gas_project_local_normal_mut_two_sided 78510
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::test_closest_edge_wins_and_the_first_on_a_tie 210730
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::test_edge_pseudo_normals_projection 248180
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::test_trivial_pseudo_normals_projection 135410
+rapier_geometry2d::shape::triangle_pseudo_normals::tests::test_two_sided_pseudo_normals_mirror_the_cone 359680
