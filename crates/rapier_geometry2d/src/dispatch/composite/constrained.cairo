@@ -390,6 +390,80 @@ mod tests {
     #[test]
     fn gas_baseline() {}
 
+    /// One part manifold, unconstrained against constrained (the cones of `floor(_, true)`'s part
+    /// 0): a polygon resting on the top (the normal is kept), a ball on the top (kept), and a ball
+    /// past the outer corner (projected onto the corner's limit and recast).
+    fn part0(polygon: bool) -> (Shape, Option<crate::shape::CompoundPseudoNormals>) {
+        let Shape::Compound(c) = floor(polygon, true) else {
+            panic!("a compound")
+        };
+        let c = c.unbox();
+        let (_, part) = c.part(0);
+        (part, c.part_normal_constraints(0))
+    }
+
+    #[test]
+    fn gas_part_pfm_plain() {
+        let (part, _) = part0(true);
+        let mut m: ContactManifold = Default::default();
+        let _ = crate::contact_generators::pfm_pfm::contact_manifold_pfm_pfm_part(
+            opaque(at(ZERO, c(74))), opaque(part), square(true, c(25)), c(2), ref m,
+        );
+    }
+
+    #[test]
+    fn gas_part_pfm_constrained() {
+        let (part, cones) = part0(true);
+        let mut m: ContactManifold = Default::default();
+        let _ = crate::contact_generators::pfm_pfm::contact_manifold_pfm_pfm_part_constrained(
+            opaque(at(ZERO, c(74))),
+            opaque(part),
+            square(true, c(25)),
+            opaque(cones),
+            None,
+            c(2),
+            ref m,
+        );
+    }
+
+    #[test]
+    fn gas_part_ball_plain() {
+        let (part, _) = part0(false);
+        let mut m: ContactManifold = Default::default();
+        crate::contact_generators::convex_ball::contact_manifold_convex_ball(
+            opaque(at(c(30), c(98))), opaque(part), BallTrait::new(HALF), c(2), ref m,
+        );
+    }
+
+    #[test]
+    fn gas_part_ball_constrained() {
+        let (part, cones) = part0(false);
+        let mut m: ContactManifold = Default::default();
+        crate::contact_generators::convex_ball::contact_manifold_convex_ball_constrained(
+            opaque(at(c(30), c(98))),
+            opaque(part),
+            BallTrait::new(HALF),
+            opaque(cones),
+            c(2),
+            ref m,
+        );
+    }
+
+    #[test]
+    fn gas_part_ball_corrected() {
+        let (part, cones) = part0(false);
+        let mut m: ContactManifold = Default::default();
+        crate::contact_generators::convex_ball::contact_manifold_convex_ball_constrained(
+            opaque(at(-c(95), c(75))),
+            opaque(part),
+            BallTrait::new(HALF),
+            opaque(cones),
+            c(2),
+            ref m,
+        );
+        assert_eq!(m.num_points, 1);
+    }
+
     #[test]
     fn gas_ball_across_the_seam_flagged() {
         let _ = contact_manifolds_composite_constrained(

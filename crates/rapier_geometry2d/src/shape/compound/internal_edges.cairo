@@ -539,6 +539,19 @@ mod tests {
         let _: Option<Compound> = Serde::deserialize(ref span);
     }
 
+    /// The pre-CE path (the derived `Serde` of the three fields), against which
+    /// `gas_deserialize_flag_free` measures the flag check.
+    #[test]
+    fn gas_deserialize_derived_fields() {
+        let mut out = array![];
+        Serde::serialize(@CompoundTrait::new(array![(at(ZERO, ZERO), unit_box())].span()), ref out);
+        let mut span = opaque(out.span());
+        let _: Option<(Span<(Pose2, Shape)>, Span<crate::aabb::Aabb>, crate::aabb::Aabb)> =
+            Serde::deserialize(
+            ref span,
+        );
+    }
+
     #[test]
     fn gas_deserialize_flagged() {
         let mut out = array![];

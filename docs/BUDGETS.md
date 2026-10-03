@@ -1,5 +1,48 @@
 # Step Budgets
 
+## CE — compound internal edges, opt-in (2026-10-03)
+
+Exact Cairo steps (`snforge test --detailed-resources --tracked-resource cairo-steps`, crate-scoped, VPS x86_64,
+Scarb 2.20.1 / snforge 0.64.0, `RAYON_NUM_THREADS=1`), this branch merged with `main` at FU1 (`4b5c3da`) against
+`main` at `4b5c3da`.
+
+**Existing worlds.** The 53 `steps_*` probes of `rapier2d` (`gas_scenes`, `game_path`, `level_budget`,
+`sleep_budget`, `pipeline::config::alternatives`): identical. None of them holds a compound. The `compound_budget`
+probes (a compound plank on a half-space or a polyline, `World::step`) move by +12 to +36 steps per step (net step,
+`gas_step_*` − `gas_setup_*`):
+
+| world | main | CE | Δ per step |
+|---|--:|--:|--:|
+| 2 parts, half-space | 49,915 | 49,927 | +12 |
+| 4 parts, half-space | 83,154 | 83,170 | +16 |
+| 8 parts, half-space | 157,756 | 157,780 | +24 |
+| 2 parts, polyline | 62,924 | 62,942 | +18 |
+| 4 parts, polyline | 106,624 | 106,646 | +22 |
+| 8 parts, polyline | 181,399 | 181,435 | +36 |
+
+The delta grows with the part count (about 2 steps per part access): the `Compound` value is one `Span` wider (the
+cones), and it is copied on each `part` call. Not isolated further.
+
+**`WorldState`.** A flag-free compound serialises to the same felts as before (`test_serde_layout`). Reading it back
+costs +16 steps per compound (`gas_deserialize_flag_free` 918 against `gas_deserialize_derived_fields` 902, the
+derived path of the three fields). A flagged compound of two boxes reads back in 14,037 steps (it carries its cones).
+
+**The opt-in path** (`ConstrainedCompositeManifolds`), per constrained part manifold, against the same part pair
+unconstrained (probes of `dispatch/composite/constrained.cairo`; each includes the same 12,011-step `with_flags` setup):
+
+| part pair | unconstrained | constrained | Δ |
+|---|--:|--:|--:|
+| polygon on polygon (PFM–PFM, normal kept) | 26,668 | 27,182 | +514 |
+| ball on cuboid (normal kept) | 12,608 | 13,081 | +473 |
+| ball past a corner (normal projected, contact recast) | 12,608 | 13,135 | +527 |
+
+`Compound::with_flags` on two boxes (the cones, off the step path): 12,011 steps.
+
+**Classes.** No declared class selects the new strategy; `gas/bytecode.size` comes from this PR's CI.
+
+**Package size.** `rapier_geometry2d` library lines (`scripts/consumer_cost.py --lines-only`): 23,895 → 25,105 of
+40,000 (+37 % margin); `rapier_dynamics2d` 15,158 → 15,246.
+
 ## FU1 — fused rescales (2026-10-03)
 
 The fused forms of `docs/research/fused-rescales.md` §8:
