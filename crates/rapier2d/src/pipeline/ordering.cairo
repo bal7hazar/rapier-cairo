@@ -94,20 +94,21 @@ pub(crate) fn body_status(entries: Span<(Handle, RigidBody)>, handle: Handle) ->
     if position >= entries.len() {
         position = entries.len() - 1;
     }
+    // EL1 (W1): the first candidate is read before the walk, so that a body at its slot (no
+    // removal below it) costs no loop.
+    let (candidate, body) = entries.at(position);
+    if candidate.index == @handle.index {
+        return status_of(body);
+    }
+    if candidate.index < @handle.index || position == 0 {
+        return BODY_AWAKE;
+    }
+    position -= 1;
     let mut status = BODY_AWAKE;
     loop {
         let (candidate, body) = entries.at(position);
         if candidate.index == @handle.index {
-            status =
-                if *body.body_type == RigidBodyType::Fixed {
-                    BODY_FIXED
-                } else if !*body.enabled {
-                    BODY_DISABLED
-                } else if *body.activation.sleeping {
-                    BODY_SLEEPING
-                } else {
-                    BODY_AWAKE
-                };
+            status = status_of(body);
             break;
         }
         if candidate.index < @handle.index || position == 0 {
@@ -116,6 +117,20 @@ pub(crate) fn body_status(entries: Span<(Handle, RigidBody)>, handle: Handle) ->
         position -= 1;
     }
     status
+}
+
+/// The status code of a body found in `entries` (see [`body_status`]).
+#[inline(always)]
+fn status_of(body: @RigidBody) -> u8 {
+    if *body.body_type == RigidBodyType::Fixed {
+        BODY_FIXED
+    } else if !*body.enabled {
+        BODY_DISABLED
+    } else if *body.activation.sleeping {
+        BODY_SLEEPING
+    } else {
+        BODY_AWAKE
+    }
 }
 
 /// The stable partition of `manifolds` (pair order): the entries flagged `false` (in order), then
