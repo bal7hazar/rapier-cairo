@@ -162,8 +162,38 @@ def verdict(needs: dict) -> tuple[bool, list[str]]:
     return ok, lines
 
 
+def workflow_jobs(text: str) -> tuple[list[str], list[str]]:
+    """The job ids of a workflow file and the `needs:` list of its `ci-ok` job (a line scan: stdlib only)."""
+    body = text.split("\njobs:\n", 1)[1]
+    ids = re.findall(r"^  ([A-Za-z0-9_-]+):\s*$", body, re.M)
+    ok = re.search(r"^  ci-ok:\n(?:    .*\n|\s*\n|\s*#.*\n)*?    needs:\s*\[([^\]]*)\]", body, re.M)
+    return ids, [n.strip() for n in ok.group(1).split(",")] if ok else []
+
+
+def check_workflow(text: str) -> list[str]:
+    """Problems of a workflow: a job that is not in `JOBS` + `changes` (it would run ungated) or not in `ci-ok`'s needs."""
+    ids, needs = workflow_jobs(text)
+    known = {job_id(k) for k in JOBS} | {"changes", "ci-ok"}
+    problems = [f"job `{j}` is not in JOBS + changes of scripts/ci_changes.py" for j in ids if j not in known]
+    problems += [f"job `{j}` of JOBS is not in ci.yml" for j in sorted(known - set(ids))]
+    problems += [f"job `{j}` is not in the needs of ci-ok" for j in ids if j != "ci-ok" and j not in needs]
+    return problems
+
+
 def self_test() -> None:
     ALL = set(JOBS)
+
+    # the jobs of ci.yml are all gated (JOBS + changes) and all in the needs of ci-ok
+    ci_yml = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".github", "workflows", "ci.yml")
+    with open(ci_yml, encoding="utf-8") as f:
+        text = f.read()
+    assert check_workflow(text) == [], check_workflow(text)
+    assert len(workflow_jobs(text)[0]) == len(JOBS) + 2
+    # a job removed from the needs of ci-ok, or added to the workflow alone, is caught
+    assert check_workflow(text.replace("sink, consumer-cost", "consumer-cost")) == [
+        "job `sink` is not in the needs of ci-ok"]
+    assert check_workflow(text.replace("\n  golden:\n", "\n  golden:\n    needs: changes\n  extra:\n", 1))[0] == (
+        "job `extra` is not in JOBS + changes of scripts/ci_changes.py")
 
     def on(paths: list[str]) -> set[str]:
         o = outputs(paths)
