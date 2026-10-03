@@ -76,7 +76,7 @@
 
 use core::num::traits::Zero;
 use fixed::Fixed;
-use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, dot2_add, mul_sub, wide_from, wide_mul};
+use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2, mul_sub, wide_from, wide_mul};
 use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::collider::events::{COLLISION_EVENTS, REMOVED, SENSOR};
@@ -674,13 +674,24 @@ pub fn pair_pose(co1: PairCollider, co2: PairCollider) -> Pose2 {
     }
 }
 
-/// `Pose2::transform_point` inlined (BT3): `re * x - im * y + t`, one floor per component.
+/// `Pose2::transform_point(l) - com` with `com` inside the wide sum (BT3, FU1 B1): `re * x - im
+/// * y + t - com`, one floor per component. Bit-identical to the floor of the transform minus
+/// `com` (`floor(x) - c = floor(x - c)` for a `c` exact at the wide scale); it only drops the
+/// checked `Vec2` subtraction, and the overflow panic of a transformed point whose anchor fits.
 #[inline(always)]
-fn transform(p: Pose2, l: Vec2) -> Vec2 {
+fn anchor(p: Pose2, l: Vec2, com: Vec2) -> Vec2 {
     let r = p.rotation;
     Vec2 {
-        x: wide_mul(r.re, l.x).sub(wide_mul(r.im, l.y)).add(wide_from(p.translation.x)).narrow(),
-        y: dot2_add(r.im, l.x, r.re, l.y, p.translation.y),
+        x: wide_mul(r.re, l.x)
+            .sub(wide_mul(r.im, l.y))
+            .add(wide_from(p.translation.x))
+            .sub(wide_from(com.x))
+            .narrow(),
+        y: wide_mul(r.im, l.x)
+            .add(wide_mul(r.re, l.y))
+            .add(wide_from(p.translation.y))
+            .sub(wide_from(com.y))
+            .narrow(),
     }
 }
 
@@ -774,11 +785,9 @@ pub fn solver_data_supported(
 pub fn solver_contact(
     point: TrackedContact, id: u32, co1: PairCollider, co2: PairCollider,
 ) -> SolverContact {
-    let world1 = transform(co1.pose, point.local_p1);
-    let world2 = transform(co2.pose, point.local_p2);
     SolverContact {
-        anchor1: world1 - co1.world_com,
-        anchor2: world2 - co2.world_com,
+        anchor1: anchor(co1.pose, point.local_p1, co1.world_com),
+        anchor2: anchor(co2.pose, point.local_p2, co2.world_com),
         dist: point.dist,
         tangent_velocity: Default::default(),
         contact_id: if point.data.impulse.is_zero() {
