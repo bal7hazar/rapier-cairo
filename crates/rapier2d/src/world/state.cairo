@@ -12,7 +12,7 @@
 //! CCD state next to its user data (`RigidBodyColdExtra`, serialized as an `Option`); the CCD
 //! solver is owned by the caller of `step_with_ccd` and serializes its switch alone
 //! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the world's switch and list of the
-//! dormant pairs kept apart (`World::dormant_apart`, `World::dormant_pairs`). A persistent piece
+//! dormant pairs kept apart (`World::dormant`). A persistent piece
 //! added to [`World`] later (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is
 //! bumped.
 //!
@@ -39,7 +39,7 @@ use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
-use crate::pipeline::active_set::ActiveSet;
+use crate::pipeline::active_set::{ActiveSet, DormantPairs};
 use crate::pipeline::merge_pairs;
 use super::World;
 
@@ -122,8 +122,9 @@ pub impl WorldStateSerde of Serde<WorldState> {
 pub fn to_state(ref world: World) -> WorldState {
     let mut pairs = array![];
     pairs.append_span(world.narrow_phase.pairs.span());
+    let kept: @DormantPairs = world.dormant.as_snapshot().unbox();
     let mut dormant = array![];
-    dormant.append_span(world.dormant_pairs.span());
+    dormant.append_span(kept.pairs.span());
     let modified = world.bodies.is_modified() || world.colliders.is_modified();
     let (pairs, active_set, dormant_pairs) = saved_pairs(
         pairs, world.active_set.as_snapshot().unbox().clone(), dormant, modified,
@@ -137,7 +138,7 @@ pub fn to_state(ref world: World) -> WorldState {
         impulse_joints: world.impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
         active_set,
-        dormant_apart: world.dormant_apart,
+        dormant_apart: *kept.apart,
         dormant_pairs,
     }
 }
@@ -154,10 +155,10 @@ pub fn into_state(world: World) -> WorldState {
         mut impulse_joints,
         narrow_phase,
         active_set,
-        dormant_apart,
-        dormant_pairs,
+        dormant,
     } = world;
     let modified = bodies.is_modified() || colliders.is_modified();
+    let DormantPairs { apart: dormant_apart, pairs: dormant_pairs } = dormant.unbox();
     let (pairs, active_set, dormant_pairs) = saved_pairs(
         narrow_phase.pairs, active_set.unbox(), dormant_pairs, modified,
     );
@@ -219,8 +220,7 @@ pub fn from_state(state: WorldState) -> World {
         impulse_joints: ImpulseJointSetTrait::from_state(impulse_joints),
         narrow_phase,
         active_set: BoxTrait::new(active_set),
-        dormant_apart,
-        dormant_pairs,
+        dormant: BoxTrait::new(DormantPairs { apart: dormant_apart, pairs: dormant_pairs }),
     }
 }
 

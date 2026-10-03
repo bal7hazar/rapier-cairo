@@ -513,14 +513,14 @@ fn run_apart(scene: Scene, k: u32, steps: u32) -> Seen {
         let got = chunked.step();
         assert!(expected == got, "events differ at step {}", step);
         observe(ref reference, expected.span(), ref seen);
-        if !reference.dormant_pairs.is_empty() {
+        if !reference.dormant.as_snapshot().unbox().pairs.is_empty() {
             apart = true;
         }
         step += 1;
         if step % k == 0 {
             let restored = round_trip(ref chunked);
             chunked = restored;
-            assert!(chunked.dormant_apart);
+            assert!(*chunked.dormant.as_snapshot().unbox().apart);
         }
         assert!(reference.to_state() == chunked.to_state(), "state differs after step {}", step);
     }
@@ -550,7 +550,7 @@ fn sleeping_felts(steps: u32) -> (Array<felt252>, Array<felt252>) {
         let _ = world.step();
         step += 1;
     }
-    assert!(!world.dormant_pairs.is_empty());
+    assert!(!world.dormant.as_snapshot().unbox().pairs.is_empty());
     let state = world.to_state();
     let mut current = array![];
     state.serialize(ref current);

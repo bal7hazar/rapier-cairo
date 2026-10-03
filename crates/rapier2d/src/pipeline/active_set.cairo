@@ -44,10 +44,9 @@
 //! list in one pass when they kept their keys. Equivalence against the whole step:
 //! `active_set_tests` (random worlds: sleep, contact wake-ups, user changes, removals, sensors).
 //!
-//! Dormant pairs apart (WS3, opt-in: `World::dormant_apart`,
-//! `WorldTrait::keep_dormant_pairs_apart`):
+//! Dormant pairs apart (WS3, opt-in: [`DormantPairs`], `WorldTrait::keep_dormant_pairs_apart`):
 //! a step that leaves the set valid moves the pairs it does not list out of `narrow_phase.pairs`
-//! into `World::dormant_pairs` ([`take_out_dormant`]; the positions stay those of the whole list).
+//! into `World::dormant` ([`take_out_dormant`]; the positions stay those of the whole list).
 //! [`sparse_step`] then takes `narrow_phase.pairs` as the live pairs as they are, keeps the
 //! dormant ones apart through the island stage, and writes no whole list back (the positions are
 //! recomputed only when the live keys change, [`live_positions`]); the whole step and the
@@ -106,6 +105,17 @@ pub struct ActiveSet {
     pub force_events: bool,
     /// The prediction distance of the static proxies.
     pub prediction: Fixed,
+}
+
+/// The dormant pairs a world keeps apart (WS3, `World::dormant`).
+#[derive(Drop, Clone, PartialEq, Debug, Default)]
+pub struct DormantPairs {
+    /// The steps keep the dormant pairs apart (`WorldTrait::keep_dormant_pairs_apart`); `false`
+    /// for a new world.
+    pub apart: bool,
+    /// The pairs of the whole list that a valid set does not list, ascending key, out of
+    /// `narrow_phase.pairs`. Empty unless `apart` and the set is valid.
+    pub pairs: Array<ContactPair>,
 }
 
 pub impl ActiveSetDefault of Default<ActiveSet> {
@@ -185,16 +195,17 @@ fn refill_with<impl S: StageConfig>(ref world: World, entries: Span<(Handle, Rig
 
 /// WS3: when the world keeps its dormant pairs apart and its set is valid, the pairs of
 /// `narrow_phase.pairs` (then the whole list) that the set does not list move into
-/// `dormant_pairs`; the positions stay. Nothing otherwise, or when the set lists every pair.
+/// `World::dormant`; the positions stay. Nothing otherwise, or when the set lists every pair.
 pub(crate) fn take_out_dormant(ref world: World) {
-    if !world.dormant_apart || !world.dormant_pairs.is_empty() {
+    let kept: @DormantPairs = world.dormant.as_snapshot().unbox();
+    if !*kept.apart || !kept.pairs.is_empty() {
         return;
     }
     let set: @ActiveSet = world.active_set.as_snapshot().unbox();
     if *set.valid && set.pairs.len() != world.narrow_phase.pairs.len() {
         let (live, dormant) = split_at_positions(world.narrow_phase.pairs.span(), set.pairs.span());
         world.narrow_phase.pairs = live;
-        world.dormant_pairs = dormant;
+        world.dormant = BoxTrait::new(DormantPairs { apart: true, pairs: dormant });
     }
 }
 
@@ -203,10 +214,12 @@ pub(crate) fn take_out_dormant(ref world: World) {
 /// Nothing when none is kept apart.
 #[inline(always)]
 pub fn restore_dormant(ref world: World) {
-    if !world.dormant_pairs.is_empty() {
-        let dormant = world.dormant_pairs.span();
-        world.narrow_phase.pairs = super::merge_pairs(world.narrow_phase.pairs.span(), dormant);
-        world.dormant_pairs = array![];
+    if !world.dormant.as_snapshot().unbox().pairs.is_empty() {
+        let kept = world.dormant.unbox();
+        world
+            .narrow_phase
+            .pairs = super::merge_pairs(world.narrow_phase.pairs.span(), kept.pairs.span());
+        world.dormant = BoxTrait::new(DormantPairs { apart: kept.apart, pairs: array![] });
     }
 }
 
@@ -651,7 +664,7 @@ pub(crate) fn sparse_step<
     let candidates = S::Broad::find_pairs_sparse(statics, dynamic.span());
     // The previous live pairs are the narrow phase's previous pairs; the others are dormant (WS3:
     // already out of the list when the world keeps them apart).
-    let apart = world.dormant_apart;
+    let apart = *world.dormant.as_snapshot().unbox().apart;
     // The whole list, kept for the end of the step (BT4); empty when apart.
     let mut previous: Array<ContactPair> = array![];
     if !apart {
@@ -708,8 +721,9 @@ pub(crate) fn sparse_step<
         // The whole island stage and solver, on every body. The set stays valid when nobody woke
         // up nor fell asleep (only the awake bodies can fall asleep).
         if apart {
-            dormant = world.dormant_pairs;
-            world.dormant_pairs = array![];
+            let kept = world.dormant.unbox();
+            dormant = kept.pairs;
+            world.dormant = BoxTrait::new(DormantPairs { apart: true, pairs: array![] });
         } else {
             let (_, rest) = split_at_positions(previous.span(), set.pairs.span());
             dormant = rest;
@@ -787,11 +801,11 @@ pub(crate) fn sparse_step<
         // WS3: the live pairs stay the list and the dormant ones apart; the positions change only
         // with the live keys.
         if islands {
-            world.dormant_pairs = dormant;
+            world.dormant = BoxTrait::new(DormantPairs { apart: true, pairs: dormant });
         }
         let live = world.narrow_phase.pairs.span();
         if !same_keys(previous_live, live) {
-            set.pairs = live_positions(live, world.dormant_pairs.span());
+            set.pairs = live_positions(live, world.dormant.as_snapshot().unbox().pairs.span());
         }
     } else {
         let live = world.narrow_phase.pairs.span();

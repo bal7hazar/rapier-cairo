@@ -59,7 +59,7 @@ use rapier_geometry2d::query::{NonlinearRigidMotion, ShapeCastHit, ShapeCastOpti
 use rapier_geometry2d::ray::{Ray, RayIntersection};
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
-use crate::pipeline::active_set::ActiveSet;
+use crate::pipeline::active_set::{ActiveSet, DormantPairs};
 use crate::pipeline::ccd::CCDSolver;
 use crate::pipeline::config::StepConfig;
 use crate::pipeline::stages::StageConfig;
@@ -88,13 +88,9 @@ pub struct World {
     /// maintained by the step: only trusted while neither set was written since. Boxed: the
     /// world is passed by reference, one cell instead of the whole set.
     pub active_set: Box<ActiveSet>,
-    /// The step keeps the dormant pairs of a valid active set apart (WS3, see
-    /// [`WorldTrait::keep_dormant_pairs_apart`]); `false` for a new world.
-    pub dormant_apart: bool,
-    /// The dormant pairs kept apart (WS3), ascending key: the pairs of the whole list that the
-    /// active set does not list, out of `narrow_phase.pairs`. Empty unless `dormant_apart` and the
-    /// set is valid.
-    pub dormant_pairs: Array<ContactPair>,
+    /// The dormant pairs kept apart and the switch that keeps them apart (WS3, see
+    /// [`WorldTrait::keep_dormant_pairs_apart`]). Boxed: one cell along every `ref` of the world.
+    pub dormant: Box<DormantPairs>,
 }
 
 /// Upstream's name of the world.
@@ -125,20 +121,21 @@ pub impl WorldImpl of WorldTrait {
             impulse_joints: ImpulseJointSetTrait::new(),
             narrow_phase: NarrowPhaseTrait::new(),
             active_set: BoxTrait::new(Default::default()),
-            dormant_apart: false,
-            dormant_pairs: array![],
+            dormant: BoxTrait::new(Default::default()),
         }
     }
 
     /// Whether the steps keep the dormant pairs apart (WS3; no upstream counterpart). When `keep`,
     /// a step that leaves the active set valid moves its dormant pairs (both sides fixed, absent or
-    /// asleep) out of `narrow_phase.pairs` into `dormant_pairs`, so that the next steps neither
+    /// asleep) out of `narrow_phase.pairs` into [`World::dormant`], so that the next steps neither
     /// walk nor copy them; results and events are the same bits (`pipeline::active_set`). The
     /// queries of the world ([`WorldTrait::contact_pair`], [`WorldTrait::contact_pairs`], ...) read
     /// both lists; `narrow_phase` read directly then holds the live pairs only. `false` (the
     /// default) puts the dormant pairs back into `narrow_phase.pairs`.
     fn keep_dormant_pairs_apart(ref self: World, keep: bool) {
-        self.dormant_apart = keep;
+        let mut dormant = self.dormant.unbox();
+        dormant.apart = keep;
+        self.dormant = BoxTrait::new(dormant);
         if keep {
             crate::pipeline::active_set::take_out_dormant(ref self);
         } else {
@@ -727,14 +724,13 @@ fn is_active(body: @RigidBody) -> bool {
 /// WS3: the whole pair list as a narrow phase, `narrow_phase.pairs` merged with the dormant pairs
 /// kept apart, when there are some; `None` otherwise (`narrow_phase` is the whole list).
 fn whole_narrow_phase(world: @World) -> Option<NarrowPhase> {
-    if world.dormant_pairs.is_empty() {
+    let dormant = world.dormant.as_snapshot().unbox().pairs.span();
+    if dormant.is_empty() {
         return None;
     }
     Some(
         NarrowPhase {
-            pairs: crate::pipeline::merge_pairs(
-                world.narrow_phase.pairs.span(), world.dormant_pairs.span(),
-            ),
+            pairs: crate::pipeline::merge_pairs(world.narrow_phase.pairs.span(), dormant),
         },
     )
 }

@@ -243,9 +243,14 @@ fn test_active_set_survives_state() {
 
 // --- WS3: the dormant pairs kept apart (`World::keep_dormant_pairs_apart`). ------------------
 
+/// The dormant pairs `world` keeps apart.
+fn apart_list(world: @World) -> Span<ContactPair> {
+    world.dormant.as_snapshot().unbox().pairs.span()
+}
+
 /// The whole pair list of `world`: `narrow_phase.pairs` merged with the dormant pairs kept apart.
 fn whole_pairs(ref world: World) -> Array<ContactPair> {
-    super::merge_pairs(world.narrow_phase.pairs.span(), world.dormant_pairs.span())
+    super::merge_pairs(world.narrow_phase.pairs.span(), apart_list(@world))
 }
 
 /// Steps `apart` (dormant pairs kept apart) and `reference` (the default) `steps` times on
@@ -273,8 +278,8 @@ fn run_apart(seed: u32, steps: u32, changes: bool, far: bool) -> u32 {
             seed,
             t,
         );
-        assert!(reference.dormant_pairs.is_empty());
-        if !apart.dormant_pairs.is_empty() {
+        assert!(apart_list(@reference).is_empty());
+        if !apart_list(@apart).is_empty() {
             kept += 1;
         }
         assert!(
@@ -326,13 +331,13 @@ fn test_dormant_apart_switch() {
     assert!(super::active_set::is_valid(@world), "the level sleeps");
     let whole = world.narrow_phase.pairs.clone();
     world.keep_dormant_pairs_apart(true);
-    assert!(!world.dormant_pairs.is_empty());
+    assert!(!apart_list(@world).is_empty());
     assert!(whole_pairs(ref world) == whole);
     let _ = world.step();
     let _ = reference.step();
     world.keep_dormant_pairs_apart(false);
     assert!(
-        world.dormant_pairs.is_empty() && world.narrow_phase.pairs == reference.narrow_phase.pairs,
+        apart_list(@world).is_empty() && world.narrow_phase.pairs == reference.narrow_phase.pairs,
     );
     let _ = world.step();
     let _ = reference.step();

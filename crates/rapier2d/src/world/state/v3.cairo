@@ -3,7 +3,7 @@
 //! [`WorldStateV3`] has the version-3 layout: its derived `Serde` reads and writes the felts a
 //! version-3 world state wrote. [`migrate`] turns it into the current [`WorldState`] and
 //! [`downgrade`] does the converse. Version 3 had no dormant pairs apart: a migrated state keeps
-//! every pair in its list and does not keep them apart (`World::dormant_apart` is `false`), the
+//! every pair in its list and does not keep them apart (`DormantPairs::apart` is `false`), the
 //! state a version-4 world built and stepped the same way saves; [`downgrade`] merges the dormant
 //! pairs kept apart back into the list (the active set's positions are those of the whole list in
 //! both versions).
