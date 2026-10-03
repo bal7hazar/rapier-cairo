@@ -85,7 +85,7 @@ pub impl Rot2Impl of Rot2Trait {
     /// Rapier's linearized angular update: `(re - d*im, im + d*re)`, then normalize,
     /// where `d = angvel * dt`. Each component is one exact sum floored once (FU1 C7: `d` stays
     /// an exact product, `angvel * dt * im` a triple product), within one ulp of the formula
-    /// before the normalization (flooring `d` first was up to 1.9 ulp off).
+    /// before the normalization (flooring `d` first was up to 2 ulp off).
     /// `angvel` is radians/second and `dt` seconds; use small `|d|` for angular accuracy.
     /// Panics with 'Fixed: overflow' on out-of-range results or 'Rot2: zero' on zero.
     fn integrate(self: Rot2, angvel: Fixed, dt: Fixed) -> Rot2 {
