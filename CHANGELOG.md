@@ -5,6 +5,9 @@ whether simulation results changed.
 
 ## Unreleased
 
+### Changed
+- API parity (PX8): the project manager's SC2 decisions of 2026-10-03 as table rules: 26 scalar items of the solver (`dynamics::solver` is `pub(crate)` upstream) and the 3 `contact_skin` items closed with two new reasons, `CompoundEdgeCone` (parry 0.31's 2D type) back to `missing` for lot CE; 46 → 18 `missing`. Table and script only, no library code, results unchanged.
+
 ## 0.1.0-alpha.9 — 2026-10-03
 
 The toolchain moves to Scarb 2.20.1 / snforge 0.64.0, the engine's step gets cheaper (EL1, CX3), and the API parity

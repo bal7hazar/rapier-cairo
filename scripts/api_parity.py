@@ -45,10 +45,12 @@ EXCLUSIONS = (
     "static dispatch through StepConfig / StageConfig (D10)",
     "persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage",
     "closed value enum replaces Arc / dyn shapes (SH2a)",
-    "Cairo has no `IndexMut` / `&mut` index",
+    "Cairo has no IndexMut / &mut index",
     "persisted contact-graph order, no faithful Default",
     "no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start",
     "construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need",
+    "solver / island internals not exposed (dynamics::solver is pub(crate) upstream)",
+    "contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
@@ -118,7 +120,7 @@ CLOSED_ENUM: frozenset[tuple[str, str, str]] = frozenset({
 # The project manager's decisions, 2026-10-03 (PX7), each item listed by exact `(owner, kind, name)`; like PX1's
 # reasons they count in "in scope" only.
 # Cairo's `core::ops` has `Index` and `IndexView` but no `IndexMut`, and the sets hold values (`set` writes back).
-NO_INDEX_MUT_REASON = "Cairo has no `IndexMut` / `&mut` index"
+NO_INDEX_MUT_REASON = "Cairo has no IndexMut / &mut index"
 NO_INDEX_MUT: frozenset[tuple[str, str, str]] = frozenset({
     ("ColliderSet", "impl", "IndexMut<ColliderHandle>"), ("RigidBodySet", "impl", "IndexMut<RigidBodyHandle>"),
 })
@@ -147,10 +149,36 @@ DECOMPOSITION: frozenset[tuple[str, str, str]] = frozenset({
                  "voxelized_convex_decomposition_with_params", "voxelized_mesh")
     if (owner, name) != ("ColliderBuilder", "voxelized_mesh")
 })
+# The project manager's decisions, 2026-10-03 (PX8, after the SC2 study of the parked API families), each item listed
+# by exact `(owner, kind, name)`; like PX1's reasons they count in "in scope" only.
+# Upstream's `dynamics::solver` is `pub(crate)`, so no rapier user can call the solver's scalar API. The reason is new
+# because PX1's text is carried by rows of the table (a longer text would change them). The gathers and scatters of
+# these owners stay `SIMD/parallel`, and the `SolverVel` type stays `ported`.
+SOLVER_SCALAR_REASON = "solver / island internals not exposed (dynamics::solver is pub(crate) upstream)"
+SOLVER_SCALAR: frozenset[tuple[str, str, str]] = frozenset({
+    ("SolverBodies", "type", "SolverBodies"),
+    *(("SolverBodies", "method", n) for n in ("clear", "copy_from", "get_pose", "get_vel", "len", "resize", "set_vel")),
+    *(("SolverVel", "impl", n) for n in ("AddAssign", "Sub", "SubAssign")),
+    *(("SolverVel", "method", n) for n in ("as_mut_slice", "as_slice", "as_vector_slice", "as_vector_slice_mut",
+                                           "zero")),
+    ("SolverPose", "type", "SolverPose"), ("SolverPose", "impl", "Default"),
+    *(("SolverPose", "method", n) for n in ("inverse_transform_point", "pose", "transform_point")),
+    ("SolverTransform", "type", "SolverTransform"), ("SolverTransform", "method", "transform_point"),
+    ("SolverPoseRepr", "method", "identity"), ("SolverVelRepr", "method", "zero"), ("VelocitySolver", "method", "new"),
+})
+# `contact_skin` is a collider field read in the broad phase, the narrow phase and the solver contacts; a port changes
+# the collider layout and the contact solver for every user (`docs/research/parked-families.md` §3).
+CONTACT_SKIN_REASON = ("contact skin changes the collider layout and the contact solver for every user; no opt-in "
+                       "form keeps existing steps")
+CONTACT_SKIN: frozenset[tuple[str, str, str]] = frozenset({
+    ("Collider", "method", "contact_skin"), ("Collider", "method", "set_contact_skin"),
+    ("ColliderBuilder", "method", "contact_skin"),
+})
 # Every reason added since PX1: they do not count in the raw figure.
 POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON,
                               MUTABLE_GRAPH_REASON, CLOSED_ENUM_REASON, NO_INDEX_MUT_REASON,
-                              NO_FAITHFUL_DEFAULT_REASON, UNFAITHFUL_REASON, DECOMPOSITION_REASON})
+                              NO_FAITHFUL_DEFAULT_REASON, UNFAITHFUL_REASON, DECOMPOSITION_REASON,
+                              SOLVER_SCALAR_REASON, CONTACT_SKIN_REASON})
 
 # PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
 # broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
@@ -165,7 +193,8 @@ POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARAN
 # only the upstream-only pieces below are internal. Listed by exact `(owner, kind, name)`, never a
 # loose pattern (a previous PO1 self-test decision keeps the scalar `SolverBodies` API — `len`,
 # `get_pose`, `get_vel`, `set_vel`, `clear`, `copy_from`, `resize` — and `SolverPose` / `SolverVel`
-# / `VelocitySolver` out of this reason: those are open gaps, not closed internals; the persisted
+# / `VelocitySolver` out of this reason; PX8 closes them under `SOLVER_SCALAR_REASON` since the project
+# manager's decision of 2026-10-03; the persisted
 # contact-graph order (`ContactRef`, `GraphPos`) stays out too, but its `Default` impls are closed by
 # `NO_FAITHFUL_DEFAULT` since PX7, the rest of the SO/DO class of PLAN.md being open).
 SOLVER_ISLAND_INTERNALS: frozenset[tuple[str, str, str]] = frozenset({
@@ -1083,6 +1112,10 @@ def exclusion_reason(item: Item) -> str:
         return UNFAITHFUL_REASON
     if item.key in DECOMPOSITION:
         return DECOMPOSITION_REASON
+    if item.key in SOLVER_SCALAR:
+        return SOLVER_SCALAR_REASON
+    if item.key in CONTACT_SKIN:
+        return CONTACT_SKIN_REASON
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
     # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
@@ -1138,6 +1171,10 @@ def exclusion_reason(item: Item) -> str:
         return "f32/f64 conversions and approx traits"
     if any(x in blob for x in ("f32", "f64", "approx")):
         return "f32/f64 conversions and approx traits"
+    # PX8: `CompoundEdgeCone` is parry 0.31's 2D type (the element of `CompoundPseudoNormals::boundary_edges`), not a
+    # 3D cone; it is ported by lot CE.
+    if item.owner == "CompoundEdgeCone":
+        return ""
     if "Spherical" in item.owner or any(x in blob for x in (
         "dim3", "polyhedron", "tetrahedron", "cone", "cylinder", "spherical_joint")) \
             or (item.owner, item.name) in (("ColliderBuilder", "capsule_z"), ("Cuboid", "vid")):
@@ -1276,6 +1313,11 @@ def render(rust: list[Item], cairo: list[Item]) -> str:
         "",
         "Closed exclusion reasons: " + ", ".join(f"`{r}`" for r in EXCLUSIONS) + ".",
         "",
+        "Of these, the project manager's decisions of 2026-10-03 are: " + ", ".join(f"`{r}`" for r in (
+            NO_INDEX_MUT_REASON, NO_FAITHFUL_DEFAULT_REASON, UNFAITHFUL_REASON, DECOMPOSITION_REASON,
+            SOLVER_SCALAR_REASON, CONTACT_SKIN_REASON)) + " (the first four from PX7, the last two from PX8);"
+        " the closed-enum reason also covers the composite traits of PX7.",
+        "",
         "## Coverage summary",
         "",
         "Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the "
@@ -1397,9 +1439,9 @@ def self_test() -> int:
         ("InteractionGroups", "clear_groups", "rapier/src/dynamics/solver/interaction_groups.rs"): "SIMD/parallel",
         ("SolverBodies", "gather_vels", "rapier/src/dynamics/solver/solver_body.rs"): "SIMD/parallel",
         ("Cuboid", "vid", "parry/src/shape/cuboid.rs"): "dim3-only",
-        # Not excluded: the collision-filter `InteractionGroups`, the scalar solver-body API.
+        # Not excluded: the collision-filter `InteractionGroups`. The scalar solver-body API is closed since PX8.
         ("InteractionGroups", "test", "rapier/src/geometry/interaction_groups.rs"): "",
-        ("SolverBodies", "len", "rapier/src/dynamics/solver/solver_body.rs"): "",
+        ("SolverBodies", "len", "rapier/src/dynamics/solver/solver_body.rs"): SOLVER_SCALAR_REASON,
     }
     for (owner, name, source), reason in reasons.items():
         assert exclusion_reason(Item(owner, "method", name, source=source)) == reason, (owner, name)
@@ -1410,6 +1452,18 @@ def self_test() -> int:
                         (("SolverContacts", "type", "SolverContacts"), UNFAITHFUL_REASON),
                         (("SharedShape", "method", "round_convex_decomposition"), DECOMPOSITION_REASON)):
         assert exclusion_reason(Item(*key)) == reason, key
+    # PX8: the solver's scalar API and `contact_skin` are closed; `SolverVel` the type, the SIMD gathers and
+    # `CompoundEdgeCone` (parry 0.31's 2D type) are not.
+    for key, reason in ((("SolverBodies", "method", "len"), SOLVER_SCALAR_REASON),
+                        (("SolverVel", "impl", "SubAssign"), SOLVER_SCALAR_REASON),
+                        (("VelocitySolver", "method", "new"), SOLVER_SCALAR_REASON),
+                        (("Collider", "method", "set_contact_skin"), CONTACT_SKIN_REASON),
+                        (("SolverVel", "type", "SolverVel"), ""),
+                        (("CompoundEdgeCone", "type", "CompoundEdgeCone"), "")):
+        assert exclusion_reason(Item(*key)) == reason, key
+    assert len(SOLVER_SCALAR) == 26 and len(CONTACT_SKIN) == 3
+    assert exclusion_reason(Item("SolverBodies", "method", "gather_vels",
+                                 source="rapier/src/dynamics/solver/solver_body.rs")) == "SIMD/parallel"
     assert exclusion_reason(Item("ContactRef", "method", "new")) == ""
     assert normalize_rhs("Fixed") == normalize_rhs("Real")
     print("self-test passed")
