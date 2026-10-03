@@ -11,9 +11,10 @@
 //! filled it (the restored sets start unmodified). Version 3 (CC2): a body's cold data holds its
 //! CCD state next to its user data (`RigidBodyColdExtra`, serialized as an `Option`); the CCD
 //! solver is owned by the caller of `step_with_ccd` and serializes its switch alone
-//! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the dormant pairs of a valid active set
-//! are out of the pair list, in `ActiveSet::dormant`. A persistent piece added to [`World`] later
-//! (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
+//! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the world's switch and list of the
+//! dormant pairs kept apart (`World::dormant_apart`, `World::dormant_pairs`). A persistent piece
+//! added to [`World`] later (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is
+//! bumped.
 //!
 //! [`to_state`] leaves the world as is; [`into_state`] consumes it and moves the pair list
 //! instead of copying it (the end of a chunk).
@@ -65,12 +66,17 @@ pub struct WorldState {
     pub bodies: ArenaState<RigidBody>,
     pub colliders: ArenaState<Collider>,
     pub impulse_joints: ArenaState<ImpulseJoint>,
-    /// Last step's contact and intersection pairs, ascending key, without the dormant pairs of a
-    /// valid active set (version 4).
+    /// Last step's contact and intersection pairs, ascending key (without the dormant pairs kept
+    /// apart, version 4).
     pub narrow_phase: NarrowPhase,
     /// The step's active set (BT2, version 2), marked invalid when a set was written since the
-    /// step that filled it; its dormant pairs (version 4).
+    /// step that filled it.
     pub active_set: ActiveSet,
+    /// The steps keep the dormant pairs apart (version 4).
+    pub dormant_apart: bool,
+    /// The dormant pairs kept apart, ascending key (version 4); empty when the saved set is
+    /// invalid.
+    pub dormant_pairs: Array<ContactPair>,
 }
 
 /// The fields in order; reads the felts of the current version, or of version 3 through
@@ -85,6 +91,8 @@ pub impl WorldStateSerde of Serde<WorldState> {
         self.impulse_joints.serialize(ref output);
         self.narrow_phase.serialize(ref output);
         self.active_set.serialize(ref output);
+        self.dormant_apart.serialize(ref output);
+        self.dormant_pairs.serialize(ref output);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<WorldState> {
@@ -102,6 +110,8 @@ pub impl WorldStateSerde of Serde<WorldState> {
                 impulse_joints: Serde::deserialize(ref serialized)?,
                 narrow_phase: Serde::deserialize(ref serialized)?,
                 active_set: Serde::deserialize(ref serialized)?,
+                dormant_apart: Serde::deserialize(ref serialized)?,
+                dormant_pairs: Serde::deserialize(ref serialized)?,
             },
         )
     }
@@ -112,9 +122,11 @@ pub impl WorldStateSerde of Serde<WorldState> {
 pub fn to_state(ref world: World) -> WorldState {
     let mut pairs = array![];
     pairs.append_span(world.narrow_phase.pairs.span());
+    let mut dormant = array![];
+    dormant.append_span(world.dormant_pairs.span());
     let modified = world.bodies.is_modified() || world.colliders.is_modified();
-    let (pairs, active_set) = saved_pairs(
-        pairs, world.active_set.as_snapshot().unbox().clone(), modified,
+    let (pairs, active_set, dormant_pairs) = saved_pairs(
+        pairs, world.active_set.as_snapshot().unbox().clone(), dormant, modified,
     );
     WorldState {
         version: WORLD_STATE_VERSION,
@@ -125,6 +137,8 @@ pub fn to_state(ref world: World) -> WorldState {
         impulse_joints: world.impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
         active_set,
+        dormant_apart: world.dormant_apart,
+        dormant_pairs,
     }
 }
 
@@ -140,9 +154,13 @@ pub fn into_state(world: World) -> WorldState {
         mut impulse_joints,
         narrow_phase,
         active_set,
+        dormant_apart,
+        dormant_pairs,
     } = world;
     let modified = bodies.is_modified() || colliders.is_modified();
-    let (pairs, active_set) = saved_pairs(narrow_phase.pairs, active_set.unbox(), modified);
+    let (pairs, active_set, dormant_pairs) = saved_pairs(
+        narrow_phase.pairs, active_set.unbox(), dormant_pairs, modified,
+    );
     WorldState {
         version: WORLD_STATE_VERSION,
         gravity,
@@ -152,26 +170,26 @@ pub fn into_state(world: World) -> WorldState {
         impulse_joints: impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
         active_set,
+        dormant_apart,
+        dormant_pairs,
     }
 }
 
-/// The pair list and the active set as saved: the set invalid when a set was written since the
-/// step that filled it (the restored sets start unmodified), and then its dormant pairs merged
-/// back into the list (an invalid set holds none, version 4).
+/// The pair list, the active set and the dormant pairs kept apart as saved: the set invalid when
+/// a set was written since the step that filled it (the restored sets start unmodified), and then
+/// the dormant pairs merged back into the list (an invalid set has none apart, version 4).
 fn saved_pairs(
-    pairs: Array<ContactPair>, active_set: ActiveSet, modified: bool,
-) -> (Array<ContactPair>, ActiveSet) {
+    pairs: Array<ContactPair>, active_set: ActiveSet, dormant: Array<ContactPair>, modified: bool,
+) -> (Array<ContactPair>, ActiveSet, Array<ContactPair>) {
     let mut active_set = active_set;
     if !modified {
-        return (pairs, active_set);
+        return (pairs, active_set, dormant);
     }
     active_set.valid = false;
-    if active_set.dormant.is_empty() {
-        return (pairs, active_set);
+    if dormant.is_empty() {
+        return (pairs, active_set, dormant);
     }
-    let merged = merge_pairs(pairs.span(), active_set.dormant.span());
-    active_set.dormant = array![];
-    (merged, active_set)
+    (merge_pairs(pairs.span(), dormant.span()), active_set, array![])
 }
 
 /// Rebuilds the world saved by [`to_state`]. Cost: one dict write per allocated slot of each set.
@@ -189,6 +207,8 @@ pub fn from_state(state: WorldState) -> World {
         impulse_joints,
         narrow_phase,
         active_set,
+        dormant_apart,
+        dormant_pairs,
     } = state;
     assert(version == WORLD_STATE_VERSION, errors::VERSION);
     World {
@@ -199,6 +219,8 @@ pub fn from_state(state: WorldState) -> World {
         impulse_joints: ImpulseJointSetTrait::from_state(impulse_joints),
         narrow_phase,
         active_set: BoxTrait::new(active_set),
+        dormant_apart,
+        dormant_pairs,
     }
 }
 
@@ -344,6 +366,8 @@ pub mod alternatives {
                 impulse_joints: arena(compact.joints, joints),
                 narrow_phase: NarrowPhase { pairs },
                 active_set: Default::default(),
+                dormant_apart: false,
+                dormant_pairs: array![],
             },
         )
     }

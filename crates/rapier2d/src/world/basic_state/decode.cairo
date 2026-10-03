@@ -40,7 +40,6 @@ use rapier_geometry2d::shape::{ConvexPolygon, Shape};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
 use crate::pipeline::active_set::ActiveSet;
-use crate::world::state::v3::ActiveSetV3;
 use super::errors;
 
 #[inline(never)]
@@ -377,29 +376,8 @@ pub(crate) fn read_colliders(ref s: Span<felt252>) -> Option<ArenaState<Collider
     Some(ArenaState { generation, capacity, free_list, entries: entries.span() })
 }
 
-/// `ActiveSet`'s felts (also the answer of `rapier2d_classes`' `ActiveSetClass`): the version-3
-/// fields ([`read_active_set_v3`]), then the dormant pairs (WS3, derived `Serde`).
+/// `ActiveSet`'s felts (also the answer of `rapier2d_classes`' `ActiveSetClass`).
 pub fn read_active_set(ref s: Span<felt252>) -> Option<ActiveSet> {
-    let ActiveSetV3 {
-        valid, bodies, colliders, statics, pairs, sleeping, force_events, prediction,
-    } = read_active_set_v3(ref s)?;
-    Some(
-        ActiveSet {
-            valid,
-            bodies,
-            colliders,
-            statics,
-            pairs,
-            sleeping,
-            force_events,
-            prediction,
-            dormant: Serde::deserialize(ref s)?,
-        },
-    )
-}
-
-/// The felts of a version-3 active set (`crate::world::state::v3::ActiveSetV3`).
-pub fn read_active_set_v3(ref s: Span<felt252>) -> Option<ActiveSetV3> {
     let valid = read_bool(ref s)?;
     let bodies = read_handles(ref s)?;
     let len = read_u32(ref s)?;
@@ -420,7 +398,7 @@ pub fn read_active_set_v3(ref s: Span<felt252>) -> Option<ActiveSetV3> {
         i += 1;
     }
     Some(
-        ActiveSetV3 {
+        ActiveSet {
             valid,
             bodies,
             colliders,

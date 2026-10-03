@@ -702,14 +702,44 @@ fn impact_digest_v4(blocks: u32) -> felt252 {
 // (`impact_digest` writes them through `v3::downgrade`); the current layout's digests.
 #[test]
 fn test_impact_digest_v4_level10() {
-    let digest = 2200290663081459306821078484568920607211650910252947152924017594635792383269;
+    let digest = 1275043776768678842613564678895846757316320104716279790710655764572037931156;
     assert_eq!(impact_digest_v4(10), digest);
 }
 
 #[test]
 fn test_impact_digest_v4_level20() {
-    let digest = 1480374963371513267059839737496623568204729237420464798301144499281104021535;
+    let digest = 72342560052535913141945039666282711214383269387087826948093784367362111465;
     assert_eq!(impact_digest_v4(20), digest);
+}
+
+/// [`impact_digest`] of the level run with its dormant pairs kept apart (WS3,
+/// `keep_dormant_pairs_apart`): the version-3 felts of its state are the default run's.
+fn impact_digest_apart(blocks: u32) -> felt252 {
+    let (bodies, linvel, bounds) = level(blocks);
+    let (dt, iterations, _) = setting(0);
+    let n = bodies.len();
+    let mut world = load_level(bodies, linvel, dt, iterations);
+    world.keep_dormant_pairs_apart(true);
+    let mut t = 0;
+    while t != IMPACT {
+        tick(ref world, n, bounds);
+        t += 1;
+    }
+    let mut out = array![];
+    downgrade(@world.into_state()).serialize(ref out);
+    core::poseidon::poseidon_hash_span(out.span())
+}
+
+#[test]
+fn test_impact_digest_apart_level10() {
+    let digest = 614397285234841136777566373155896226470871082861011936180075160649340509417;
+    assert_eq!(impact_digest_apart(10), digest);
+}
+
+#[test]
+fn test_impact_digest_apart_level20() {
+    let digest = 416855740500297607967284561706278029719752173547945538611177048279506421468;
+    assert_eq!(impact_digest_apart(20), digest);
 }
 
 #[test]

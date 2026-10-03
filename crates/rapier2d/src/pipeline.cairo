@@ -60,6 +60,8 @@
 //! Active set (work package BT2, [`active_set`]): a step that leaves a sleeping body fills the
 //! world's active set; the next step, when no set was written since, walks only the awake bodies,
 //! their colliders and live pairs against the kept static proxies (same results, `active_set`).
+//! While the set is valid its dormant pairs are out of `narrow_phase.pairs` (WS3,
+//! `ActiveSet::dormant`); [`step`] merges them back before the whole step.
 //!
 //! CCD (work package CC2) runs in [`ccd::step_with_ccd`], around this step, not in [`step`]: a
 //! world stepped by [`step`] keeps the Cairo steps of a world without CCD.
@@ -231,6 +233,8 @@ pub(crate) fn step_internal<
     if active_set::usable(ref world) {
         return active_set::sparse_step::<T, Output, C, S>(ref world);
     }
+    // WS3: the whole step reads the whole pair list.
+    active_set::restore_dormant(ref world);
     let no_joints = C::Joints::joint_free(@world.impulse_joints);
     let (snapshot, mut infos, entries, census, fresh) = user_changes_bodies_for_step::<
         S,

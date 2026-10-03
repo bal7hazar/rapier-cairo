@@ -2,48 +2,28 @@
 //!
 //! [`WorldStateV3`] has the version-3 layout: its derived `Serde` reads and writes the felts a
 //! version-3 world state wrote. [`migrate`] turns it into the current [`WorldState`] and
-//! [`downgrade`] does the converse:
+//! [`downgrade`] does the converse. Version 3 had no dormant pairs apart: a migrated state keeps
+//! every pair in its list and does not keep them apart (`World::dormant_apart` is `false`), the
+//! state a version-4 world built and stepped the same way saves; [`downgrade`] merges the dormant
+//! pairs kept apart back into the list (the active set's positions are those of the whole list in
+//! both versions).
 //!
-//! * version 3 kept the dormant pairs of a valid active set in the pair list; version 4 keeps
-//!   them in [`ActiveSet::dormant`]. Both keep the positions of the other pairs in the whole
-//!   list (`ActiveSet::pairs`), so the split is exact: [`migrate`] takes the pairs that are not
-//!   at those positions out of a valid set's list, [`downgrade`] merges them back;
-//! * an invalid set holds no dormant pair in either version.
-//!
-//! A migrated state is the state a version-4 world built and stepped the same way saves, and
-//! steps to the same bits and events (`tests`, `crates/rapier2d/tests/world_state.cairo`).
+//! The migrated world steps to the same bits and events as the uninterrupted one
+//! (`crates/rapier2d/tests/world_state.cairo`, `test_migrated_*`).
 
-use fixed::Fixed;
 use glam_core::Vec2;
-use rapier_core::Handle;
 use rapier_core::data::arena::ArenaState;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::joint::ImpulseJoint;
 use rapier_dynamics2d::narrow_phase::NarrowPhase;
 use rapier_dynamics2d::rigid_body_set::RigidBody;
-use rapier_geometry2d::broad_phase::BroadPhaseProxy;
 use crate::pipeline::active_set::ActiveSet;
 use crate::pipeline::merge_pairs;
 use super::WorldState;
 
 /// The layout version of [`WorldStateV3`].
 pub const VERSION: u32 = 3;
-
-/// The active set of version 3: [`ActiveSet`] without `dormant` (its dormant pairs were in the
-/// pair list).
-#[derive(Drop, Clone, Serde, PartialEq, Debug)]
-pub struct ActiveSetV3 {
-    pub valid: bool,
-    pub bodies: Array<Handle>,
-    pub colliders: Array<(Handle, u32)>,
-    pub statics: Array<BroadPhaseProxy>,
-    /// Positions, ascending, of the pairs of the pair list that are not dormant.
-    pub pairs: Array<u32>,
-    pub sleeping: u32,
-    pub force_events: bool,
-    pub prediction: Fixed,
-}
 
 /// A world state of version 3, field for field (see the module documentation).
 #[derive(Drop, Serde, PartialEq, Debug)]
@@ -57,7 +37,7 @@ pub struct WorldStateV3 {
     pub impulse_joints: ArenaState<ImpulseJoint>,
     /// Every contact and intersection pair, dormant ones included, ascending key.
     pub narrow_phase: NarrowPhase,
-    pub active_set: ActiveSetV3,
+    pub active_set: ActiveSet,
 }
 
 /// Panic messages of the migration.
@@ -82,24 +62,6 @@ pub fn migrate(state: WorldStateV3) -> WorldState {
         active_set,
     } = state;
     assert(version == VERSION, errors::VERSION);
-    let ActiveSetV3 {
-        valid,
-        bodies: members,
-        colliders: active,
-        statics,
-        pairs,
-        sleeping,
-        force_events,
-        prediction,
-    } = active_set;
-    let (narrow_phase, dormant) = if valid {
-        let (live, dormant) = crate::pipeline::active_set::split_at_positions(
-            narrow_phase.pairs.span(), pairs.span(),
-        );
-        (NarrowPhase { pairs: live }, dormant)
-    } else {
-        (narrow_phase, array![])
-    };
     WorldState {
         version: super::WORLD_STATE_VERSION,
         gravity,
@@ -108,29 +70,20 @@ pub fn migrate(state: WorldStateV3) -> WorldState {
         colliders,
         impulse_joints,
         narrow_phase,
-        active_set: ActiveSet {
-            valid,
-            bodies: members,
-            colliders: active,
-            statics,
-            pairs,
-            sleeping,
-            force_events,
-            prediction,
-            dormant,
-        },
+        active_set,
+        dormant_apart: false,
+        dormant_pairs: array![],
     }
 }
 
 /// The version-3 state of `state` (see the module documentation): its felts are those a
-/// version-3 codec wrote for the same world.
+/// version-3 codec wrote for the same world. The switch of the dormant pairs apart is left out.
 pub fn downgrade(state: @WorldState) -> WorldStateV3 {
-    let set = state.active_set;
     let mut pairs = array![];
-    if set.dormant.is_empty() {
+    if state.dormant_pairs.is_empty() {
         pairs.append_span(state.narrow_phase.pairs.span());
     } else {
-        pairs = merge_pairs(state.narrow_phase.pairs.span(), set.dormant.span());
+        pairs = merge_pairs(state.narrow_phase.pairs.span(), state.dormant_pairs.span());
     }
     WorldStateV3 {
         version: VERSION,
@@ -140,15 +93,6 @@ pub fn downgrade(state: @WorldState) -> WorldStateV3 {
         colliders: *state.colliders,
         impulse_joints: *state.impulse_joints,
         narrow_phase: NarrowPhase { pairs },
-        active_set: ActiveSetV3 {
-            valid: *set.valid,
-            bodies: set.bodies.clone(),
-            colliders: set.colliders.clone(),
-            statics: set.statics.clone(),
-            pairs: set.pairs.clone(),
-            sleeping: *set.sleeping,
-            force_events: *set.force_events,
-            prediction: *set.prediction,
-        },
+        active_set: state.active_set.clone(),
     }
 }

@@ -18,6 +18,7 @@ use rapier2d::prelude::{
     ColliderBuilderTrait, CollisionEvent, CollisionEventTrait, Fixed, Handle, IntegrationParameters,
     RevoluteJointBuilderTrait, RigidBodyTrait, Vec2, World, WorldTrait,
 };
+use rapier2d::world::state::v3::{downgrade, migrate};
 use rapier2d::world::state::{WORLD_STATE_VERSION, WorldState};
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::rigid_body::RigidBodyActivationTrait;
@@ -418,4 +419,182 @@ fn test_chunked_ccd_k1() {
 #[test]
 fn test_chunked_ccd_k5() {
     run_ccd(5, 12);
+}
+
+// --- WS3: version 4, and version-3 felts read back through the migration. ---------------------
+
+/// `from_state ∘ deserialize ∘ serialize ∘ v3::downgrade ∘ to_state`: the world saved in
+/// the version-3 layout, read back (migrated) by `WorldState`'s `Serde`.
+fn round_trip_v3(ref world: World) -> World {
+    let state = world.to_state();
+    let mut felts = array![];
+    downgrade(@state).serialize(ref felts);
+    assert_eq!(*felts.at(0), 3);
+    let mut span = felts.span();
+    let restored: WorldState = Serde::deserialize(ref span).unwrap();
+    assert!(span.is_empty());
+    assert_eq!(restored.version, WORLD_STATE_VERSION);
+    assert!(restored == state, "the migrated state is the saved one");
+    let mut again = array![];
+    restored.serialize(ref again);
+    let mut current = array![];
+    state.serialize(ref current);
+    assert!(again == current, "the migrated state writes the current felts");
+    WorldTrait::from_state(restored)
+}
+
+/// [`run`] with every chunk boundary through the version-3 felts ([`round_trip_v3`]): the
+/// migrated world steps as the uninterrupted one, state and events after every step.
+fn run_v3(scene: Scene, k: u32, steps: u32) -> Seen {
+    let mut reference = build(scene);
+    let mut chunked = build(scene);
+    let mut seen: Seen = Default::default();
+    let mut step = 0;
+    while step != steps {
+        assert_eq!(act(ref reference, scene, step), act(ref chunked, scene, step));
+        let expected = reference.step();
+        let got = chunked.step();
+        assert!(expected == got, "events differ at step {}", step);
+        observe(ref reference, expected.span(), ref seen);
+        step += 1;
+        if step % k == 0 {
+            let restored = round_trip_v3(ref chunked);
+            chunked = restored;
+        }
+        assert!(reference.to_state() == chunked.to_state(), "state differs after step {}", step);
+    }
+    let collider = ColliderBuilderTrait::ball(f(HALF_RAW)).build();
+    let body = RigidBodyTrait::dynamic(at(0, 8 * ONE_RAW));
+    assert_eq!(reference.insert(body, collider), chunked.insert(body, collider));
+    seen
+}
+
+#[test]
+fn test_migrated_stack_k1() {
+    let _ = run_v3(Scene::Stack, 1, 20);
+}
+
+#[test]
+fn test_migrated_pendulum_k7() {
+    let seen = run_v3(Scene::Pendulum, 7, 30);
+    assert!(seen.joint_impulse);
+}
+
+#[test]
+fn test_migrated_removals_k1() {
+    let _ = run_v3(Scene::Removals, 1, 20);
+}
+
+#[test]
+fn test_migrated_sleep_sensor_k1() {
+    let seen = run_v3(Scene::SleepSensor, 1, 95);
+    assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
+}
+
+#[test]
+fn test_migrated_sleep_sensor_k7() {
+    let seen = run_v3(Scene::SleepSensor, 7, 95);
+    assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
+}
+
+/// [`run`] on worlds that keep their dormant pairs apart (`keep_dormant_pairs_apart`), chunked
+/// through the current felts: the dormant pairs and the switch survive the round trip.
+fn run_apart(scene: Scene, k: u32, steps: u32) -> Seen {
+    let mut reference = build(scene);
+    reference.keep_dormant_pairs_apart(true);
+    let mut chunked = build(scene);
+    chunked.keep_dormant_pairs_apart(true);
+    let mut seen: Seen = Default::default();
+    let mut apart = false;
+    let mut step = 0;
+    while step != steps {
+        assert_eq!(act(ref reference, scene, step), act(ref chunked, scene, step));
+        let expected = reference.step();
+        let got = chunked.step();
+        assert!(expected == got, "events differ at step {}", step);
+        observe(ref reference, expected.span(), ref seen);
+        if !reference.dormant_pairs.is_empty() {
+            apart = true;
+        }
+        step += 1;
+        if step % k == 0 {
+            let restored = round_trip(ref chunked);
+            chunked = restored;
+            assert!(chunked.dormant_apart);
+        }
+        assert!(reference.to_state() == chunked.to_state(), "state differs after step {}", step);
+    }
+    assert!(apart, "no dormant pair was kept apart");
+    seen
+}
+
+#[test]
+fn test_chunked_apart_sleep_sensor_k1() {
+    let seen = run_apart(Scene::SleepSensor, 1, 95);
+    assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
+}
+
+#[test]
+fn test_chunked_apart_sleep_sensor_k7() {
+    let seen = run_apart(Scene::SleepSensor, 7, 95);
+    assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
+}
+
+/// The sleep-sensor scene, its dormant pairs kept apart, after `steps` steps: its state's felts in
+/// the current layout and in the version-3 one.
+fn sleeping_felts(steps: u32) -> (Array<felt252>, Array<felt252>) {
+    let mut world = build(Scene::SleepSensor);
+    world.keep_dormant_pairs_apart(true);
+    let mut step = 0;
+    while step != steps {
+        let _ = world.step();
+        step += 1;
+    }
+    assert!(!world.dormant_pairs.is_empty());
+    let state = world.to_state();
+    let mut current = array![];
+    state.serialize(ref current);
+    let mut old = array![];
+    downgrade(@state).serialize(ref old);
+    (current, old)
+}
+
+/// Golden vectors of both layouts: the sleep-sensor scene at step 80 (the ball asleep inside the
+/// sensor, the active set valid, its dormant pairs apart): Poseidon digests of the felts, and their
+/// lengths. The version-3 felts read back give the version-3 world (no pair apart).
+#[test]
+fn test_layout_vectors() {
+    let (current, old) = sleeping_felts(80);
+    assert_eq!(*current.at(0), 4);
+    assert_eq!(*old.at(0), 3);
+    let digests = (
+        core::poseidon::poseidon_hash_span(current.span()),
+        core::poseidon::poseidon_hash_span(old.span()),
+    );
+    println!("v4 {} felts, v3 {} felts, digests {:?}", current.len(), old.len(), digests);
+    assert_eq!((current.len(), old.len()), (477, 475));
+    assert_eq!(
+        digests,
+        (
+            2638262023801539103267890740067436395534757128511958331098088627768351763189,
+            123024487372149215600037955575194440640478820966384355789198944703611307115,
+        ),
+    );
+    let mut span = old.span();
+    let migrated: WorldState = Serde::deserialize(ref span).unwrap();
+    assert!(!migrated.dormant_apart && migrated.dormant_pairs.is_empty());
+    let mut again = array![];
+    downgrade(@migrated).serialize(ref again);
+    assert!(again == old);
+}
+
+/// A version-3 state of another version number is not migrated.
+#[test]
+#[should_panic(expected: 'world state v3: version')]
+fn test_migrate_rejects_other_versions() {
+    let mut world = build(Scene::Stack);
+    let _ = world.step();
+    let mut old = downgrade(@world.to_state());
+    old.version = 2;
+    let _ = migrate(old);
 }

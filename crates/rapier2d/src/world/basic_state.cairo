@@ -56,6 +56,8 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
         serialize_joints(state.impulse_joints, ref output);
         state.narrow_phase.serialize(ref output);
         state.active_set.serialize(ref output);
+        state.dormant_apart.serialize(ref output);
+        state.dormant_pairs.serialize(ref output);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<BasicWorldState> {
@@ -66,9 +68,9 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
         let colliders = decode::read_colliders(ref serialized)?;
         let impulse_joints = deserialize_joints(ref serialized)?;
         let narrow_phase = Serde::deserialize(ref serialized)?;
+        let active_set = decode::read_active_set(ref serialized)?;
         if version == v3::VERSION {
-            // WS3: a version-3 state, migrated.
-            let active_set = decode::read_active_set_v3(ref serialized)?;
+            // WS3: a version-3 state, migrated (no dormant pair apart).
             return Some(
                 BasicWorldState {
                     state: v3::migrate(
@@ -96,7 +98,9 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
                     colliders,
                     impulse_joints,
                     narrow_phase,
-                    active_set: decode::read_active_set(ref serialized)?,
+                    active_set,
+                    dormant_apart: decode::read_bool(ref serialized)?,
+                    dormant_pairs: Serde::deserialize(ref serialized)?,
                 },
             },
         )
@@ -118,6 +122,8 @@ pub fn from_basic_state(state: BasicWorldState) -> World {
         impulse_joints,
         narrow_phase,
         active_set,
+        dormant_apart,
+        dormant_pairs,
     } = state.state;
     assert(version == WORLD_STATE_VERSION, super::state::errors::VERSION);
     assert(
@@ -135,6 +141,8 @@ pub fn from_basic_state(state: BasicWorldState) -> World {
         impulse_joints: Default::default(),
         narrow_phase,
         active_set: BoxTrait::new(active_set),
+        dormant_apart,
+        dormant_pairs,
     }
 }
 

@@ -1,5 +1,6 @@
 //! The live-pair list helpers of the sparse step (`super::sparse_step`): the pairs of the
-//! narrow phase's list that are not dormant, kept by position (BT2, BT4).
+//! narrow phase's list that are not dormant, kept by position (BT2, BT4), and with the dormant
+//! pairs kept apart (WS3: [`same_keys`], [`live_positions`]).
 
 use rapier_dynamics2d::narrow_phase::{ContactPair, key_before};
 
@@ -82,6 +83,44 @@ pub(crate) fn write_live(
         k += 1;
     }
     out
+}
+
+/// Whether `before` and `now` (ascending key) have the same keys, in order (WS3: then the live
+/// pairs keep their positions in the whole list).
+pub(crate) fn same_keys(before: Span<ContactPair>, now: Span<ContactPair>) -> bool {
+    if before.len() != now.len() {
+        return false;
+    }
+    let mut now = now;
+    for pair in before {
+        let other = now.pop_front().unwrap();
+        if pair.collider1 != other.collider1 || pair.collider2 != other.collider2 {
+            return false;
+        }
+    }
+    true
+}
+
+/// The positions of the `live` pairs in the ascending merge of `live` and `dormant` (disjoint
+/// keys): [`merge_live`]'s positions without the merged list (WS3).
+pub(crate) fn live_positions(live: Span<ContactPair>, dormant: Span<ContactPair>) -> Array<u32> {
+    let mut dormant = dormant;
+    let mut positions = array![];
+    let mut k: u32 = 0;
+    for a in live {
+        while let Some(d) = dormant.get(0) {
+            let d = d.unbox();
+            if key_before(*d.collider1, *d.collider2, *a.collider1, *a.collider2) {
+                k += 1;
+                dormant.pop_front().unwrap();
+            } else {
+                break;
+            }
+        }
+        positions.append(k);
+        k += 1;
+    }
+    positions
 }
 
 /// Past every position of a pair list.
