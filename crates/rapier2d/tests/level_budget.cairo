@@ -25,6 +25,7 @@ use rapier2d::pipeline::{
     update_islands, user_changes_bodies,
 };
 use rapier2d::prelude::{Fixed, Handle, RigidBodyTrait, World, WorldTrait};
+use rapier2d::world::state::v3::downgrade;
 use rapier_core::integration_parameters::IntegrationParametersTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
 use rapier_dynamics2d::narrow_phase::{ContactDispatcher, compute_contacts_from_scratch};
@@ -669,7 +670,7 @@ fn stage(blocks: u32, upto: u8, part: u8) {
 fn impact_digest(blocks: u32) -> felt252 {
     let world = run(blocks, 0, IMPACT);
     let mut out = array![];
-    world.into_state().serialize(ref out);
+    downgrade(@world.into_state()).serialize(ref out);
     core::poseidon::poseidon_hash_span(out.span())
 }
 
@@ -687,6 +688,28 @@ fn test_impact_digest_level10() {
 fn test_impact_digest_level20() {
     let digest = 416855740500297607967284561706278029719752173547945538611177048279506421468;
     assert_eq!(impact_digest(20), digest);
+}
+
+/// [`impact_digest`] on the current layout (`WorldState` version 4, WS3).
+fn impact_digest_v4(blocks: u32) -> felt252 {
+    let world = run(blocks, 0, IMPACT);
+    let mut out = array![];
+    world.into_state().serialize(ref out);
+    core::poseidon::poseidon_hash_span(out.span())
+}
+
+// WS3 (world state v4): the version-3 felts of the same state still hash to the digests above
+// (`impact_digest` writes them through `v3::downgrade`); the current layout's digests.
+#[test]
+fn test_impact_digest_v4_level10() {
+    let digest = 2200290663081459306821078484568920607211650910252947152924017594635792383269;
+    assert_eq!(impact_digest_v4(10), digest);
+}
+
+#[test]
+fn test_impact_digest_v4_level20() {
+    let digest = 1480374963371513267059839737496623568204729237420464798301144499281104021535;
+    assert_eq!(impact_digest_v4(20), digest);
 }
 
 #[test]

@@ -71,7 +71,8 @@ use super::{merge_pairs, split_dormant};
 
 /// The live-pair list helpers of [`sparse_step`].
 mod live;
-use live::{compare_live, merge_live, split_at_positions, write_live};
+pub(crate) use live::split_at_positions;
+use live::{compare_live, merge_live, write_live};
 
 /// What a step needs to skip the sleeping bodies (see the module documentation). `valid` is
 /// `false` until a step fills it.
@@ -86,7 +87,8 @@ pub struct ActiveSet {
     /// The broad-phase proxies of every other collider (fixed, sleeping or no parent), ascending
     /// slot, loosened by half of `prediction`.
     pub statics: Array<BroadPhaseProxy>,
-    /// Positions, ascending, of the pairs of `narrow_phase.pairs` that are not dormant.
+    /// Positions, ascending, of the pairs that are not dormant in the whole pair list (the
+    /// ascending merge of `narrow_phase.pairs` and [`ActiveSet::dormant`]).
     pub pairs: Array<u32>,
     /// Island members (enabled, non-fixed) asleep.
     pub sleeping: u32,
@@ -94,6 +96,9 @@ pub struct ActiveSet {
     pub force_events: bool,
     /// The prediction distance of the static proxies.
     pub prediction: Fixed,
+    /// The dormant pairs (WS3), ascending key, out of `narrow_phase.pairs` while the set is
+    /// valid; empty when it is not (see the module documentation).
+    pub dormant: Array<ContactPair>,
 }
 
 pub impl ActiveSetDefault of Default<ActiveSet> {
@@ -107,6 +112,7 @@ pub impl ActiveSetDefault of Default<ActiveSet> {
             sleeping: 0,
             force_events: false,
             prediction: Fixed { raw: 0 },
+            dormant: array![],
         }
     }
 }
@@ -265,6 +271,7 @@ pub fn rebuild<impl A: ShapeStage>(
         sleeping,
         force_events,
         prediction,
+        dormant: array![],
     }
 }
 

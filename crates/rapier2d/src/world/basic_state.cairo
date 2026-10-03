@@ -2,8 +2,9 @@
 //! and half-spaces, no impulse joint, the worlds `BasicStepConfig` steps.
 //!
 //! [`BasicWorldState`] is a [`WorldState`] whose `Serde` writes and reads **the same felts** as
-//! `WorldState`'s (version 3, same layout, no new version): a contract that takes and returns a
-//! `BasicWorldState` has the calldata of one that takes a `WorldState`. What it does not compile
+//! `WorldState`'s (version 4, same layout, no new version; a version-3 state is read and migrated
+//! as `WorldState`'s `Serde` does): a contract that takes and returns a `BasicWorldState` has the
+//! calldata of one that takes a `WorldState`. What it does not compile
 //! is the rest of the format: the `Serde` of the other shapes (triangles, rounded shapes,
 //! polylines, height fields, compounds, capsules, segments) and of the impulse joints, and the
 //! restore of a joint arena. That is what a caller class under the declared-class limit leaves out
@@ -22,6 +23,7 @@ use rapier_dynamics2d::joint::ImpulseJoint;
 use rapier_dynamics2d::rigid_body_set::RigidBodySetTrait;
 use rapier_geometry2d::shape::{ConvexPolygon, Shape};
 use super::World;
+use super::state::v3::{self, WorldStateV3};
 use super::state::{WORLD_STATE_VERSION, WorldState, into_state};
 
 /// Panics of the basic codec.
@@ -57,16 +59,43 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<BasicWorldState> {
+        let version = decode::read_version(ref serialized)?;
+        let gravity = decode::read_gravity(ref serialized)?;
+        let integration_parameters = decode::read_parameters(ref serialized)?;
+        let bodies = decode::read_bodies(ref serialized)?;
+        let colliders = decode::read_colliders(ref serialized)?;
+        let impulse_joints = deserialize_joints(ref serialized)?;
+        let narrow_phase = Serde::deserialize(ref serialized)?;
+        if version == v3::VERSION {
+            // WS3: a version-3 state, migrated.
+            let active_set = decode::read_active_set_v3(ref serialized)?;
+            return Some(
+                BasicWorldState {
+                    state: v3::migrate(
+                        WorldStateV3 {
+                            version,
+                            gravity,
+                            integration_parameters,
+                            bodies,
+                            colliders,
+                            impulse_joints,
+                            narrow_phase,
+                            active_set,
+                        },
+                    ),
+                },
+            );
+        }
         Some(
             BasicWorldState {
                 state: WorldState {
-                    version: decode::read_version(ref serialized)?,
-                    gravity: decode::read_gravity(ref serialized)?,
-                    integration_parameters: decode::read_parameters(ref serialized)?,
-                    bodies: decode::read_bodies(ref serialized)?,
-                    colliders: decode::read_colliders(ref serialized)?,
-                    impulse_joints: deserialize_joints(ref serialized)?,
-                    narrow_phase: Serde::deserialize(ref serialized)?,
+                    version,
+                    gravity,
+                    integration_parameters,
+                    bodies,
+                    colliders,
+                    impulse_joints,
+                    narrow_phase,
                     active_set: decode::read_active_set(ref serialized)?,
                 },
             },

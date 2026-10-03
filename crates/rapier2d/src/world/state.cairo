@@ -11,8 +11,9 @@
 //! filled it (the restored sets start unmodified). Version 3 (CC2): a body's cold data holds its
 //! CCD state next to its user data (`RigidBodyColdExtra`, serialized as an `Option`); the CCD
 //! solver is owned by the caller of `step_with_ccd` and serializes its switch alone
-//! (`crate::pipeline::ccd::CCDSolver`). A persistent piece added to [`World`] later (island
-//! manager) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
+//! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the dormant pairs of a valid active set
+//! are out of the pair list, in `ActiveSet::dormant`. A persistent piece added to [`World`] later
+//! (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
 //!
 //! [`to_state`] leaves the world as is; [`into_state`] consumes it and moves the pair list
 //! instead of copying it (the end of a chunk).
@@ -25,6 +26,9 @@
 //! Version policy: `version` is the first serialized felt; [`from_state`] rejects any other
 //! version than [`WORLD_STATE_VERSION`]. The layout is the `Serde` of [`WorldState`], i.e. the
 //! field order below; any change to it, or to the `Serde` of a stored type, bumps the version.
+//! The previous version still decodes: [`WorldState`]'s `Serde` reads the felts of a version-3
+//! state and migrates them ([`v3::migrate`]); [`v3::downgrade`] writes the version-3 state of a
+//! world.
 
 use glam_core::Vec2;
 use rapier_core::data::arena::ArenaState;
@@ -32,13 +36,17 @@ use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSetTrait};
-use rapier_dynamics2d::narrow_phase::NarrowPhase;
+use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
 use crate::pipeline::active_set::ActiveSet;
+use crate::pipeline::merge_pairs;
 use super::World;
 
+/// Version 3 of the layout and its migration (WS3).
+pub mod v3;
+
 /// Layout version written by [`to_state`] and required by [`from_state`].
-pub const WORLD_STATE_VERSION: u32 = 3;
+pub const WORLD_STATE_VERSION: u32 = 4;
 
 /// Panic messages of the world state.
 pub mod errors {
@@ -48,7 +56,7 @@ pub mod errors {
 
 /// Flat, serialisable image of a [`World`]: one field per field of the world, in the same
 /// order, behind a layout version.
-#[derive(Drop, Serde, PartialEq, Debug)]
+#[derive(Drop, PartialEq, Debug)]
 pub struct WorldState {
     /// Layout version, [`WORLD_STATE_VERSION`] when written by this crate.
     pub version: u32,
@@ -57,11 +65,46 @@ pub struct WorldState {
     pub bodies: ArenaState<RigidBody>,
     pub colliders: ArenaState<Collider>,
     pub impulse_joints: ArenaState<ImpulseJoint>,
-    /// Last step's contact and intersection pairs, ascending key.
+    /// Last step's contact and intersection pairs, ascending key, without the dormant pairs of a
+    /// valid active set (version 4).
     pub narrow_phase: NarrowPhase,
     /// The step's active set (BT2, version 2), marked invalid when a set was written since the
-    /// step that filled it.
+    /// step that filled it; its dormant pairs (version 4).
     pub active_set: ActiveSet,
+}
+
+/// The fields in order; reads the felts of the current version, or of version 3 through
+/// [`v3::migrate`]. Another version is read in the current layout (and `from_state` rejects it).
+pub impl WorldStateSerde of Serde<WorldState> {
+    fn serialize(self: @WorldState, ref output: Array<felt252>) {
+        self.version.serialize(ref output);
+        self.gravity.serialize(ref output);
+        self.integration_parameters.serialize(ref output);
+        self.bodies.serialize(ref output);
+        self.colliders.serialize(ref output);
+        self.impulse_joints.serialize(ref output);
+        self.narrow_phase.serialize(ref output);
+        self.active_set.serialize(ref output);
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<WorldState> {
+        if *serialized.get(0)?.unbox() == v3::VERSION.into() {
+            let state: v3::WorldStateV3 = Serde::deserialize(ref serialized)?;
+            return Some(v3::migrate(state));
+        }
+        Some(
+            WorldState {
+                version: Serde::deserialize(ref serialized)?,
+                gravity: Serde::deserialize(ref serialized)?,
+                integration_parameters: Serde::deserialize(ref serialized)?,
+                bodies: Serde::deserialize(ref serialized)?,
+                colliders: Serde::deserialize(ref serialized)?,
+                impulse_joints: Serde::deserialize(ref serialized)?,
+                narrow_phase: Serde::deserialize(ref serialized)?,
+                active_set: Serde::deserialize(ref serialized)?,
+            },
+        )
+    }
 }
 
 /// Saves `world`, which is left unchanged. Cost: one dict read per allocated and per free slot
@@ -69,6 +112,10 @@ pub struct WorldState {
 pub fn to_state(ref world: World) -> WorldState {
     let mut pairs = array![];
     pairs.append_span(world.narrow_phase.pairs.span());
+    let modified = world.bodies.is_modified() || world.colliders.is_modified();
+    let (pairs, active_set) = saved_pairs(
+        pairs, world.active_set.as_snapshot().unbox().clone(), modified,
+    );
     WorldState {
         version: WORLD_STATE_VERSION,
         gravity: world.gravity,
@@ -77,10 +124,7 @@ pub fn to_state(ref world: World) -> WorldState {
         colliders: world.colliders.to_state(),
         impulse_joints: world.impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
-        active_set: saved_active_set(
-            world.active_set.as_snapshot().unbox().clone(),
-            world.bodies.is_modified() || world.colliders.is_modified(),
-        ),
+        active_set,
     }
 }
 
@@ -98,6 +142,7 @@ pub fn into_state(world: World) -> WorldState {
         active_set,
     } = world;
     let modified = bodies.is_modified() || colliders.is_modified();
+    let (pairs, active_set) = saved_pairs(narrow_phase.pairs, active_set.unbox(), modified);
     WorldState {
         version: WORLD_STATE_VERSION,
         gravity,
@@ -105,19 +150,28 @@ pub fn into_state(world: World) -> WorldState {
         bodies: bodies.to_state(),
         colliders: colliders.to_state(),
         impulse_joints: impulse_joints.to_state(),
-        narrow_phase,
-        active_set: saved_active_set(active_set.unbox(), modified),
+        narrow_phase: NarrowPhase { pairs },
+        active_set,
     }
 }
 
-/// The active set as saved: invalid when a set was written since the step that filled it (the
-/// restored sets start unmodified).
-fn saved_active_set(active_set: ActiveSet, modified: bool) -> ActiveSet {
+/// The pair list and the active set as saved: the set invalid when a set was written since the
+/// step that filled it (the restored sets start unmodified), and then its dormant pairs merged
+/// back into the list (an invalid set holds none, version 4).
+fn saved_pairs(
+    pairs: Array<ContactPair>, active_set: ActiveSet, modified: bool,
+) -> (Array<ContactPair>, ActiveSet) {
     let mut active_set = active_set;
-    if modified {
-        active_set.valid = false;
+    if !modified {
+        return (pairs, active_set);
     }
-    active_set
+    active_set.valid = false;
+    if active_set.dormant.is_empty() {
+        return (pairs, active_set);
+    }
+    let merged = merge_pairs(pairs.span(), active_set.dormant.span());
+    active_set.dormant = array![];
+    (merged, active_set)
 }
 
 /// Rebuilds the world saved by [`to_state`]. Cost: one dict write per allocated slot of each set.
