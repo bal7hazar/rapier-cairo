@@ -1,7 +1,7 @@
 {
   "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
   "rapier": "rapier2d-f64 0.35.3",
-  "parry": "parry2d-f64 0.30.2",
+  "parry": "parry2d-f64 0.31.1",
   "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
   "family": "aabb",
   "cases": [

@@ -16,7 +16,7 @@ pub const MIXED_P0: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 1288490189, y: 2576980378 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Vertex(1),
     distance: 6012954214,
     contains: false,
 };
@@ -34,7 +34,7 @@ pub const MIXED_P1: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -1288490189, y: 2576980378 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Vertex(0),
     distance: 3221225471,
     contains: false,
 };
@@ -82,7 +82,7 @@ pub const MIXED_P4: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: -2048369019, y: 792917039 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(1),
     distance: 133181283,
     contains: false,
 };
@@ -100,7 +100,7 @@ pub const MIXED_P5: CompositePointCase = CompositePointCase {
     feature_projection: ProjectionRaw {
         point: Vec2Raw { x: 1073741824, y: -3006477107 }, is_inside: false,
     },
-    feature: PointFeatureRaw::Unknown,
+    feature: PointFeatureRaw::Face(0),
     distance: 3435973837,
     contains: false,
 };

@@ -1,7 +1,7 @@
 {
   "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
   "rapier": "rapier2d-f64 0.35.3",
-  "parry": "parry2d-f64 0.30.2",
+  "parry": "parry2d-f64 0.31.1",
   "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
   "family": "compound_queries",
   "compounds": [
@@ -158,7 +158,7 @@
           "point": { "f64": [-0.5, 1.75], "raw": [-2147483648, 7516192768] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "vertex", "code": 0 },
         "distance": { "f64": 0.838152730756457, "raw": 3599838568 },
         "contains": false
       }
@@ -180,7 +180,7 @@
           "point": { "f64": [-0.5, 1.1999999999534339], "raw": [-2147483648, 5153960755] },
           "is_inside": true
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": -0.25, "raw": -1073741824 },
         "contains": true
       }
@@ -193,7 +193,7 @@
         "projection": { "point": { "f64": [0.0, 0.25], "raw": [0, 1073741824] }, "is_inside": true },
         "projection_solid": { "point": { "f64": [0.0, 0.0], "raw": [0, 0] }, "is_inside": true },
         "feature_projection": { "point": { "f64": [0.0, 0.25], "raw": [0, 1073741824] }, "is_inside": true },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": -0.25, "raw": -1073741824 },
         "contains": true
       }
@@ -215,7 +215,7 @@
           "point": { "f64": [1.0, 0.19999999995343387], "raw": [4294967296, 858993459] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.5, "raw": 6442450944 },
         "contains": false
       }
@@ -237,7 +237,7 @@
           "point": { "f64": [-0.44999999995343387, 0.25], "raw": [-1932735283, 1073741824] },
           "is_inside": true
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": -0.05000000004656613, "raw": -214748365 },
         "contains": true
       }
@@ -259,7 +259,7 @@
           "point": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 3 },
         "distance": { "f64": 1.25, "raw": 5368709120 },
         "contains": false
       }
@@ -281,7 +281,7 @@
           "point": { "f64": [0.7403450014285211, 0.590895995700775], "raw": [3179757569, 2537878977] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.476305461337248, "raw": 6340683675 },
         "contains": false
       }
@@ -303,7 +303,7 @@
           "point": { "f64": [-0.7875108366188781, 0.29973992197372734], "raw": [-3382333289, 1287373162] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 0.9010412148552781, "raw": 3869942550 },
         "contains": false
       }
@@ -322,7 +322,7 @@
           "point": { "f64": [-0.10260604300266225, 0.28190778630970476], "raw": [-440689599, 1210784723] },
           "is_inside": true
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": -0.30000000007117056, "raw": -1288490189 },
         "contains": true
       }
@@ -344,7 +344,7 @@
           "point": { "f64": [1.0, 0.19999999995343393], "raw": [4294967296, 858993459] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 1.5, "raw": 6442450944 },
         "contains": false
       }
@@ -366,7 +366,7 @@
           "point": { "f64": [-0.43568728179467847, 0.16067612982282925], "raw": [-1871262627, 690098723] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.04184758849850998, "raw": 179734024 },
         "contains": false
       }
@@ -388,7 +388,7 @@
           "point": { "f64": [-0.15872910882519525, -0.37702600272213777], "raw": [-681736331, -1619314351] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 3 },
         "distance": { "f64": 1.195043966958228, "raw": 5132674755 },
         "contains": false
       }
@@ -410,7 +410,7 @@
           "point": { "f64": [0.30000000004656613, 0.6000000000931323], "raw": [1288490189, 2576980378] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "vertex", "code": 1 },
         "distance": { "f64": 1.3999999999068677, "raw": 6012954214 },
         "contains": false
       }
@@ -432,7 +432,7 @@
           "point": { "f64": [-0.30000000004656613, 0.6000000000931323], "raw": [-1288490189, 2576980378] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "vertex", "code": 0 },
         "distance": { "f64": 0.7499999998603016, "raw": 3221225471 },
         "contains": false
       }
@@ -498,7 +498,7 @@
           "point": { "f64": [-0.47692307701841347, 0.1846153844902898], "raw": [-2048369019, 792917039] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 1 },
         "distance": { "f64": 0.03100868380946927, "raw": 133181283 },
         "contains": false
       }
@@ -520,7 +520,7 @@
           "point": { "f64": [0.25, -0.6999999999534339], "raw": [1073741824, -3006477107] },
           "is_inside": false
         },
-        "feature": { "kind": "unknown", "code": 0 },
+        "feature": { "kind": "face", "code": 0 },
         "distance": { "f64": 0.8000000000465661, "raw": 3435973837 },
         "contains": false
       }

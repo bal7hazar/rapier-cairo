@@ -123,7 +123,7 @@ fn height_above(s1: &SharedShape, s2: &SharedShape, x: f64, rot: QRot, gap: f64)
     for _ in 0..200 {
         let mid = 0.5 * (lo + hi);
         let p2 = Pose::from_parts(Vector::new(x, mid), rot.r());
-        let d = query::distance(&Pose::IDENTITY, &*s1.0, &p2, &*s2.0).unwrap();
+        let d = query::distance(&Pose::IDENTITY, &*s1.0, &p2, &*s2.0).map(|d| d.distance).unwrap();
         if d > 0.0 {
             hi = mid;
         } else {
@@ -223,8 +223,8 @@ fn manifold_case(id: String, comp_name: &str, other: &Other, pos: QPose, first: 
         "pos12": jqpose(pos12),
         "expected": {
             "manifolds": manifolds_json(&manifolds),
-            "intersects": json_opt(query::intersection_test(&identity, &*s1.0, &p, &*s2.0), |v| json!(v)),
-            "distance": distance_json(query::distance(&identity, &*s1.0, &p, &*s2.0)),
+            "intersects": json_opt(query::intersection_test(&identity, &*s1.0, &p, &*s2.0).map(|i| i.intersecting), |v| json!(v)),
+            "distance": distance_json(query::distance(&identity, &*s1.0, &p, &*s2.0).map(|d| d.distance)),
         },
     })
 }
@@ -410,8 +410,8 @@ fn pairs() -> Vec<Value> {
                         "prediction": jq(prediction),
                         "margin": jq(margin),
                         "expected": {
-                            "intersects": json_opt(query::intersection_test(&p1, &*s1.0, &p2, &*s2.0), |v| json!(v)),
-                            "distance": distance_json(query::distance(&p1, &*s1.0, &p2, &*s2.0)),
+                            "intersects": json_opt(query::intersection_test(&p1, &*s1.0, &p2, &*s2.0).map(|i| i.intersecting), |v| json!(v)),
+                            "distance": distance_json(query::distance(&p1, &*s1.0, &p2, &*s2.0).map(|d| d.distance)),
                             "contact": json_opt(query::contact(&p1, &*s1.0, &p2, &*s2.0, prediction.f()), |c| match c {
                                 Some(c) => json!({ "some": true, "point1": jvec(c.point1), "point2": jvec(c.point2),
                                     "normal1": jvec(c.normal1), "normal2": jvec(c.normal2), "dist": jf(c.dist) }),

@@ -41,7 +41,7 @@ use std::path::{Path, PathBuf};
 
 /// Pinned upstream versions, repeated in every vector file. Must match `Cargo.toml`.
 pub const RAPIER_VERSION: &str = "rapier2d-f64 0.35.3";
-pub const PARRY_VERSION: &str = "parry2d-f64 0.30.2";
+pub const PARRY_VERSION: &str = "parry2d-f64 0.31.1";
 
 fn tool_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

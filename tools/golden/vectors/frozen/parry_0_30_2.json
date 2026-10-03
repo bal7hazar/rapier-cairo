@@ -1,0 +1,778 @@
+{
+  "generated_by": "OB, once, from the parry2d-f64 0.30.2 vectors of tools/golden/vectors at 0e009d7 \u2014 never regenerated, never edited",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.30.2",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "frozen_parry030",
+  "policy": "The fields parry 0.31.1 moved that the port keeps at their 0.30.2 value. The Cairo golden tests compare these fields with this copy and every other field with the 0.31.1 vectors (README, 'Frozen parry 0.30.2 values').",
+  "values": [
+    {
+      "family": "composite_points",
+      "id": "vee/p2",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 0
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "vee/p3",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 1
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "vee/p4",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 1
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "vee/p5",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 1
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "bumps/p0",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 5
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "bumps/p1",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 3
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "bumps/p2",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 4
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "bumps/p3",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "bumps/p4",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 5
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "bumps/p5",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 5
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "square/p0",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 2
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "square/p1",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 3
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "square/p2",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 0
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "square/p3",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 1
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "square/p5",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 0
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "plain_square/p0",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 2
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "plain_square/p1",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 3
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "plain_square/p2",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 0
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "plain_square/p3",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 1
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_points",
+      "id": "plain_square/p5",
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 0
+      },
+      "why": "polyline / heightfield point projection: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "compound_points",
+      "id": "ell/p0",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "ell/p1",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "ell/p2",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "ell/p3",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "ell/p4",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "ell/p5",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "trio/p0",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "trio/p1",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "trio/p2",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "trio/p3",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "trio/p4",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "trio/p5",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "mixed/p0",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "mixed/p1",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "mixed/p4",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "compound_points",
+      "id": "mixed/p5",
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "compound point projection: 0.31.1 reports the part's own feature, 0.30.2 `Unknown`, as the port"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/down",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 6
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/down",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 6
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/slant",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 6
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/slant",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 6
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/up",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 2
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/up",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 2
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/posed",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 5
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "flat/posed",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 5
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/down",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/down",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/slant",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/slant",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/up",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 2
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/up",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 2
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/posed",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "composite_rays",
+      "id": "hills/posed",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "face",
+        "code": 7
+      },
+      "why": "polyline / heightfield ray hit: 0.31.1 reports the segment's own feature, 0.30.2 the polyline-wide id the port returns"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/hit_side",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/hit_side",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/hit_cap",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/hit_cap",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/oblique",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/oblique",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside",
+      "solid": true,
+      "field": "normal",
+      "value": {
+        "f64": [
+          -0.8944271909999159,
+          -0.4472135954999579
+        ],
+        "raw": [
+          -3841535534,
+          -1920767767
+        ]
+      },
+      "why": "capsule, solid cast from inside: 0.31.1 answers a zero normal, 0.30.2 (and the port) `-dir / |dir|`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside",
+      "solid": false,
+      "field": "toi",
+      "value": {
+        "f64": 0.18122013450928892,
+        "raw": 778334551
+      },
+      "why": "capsule, hollow cast from inside with |dir| != 1: 0.30.2's unit-mixing defect (ADR 0001 entry 4), fixed in 0.31.1; kept for test_capsule_hollow_upstream_units_bug"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside_cap_exit",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside_cap_exit",
+      "solid": true,
+      "field": "normal",
+      "value": {
+        "f64": [
+          0.0,
+          -1.0
+        ],
+        "raw": [
+          0,
+          -4294967296
+        ]
+      },
+      "why": "capsule, solid cast from inside: 0.31.1 answers a zero normal, 0.30.2 (and the port) `-dir / |dir|`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/inside_cap_exit",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/unnormalized_dir",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/unnormalized_dir",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/zero_dir_inside",
+      "solid": true,
+      "field": "answer",
+      "value": {
+        "toi": null,
+        "hit": null
+      },
+      "why": "capsule, zero `dir` from inside: 0.31.1's analytic cast hits at t = 0 with a zero normal, 0.30.2 (and the port) miss"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/oblique_shape",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/oblique_shape",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/posed",
+      "solid": true,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    },
+    {
+      "family": "ray_casts",
+      "id": "capsule/posed",
+      "solid": false,
+      "field": "feature",
+      "value": {
+        "kind": "unknown",
+        "code": 0
+      },
+      "why": "capsule: 0.31.1's analytic cast reports `Face(0)`, 0.30.2's GJK (and the port) `Unknown`"
+    }
+  ]
+}

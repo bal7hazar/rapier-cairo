@@ -101,7 +101,7 @@ fn run(case: &Case) -> Value {
     let (g1, g2) = (&*shape1.0, &*shape2.0);
     let (p1, p2) = (pos1(), pos2(case.pos12));
     let (w1, w2) = (p1.p(), p2.p());
-    let distance = query::distance(&w1, g1, &w2, g2);
+    let distance = query::distance(&w1, g1, &w2, g2).map(|d| d.distance);
     let expected = match distance {
         Err(_) => json!({ "supported": false }),
         Ok(distance) => {
