@@ -1,5 +1,33 @@
 # Step Budgets
 
+## EL1 — engine levers (2026-10-03)
+
+IT1's in-scope step levers (`docs/research/impact-tick.md` §8). R1: `remove_body` wakes and releases a collider's pairs
+in one walk. F1: the force-event pass keeps the pair list when no status bit changes, and reads three collider fields
+instead of whole colliders (`ColliderSetTrait::get_field`). W1: `body_status` reads the slot's entry before walking.
+N1's single unbox measured 0 and was dropped; S1, U1, G1 and the rest of W1 found no bit-identical candidate
+(reasons and figures in §8). Results bit-identical: every test unchanged, and the per-tick digests of both shots in
+both layouts equal before and after. Exact Cairo steps, Scarb 2.20.1 / snforge 0.64.0, `RAYON_NUM_THREADS=1`, on the
+Mac (Apple silicon arm64), build path
+`/Users/bal7hazar/.herdr/worktrees/rapier-cairo/hp-slingfall-rapier-t-0035-el1-engine-levers`, before = `main` after
+CX3 (`665e999`):
+
+| pile10 shot | in process before → after | Δ | slim before → after | Δ |
+|---|--:|--:|--:|--:|
+| owner's (−1022, −63), 151 ticks | 22,867,951 → 22,507,444 | −360,507 (−1.58 %) | 29,849,153 → 29,500,630 | −348,523 (−1.17 %) |
+| reference (−604, −392), 107 ticks | 8,752,430 → 8,585,434 | −166,996 (−1.91 %) | 12,065,485 → 11,906,622 | −158,863 (−1.32 %) |
+| owner's impact tick (42) | 473,902 → 445,477 | −28,425 (−6.00 %) | 525,985 → 498,535 | −27,450 (−5.22 %) |
+| reference impact tick (82) | 478,016 → 449,595 | −28,421 (−5.95 %) | 529,995 → 502,549 | −27,446 (−5.18 %) |
+| owner's tick after the impact, average of 108 | 199,371.9 → 196,464.5 | −2,907 (−1.46 %) | 255,961.9 → 253,152.6 | −2,809 (−1.10 %) |
+| reference tick after the impact, average of 24 | 288,849.1 → 284,205.3 | −4,644 (−1.61 %) | 368,790.4 → 364,427.6 | −4,363 (−1.18 %) |
+
+`rapier2d` `steps_*` probes: game path −1.07 to −1.49 % (`steps_game_step` 2,758,024 → 2,726,098), asleep levels −1.5 to
+−1.6 %, level impacts −0.14 / −0.19 %, P3 contact scenes −0.05 to −0.15 %, free fall and joints unchanged; none rose.
+Sierra gas (`gas/rapier2d/**`): median −0.08 %, −8.8 % to +0.62 % (the rises are on force-event and panic paths: Sierra
+gas charges the costliest path, now including the rebuild branch). Proofs (estimate, the game's basis of 154 L2 gas
+per step): owner's shot 5.28e9 → 5.226e9 virtual L2 gas, still 6 proofs (5 need ≈ 1.47M more steps); reference shot
+2.57e9 → 2.546e9, still 3. Classes whose hash changes: `IslandsClass` (W1) and `ForceEventsClass` (F1).
+
 ## CX3 — slim crossings (2026-10-02)
 
 `NarrowPhaseClass` runs its own pair loop on the previous pairs as they cross, each pair's contacts generated where the
