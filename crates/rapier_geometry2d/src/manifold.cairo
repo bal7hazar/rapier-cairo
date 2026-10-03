@@ -4,12 +4,12 @@
 //! allocation and no dependence on iteration order. Compound subshape poses are deferred; `pos12`
 //! is always the relative pose of shape 2 in shape 1's frame.
 
-use fixed::wide::dot2;
+use fixed::wide::{WideAdd, WideMul, WideNarrow, WideSub, wide_from, wide_mul};
 use fixed::{Fixed, ZERO};
 use glam_core::Vec2;
 use rapier_math::consts::{COS_1_DEGREES, DIST_SQ_THRESHOLD_RAW};
 use rapier_math::math_ext::norm2::{norm2_sq_wide, sq_wide};
-use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::pose2::Pose2;
 use crate::contact::{ContactData, ContactManifold, TrackedContact};
 
 #[generate_trait]
@@ -139,24 +139,45 @@ fn try_update_contacts_eps_fused(
     true
 }
 
+/// `-n1 . (R12 n2) >= tol` with the dot one exact sum floored once (FU1 C5: the rotated normal
+/// is not floored first), within one ulp of the exact dot.
 fn normal_matches(local_n1: Vec2, local_n2: Vec2, pos12: Pose2, angle_cos_tol: Fixed) -> bool {
-    let n2_in_1 = pos12.transform_vector(local_n2);
-    -dot2(local_n1.x, n2_in_1.x, local_n1.y, n2_in_1.y) >= angle_cos_tol
+    let r = pos12.rotation;
+    let dot = wide_mul(r.re, local_n2.x)
+        .sub(wide_mul(r.im, local_n2.y))
+        .mul(local_n1.x)
+        .add(wide_mul(r.im, local_n2.x).add(wide_mul(r.re, local_n2.y)).mul(local_n1.y))
+        .narrow();
+    -dot >= angle_cos_tol
 }
 
+/// FU1 C5: `local_p2 = pos12 * p2` stays an exact sum per component, minus `p1`; the new
+/// separation is its projection on `n1` floored once (within one ulp of the exact value), and
+/// the reprojected point's offset `local_p2 - n1 * dist - p1` one sum per component floored once
+/// (within one ulp of its value for the stored `dist`): 5 rescales and the checked subtractions
+/// of the floored form (`alternatives::update_candidate_floored`) become 3.
 fn update_candidate(
     mut pt: TrackedContact, pos12: Pose2, local_n1: Vec2, dist_sq_tol: i128,
 ) -> (bool, TrackedContact) {
-    let local_p2 = pos12.transform_point(pt.local_p2);
-    let dpt = local_p2 - pt.local_p1;
-    let dist = dot2(dpt.x, local_n1.x, dpt.y, local_n1.y);
+    let (r, p1, p2) = (pos12.rotation, pt.local_p1, pt.local_p2);
+    let dx = wide_mul(r.re, p2.x)
+        .sub(wide_mul(r.im, p2.y))
+        .add(wide_from(pos12.translation.x))
+        .sub(wide_from(p1.x));
+    let dy = wide_mul(r.im, p2.x)
+        .add(wide_mul(r.re, p2.y))
+        .add(wide_from(pos12.translation.y))
+        .sub(wide_from(p1.y));
+    let dist = dx.mul(local_n1.x).add(dy.mul(local_n1.y)).narrow();
 
     if sign_switched(dist, pt.dist) {
         return (false, pt);
     }
 
-    let new_p1 = Vec2 { x: local_p2.x - local_n1.x * dist, y: local_p2.y - local_n1.y * dist };
-    let delta = new_p1 - pt.local_p1;
+    let delta = Vec2 {
+        x: dx.sub(wide_mul(local_n1.x, dist)).narrow(),
+        y: dy.sub(wide_mul(local_n1.y, dist)).narrow(),
+    };
     if norm2_sq_wide(delta.x, delta.y) > dist_sq_tol {
         return (false, pt);
     }
@@ -218,7 +239,37 @@ mod alternatives {
     use rapier_math::math_ext::norm2::norm2_sq_wide;
     use rapier_math::pose2::{Pose2, Pose2Trait};
     use crate::contact::{ContactManifold, TrackedContact};
-    use super::normal_matches;
+    use super::{normal_matches, sign_switched};
+
+    /// `update_candidate` before FU1 (C5): the transformed point floored, then the separation
+    /// and the reprojected point from it.
+    pub fn update_candidate_floored(
+        mut pt: TrackedContact, pos12: Pose2, local_n1: glam_core::Vec2, dist_sq_tol: i128,
+    ) -> (bool, TrackedContact) {
+        let local_p2 = pos12.transform_point(pt.local_p2);
+        let dpt = local_p2 - pt.local_p1;
+        let dist = dot2(dpt.x, local_n1.x, dpt.y, local_n1.y);
+        if sign_switched(dist, pt.dist) {
+            return (false, pt);
+        }
+        let new_p1 = glam_core::Vec2 {
+            x: local_p2.x - local_n1.x * dist, y: local_p2.y - local_n1.y * dist,
+        };
+        let delta = new_p1 - pt.local_p1;
+        if norm2_sq_wide(delta.x, delta.y) > dist_sq_tol {
+            return (false, pt);
+        }
+        pt.dist = dist;
+        (true, pt)
+    }
+
+    /// `normal_matches` before FU1 (C5): the rotated normal floored, then the dot.
+    pub fn normal_matches_floored(
+        local_n1: glam_core::Vec2, local_n2: glam_core::Vec2, pos12: Pose2, angle_cos_tol: Fixed,
+    ) -> bool {
+        let n2_in_1 = pos12.transform_vector(local_n2);
+        -dot2(local_n1.x, n2_in_1.x, local_n1.y, n2_in_1.y) >= angle_cos_tol
+    }
 
     /// Direct upstream shape: validate all points, then refresh separations in a second pass.
     pub fn try_update_contacts_eps_direct(
@@ -482,6 +533,68 @@ mod tests {
                 opaque(Default::default()),
                 opaque(COS_1_DEGREES),
                 opaque(DIST_SQ_THRESHOLD_RAW),
+            ),
+        );
+    }
+
+    /// FU1 C5 against the floored form, on a turned pose: same decisions, separations within
+    /// 2 raw (each within one ulp of the exact value for the fused, 2.2 for the floored).
+    #[test]
+    fn test_update_candidate_against_floored() {
+        let n1 = v(Fixed { raw: 3037000499 }, Fixed { raw: -3037000500 });
+        let pos12 = pose(
+            Fixed { raw: 4294967 }, Fixed { raw: -2147484 }, Fixed { raw: 4294803757 }, SIN_0_5,
+        );
+        let c = contact(
+            1,
+            ZERO,
+            v(Fixed { raw: 2147483648 }, Fixed { raw: -1073741824 }),
+            v(Fixed { raw: 2151778615 }, Fixed { raw: -1076889541 }),
+            0,
+        );
+        let (ok, fused) = super::update_candidate(c, pos12, n1, DIST_SQ_THRESHOLD_RAW);
+        let (ok_f, floored) = alternatives::update_candidate_floored(
+            c, pos12, n1, DIST_SQ_THRESHOLD_RAW,
+        );
+        assert_eq!(ok, ok_f);
+        assert!(fused.dist.abs_diff_eq(floored.dist, Fixed { raw: 2 }));
+        let n2 = v(-n1.x, -n1.y);
+        assert_eq!(
+            super::normal_matches(n1, n2, pos12, COS_1_DEGREES),
+            alternatives::normal_matches_floored(n1, n2, pos12, COS_1_DEGREES),
+        );
+    }
+
+    #[test]
+    fn gas_update_candidate() {
+        let c = contact(1, ZERO, v(ONE_MILLI, ZERO), v(ZERO, HALF_MILLI), 0);
+        let n1 = v(ONE, ZERO);
+        let _ = super::update_candidate(
+            c, opaque(pose(ONE_MILLI, ZERO, COS_0_5, SIN_0_5)), opaque(n1), DIST_SQ_THRESHOLD_RAW,
+        );
+    }
+
+    #[test]
+    fn gas_update_candidate_floored() {
+        let c = contact(1, ZERO, v(ONE_MILLI, ZERO), v(ZERO, HALF_MILLI), 0);
+        let n1 = v(ONE, ZERO);
+        let _ = alternatives::update_candidate_floored(
+            c, opaque(pose(ONE_MILLI, ZERO, COS_0_5, SIN_0_5)), opaque(n1), DIST_SQ_THRESHOLD_RAW,
+        );
+    }
+
+    #[test]
+    fn gas_normal_matches() {
+        let p = opaque(pose(ZERO, ZERO, COS_0_5, SIN_0_5));
+        assert!(super::normal_matches(opaque(v(ONE, ZERO)), v(-ONE, ZERO), p, COS_1_DEGREES));
+    }
+
+    #[test]
+    fn gas_normal_matches_floored() {
+        let p = opaque(pose(ZERO, ZERO, COS_0_5, SIN_0_5));
+        assert!(
+            alternatives::normal_matches_floored(
+                opaque(v(ONE, ZERO)), v(-ONE, ZERO), p, COS_1_DEGREES,
             ),
         );
     }

@@ -18,21 +18,23 @@ use starknet::{ClassHash, SyscallResultTrait};
 /// `/home/runner/work/rapier-cairo/rapier-cairo`, run 37017663782, artifact `class-hashes`.
 pub const CONTACT_BALL_HASH: felt252 =
     0x5f9b275f6554d67248a2d06302bc48eb7fc08854ab213a36cd558dc9ef7d08b;
+/// FU1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37151548515, artifact `class-hashes`.
 pub const CONTACT_POLYGON_HASH: felt252 =
-    0xfb2be1deb70c09f61be9f7869281ae68ae8a89d3d67a05bdb47ef4ed2bd1e5;
-pub const SOLVER_HASH: felt252 = 0x47eb41954b4ef81971087190121a3589cecbde08bedb5dc0707aa00842c3743;
+    0x1360212d7a7f833476ef059ec23733825ad53d370224a12d2e564a593a7cf15;
+pub const SOLVER_HASH: felt252 = 0x57e2011e184a627ffcc1b9fabc4af49e3515ffa260892c8a37a489421a02ede;
 pub const SOLVE_ADVANCE_HASH: felt252 =
-    0xb0f496a340509f79c875459843cbf6870aa01f35231b72ecaf0d9403ed36d2;
+    0x44c3a661a7a730f5a763889f2e81cc82ad37d6caad8af6b4aae29d152d84a17;
 /// EL1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
 /// 37116036184, artifact `class-hashes`.
 pub const ISLANDS_HASH: felt252 = 0x6aa5300b631b548c341b88a8d5881356f7f33898c37ff1894ef003ea73f6a9e;
 pub const BROAD_PHASE_HASH: felt252 =
     0x53423c89826872bf0609676dde383e1e7fd4716d8c76c4964785c1e73a51014;
 pub const MASS_HASH: felt252 = 0x60051ffb6f7fe7e5a29c6ac58db800bafcfa716e79b3d97a058a71027e10c3b;
-/// FU1 B1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`,
-/// run 37144840437, artifact `class-hashes`.
+/// FU1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37151548515, artifact `class-hashes`.
 pub const NARROW_PHASE_HASH: felt252 =
-    0x56b57e154967496abbf150f8d7567dc616f39001757c17ecb95beb9b08cbb61;
+    0x11c9f3239147891a04a8f5d147d8e325ae713d2bd645e996c7e7f07ec58d0fc;
 /// CX3: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
 /// 37033470531, artifact `class-hashes`.
 pub const ACTIVE_SET_HASH: felt252 =

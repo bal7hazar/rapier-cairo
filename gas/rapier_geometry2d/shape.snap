@@ -28,9 +28,9 @@ rapier_geometry2d::shape::compound::tests::gas_baseline 5910
 rapier_geometry2d::shape::compound::tests::gas_cast_local_ray_ell 402540
 rapier_geometry2d::shape::compound::tests::gas_compute_aabb_ell 110810
 rapier_geometry2d::shape::compound::tests::gas_manifolds_ell_ball 333530
-rapier_geometry2d::shape::compound::tests::gas_manifolds_ell_cuboid 695920
+rapier_geometry2d::shape::compound::tests::gas_manifolds_ell_cuboid 670920
 rapier_geometry2d::shape::compound::tests::gas_manifolds_ell_halfspace 873690
-rapier_geometry2d::shape::compound::tests::gas_manifolds_ell_polyline 1298050
+rapier_geometry2d::shape::compound::tests::gas_manifolds_ell_polyline 1273050
 rapier_geometry2d::shape::compound::tests::gas_mass_properties_ell 221010
 rapier_geometry2d::shape::compound::tests::gas_new_ell 69600
 rapier_geometry2d::shape::compound::tests::gas_parts_in_aabb_scan_16 489530
@@ -47,7 +47,7 @@ rapier_geometry2d::shape::compound::tests::gas_tree_build_16 683350
 rapier_geometry2d::shape::compound::tests::gas_tree_build_2 108580
 rapier_geometry2d::shape::compound::tests::gas_tree_build_8 362860
 rapier_geometry2d::shape::compound::tests::gas_triangle_part_is_convex 63610
-rapier_geometry2d::shape::compound::tests::test_compound_pairs_support_matrix 12241340
+rapier_geometry2d::shape::compound::tests::test_compound_pairs_support_matrix 12016340
 rapier_geometry2d::shape::compound::tests::test_manifolds_carry_part_ids_and_frames 871410
 rapier_geometry2d::shape::compound::tests::test_mass_properties_sum_of_parts 2068240
 rapier_geometry2d::shape::compound::tests::test_new_boxes_and_accessors 259360
@@ -109,7 +109,7 @@ rapier_geometry2d::shape::convex_polygon::tests::test_boxed_shape_serialization_
 rapier_geometry2d::shape::convex_polygon::tests::test_construction_table 479410
 rapier_geometry2d::shape::convex_polygon::tests::test_entry_rounding_to_zero_keeps_entry_face 141400
 rapier_geometry2d::shape::convex_polygon::tests::test_mass_density_zero_and_negative 887580
-rapier_geometry2d::shape::convex_polygon::tests::test_polygon_contacts_dispatch 1886430
+rapier_geometry2d::shape::convex_polygon::tests::test_polygon_contacts_dispatch 1861430
 rapier_geometry2d::shape::convex_polygon::tests::test_ray_table 1162480
 rapier_geometry2d::shape::convex_polygon::tests::test_tiny_edges_use_wide_products 289080
 rapier_geometry2d::shape::convex_polygon::tests::test_triangle_bounding_sphere_uses_vertex_mean 216130

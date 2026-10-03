@@ -392,3 +392,45 @@ shot). The `WorldState` format does not change.
 In the session scratchpad, never committed: `fu0probe/` (`gen.py`, `src/lib.cairo`, `src/tests.cairo`,
 `src/cases.cairo`), `fusedws/` (the patched crates), `scene_cur/`, `scene_fused/`, `golden_mini/`, and the logs
 `scene_cur*.log`, `scene_fused*.log`.
+
+## 8. Done in FU1 (2026-10-03)
+
+The project manager approved FU1 as one numeric lot (`docs/briefs/fu1-fused-rescales.md`). Its condition: each changed
+formula must stay within one ulp of the f64 oracle, measured on the formula's own probe. FU1 re-ran §5's probe with
+B1, C5, C6 and C7 added. Each formula has 64 cases asserted bit for bit in Cairo against the exact integer simulation,
+then 50,000 simulated cases. "Oracle" is the exact rational value of the formula on the same Q32.32 inputs, which f64
+rapier reproduces within 0.00006 ulp (§4).
+
+| # | output | max ulp from the oracle, today → fused | mean, fused | steps per call (net), today → fused | shipped |
+|---|---|--:|--:|--:|---|
+| P1 | new impulse | 2.46 → **1.00** | 0.50 | 55 → 38 | yes |
+| P2 | refresh `dist`, `t_dist` | 2.26 → **1.00** | 0.50 | 131 → 72 | yes, with generation's round trip |
+| P3 | projected mass `k` | 2.32 → **1.00** | 0.50 | 57 → 32 | yes |
+| C5 | `dist` (stored) | 2.32 → **1.00** (the point's three outputs together today) | 0.50 | 144 → 84 per point | yes |
+| C5 | normal test `n1 · (R12 n2)` | 2.34 → **1.00** | 0.50 | 57 → 30 | yes |
+| C5 | `delta` (not stored, only compared with the 1e-3 threshold) | 2.32 → 1.97 (≤ 1.00 for the stored `dist`) | 0.56 | (in the point) | yes, the one exception (below) |
+| C7 | `Rot2::integrate` before `renormalize` | 1.96 → **1.00** | 0.50 | 114 → 101 (renormalize included) | **no, stopped** (golden band) |
+| C6 | `local_p1` (stored) | 2.32 → 1.97 (≤ 1.00 for the stored `d`) | 0.55 | 120 → 80 | **no, dropped** |
+| B1 | anchor | bit-identical (0 of 100,000 differ) | | 65 → 57 | yes (#268) |
+
+**C6 is dropped** (orchestrator's decision, 2026-10-03). Its stored output is `local_p1 = v − n1 (v · n1)`. Within one
+ulp of the oracle, that needs the triple product `v · n1` (where `v` is a Q64.64 sum) times `n1` again: a quadruple
+product. `fixed` 0.4.0 does not offer it (`Tn` is Q96.96 at most), so the fused form floors `d = v · n1` first and
+lands at 1.97 ulp. It is better than today's 2.32 but outside the condition. A wider accumulator in `fixed` (glam
+track, as for V1) would allow it.
+
+**C7 is stopped** (brief: a formula whose golden scene leaves its band stops). With C7, `golden_scenes::test_box_slope_slide`
+reports 5 samples beyond tolerance (CI run 37147420964). Bisected on the VPS with the reduced golden package of §5:
+- the lot without C7 passes `box_slope_slide` and the slope diagnostics;
+- the lot without C5, C7 kept, fails it the same way.
+
+The formula itself is within one ulp. The sliding box's trajectory is what crosses the band, which FU0 §4 found to be
+dominated by divergence, not by the last bit.
+
+**C5's `delta` is the one exception kept.** The reprojected offset `local_p2 − n1 dist − p1` has the same quadruple
+product, but it is never stored: it only decides whether `|delta|²` exceeds the 1e-3² threshold, a margin of about
+2^22 ulp. Every stored output of C5 (the separation, and the normal test's decision through its dot) is within one ulp.
+
+Every fused form shares one function between the reference rows (`contact::element`, `contact::cached`, `contact`'s
+update and `rebase`) and the split sweeps. The solver's bit-for-bit equivalence checks between the two paths therefore
+hold unchanged. The floored forms stay in the `alternatives` modules with gas probes.

@@ -12,7 +12,7 @@
 //! `IntegrationParameters`.
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use core::num::traits::DivRem;
-use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, dot4, mul_sub, wide_from, wide_mul};
+use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, mul_sub, wide_from, wide_mul};
 use fixed::{Fixed, HALF, ZERO};
 use glam_core::Vec2;
 use rapier_core::Handle;
@@ -23,11 +23,9 @@ use rapier_math::math_ext::inv;
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::{Rot2, Rot2Trait};
 use super::super::super::super::body::{SolverBody, SolverVel, WORLD};
-use super::super::super::super::contact::element::{jv, tangent};
+use super::super::super::super::contact::element::{effective_mass, jv, separation, tangent};
 use super::super::super::super::contact::errors;
-use super::{
-    Bank, BankPoint, Frozen, FrozenPoint, Hot, HotPoint, Row, State, Weights, separation, transform,
-};
+use super::{Bank, BankPoint, Frozen, FrozenPoint, Hot, HotPoint, Row, State, Weights};
 
 /// `ContactConstraintsSetTrait::generate` then the split of every active constraint, in one
 /// pass, with the step's constants computed once: same constraints, checks and panics as
@@ -265,7 +263,8 @@ fn resolve(ref index: Felt252Dict<u32>, bodies: Span<SolverBody>, handle: Option
 }
 
 /// `element::coefficients` on the scalars it reads (`im_sum = b1.im + b2.im`): lever-arm
-/// crosses, inertia-weighted crosses and the inverse projected mass (`inv`, zero for zero).
+/// crosses, inertia-weighted crosses and the inverse projected mass (`inv`, zero for zero) of
+/// `element::effective_mass` (FU1 P3, one floor).
 #[inline(always)]
 fn coefficients(
     dir: Vec2, a1: Vec2, a2: Vec2, im_sum: Vec2, ii1: Fixed, ii2: Fixed,
@@ -274,9 +273,7 @@ fn coefficients(
     let g2 = mul_sub(a2.x, -dir.y, a2.y, -dir.x);
     let ig1 = ii1 * g1;
     let ig2 = ii2 * g2;
-    let mass_dir = im_sum * dir;
-    let k = dot4(dir.x, mass_dir.x, dir.y, mass_dir.y, g1, ig1, g2, ig2);
-    (g1, g2, ig1, ig2, inv(k))
+    (g1, g2, ig1, ig2, inv(effective_mass(dir, im_sum, g1, ig1, g2, ig2)))
 }
 
 /// `contact::midpoint`: the first witness slid along the normal until the pair is exactly
@@ -305,26 +302,26 @@ fn local_anchor(e: End, point: Vec2, dp: Vec2) -> Vec2 {
 }
 
 /// The separations the first update would read at the build-time poses from anchors that freeze
-/// the same point, `separation(a, b, dir, t, 0)`: zero in exact arithmetic, a few raw after the
-/// floored round trip (SF1). A world endpoint's anchor is its world point (the sweeps read the
-/// identity pose for it), a body's is transformed by its build-time pose (centre of mass,
-/// rotation), with `transform`, the sweeps' own rounding. `contact::rebase` subtracts the normal
-/// one from the frozen separation.
+/// the same point, `element::separation(.., 0)`: zero in exact arithmetic, a few raw after the
+/// floored round trip (SF1). A world endpoint is read at the identity pose (as the sweeps read
+/// it), a body at its build-time pose (centre of mass, rotation). The refresh's own function
+/// (FU1 P2: both fused together, so that a refresh at the build-time poses gives back exactly
+/// `sc.dist`); `contact::rebase` subtracts the normal one from the frozen separation.
 #[inline(always)]
 fn round_trip(
     e1: End, e2: End, local_p1: Vec2, local_p2: Vec2, dir: Vec2, t: Vec2,
 ) -> (Fixed, Fixed) {
-    let a = if e1.world {
-        local_p1
+    let pose1 = if e1.world {
+        Default::default()
     } else {
-        transform(Pose2 { translation: e1.com, rotation: e1.rotation }, local_p1)
+        Pose2 { translation: e1.com, rotation: e1.rotation }
     };
-    let b = if e2.world {
-        local_p2
+    let pose2 = if e2.world {
+        Default::default()
     } else {
-        transform(Pose2 { translation: e2.com, rotation: e2.rotation }, local_p2)
+        Pose2 { translation: e2.com, rotation: e2.rotation }
     };
-    separation(a, b, dir, t, ZERO)
+    separation(pose1, local_p1, pose2, local_p2, dir, t, ZERO)
 }
 
 /// `generate_element` then `frozen_point` / `hot_point`; also returns the tracked point id.
@@ -448,9 +445,9 @@ pub(crate) fn probe_round_trip_via_pose(
 
 /// Rejected SF1 candidates, kept for re-ranking:
 ///
-/// * `round_trip_via_pose` (`split::tests::gas_round_trip_*`, same values): both anchors through
-///   `Pose2Trait::transform_point` and the two dots of their difference, a world endpoint through
-///   the identity pose instead of being skipped;
+/// * `round_trip_via_pose` (`split::tests::gas_round_trip_*`; the same values until FU1 P2 fused
+///   the winner, within 3 raw since): both anchors through `Pose2Trait::transform_point` and the
+///   two dots of their difference, a world endpoint through the identity pose;
 /// * the frozen separation rebased alone, the first substep running the full update (stage 0) on
 ///   the build-time poses instead of reusing the separations generation seeds: +0.34 % to
 ///   +1.05 % exact Cairo steps on the P3 contact scenes and level windows against main
