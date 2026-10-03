@@ -28,7 +28,7 @@ fn emit(
     fields: impl Fn(&Value) -> Vec<(&'static str, Node)>,
 ) -> String {
     let json = load(vectors, file);
-    let mut module = Module::new(file, "Convex polygon golden additions (Parry f64 0.30.2).");
+    let mut module = Module::new(file, "Convex polygon golden additions (Parry f64 0.31.1).");
     let cases = json["polygons"]
         .as_array()
         .unwrap()

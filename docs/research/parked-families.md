@@ -358,6 +358,174 @@ A third route avoids moving any existing golden: a **second oracle binary** pinn
 parry copies, which the README avoids on purpose) and leaves the API-parity target (0.31.1) and the golden pin
 (0.30.2) split for longer.
 
+**Done in OB (2026-10-03).** The oracle runs on parry 0.31.1 (published crate, the cuboid patch kept;
+`rapier2d-f64 0.35.3` vendored with its requirement raised and 6 call sites adapted; 13 oracle call
+sites). The move reproduces SC2's measurement exactly: 30 files change only their `parry` header line;
+`composite_queries.json` 39 values, `compound_queries.json` 24, `ray_casts.json` 64 in 9 capsule cases.
+No port result changed. Policy (a) for the three families: each moved field the port does not follow
+is compared with a frozen 0.30.2 copy (`tools/golden/vectors/frozen/parry_0_30_2.json`, emitted as
+`rapier_golden::generated::frozen_parry030`); every other field is compared with 0.31.1. The
+divergences are recorded as ADR 0001 entries 47 (capsule) and 48 (feature ids).
+
+The capsule cases, port against 0.31.1 (port values measured by running the port's cast):
+
+| case | time of impact | normal | feature | other | ADR 4 / 5 |
+|---|---|---|---|---|---|
+| `hit_side` | equal (only 0.30.2's `f64` digits moved) | equal | port `Unknown`, 0.31.1 `Face(0)` | — | no old divergence |
+| `hit_cap` | equal | equal (0.30.2: 248 raw off) | as above | — | 5 closes |
+| `oblique` | equal | equal | as above | — | no old divergence |
+| `inside` | hollow equal, 644,245,094 (0.30.2: 778,334,551) | hollow equal; solid: port `-dir / \|dir\|`, 0.31.1 zero | as above | — | 4 closes; smaller divergence (solid normal) |
+| `inside_cap_exit` | equal | hollow equal; solid: port `(0, -1)`, 0.31.1 zero | as above | — | smaller divergence (solid normal) |
+| `unnormalized_dir` | equal | equal | as above | — | no old divergence |
+| `zero_dir_inside` | — | — | — | solid: port a miss, 0.31.1 a hit at `t = 0` with a zero normal | new divergence |
+| `oblique_shape` | equal (`f64` digits only) | equal (`f64` digits only) | as above | — | no old divergence (raw) |
+| `posed` | equal | port 3 / 2 raw from 0.31.1 (0.30.2: 283 raw off) | as above | — | 5 closes |
+
+The capsule ray tolerances drop to the standard 4 / 8 ulp.
+
+**Recommendation on the feature ids (a programme decision, not taken by OB):** follow 0.31.1. Its ids
+are the API-parity target; per-segment / per-part ids with the part in `subshape` are what SW1's
+`SubshapePointProjection` / `SubshapeRayIntersection` already carry; no contact or scene value moved
+with the bump, so the step does not read these ids and following them changes only query results
+(`FeatureId` of polyline, heightfield and compound projections and ray hits). The capsule answers of
+entry 47 (constant `Face(0)`, zero solid-inside normal, zero-`dir` hit at `t = 0`) are cheap to follow in
+the same lot. Each followed family deletes its frozen entries. Keeping the port's ids instead costs
+nothing now: the frozen copy stays and entries 47 / 48 stay open.
+
+<details><summary>Every moved value (127 rows)</summary>
+
+| file / table | case | field | 0.30.2 | 0.31.1 | why | compared with |
+|---|---|---|---|---|---|---|
+| composite_queries/points | `vee/p2` | `feature.kind` | `"face"` | `"vertex"` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `vee/p2` | `feature.code` | `0` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `vee/p3` | `feature.kind` | `"face"` | `"vertex"` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `vee/p4` | `feature.code` | `1` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `vee/p5` | `feature.kind` | `"face"` | `"vertex"` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `vee/p5` | `feature.code` | `1` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p0` | `feature.code` | `5` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p1` | `feature.code` | `3` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p2` | `feature.kind` | `"face"` | `"vertex"` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p2` | `feature.code` | `4` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p3` | `feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p4` | `feature.code` | `5` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `bumps/p5` | `feature.code` | `5` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `square/p0` | `feature.code` | `2` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `square/p1` | `feature.code` | `3` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `square/p2` | `feature.code` | `0` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `square/p3` | `feature.code` | `1` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `square/p5` | `feature.code` | `0` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `plain_square/p0` | `feature.code` | `2` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `plain_square/p1` | `feature.code` | `3` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `plain_square/p2` | `feature.code` | `0` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `plain_square/p3` | `feature.code` | `1` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/points | `plain_square/p5` | `feature.code` | `0` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/down` | `solid.hit.feature.code` | `6` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/down` | `hollow.hit.feature.code` | `6` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/slant` | `solid.hit.feature.code` | `6` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/slant` | `hollow.hit.feature.code` | `6` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/up` | `solid.hit.feature.code` | `2` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/up` | `hollow.hit.feature.code` | `2` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/posed` | `solid.hit.feature.code` | `5` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `flat/posed` | `hollow.hit.feature.code` | `5` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/down` | `solid.hit.feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/down` | `hollow.hit.feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/slant` | `solid.hit.feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/slant` | `hollow.hit.feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/up` | `solid.hit.feature.code` | `2` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/up` | `hollow.hit.feature.code` | `2` | `0` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/posed` | `solid.hit.feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| composite_queries/rays | `hills/posed` | `hollow.hit.feature.code` | `7` | `1` | hit segment's own feature (0.31) vs shape-wide id (0.30.2) | frozen |
+| compound_queries/points | `ell/p0` | `feature.kind` | `"unknown"` | `"vertex"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p1` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p2` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p2` | `feature.code` | `0` | `1` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p3` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p4` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p4` | `feature.code` | `0` | `1` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p5` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `ell/p5` | `feature.code` | `0` | `3` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p0` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p1` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p2` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p2` | `feature.code` | `0` | `1` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p3` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p4` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p4` | `feature.code` | `0` | `1` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p5` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `trio/p5` | `feature.code` | `0` | `3` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `mixed/p0` | `feature.kind` | `"unknown"` | `"vertex"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `mixed/p0` | `feature.code` | `0` | `1` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `mixed/p1` | `feature.kind` | `"unknown"` | `"vertex"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `mixed/p4` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `mixed/p4` | `feature.code` | `0` | `1` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| compound_queries/points | `mixed/p5` | `feature.kind` | `"unknown"` | `"face"` | part's own feature (0.31) vs `Unknown` (0.30.2) | frozen |
+| ray_casts | `capsule/hit_side` | `solid.toi.f64` | `1.7500000000009786` | `1.75` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_side` | `solid.hit.time_of_impact.f64` | `1.7500000000009786` | `1.75` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_side` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/hit_side` | `hollow.toi.f64` | `1.7500000000009786` | `1.75` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_side` | `hollow.hit.time_of_impact.f64` | `1.7500000000009786` | `1.75` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_side` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/hit_cap` | `solid.toi.f64` | `2.2708712152928565` | `2.2708712152928543` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `solid.hit.time_of_impact.f64` | `2.2708712152928565` | `2.2708712152928543` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `solid.hit.normal.f64.0` | `0.4000000580622208` | `0.40000000037252914` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `solid.hit.normal.f64.1` | `0.9165151136507351` | `0.916515138828583` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `solid.hit.normal.raw.0` | `1717987168` | `1717986920` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `solid.hit.normal.raw.1` | `3936402439` | `3936402548` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/hit_cap` | `hollow.toi.f64` | `2.2708712152928565` | `2.2708712152928543` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `hollow.hit.time_of_impact.f64` | `2.2708712152928565` | `2.2708712152928543` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `hollow.hit.normal.f64.0` | `0.4000000580622208` | `0.40000000037252914` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `hollow.hit.normal.f64.1` | `0.9165151136507351` | `0.916515138828583` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `hollow.hit.normal.raw.0` | `1717987168` | `1717986920` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `hollow.hit.normal.raw.1` | `3936402439` | `3936402548` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/hit_cap` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/oblique` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/oblique` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/inside` | `solid.hit.normal.f64.0` | `-0.8944271909999159` | `0.0` | solid from inside: analytic zero normal; GJK `-dir/\|dir\|` | frozen |
+| ray_casts | `capsule/inside` | `solid.hit.normal.f64.1` | `-0.4472135954999579` | `0.0` | solid from inside: analytic zero normal; GJK `-dir/\|dir\|` | frozen |
+| ray_casts | `capsule/inside` | `solid.hit.normal.raw.0` | `-3841535534` | `0` | solid from inside: analytic zero normal; GJK `-dir/\|dir\|` | frozen |
+| ray_casts | `capsule/inside` | `solid.hit.normal.raw.1` | `-1920767767` | `0` | solid from inside: analytic zero normal; GJK `-dir/\|dir\|` | frozen |
+| ray_casts | `capsule/inside` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/inside` | `hollow.toi.f64` | `0.18122013450928892` | `0.14999999990686774` | 0.30.2 hollow unit-mixing defect fixed (ADR 4) | 0.31 (port agrees; 0.30.2 frozen for the defect test) |
+| ray_casts | `capsule/inside` | `hollow.toi.raw` | `778334551` | `644245094` | 0.30.2 hollow unit-mixing defect fixed (ADR 4) | 0.31 (port agrees; 0.30.2 frozen for the defect test) |
+| ray_casts | `capsule/inside` | `hollow.hit.time_of_impact.f64` | `0.18122013450928892` | `0.14999999990686774` | 0.30.2 hollow unit-mixing defect fixed (ADR 4) | 0.31 (port agrees; 0.30.2 frozen for the defect test) |
+| ray_casts | `capsule/inside` | `hollow.hit.time_of_impact.raw` | `778334551` | `644245094` | 0.30.2 hollow unit-mixing defect fixed (ADR 4) | 0.31 (port agrees; 0.30.2 frozen for the defect test) |
+| ray_casts | `capsule/inside` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/inside_cap_exit` | `solid.hit.normal.f64.1` | `-1.0` | `0.0` | solid from inside: analytic zero normal; GJK `-dir/\|dir\|` | frozen |
+| ray_casts | `capsule/inside_cap_exit` | `solid.hit.normal.raw.1` | `-4294967296` | `0` | solid from inside: analytic zero normal; GJK `-dir/\|dir\|` | frozen |
+| ray_casts | `capsule/inside_cap_exit` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/inside_cap_exit` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/unnormalized_dir` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/unnormalized_dir` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/zero_dir_inside` | `solid.toi` | `null` | `{"f64":0.0,"raw":0}` | zero `dir` from inside: analytic hit at t = 0, zero normal; GJK miss | frozen |
+| ray_casts | `capsule/zero_dir_inside` | `solid.hit` | `null` | `{"time_of_impact":{"f64":0.0,"raw":0},"normal":{"f64":[0.0,0.0],"raw":[0,0]},"feature":{"kind":"face","code":0}}` | zero `dir` from inside: analytic hit at t = 0, zero normal; GJK miss | frozen |
+| ray_casts | `capsule/oblique_shape` | `solid.toi.f64` | `1.0336669234376497` | `1.0336669234385814` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `solid.hit.time_of_impact.f64` | `1.0336669234376497` | `1.0336669234385814` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `solid.hit.normal.f64.0` | `0.5547001962628922` | `0.5547001962252288` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `solid.hit.normal.f64.1` | `-0.832050294312735` | `-0.8320502943378437` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/oblique_shape` | `hollow.toi.f64` | `1.0336669234376497` | `1.0336669234385814` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `hollow.hit.time_of_impact.f64` | `1.0336669234376497` | `1.0336669234385814` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `hollow.hit.normal.f64.0` | `0.5547001962628922` | `0.5547001962252288` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `hollow.hit.normal.f64.1` | `-0.832050294312735` | `-0.8320502943378437` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/oblique_shape` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/posed` | `solid.toi.f64` | `0.9189016791293` | `0.9189016791292981` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `solid.hit.time_of_impact.f64` | `0.9189016791293` | `0.9189016791292981` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `solid.hit.normal.f64.0` | `-0.9101796911053848` | `-0.9101797211352216` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `solid.hit.normal.f64.1` | `-0.41421362835507836` | `-0.4142135623684758` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `solid.hit.normal.raw.0` | `-3909192007` | `-3909192136` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `solid.hit.normal.raw.1` | `-1779033987` | `-1779033704` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `solid.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+| ray_casts | `capsule/posed` | `hollow.toi.f64` | `0.9189016791293` | `0.9189016791292981` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `hollow.hit.time_of_impact.f64` | `0.9189016791293` | `0.9189016791292981` | analytic vs GJK time, f64 digits only (raw unchanged) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `hollow.hit.normal.f64.0` | `-0.9101796911053848` | `-0.9101797211352216` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `hollow.hit.normal.f64.1` | `-0.41421362835507836` | `-0.4142135623684758` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `hollow.hit.normal.raw.0` | `-3909192007` | `-3909192136` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `hollow.hit.normal.raw.1` | `-1779033987` | `-1779033704` | analytic normal vs GJK search direction (ADR 5) | 0.31 (port agrees) |
+| ray_casts | `capsule/posed` | `hollow.hit.feature.kind` | `"unknown"` | `"face"` | analytic capsule cast reports `Face(0)`; GJK `Unknown` | frozen |
+
+</details>
+
 ### 4.5 Recommendation
 
 **Port later, as two lots, when a game or the programme needs seamless compound floors:**

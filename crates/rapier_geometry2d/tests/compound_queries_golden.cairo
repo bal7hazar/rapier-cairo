@@ -1,5 +1,10 @@
 //! SH2b point projections, ray casts and shape-pair queries (`intersection_test`, `distance`,
-//! `contact`, `closest_points`, `cast_shapes`) of the compounds against Parry f64 0.30.2.
+//! `contact`, `closest_points`, `cast_shapes`) of the compounds against Parry f64 0.31.1.
+//!
+//! Features: parry 0.31.1 reports a compound point projection's feature on the part (the part's
+//! own feature, the part in `subshape`); the port keeps 0.30.2's `Unknown`. The moved features
+//! are compared with the frozen 0.30.2 copy (`frozen_parry030`, ADR 0001 entry 48), every other
+//! field with 0.31.1.
 //!
 //! Bands (raw Q32.32 units), as the SH1 and SH2a queries: the point and ray answers within `GJK`
 //! = 4096 (`~1e-6`; the parts include a round cuboid, which upstream projects and casts on with
@@ -20,7 +25,9 @@ use rapier_geometry2d::query::{
 };
 use rapier_geometry2d::ray::{Ray, cast_ray, cast_ray_and_get_normal};
 use rapier_golden::compare::{abs_diff, vec2_within};
-use rapier_golden::generated::{compound_pairs, compound_points, compound_rays, compound_shapes};
+use rapier_golden::generated::{
+    compound_pairs, compound_points, compound_rays, compound_shapes, frozen_parry030,
+};
 use rapier_golden::types::{PointFeatureRaw, RayAnswerRaw, Vec2Raw};
 use super::composite_contacts_golden::pose;
 use super::compound_contacts_golden::compound_shape;
@@ -63,7 +70,8 @@ fn test_compound_point_queries_golden() {
         let (p, f) = s.project_local_point_and_get_feature(pt);
         assert_eq!(p.is_inside, *c.feature_projection.is_inside, "{} f inside", *c.id);
         assert!(vec2_within(raw(p.point), *c.feature_projection.point, GJK_POINT), "{} f", *c.id);
-        assert!(feature_eq(f, *c.feature), "{} feature {:?}", *c.id, f);
+        let e = frozen_parry030::compound_point_feature(*c.id, *c.feature);
+        assert!(feature_eq(f, e), "{} feature {:?}", *c.id, f);
         let d = s.distance_to_local_point(pt, false);
         assert!(abs_diff(d.raw, *c.distance) <= GJK, "{} distance {:?}", *c.id, d);
         assert_eq!(s.contains_local_point(pt), *c.contains, "{} contains", *c.id);

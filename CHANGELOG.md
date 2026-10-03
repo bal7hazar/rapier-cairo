@@ -10,6 +10,7 @@ whether simulation results changed.
 
 ### Changed
 - Narrow phase (FU1 B1): each solver-contact anchor folds the body's world centre of mass into the wide sum of its point transform (`floor(x) - c = floor(x - c)` for an exact `c`), which drops one checked `Vec2` subtraction: −8 Cairo steps per anchor (scratch probe), two anchors per solver contact and tick. Results bit-identical.
+- Golden oracle (OB): `tools/golden` runs on parry 0.31.1 (vendored, with `rapier2d-f64 0.35.3` raised to it) instead of 0.30.2. The vectors moved in three files (127 values: polyline, heightfield and compound feature ids, and 9 capsule ray casts); the fields the port does not follow are compared with a frozen 0.30.2 copy (`rapier_golden::generated::frozen_parry030`, ADR 0001 entries 47 and 48), the capsule times of impact and normals with 0.31.1 (ADR 0001 entries 4 and 5 closed). No library code, results unchanged.
 - API parity (PX8): the project manager's SC2 decisions of 2026-10-03 as table rules: 26 scalar items of the solver (`dynamics::solver` is `pub(crate)` upstream) and the 3 `contact_skin` items closed with two new reasons, `CompoundEdgeCone` (parry 0.31's 2D type) back to `missing` for lot CE; 46 → 18 `missing`. Table and script only, no library code, results unchanged.
 
 ## 0.1.0-alpha.9 — 2026-10-03

@@ -870,7 +870,7 @@ pub const CAPSULE_HIT_SIDE: RayCase = RayCase {
             hit: true,
             time_of_impact: 7516192768,
             normal: Vec2Raw { x: -4294967296, y: 0 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -880,7 +880,7 @@ pub const CAPSULE_HIT_SIDE: RayCase = RayCase {
             hit: true,
             time_of_impact: 7516192768,
             normal: Vec2Raw { x: -4294967296, y: 0 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -906,8 +906,8 @@ pub const CAPSULE_HIT_CAP: RayCase = RayCase {
         hit: RayHitRaw {
             hit: true,
             time_of_impact: 9753317603,
-            normal: Vec2Raw { x: 1717987168, y: 3936402439 },
-            feature: PointFeatureRaw::Unknown,
+            normal: Vec2Raw { x: 1717986920, y: 3936402548 },
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -916,8 +916,8 @@ pub const CAPSULE_HIT_CAP: RayCase = RayCase {
         hit: RayHitRaw {
             hit: true,
             time_of_impact: 9753317603,
-            normal: Vec2Raw { x: 1717987168, y: 3936402439 },
-            feature: PointFeatureRaw::Unknown,
+            normal: Vec2Raw { x: 1717986920, y: 3936402548 },
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -944,7 +944,7 @@ pub const CAPSULE_OBLIQUE: RayCase = RayCase {
             hit: true,
             time_of_impact: 7516192768,
             normal: Vec2Raw { x: -4294967296, y: 0 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -954,7 +954,7 @@ pub const CAPSULE_OBLIQUE: RayCase = RayCase {
             hit: true,
             time_of_impact: 7516192768,
             normal: Vec2Raw { x: -4294967296, y: 0 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -980,18 +980,18 @@ pub const CAPSULE_INSIDE: RayCase = RayCase {
         hit: RayHitRaw {
             hit: true,
             time_of_impact: 0,
-            normal: Vec2Raw { x: -3841535534, y: -1920767767 },
-            feature: PointFeatureRaw::Unknown,
+            normal: Vec2Raw { x: 0, y: 0 },
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
         has_toi: true,
-        toi: 778334551,
+        toi: 644245094,
         hit: RayHitRaw {
             hit: true,
-            time_of_impact: 778334551,
+            time_of_impact: 644245094,
             normal: Vec2Raw { x: -4294967296, y: 0 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -1017,8 +1017,8 @@ pub const CAPSULE_INSIDE_CAP_EXIT: RayCase = RayCase {
         hit: RayHitRaw {
             hit: true,
             time_of_impact: 0,
-            normal: Vec2Raw { x: 0, y: -4294967296 },
-            feature: PointFeatureRaw::Unknown,
+            normal: Vec2Raw { x: 0, y: 0 },
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -1028,7 +1028,7 @@ pub const CAPSULE_INSIDE_CAP_EXIT: RayCase = RayCase {
             hit: true,
             time_of_impact: 1932735283,
             normal: Vec2Raw { x: 0, y: -4294967296 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -1203,7 +1203,7 @@ pub const CAPSULE_UNNORMALIZED_DIR: RayCase = RayCase {
             hit: true,
             time_of_impact: 4831838208,
             normal: Vec2Raw { x: 0, y: -4294967296 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -1213,7 +1213,7 @@ pub const CAPSULE_UNNORMALIZED_DIR: RayCase = RayCase {
             hit: true,
             time_of_impact: 4831838208,
             normal: Vec2Raw { x: 0, y: -4294967296 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -1234,13 +1234,13 @@ pub const CAPSULE_ZERO_DIR_INSIDE: RayCase = RayCase {
     dir: Vec2Raw { x: 0, y: 0 },
     max_toi: 429496729600,
     solid: RayAnswerRaw {
-        has_toi: false,
+        has_toi: true,
         toi: 0,
         hit: RayHitRaw {
-            hit: false,
+            hit: true,
             time_of_impact: 0,
             normal: Vec2Raw { x: 0, y: 0 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -1277,7 +1277,7 @@ pub const CAPSULE_OBLIQUE_SHAPE: RayCase = RayCase {
             hit: true,
             time_of_impact: 4439565631,
             normal: Vec2Raw { x: 2382419202, y: -3573628803 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -1287,7 +1287,7 @@ pub const CAPSULE_OBLIQUE_SHAPE: RayCase = RayCase {
             hit: true,
             time_of_impact: 4439565631,
             normal: Vec2Raw { x: 2382419202, y: -3573628803 },
-            feature: PointFeatureRaw::Unknown,
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };
@@ -1314,8 +1314,8 @@ pub const CAPSULE_POSED: RayCase = RayCase {
         hit: RayHitRaw {
             hit: true,
             time_of_impact: 3946652660,
-            normal: Vec2Raw { x: -3909192007, y: -1779033987 },
-            feature: PointFeatureRaw::Unknown,
+            normal: Vec2Raw { x: -3909192136, y: -1779033704 },
+            feature: PointFeatureRaw::Face(0),
         },
     },
     hollow: RayAnswerRaw {
@@ -1324,8 +1324,8 @@ pub const CAPSULE_POSED: RayCase = RayCase {
         hit: RayHitRaw {
             hit: true,
             time_of_impact: 3946652660,
-            normal: Vec2Raw { x: -3909192007, y: -1779033987 },
-            feature: PointFeatureRaw::Unknown,
+            normal: Vec2Raw { x: -3909192136, y: -1779033704 },
+            feature: PointFeatureRaw::Face(0),
         },
     },
 };

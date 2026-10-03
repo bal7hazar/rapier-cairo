@@ -12,7 +12,7 @@
 [package]
 edition = "2021"
 name = "parry2d-f64"
-version = "0.30.2"
+version = "0.31.1"
 authors = ["Sébastien Crozet <developer@crozet.re>"]
 build = false
 autolib = false
@@ -161,7 +161,7 @@ optional = true
 version = "0.4"
 
 [dependencies.num-derive]
-version = "0.4"
+version = "0.5"
 
 [dependencies.num-traits]
 version = "0.2"
@@ -218,7 +218,7 @@ default-features = false
 version = "11"
 
 [dev-dependencies.ptree]
-version = "0.4.0"
+version = "0.5.0"
 
 [dev-dependencies.rand]
 version = "0.10"
