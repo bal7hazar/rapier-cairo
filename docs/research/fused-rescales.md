@@ -409,7 +409,7 @@ rapier reproduces within 0.00006 ulp (§4).
 | C5 | `dist` (stored) | 2.32 → **1.00** (the point's three outputs together today) | 0.50 | 144 → 84 per point | yes |
 | C5 | normal test `n1 · (R12 n2)` | 2.34 → **1.00** | 0.50 | 57 → 30 | yes |
 | C5 | `delta` (not stored, only compared with the 1e-3 threshold) | 2.32 → 1.97 (≤ 1.00 for the stored `dist`) | 0.56 | (in the point) | yes, the one exception (below) |
-| C7 | `Rot2::integrate` before `renormalize` | 1.96 → **1.00** | 0.50 | 114 → 101 (renormalize included) | yes |
+| C7 | `Rot2::integrate` before `renormalize` | 1.96 → **1.00** | 0.50 | 114 → 101 (renormalize included) | **no, stopped** (golden band) |
 | C6 | `local_p1` (stored) | 2.32 → 1.97 (≤ 1.00 for the stored `d`) | 0.55 | 120 → 80 | **no, dropped** |
 | B1 | anchor | bit-identical (0 of 100,000 differ) | | 65 → 57 | yes (#268) |
 
@@ -418,6 +418,14 @@ ulp of the oracle, that needs the triple product `v · n1` (where `v` is a Q64.6
 product. `fixed` 0.4.0 does not offer it (`Tn` is Q96.96 at most), so the fused form floors `d = v · n1` first and
 lands at 1.97 ulp. It is better than today's 2.32 but outside the condition. A wider accumulator in `fixed` (glam
 track, as for V1) would allow it.
+
+**C7 is stopped** (brief: a formula whose golden scene leaves its band stops). With C7, `golden_scenes::test_box_slope_slide`
+reports 5 samples beyond tolerance (CI run 37147420964). Bisected on the VPS with the reduced golden package of §5:
+- the lot without C7 passes `box_slope_slide` and the slope diagnostics;
+- the lot without C5, C7 kept, fails it the same way.
+
+The formula itself is within one ulp. The sliding box's trajectory is what crosses the band, which FU0 §4 found to be
+dominated by divergence, not by the last bit.
 
 **C5's `delta` is the one exception kept.** The reprojected offset `local_p2 − n1 dist − p1` has the same quadruple
 product, but it is never stored: it only decides whether `|delta|²` exceeds the 1e-3² threshold, a margin of about

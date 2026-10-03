@@ -4,8 +4,9 @@
 
 The fused forms of `docs/research/fused-rescales.md` §8:
 - **B1** (#268): bit-identical;
-- **P1, P2, P3, C5 and C7** (results change): within one ulp of each formula's exact value;
-- **C6:** dropped.
+- **P1, P2, P3 and C5** (results change): within one ulp of each formula's exact value;
+- **C6:** dropped;
+- **C7:** stopped, because `box_slope_slide` left its band with it.
 
 The table gives exact Cairo steps per call on the formula's own probe: a scratch package outside the repository,
 one call on opaque inputs, net of a baseline. Measured on the VPS (x86_64) with Scarb 2.20.1 / snforge 0.64.0,
@@ -18,7 +19,6 @@ one call on opaque inputs, net of a baseline. Measured on the VPS (x86_64) with 
 | P3 effective mass | 57 | 32 | −25 |
 | C5 manifold point update | 144 | 84 | −60 |
 | C5 normal test | 57 | 30 | −27 |
-| C7 `Rot2::integrate` | 114 | 101 | −13 |
 | B1 anchor | 65 | 57 | −8 |
 
 **Whole-shot effect: to run on the Mac.** It needs the IT1 / EL1 shot probes, which do not fit the VPS's 8 GB cap.

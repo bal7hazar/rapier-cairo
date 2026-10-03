@@ -1,7 +1,5 @@
 //! Q32.32 unit-complex rotations, the 2D `glamx` layer.
-use fixed::wide::{
-    WideAdd, WideLift, WideMul, WideNarrow, WideSub, dot2, mul_sub, normalize2, wide_from, wide_mul,
-};
+use fixed::wide::{dot2, mul_add, mul_sub, normalize2};
 use fixed::{Fixed, ONE, ZERO};
 use glam_core::Vec2;
 use crate::consts::UNIT_TOL_SQ_RAW;
@@ -83,17 +81,12 @@ pub impl Rot2Impl of Rot2Trait {
     }
 
     /// Rapier's linearized angular update: `(re - d*im, im + d*re)`, then normalize,
-    /// where `d = angvel * dt`. Each component is one exact sum floored once (FU1 C7: `d` stays
-    /// an exact product, `angvel * dt * im` a triple product), within one ulp of the formula
-    /// before the normalization (flooring `d` first was up to 2 ulp off).
+    /// where `d = angvel * dt` floors. Products accumulate wide and floor once per component.
     /// `angvel` is radians/second and `dt` seconds; use small `|d|` for angular accuracy.
-    /// Panics with 'Fixed: overflow' on out-of-range results or 'Rot2: zero' on zero.
+    /// Panics with 'Fixed: overflow' on out-of-range intermediates or 'Rot2: zero' on zero.
     fn integrate(self: Rot2, angvel: Fixed, dt: Fixed) -> Rot2 {
-        let d = wide_mul(angvel, dt);
-        Rot2 {
-            re: wide_from(self.re).lift().sub(d.mul(self.im)).narrow(),
-            im: d.mul(self.re).add(wide_from(self.im).lift()).narrow(),
-        }
+        let d = angvel * dt;
+        Rot2 { re: mul_sub(self.re, ONE, d, self.im), im: mul_add(d, self.re, self.im) }
             .renormalize()
     }
 }
@@ -135,15 +128,6 @@ mod alternatives {
     pub fn integrate(r: Rot2, angvel: Fixed, dt: Fixed) -> Rot2 {
         let d = angvel * dt;
         Rot2 { re: r.re - d * r.im, im: r.im + d * r.re }.renormalize()
-    }
-    /// Shipped until FU1 (C7): `d = angvel * dt` floored, then one floor per component.
-    pub fn integrate_floored_d(r: Rot2, angvel: Fixed, dt: Fixed) -> Rot2 {
-        let d = angvel * dt;
-        Rot2 {
-            re: fixed::wide::mul_sub(r.re, fixed::ONE, d, r.im),
-            im: fixed::wide::mul_add(d, r.re, r.im),
-        }
-            .renormalize()
     }
 }
 
@@ -308,21 +292,6 @@ mod tests {
     #[test]
     fn gas_integrate_fused() {
         assert!(opaque(R).integrate(opaque(ONE), opaque(HALF)).is_unit());
-    }
-    #[test]
-    fn gas_integrate_floored_d() {
-        assert!(alternatives::integrate_floored_d(opaque(R), opaque(ONE), opaque(HALF)).is_unit());
-    }
-    /// FU1 C7: the fused update against the floored-`d` form it replaced, normalized alike: one
-    /// ulp apart at most before the normalization, two after it.
-    #[test]
-    fn test_integrate_fused_against_floored_d() {
-        for (w, dt) in array![(ONE, HALF), (Fixed { raw: 12884901888 }, Fixed { raw: 17895697 })]
-            .span() {
-            let a = R.integrate(*w, *dt);
-            let b = alternatives::integrate_floored_d(R, *w, *dt);
-            close(Vec2 { x: a.re, y: a.im }, Vec2 { x: b.re, y: b.im }, 2);
-        }
     }
     #[test]
     fn gas_integrate_composed() {
