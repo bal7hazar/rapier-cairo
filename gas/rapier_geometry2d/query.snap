@@ -140,6 +140,10 @@ rapier_geometry2d::query::split::tests::test_canonical_split_axes 289970
 rapier_geometry2d::query::split::tests::test_canonical_split_axis_out_of_range 12980
 rapier_geometry2d::query::split::tests::test_split_pair_and_intersection 150240
 rapier_geometry2d::query::split::tests::test_split_without_intersection 373530
+rapier_geometry2d::query::subshape::tests::test_manifold_subshape_pos_out_of_range_panics 67100
+rapier_geometry2d::query::subshape::tests::test_manifold_subshape_pos_reads_the_part_pose 78640
+rapier_geometry2d::query::subshape::tests::test_set_subshape_pos_writes_the_poses 5910
+rapier_geometry2d::query::subshape::tests::test_with_subshape_builders_keep_the_result 10310
 rapier_geometry2d::query::support_map::tests::gas_baseline 5910
 rapier_geometry2d::query::support_map::tests::gas_closest_points_support_map_cuboid_capsule 711750
 rapier_geometry2d::query::support_map::tests::gas_contact_support_map_cuboid_cuboid_overlapping 714540
