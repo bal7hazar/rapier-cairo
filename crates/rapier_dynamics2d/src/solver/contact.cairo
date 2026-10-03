@@ -16,7 +16,10 @@ pub use element::{
     ContactConstraintElement, ContactConstraintNormalPart, ContactConstraintNormalPartTrait,
     ContactConstraintTangentPart, ContactConstraintTangentPartTrait,
 };
-use element::{apply, bounce, coefficients, dot, jv, max, min, solve_normal, solve_tangent, tangent};
+use element::{
+    apply, bounce, coefficients, jv, max, min, row_impulse, separation, solve_normal, solve_tangent,
+    tangent,
+};
 use fixed::wide::{WideMul, WideNarrow, WideSub, dot2, wide_from, wide_mul};
 use fixed::{Fixed, HALF, ONE, ZERO};
 use glam_core::Vec2;
@@ -27,7 +30,7 @@ use rapier_geometry2d::contact::{
     ContactManifold, ContactManifoldTrait, NEW_CONTACT_BIT, SolverContact,
 };
 use rapier_math::math_ext::inv;
-use rapier_math::pose2::{Pose2, Pose2Trait};
+use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2Trait;
 pub use set::{ContactConstraintsSet, ContactConstraintsSetTrait};
 use super::body::{SolverBody, SolverVel, WORLD, read, scatter, velocity};
@@ -470,12 +473,14 @@ pub(crate) fn midpoint(sc: SolverContact, dir: Vec2, com1: Vec2, com2: Vec2) -> 
 /// poses, so that `update_element` at those poses gives exactly `sc.dist`. Both anchors freeze
 /// the same world point, so that separation is zero in exact arithmetic, but the floored round
 /// trip (`inverse_rotate` then `transform_point`) leaves a few raw, biased low (SF1): kept, it
-/// moved exact-zero gaps onto the soft side of the `dist <= 0` switch.
+/// moved exact-zero gaps onto the soft side of the `dist <= 0` switch. The separation is
+/// `element::separation`, the updates' own (FU1 P2), so the identity above stays exact.
 #[inline(always)]
 pub(crate) fn rebase(
     dist: Fixed, pose1: Pose2, pose2: Pose2, local_p1: Vec2, local_p2: Vec2, dir: Vec2,
 ) -> Fixed {
-    dist - dot(pose1.transform_point(local_p1) - pose2.transform_point(local_p2), dir)
+    let (n0, _) = separation(pose1, local_p1, pose2, local_p2, dir, tangent(dir), ZERO);
+    dist - n0
 }
 
 /// The frozen point in the solver body's frame: world coordinates for the world (identity
@@ -498,8 +503,9 @@ fn update_element(
     warm: Fixed,
     cap: Fixed,
 ) {
-    let dp = p1.transform_point(e.local_p1) - p2.transform_point(e.local_p2);
-    let dist = e.dist + dot(dp, c.dir1);
+    let (dist, t_dist) = separation(
+        p1, e.local_p1, p2, e.local_p2, c.dir1, tangent(c.dir1), e.dist,
+    );
     e.normal_part.rhs_wo_bias = max(ZERO, dist) * c.inv_dt;
     e.normal_part.rhs = e.normal_part.rhs_wo_bias + min(ZERO, max(-cap, dist * c.erp_inv_dt));
     e.normal_part.cfm_factor = if dist > ZERO {
@@ -511,11 +517,11 @@ fn update_element(
     e.normal_part.impulse = e.normal_part.impulse * warm;
     e.tangent_part.impulse_accumulator += e.tangent_part.impulse;
     e.tangent_part.impulse = e.tangent_part.impulse * warm;
-    e.tangent_part.rhs = e.tangent_part.rhs_wo_bias + dot(dp, tangent(c.dir1)) * c.inv_dt;
+    e.tangent_part.rhs = e.tangent_part.rhs_wo_bias + t_dist * c.inv_dt;
 }
 fn refresh_unbiased(ref e: ContactConstraintElement, c: ContactConstraint, p1: Pose2, p2: Pose2) {
-    let dp = p1.transform_point(e.local_p1) - p2.transform_point(e.local_p2);
-    e.normal_part.rhs_wo_bias = max(ZERO, e.dist + dot(dp, c.dir1)) * c.inv_dt;
+    let (dist, _) = separation(p1, e.local_p1, p2, e.local_p2, c.dir1, tangent(c.dir1), e.dist);
+    e.normal_part.rhs_wo_bias = max(ZERO, dist) * c.inv_dt;
 }
 fn strip(ref e: ContactConstraintElement) {
     e.normal_part.rhs = e.normal_part.rhs_wo_bias;

@@ -57,8 +57,8 @@ pub(crate) fn solve_normal(
     ref v1: SolverVel,
     ref v2: SolverVel,
 ) {
-    let dv = jv(dir, p.gcross1, p.gcross2, v1, v2) + p.rhs;
-    let new_impulse = p.cfm_factor * max(ZERO, p.impulse - p.r * dv);
+    let new_impulse = p.cfm_factor
+        * max(ZERO, row_impulse(dir, p.gcross1, p.gcross2, v1, v2, p.rhs, p.impulse, p.r));
     let delta = new_impulse - p.impulse;
     p.impulse = new_impulse;
     apply(dir, weighted, p.ii_gcross1, p.ii_gcross2, delta, ref v1, ref v2);
@@ -74,8 +74,9 @@ pub(crate) fn solve_tangent(
     ref v1: SolverVel,
     ref v2: SolverVel,
 ) {
-    let dv = jv(dir, p.gcross1, p.gcross2, v1, v2) + p.rhs;
-    let new_impulse = min(limit, max(-limit, p.impulse - p.r * dv));
+    let new_impulse = min(
+        limit, max(-limit, row_impulse(dir, p.gcross1, p.gcross2, v1, v2, p.rhs, p.impulse, p.r)),
+    );
     let delta = new_impulse - p.impulse;
     p.impulse = new_impulse;
     apply(dir, weighted, p.ii_gcross1, p.ii_gcross2, delta, ref v1, ref v2);

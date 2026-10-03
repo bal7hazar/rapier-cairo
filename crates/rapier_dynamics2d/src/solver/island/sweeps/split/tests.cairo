@@ -190,8 +190,8 @@ fn gas_writeback_stack3() {
     probe(6);
 }
 
-/// SF1: the anchors' round trip at the build-time poses, winner (`transform`, the world endpoint
-/// skipped, `separation`) and rejected candidate (`Pose2Trait::transform_point` and two dots), on
+/// SF1: the anchors' round trip at the build-time poses, winner (`element::separation`, fused
+/// since FU1 P2) and rejected candidate (`Pose2Trait::transform_point` and two dots), on
 /// a ground contact and a contact between two turned bodies. Sierra gas charges both paths of the
 /// world test alike; the Cairo steps (`--tracked-resource cairo-steps`) tell them apart.
 fn round_trip_inputs(ground: bool) -> (bool, Vec2, Rot2, Vec2, Rot2, Vec2, Vec2, Vec2) {
@@ -236,7 +236,7 @@ fn gas_round_trip_bodies_via_pose() {
 }
 #[test]
 #[fuzzer(runs: 32, seed: 20260927)]
-fn fuzz_round_trip_candidates_match(ax: i16, ay: i16, bx: i16, by: i16, turn: i16, ground: bool) {
+fn fuzz_round_trip_candidates_close(ax: i16, ay: i16, bx: i16, by: i16, turn: i16, ground: bool) {
     let r = |x: i64| FixedTrait::from_raw(x);
     let v = |x: i64, y: i64| Vec2 { x: r(x), y: r(y) };
     let rot = Rot2Trait::from_cos_sin(r(4294967296), r(turn.into() * 131071));
@@ -244,8 +244,10 @@ fn fuzz_round_trip_candidates_match(ax: i16, ay: i16, bx: i16, by: i16, turn: i1
     let lp1 = v(ax.into() * 65537, ay.into() * 65539);
     let lp2 = v(bx.into() * 65541, by.into() * 65543);
     let dir = rot.rotate(v(0, -4294967296));
-    assert_eq!(
-        probe_round_trip(ground, com1, rot, com2, rot, lp1, lp2, dir),
-        probe_round_trip_via_pose(ground, com1, rot, com2, rot, lp1, lp2, dir),
-    );
+    // FU1 P2: the fused winner is within one ulp of the exact separations, the floored candidate
+    // within 2.3 (`docs/research/fused-rescales.md` §4), so they differ by at most 3 raw.
+    let (n, t) = probe_round_trip(ground, com1, rot, com2, rot, lp1, lp2, dir);
+    let (n_pose, t_pose) = probe_round_trip_via_pose(ground, com1, rot, com2, rot, lp1, lp2, dir);
+    let three = r(3);
+    assert!(n.abs_diff_eq(n_pose, three) && t.abs_diff_eq(t_pose, three));
 }
