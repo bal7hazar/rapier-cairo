@@ -47,7 +47,8 @@ pub use halfspace::{cast_local_ray_and_get_normal_halfspace, cast_local_ray_half
 use rapier_math::pose2::{Pose2, Pose2Trait};
 use rapier_math::rot2::Rot2Trait;
 pub use segment::{cast_local_ray_and_get_normal_segment, cast_local_ray_segment};
-use crate::feature_id::FeatureId;
+use crate::feature_id::{FeatureId, SubShapeId};
+use crate::query::subshape::SubshapeRayIntersection;
 use crate::shape::Shape;
 
 /// A ray (Parry `Ray`): the half-line `origin + dir * t`, `t >= 0`.
@@ -123,6 +124,15 @@ pub impl RayIntersectionImpl of RayIntersectionTrait {
             normal: pose.rotation.rotate(self.normal),
             feature: self.feature,
         }
+    }
+
+    /// The intersection with the sub-shape that was hit (upstream `with_subshape`).
+    /// #### Deviations
+    /// * Upstream sets a field of `RayIntersection`; the port keeps it at its width (ADR 35)
+    ///   and returns the twin value [`SubshapeRayIntersection`].
+    #[inline(always)]
+    fn with_subshape(self: RayIntersection, subshape: SubShapeId) -> SubshapeRayIntersection {
+        SubshapeRayIntersection { intersection: self, subshape }
     }
 }
 

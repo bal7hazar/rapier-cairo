@@ -71,6 +71,8 @@ pub use triangle::{
     project_local_point_triangle,
 };
 pub use wide2::{cross_wide, dot_wide};
+use crate::feature_id::SubShapeId;
+use crate::query::subshape::SubshapePointProjection;
 
 /// The result of projecting a point on a shape (Parry `PointProjection`).
 ///
@@ -104,6 +106,15 @@ pub impl PointProjectionImpl of PointProjectionTrait {
     fn is_inside_eps(self: PointProjection, original_point: Vec2, min_dist: Fixed) -> bool {
         let d = original_point - self.point;
         self.is_inside || is_norm2_lt(d.x, d.y, min_dist)
+    }
+
+    /// The projection with the sub-shape it landed on (upstream `with_subshape`).
+    /// #### Deviations
+    /// * Upstream sets a field of `PointProjection`; the port keeps it at its width (ADR 35)
+    ///   and returns the twin value [`SubshapePointProjection`].
+    #[inline(always)]
+    fn with_subshape(self: PointProjection, subshape: SubShapeId) -> SubshapePointProjection {
+        SubshapePointProjection { projection: self, subshape }
     }
 }
 

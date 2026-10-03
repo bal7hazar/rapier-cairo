@@ -23,12 +23,12 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | geometry | 257 | 0 | 1 | 57 | 315 | 86.0% | 99.6% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
-| parry::query | 273 | 0 | 7 | 127 | 407 | 91.0% | 97.5% |
+| parry::query | 280 | 0 | 0 | 127 | 407 | 93.3% | 100.0% |
 | parry::shape | 235 | 0 | 9 | 136 | 380 | 89.7% | 96.3% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1545** | **0** | **18** | **1029** | **2592** | **85.6%** | **98.8%** |
+| **total** | **1552** | **0** | **11** | **1029** | **2592** | **86.0%** | **99.3%** |
 
-Cairo-only public items not matched to upstream: **2042**.
+Cairo-only public items not matched to upstream: **2048**.
 
 ## Aabb
 
@@ -693,7 +693,7 @@ Cairo-only public items not matched to upstream: **2042**.
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
 | method `transform1_by_mut` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
 | method `transform_by_mut` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
-| method `with_subshapes` | parry::query | missing | Not found on Cairo candidate(s): Contact, ContactTrait. | `parry/src/query/contact/contact.rs` |
+| method `with_subshapes` | parry::query | ported | Same public name. | `parry/src/query/contact/contact.rs` |
 | type `Contact` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## ContactConstraintNormalPart
@@ -757,10 +757,10 @@ Cairo-only public items not matched to upstream: **2042**.
 | method `match_contacts` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `match_contacts_using_positions` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `set_subshape_pos1` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `set_subshape_pos2` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `subshape_pos1` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
-| method `subshape_pos2` | parry::query | missing | Not found on Cairo candidate(s): ContactManifold, Manifold, ContactManifoldTrait, ManifoldTrait. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `set_subshape_pos1` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `set_subshape_pos2` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `subshape_pos1` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
+| method `subshape_pos2` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `take` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `try_update_contacts` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
 | method `try_update_contacts_eps` | parry::query | ported | Same public name. | `parry/src/query/contact_manifolds/contact_manifold.rs` |
@@ -2119,7 +2119,7 @@ Cairo-only public items not matched to upstream: **2042**.
 | method `is_inside_eps` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | method `transform_by` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
-| method `with_subshape` | parry::query | missing | Not found on Cairo candidate(s): PointProjection, PointProjectionTrait. | `parry/src/query/point/point_query.rs` |
+| method `with_subshape` | parry::query | ported | Same public name. | `parry/src/query/point/point_query.rs` |
 | type `PointProjection` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## PointQuery
@@ -2380,7 +2380,7 @@ Cairo-only public items not matched to upstream: **2042**.
 |---|---|---|---|---|
 | method `new` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
 | method `transform_by` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
-| method `with_subshape` | parry::query | missing | Not found on Cairo candidate(s): RayIntersection, RayIntersectionTrait. | `parry/src/query/ray/ray.rs` |
+| method `with_subshape` | parry::query | ported | Same public name. | `parry/src/query/ray/ray.rs` |
 | type `RayIntersection` | geometry | ported | Same public name. | `rapier/src/geometry/mod.rs` |
 
 ## RevoluteJoint
@@ -4442,10 +4442,8 @@ Cairo-only public items not matched to upstream: **2042**.
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 9 | standard | shape interface |
-| [Query completion](#wp-query-completion) | 6 | standard | QP queries |
 | [Collider API completion](#wp-collider-api-completion) | 1 | mechanical | DB/EV |
 | [Joint API completion](#wp-joint-api-completion) | 1 | standard | JL/RJ |
-| [Sensors and intersection events](#wp-sensors-and-intersection-events) | 1 | standard | SE sensors |
 
 ### WP: Additional 2D shapes
 
@@ -4461,17 +4459,6 @@ Tier: standard. Depends/context: shape interface. Estimate: 9 public items.
 - **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
 - **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
 
-### WP: Query completion
-
-Tier: standard. Depends/context: QP queries. Estimate: 6 public items.
-
-- **Contact** method `with_subshapes` (`parry/src/query/contact/contact.rs`)
-- **ContactManifold** method `set_subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `set_subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos1` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **ContactManifold** method `subshape_pos2` (`parry/src/query/contact_manifolds/contact_manifold.rs`)
-- **PointProjection** method `with_subshape` (`parry/src/query/point/point_query.rs`)
-
 ### WP: Collider API completion
 
 Tier: mechanical. Depends/context: DB/EV. Estimate: 1 public items.
@@ -4483,12 +4470,6 @@ Tier: mechanical. Depends/context: DB/EV. Estimate: 1 public items.
 Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
 
 - **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
-
-### WP: Sensors and intersection events
-
-Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
-
-- **RayIntersection** method `with_subshape` (`parry/src/query/ray/ray.rs`)
 
 ## Cairo public items without upstream match
 
@@ -4692,7 +4673,7 @@ Tier: standard. Depends/context: SE sensors. Estimate: 1 public items.
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1842 more
+- ... 1848 more
 
 ## Embedded Rust inventory
 
