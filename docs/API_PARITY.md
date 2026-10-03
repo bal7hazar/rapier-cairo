@@ -28,7 +28,7 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
 | **total** | **1552** | **0** | **11** | **1029** | **2592** | **86.0%** | **99.3%** |
 
-Cairo-only public items not matched to upstream: **2048**.
+Cairo-only public items not matched to upstream: **2049**.
 
 ## Aabb
 
@@ -4559,6 +4559,7 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
 - **Alternatives** const `CUBOID_CUBOID` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** const `OTHER` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
 - **Alternatives** impl `Serde` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
+- **Alternatives** method `anchor_unfused` (`crates/rapier_dynamics2d/src/narrow_phase/alternatives.cairo`)
 - **Alternatives** method `batched_in_class` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `cast_conservative_advancement` (`crates/rapier_geometry2d/src/query/shape_cast/alternatives.cairo`)
 - **Alternatives** method `cast_ray_aabb_pretest` (`crates/rapier2d/src/queries/alternatives.cairo`)
@@ -4672,8 +4673,7 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
 - **Alternatives** method `words_lane` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
-- **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
-- ... 1848 more
+- ... 1849 more
 
 ## Embedded Rust inventory
 

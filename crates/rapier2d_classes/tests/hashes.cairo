@@ -29,10 +29,12 @@ pub const ISLANDS_HASH: felt252 = 0x6aa5300b631b548c341b88a8d5881356f7f33898c37f
 pub const BROAD_PHASE_HASH: felt252 =
     0x53423c89826872bf0609676dde383e1e7fd4716d8c76c4964785c1e73a51014;
 pub const MASS_HASH: felt252 = 0x60051ffb6f7fe7e5a29c6ac58db800bafcfa716e79b3d97a058a71027e10c3b;
+/// FU1 B1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`,
+/// run 37144840437, artifact `class-hashes`.
+pub const NARROW_PHASE_HASH: felt252 =
+    0x56b57e154967496abbf150f8d7567dc616f39001757c17ecb95beb9b08cbb61;
 /// CX3: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
 /// 37033470531, artifact `class-hashes`.
-pub const NARROW_PHASE_HASH: felt252 =
-    0x70f4c399e7a25318821a4b888265d34dde03b0a720a1fe7eca03dc289134209;
 pub const ACTIVE_SET_HASH: felt252 =
     0x5ea0e678c30220f403888fa50bf0b304040ee2628f14edfa4158cf082e90e9b;
 /// EL1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run

@@ -5,6 +5,9 @@
 //! strategy: [`CarryOver::take`] copies the previous pair out as an `Option<ContactPair>` and
 //! the outlined [`process_pair`] is charged its costliest path on every pair.
 //!
+//! [`anchor_unfused`]: the solver-contact anchor before FU1 (B1), a floored transform then a
+//! checked subtraction of the world centre of mass.
+//!
 //! [`DictCarryOver`]: the previous pairs indexed in a `Felt252Dict` keyed by the packed handle
 //! pair, value `index + 1` (0 = absent); a found entry is zeroed so that the pairs left non-zero
 //! at the end are the dropped ones, scanned in ascending key to keep the event order of the
@@ -13,8 +16,11 @@
 
 use core::dict::{Felt252Dict, Felt252DictEntryTrait, Felt252DictTrait};
 use fixed::Fixed;
+use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2_add, wide_from, wide_mul};
+use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::data::handle::HandleTrait;
+use rapier_math::pose2::Pose2;
 use crate::collider_set::ColliderSet;
 use crate::events::CollisionEvent;
 use crate::rigid_body_set::RigidBodySet;
@@ -117,4 +123,17 @@ pub fn compute_contacts_with<impl D: ContactDispatcher, S, impl C: CarryOver<S>,
     events.append_span(transitions.span());
     self.pairs = current;
     events
+}
+
+/// The solver-contact anchor shipped before FU1 (B1): `Pose2::transform_point` inlined (BT3),
+/// one floor per component, then the checked subtraction of `com`. Bit-identical to
+/// [`super::anchor`], which folds `com` into the wide sum.
+#[inline(always)]
+pub fn anchor_unfused(p: Pose2, l: Vec2, com: Vec2) -> Vec2 {
+    let r = p.rotation;
+    let world = Vec2 {
+        x: wide_mul(r.re, l.x).sub(wide_mul(r.im, l.y)).add(wide_from(p.translation.x)).narrow(),
+        y: dot2_add(r.im, l.x, r.re, l.y, p.translation.y),
+    };
+    world - com
 }
