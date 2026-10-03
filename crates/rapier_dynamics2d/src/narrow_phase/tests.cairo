@@ -22,11 +22,11 @@ use crate::events::{
     started, stopped,
 };
 use crate::rigid_body_set::{RigidBodySet, RigidBodySetTrait, RigidBodyTrait};
-use super::alternatives::{compute_contacts_dict, pair_key};
+use super::alternatives::{anchor_unfused, compute_contacts_dict, pair_key};
 use super::mock::{MockDispatcher, OVERLAP, PREDICTION, RADIUS, at, ball, broad_phase, scene};
 use super::{
     CarryOver, ContactPair, ContactPairTrait, NarrowPhase, NarrowPhaseTrait, PairCollider,
-    SortedMerge, dropped_events, key_before, pair_collider, pair_filtered, process_pair,
+    SortedMerge, anchor, dropped_events, key_before, pair_collider, pair_filtered, process_pair,
     solver_contact, update_manifold,
 };
 
@@ -78,6 +78,61 @@ fn test_pair_filtered() {
     co1.body = None;
     co2.body = None;
     assert!(!pair_filtered(co1, co2));
+}
+
+fn raw(r: i64) -> Fixed {
+    FixedTrait::from_raw(r)
+}
+
+/// B1: folding the centre of mass into the wide sum gives the same bits as the floored transform
+/// minus the centre of mass, on fractional rotations, negative coordinates and floors that land on
+/// either side of an integer raw value.
+#[test]
+fn test_anchor_bit_identical_to_unfused() {
+    // (re, im, tx, ty, lx, ly, comx, comy), raw Q32.32
+    let cases: Array<(i64, i64, i64, i64, i64, i64, i64, i64)> = array![
+        (0x100000000, 0, 0x100000000, 0, 0x100000000, 0, 0x100000000, 0x100000000),
+        (
+            0xF5B10593,
+            0x478C5D4A,
+            0x13F3B645A1,
+            0x2B1D0C4E7,
+            -0xBFFFFFFF,
+            0x7A3D5C21,
+            0x13ACE0F11B,
+            0x2C0000001,
+        ),
+        (
+            -0x478C5D4A,
+            0xF5B10593,
+            -0x5A0C3F1E2,
+            0x1000000003,
+            0x6666_6666,
+            -0xC0000001,
+            -0x5A0B00000,
+            0xFFFFFFFFF,
+        ),
+        (0x6ED9EBA1, -0xE2C8B4D3, 0x3, -0x7, -0x1, 0x1, -0x80000000, 0x7FFFFFFF),
+        (
+            -0xFFFFFFFF,
+            -0x1,
+            0x1520000000,
+            0x40000000,
+            0x5F5E1,
+            -0x3B9AC9FF,
+            0x151FFFFFFF,
+            -0x3FFFFFFF,
+        ),
+    ];
+    for (re, im, tx, ty, lx, ly, cx, cy) in cases {
+        let p = Pose2 {
+            translation: Vec2 { x: raw(tx), y: raw(ty) },
+            rotation: Rot2 { re: raw(re), im: raw(im) },
+        };
+        let l = Vec2 { x: raw(lx), y: raw(ly) };
+        let com = Vec2 { x: raw(cx), y: raw(cy) };
+        assert_eq!(anchor(p, l, com), anchor_unfused(p, l, com));
+    }
 }
 
 #[test]
@@ -452,6 +507,20 @@ fn gas_solver_contact() {
     let co1 = opaque(side(1, 10, RigidBodyType::Dynamic));
     let co2 = opaque(side(2, 11, RigidBodyType::Fixed));
     let _ = solver_contact(opaque(Default::default()), 0, co1, co2);
+}
+
+#[test]
+fn gas_anchor() {
+    let _ = anchor(
+        opaque(at(ONE, TWO)), opaque(Vec2 { x: HALF, y: -HALF }), opaque(Vec2 { x: ONE, y: ONE }),
+    );
+}
+
+#[test]
+fn gas_anchor_unfused() {
+    let _ = anchor_unfused(
+        opaque(at(ONE, TWO)), opaque(Vec2 { x: HALF, y: -HALF }), opaque(Vec2 { x: ONE, y: ONE }),
+    );
 }
 
 #[test]

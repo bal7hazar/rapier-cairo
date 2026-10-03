@@ -9,6 +9,7 @@ whether simulation results changed.
 - Sub-shape result widening (SW1): `SubshapeContact`, `SubshapePointProjection` and `SubshapeRayIntersection` (twin values, in the prelude) built by `ContactTrait::with_subshapes` and `PointProjectionTrait` / `RayIntersectionTrait::with_subshape`; `ContactManifoldTrait::subshape_pos1 / 2` (read the part pose back from the shape) and `set_subshape_pos1 / 2` (on a `SubshapePoses`, ADR 46). Opt-in: no existing type, signature or result changes; the 7 parity items are `ported`.
 
 ### Changed
+- Narrow phase (FU1 B1): each solver-contact anchor folds the body's world centre of mass into the wide sum of its point transform (`floor(x) - c = floor(x - c)` for an exact `c`), which drops one checked `Vec2` subtraction: −8 Cairo steps per anchor (scratch probe), two anchors per solver contact and tick. Results bit-identical.
 - API parity (PX8): the project manager's SC2 decisions of 2026-10-03 as table rules: 26 scalar items of the solver (`dynamics::solver` is `pub(crate)` upstream) and the 3 `contact_skin` items closed with two new reasons, `CompoundEdgeCone` (parry 0.31's 2D type) back to `missing` for lot CE; 46 → 18 `missing`. Table and script only, no library code, results unchanged.
 
 ## 0.1.0-alpha.9 — 2026-10-03
