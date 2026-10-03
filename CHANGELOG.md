@@ -11,9 +11,10 @@ The toolchain moves to Scarb 2.20.1 / snforge 0.64.0, the engine's step gets che
 surface grows (PX3 to PX7, CP3, IG1) off the step path.
 
 **Results:** bit-identical since `0.1.0-alpha.8` (the toolchain bump, the slim crossings and the step levers change no
-result), and Cairo steps lower (EL1, CX3; the toolchain bump itself raised them, see Changed).
+result), and Cairo steps lower with EL1 and CX3, partly offset by the toolchain bump (see Changed).
 
 ### Added
+- `ColliderSetTrait::get_field` (EL1, #259): reads one field of a collider by handle without copying the collider.
 - API parity (PX7): the project manager's decisions of 2026-10-03 as table rules: three matcher gaps now `ported` (`is_bouncy`, `NEW_CONTACT_BIT`, `ShapeDistance::from`), 25 items closed with four new reasons (no `IndexMut`, no faithful `Default` for the contact-graph order, no faithful solver-contact form, V-HACD / voxelisation) or the existing closed-enum one; 74 → 46 `missing`. Table and script only, no library code.
 - API parity (PX6): `NormalConstraints` / `NormalConstraintsPair` (value style, `LocalNormalProjector` is the required
   method) with `SegmentPseudoNormals` and the new `TrianglePseudoNormals` as projectors (`project_into_cone` in Q32.32),
@@ -55,6 +56,12 @@ result), and Cairo steps lower (EL1, CX3; the toolchain bump itself raised them,
   `rapier_geometry2d` (programme request after slingfall's alpha.8 bump).
 
 ### Changed
+- The engine's step levers (EL1, #259): R1 (`remove_body` wakes and releases a collider's pairs in one walk), F1 (the
+  force-event pass keeps the pair list when no status bit changes and reads three collider fields instead of whole
+  colliders) and W1 (`body_status` reads the slot's entry before walking), all bit-identical. The pile10 whole shot is
+  −1.58 % Cairo steps for the owner's shot and −1.91 % for the reference shot in process, −1.17 % and −1.32 % in the
+  slim layout; `steps_game_step` 2,758,024 → 2,726,098 (`docs/BUDGETS.md`). A game re-pins `IslandsClass` and
+  `ForceEventsClass` (their class hashes change); the other classes are unchanged.
 - Toolchain Scarb 2.20.1 (Cairo 2.20.0) / starknet-foundry 0.64.0 (TC1, #250; was Scarb 2.19.4 / snforge 0.61.0):
   results bit-identical, Cairo steps game path +1.25 to +1.38 %, `rapier2d` probes up to +1.84 % (median +1.33 %), `rapier2d_classes` up to +3.78 % (median +1.61 %) (`docs/BUDGETS.md`), class hashes re-pinned from
   CI's artefact; a consumer on another toolchain re-declares.
