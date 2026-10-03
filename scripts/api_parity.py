@@ -45,6 +45,10 @@ EXCLUSIONS = (
     "static dispatch through StepConfig / StageConfig (D10)",
     "persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage",
     "closed value enum replaces Arc / dyn shapes (SH2a)",
+    "Cairo has no `IndexMut` / `&mut` index",
+    "persisted contact-graph order, no faithful Default",
+    "no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start",
+    "construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
@@ -103,10 +107,50 @@ MUTABLE_GRAPH: frozenset[tuple[str, str, str]] = frozenset({
 CLOSED_ENUM_REASON = "closed value enum replaces Arc / dyn shapes (SH2a)"
 CLOSED_ENUM: frozenset[tuple[str, str, str]] = frozenset({
     ("SharedShape", "method", "make_mut"), ("Shape", "method", "as_shape_mut"), ("Shape", "trait", "Shape"),
+    # The project manager's decision, 2026-10-03 (PX7): the `CompositeShape` traits and their `CompositeShapeRef` view
+    # are the trait-object surface of composite shapes; the closed `Shape` enum matches on `Polyline` / `HeightField`
+    # (`dispatch/composite.cairo`).
+    ("CompositeShape", "trait", "CompositeShape"), ("CompositeShape", "method", "bvh"),
+    ("CompositeShape", "method", "is_deformable"), ("CompositeShape", "method", "map_part_at"),
+    ("TypedCompositeShape", "trait", "TypedCompositeShape"), ("TypedCompositeShape", "method", "map_typed_part_at"),
+    ("TypedCompositeShape", "method", "map_untyped_part_at"), ("CompositeShapeRef", "type", "CompositeShapeRef"),
+})
+# The project manager's decisions, 2026-10-03 (PX7), each item listed by exact `(owner, kind, name)`; like PX1's
+# reasons they count in "in scope" only.
+# Cairo's `core::ops` has `Index` and `IndexView` but no `IndexMut`, and the sets hold values (`set` writes back).
+NO_INDEX_MUT_REASON = "Cairo has no `IndexMut` / `&mut` index"
+NO_INDEX_MUT: frozenset[tuple[str, str, str]] = frozenset({
+    ("ColliderSet", "impl", "IndexMut<ColliderHandle>"), ("RigidBodySet", "impl", "IndexMut<RigidBodyHandle>"),
+})
+# The contact-graph order is persisted state of the solver's contact graph: a default `ContactRef` / `GraphPos` would
+# be an invalid position, not a faithful value.
+NO_FAITHFUL_DEFAULT_REASON = "persisted contact-graph order, no faithful Default"
+NO_FAITHFUL_DEFAULT: frozenset[tuple[str, str, str]] = frozenset({
+    ("ContactRef", "impl", "Default"), ("GraphPos", "impl", "Default"),
+})
+# Upstream's `SolverContacts` is a growable list of solver contacts, and `solver_contact_world_points` reads their
+# world points after the step; the port keeps a fixed solver-contact array with a count, and its anchors are
+# world-frame offsets from the centre of mass at the step's start (the bodies have moved since).
+UNFAITHFUL_REASON = ("no faithful form: fixed solver-contact array and count; anchors are offsets at the step's "
+                     "start")
+UNFAITHFUL: frozenset[tuple[str, str, str]] = frozenset({
+    ("SolverContacts", "type", "SolverContacts"), ("ContactManifoldData", "method", "solver_contact_world_points"),
+})
+# Programme decision (2026-09-29): V-HACD and voxelisation were in scope as low priority with no lot; closed by the
+# decision of 2026-10-03 until a consumer needs them. `ColliderBuilder::voxelized_mesh` is already closed by the
+# voxel pattern of `exclusion_reason`, and the builder's voxelized decompositions are not in the inventory.
+DECOMPOSITION_REASON = "construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need"
+DECOMPOSITION: frozenset[tuple[str, str, str]] = frozenset({
+    (owner, "method", name) for owner in ("SharedShape", "ColliderBuilder")
+    for name in ("convex_decomposition", "convex_decomposition_with_params", "round_convex_decomposition",
+                 "round_convex_decomposition_with_params", "voxelized_convex_decomposition",
+                 "voxelized_convex_decomposition_with_params", "voxelized_mesh")
+    if (owner, name) != ("ColliderBuilder", "voxelized_mesh")
 })
 # Every reason added since PX1: they do not count in the raw figure.
 POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON,
-                              MUTABLE_GRAPH_REASON, CLOSED_ENUM_REASON})
+                              MUTABLE_GRAPH_REASON, CLOSED_ENUM_REASON, NO_INDEX_MUT_REASON,
+                              NO_FAITHFUL_DEFAULT_REASON, UNFAITHFUL_REASON, DECOMPOSITION_REASON})
 
 # PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
 # broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
@@ -121,8 +165,9 @@ POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARAN
 # only the upstream-only pieces below are internal. Listed by exact `(owner, kind, name)`, never a
 # loose pattern (a previous PO1 self-test decision keeps the scalar `SolverBodies` API — `len`,
 # `get_pose`, `get_vel`, `set_vel`, `clear`, `copy_from`, `resize` — and `SolverPose` / `SolverVel`
-# / `VelocitySolver` / the persisted contact-graph order (`ContactRef`, `GraphPos`, the SO/DO class
-# of PLAN.md) out of this reason: those are open gaps, not closed internals).
+# / `VelocitySolver` out of this reason: those are open gaps, not closed internals; the persisted
+# contact-graph order (`ContactRef`, `GraphPos`) stays out too, but its `Default` impls are closed by
+# `NO_FAITHFUL_DEFAULT` since PX7, the rest of the SO/DO class of PLAN.md being open).
 SOLVER_ISLAND_INTERNALS: frozenset[tuple[str, str, str]] = frozenset({
     # Sequential-impulse contact constraints (dynamics/solver/contact_constraint/): per-contact
     # Coulomb/twist-friction builders and the warmstart state they carry across steps.
@@ -496,6 +541,9 @@ OWNER_ALIASES.update({
                     # PX5: stage 1 of the step is the free function `pipeline/user_changes.cairo::handle_user_changes` (no facade method).
                     "UserChanges"),
     "Halfspace": ("HalfSpace",),
+    # PX7: upstream's free `geometry::contact_pair` items (`NEW_CONTACT_BIT`, `is_bouncy`) are the free items of
+    # `rapier_geometry2d/src/contact.cairo`.
+    "geometry": ("geometry", "Contact"),
     "MassProperties": ("MassProperties", "RigidBodyMassProps", "ColliderMassProps"),
     "RigidBodyMassProps": ("RigidBodyMassProps", "RigidBody"),
     # CC2: the CCD members of `RigidBody` are `RigidBodyCcdApiTrait` (`rigid_body_set/ccd_api.cairo`:
@@ -691,7 +739,8 @@ def normalize_rhs(value: str) -> str:
     if value.startswith("("):
         return "(" + ", ".join(normalize_rhs(p) for p in split_top(value[1:-1])) + ")"
     head, _ = type_head(value)
-    return {"Real": "Real", "Self": "Self", "Halfspace": "HalfSpace"}.get(head, head)
+    # PX7: the port's scalar is `Fixed`, upstream's `Real`.
+    return {"Real": "Real", "Fixed": "Real", "Self": "Self", "Halfspace": "HalfSpace"}.get(head, head)
 
 
 def cfg_attrs_before(text: str, pos: int) -> str:
@@ -1026,6 +1075,14 @@ def exclusion_reason(item: Item) -> str:
         return MUTABLE_GRAPH_REASON
     if item.key in CLOSED_ENUM:
         return CLOSED_ENUM_REASON
+    if item.key in NO_INDEX_MUT:
+        return NO_INDEX_MUT_REASON
+    if item.key in NO_FAITHFUL_DEFAULT:
+        return NO_FAITHFUL_DEFAULT_REASON
+    if item.key in UNFAITHFUL:
+        return UNFAITHFUL_REASON
+    if item.key in DECOMPOSITION:
+        return DECOMPOSITION_REASON
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
     # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
@@ -1112,16 +1169,8 @@ def find_matches(item: Item, cairo: set[tuple[str, str, str]]) -> list[tuple[str
 
 # Items knowingly left missing, with the lot that owns them (instead of the generic "not found").
 MISSING_REASONS: dict[tuple[str, str], str] = {
-    # Programme decision (2026-09-29): algorithms not ported yet, in scope (a game could decompose a concave
-    # level piece into convex colliders off the step path); low priority, no lot.
-    **{(owner, name): "not ported yet (V-HACD / voxelisation)" for owner in ("SharedShape", "ColliderBuilder")
-       for name in ("convex_decomposition", "convex_decomposition_with_params", "round_convex_decomposition",
-                    "round_convex_decomposition_with_params", "voxelized_convex_decomposition",
-                    "voxelized_convex_decomposition_with_params", "voxelized_mesh")},
     # CP3 / programme (2026-09-29): the interaction graph stays in scope; a read-only view over the pair list can
     # answer most of it (derived `Default` / `Debug` are matched since the CP3 follow-up).
-    ("ContactManifoldData", "solver_contact_world_points"):
-        "The port's anchors are world-frame offsets from the centre of mass at the step's start; the bodies have moved since, so no exact answer from the manifold data.",
     # SH2a: composite–composite pairs are unsupported (`None`), see `dispatch/composite.cairo`.
     # SH2a: no persistent workspace: the previous manifolds are matched by sub-shape ids.
     **{(t, n): "SH2a: no workspace; previous manifolds are matched by sub-shape ids." for t in (
@@ -1129,12 +1178,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
         "CompositeShapeCompositeShapeContactManifoldsWorkspace",
         "HeightFieldShapeContactManifoldsWorkspace",
         "HeightFieldCompositeShapeContactManifoldsWorkspace") for n in (t, "new")},
-    # SH2a: the closed `Shape` enum replaces the `CompositeShape` traits (match on the variant).
-    **{(t, n): "SH2a: closed `Shape` enum; composite dispatch matches `Polyline` / `HeightField`." for t, n in (
-        ("CompositeShape", "CompositeShape"), ("CompositeShape", "bvh"),
-        ("CompositeShape", "is_deformable"), ("CompositeShape", "map_part_at"),
-        ("TypedCompositeShape", "TypedCompositeShape"), ("TypedCompositeShape", "map_typed_part_at"),
-        ("TypedCompositeShape", "map_untyped_part_at"), ("CompositeShapeRef", "CompositeShapeRef"))},
     # SH2b: parry 0.31's `CompoundFlags::FIX_INTERNAL_EDGES` (pseudo-normals of the parts' outlines)
     # postdates the golden pin (parry2d-f64 0.30.2): no reference to port it against.
     **{(o, n): "SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2)." for o, n in (
@@ -1151,10 +1194,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
     # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
     **{("parry::query", n): "Not compiled upstream (commented out); the pair is unsupported, as upstream." for n in (
         "cast_shapes_nonlinear_halfspace_support_map", "cast_shapes_nonlinear_support_map_halfspace")},
-    # PX4: Cairo has no `IndexMut` trait (`core::ops` only has `Index` and `IndexView`), and the sets hold values:
-    # `set` writes a changed body / collider back.
-    ("ColliderSet", "IndexMut<ColliderHandle>"): "Cairo has no `IndexMut`: colliders are values, write a change back with `ColliderSetTrait::set`.",
-    ("RigidBodySet", "IndexMut<RigidBodyHandle>"): "Cairo has no `IndexMut`: bodies are values, write a change back with `RigidBodySetTrait::set`.",
     # PX4: the set keeps no removal list (`remove` returns the collider); `take_modified` is a read of the change
     # flags (`collider_set/access.cairo`).
     ("ColliderSet", "take_removed"): "The set records no removals (`remove` returns the collider); recording them would add a field to a stepped struct.",
@@ -1364,6 +1403,15 @@ def self_test() -> int:
     }
     for (owner, name, source), reason in reasons.items():
         assert exclusion_reason(Item(owner, "method", name, source=source)) == reason, (owner, name)
+    # PX7: the closed lists answer by exact `(owner, kind, name)`; the matcher maps `Fixed` to `Real`.
+    for key, reason in ((("CompositeShape", "method", "bvh"), CLOSED_ENUM_REASON),
+                        (("ColliderSet", "impl", "IndexMut<ColliderHandle>"), NO_INDEX_MUT_REASON),
+                        (("GraphPos", "impl", "Default"), NO_FAITHFUL_DEFAULT_REASON),
+                        (("SolverContacts", "type", "SolverContacts"), UNFAITHFUL_REASON),
+                        (("SharedShape", "method", "round_convex_decomposition"), DECOMPOSITION_REASON)):
+        assert exclusion_reason(Item(*key)) == reason, key
+    assert exclusion_reason(Item("ContactRef", "method", "new")) == ""
+    assert normalize_rhs("Fixed") == normalize_rhs("Real")
     print("self-test passed")
     return 0
 
