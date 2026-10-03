@@ -3,7 +3,7 @@ rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_ball_triangle 232450
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_baseline 6410
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_halfspace_round_cuboid 292300
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_pfm_pfm_shapes_ball 66850
-rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_pfm_pfm_shapes_triangle_cuboid 1098640
+rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_pfm_pfm_shapes_triangle_cuboid 1073640
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_project_round_cuboid 57470
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_project_triangle 113890
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_ray_round_cuboid 955400
@@ -12,10 +12,10 @@ rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_round_cuboid_cuboid 4
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_round_cuboid_round_cuboid 471480
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_triangle_cuboid 971380
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_triangle_polygon 1166700
-rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_triangle_polygon_as_polygon_alternative 1205230
+rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_triangle_polygon_as_polygon_alternative 1180230
 rapier_geometry2d::contact_generators::pfm_pfm::tests::gas_triangle_triangle 913340
-rapier_geometry2d::contact_generators::pfm_pfm::tests::test_border_radius_offsets_points_and_distance 1322290
+rapier_geometry2d::contact_generators::pfm_pfm::tests::test_border_radius_offsets_points_and_distance 1297290
 rapier_geometry2d::contact_generators::pfm_pfm::tests::test_cuboid_triangle_entry_points 5015130
 rapier_geometry2d::contact_generators::pfm_pfm::tests::test_orientation_does_not_change_the_manifold 1777570
-rapier_geometry2d::contact_generators::pfm_pfm::tests::test_pfm_pfm_shapes 13454300
-rapier_geometry2d::contact_generators::pfm_pfm::tests::test_unsupported_and_warm_start 1958920
+rapier_geometry2d::contact_generators::pfm_pfm::tests::test_pfm_pfm_shapes 13354300
+rapier_geometry2d::contact_generators::pfm_pfm::tests::test_unsupported_and_warm_start 1933920

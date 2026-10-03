@@ -240,15 +240,17 @@ fn test_full_delay_ground_recovery() {
     let stats = recovery(Mode::DelayGround, false);
     assert_eq!(stats.violations, 0);
     assert_eq!(stats.ty.ulps, 53057);
-    assert_eq!(stats.vy.ulps, 52326);
+    // FU1 P1 (the fused row solve): 52326 before.
+    assert_eq!(stats.vy.ulps, 52322);
 }
 
 #[test]
 fn test_seeded_delay_ground_recovery() {
     let stats = recovery(Mode::DelayGround, true);
     assert_eq!(stats.violations, 0);
-    assert_eq!(stats.ty.ulps, 50);
-    assert_eq!(stats.vy.ulps, 81);
+    // FU1 P1 (the fused row solve): 50 and 81 before.
+    assert_eq!(stats.ty.ulps, 57);
+    assert_eq!(stats.vy.ulps, 65);
 }
 
 #[test]

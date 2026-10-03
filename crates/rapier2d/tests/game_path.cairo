@@ -38,9 +38,10 @@ const FORCE_THRESHOLD: i64 = 0x400000000;
 
 /// `digest` of the level after `IMPACT` ticks with reads and despawns, measured on
 /// `0.1.0-alpha.4` (1213fbb) and every commit up to RG1; re-pinned by SF1 (rebased frozen contact
-/// separations; before: 3326…5775).
+/// separations; before: 3326…5775); re-pinned by FU1 (fused rescales P1, P2, P3, C5; before:
+/// 2022…0987).
 const GAME_DIGEST: felt252 =
-    2022157671005519863083205651691126028746519623184051613454076122783391620987;
+    1387366543455211610599076947513300277373374430543533139307557794459943001059;
 
 /// `mode` bits.
 const READS: u32 = 1;

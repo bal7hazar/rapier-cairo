@@ -18,14 +18,14 @@
 //! carries an id, not a constraint (−3.5k); the reusing update reads no pose, the restitution
 //! sweep is skipped without a negative seed, unclamped velocities are not rewritten (−3.4k);
 //! `bodies`: zero-com translations and zero damping (−4.4k). Rejected ones: `alternatives`.
-use fixed::wide::{WideAdd, WideNarrow, WideSub, dot2_add, mul_add, wide_from, wide_mul};
+use fixed::wide::mul_add;
 use fixed::{Fixed, ONE, ZERO};
 use glam_core::Vec2;
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_geometry2d::contact::ContactManifold;
 use rapier_math::pose2::Pose2;
 use super::super::super::body::{SolverVel, WORLD};
-use super::super::super::contact::element::{max, min};
+use super::super::super::contact::element::{max, min, row_impulse, separation};
 use super::super::super::contact::errors;
 
 /// Frame-constant coefficients of one row (normal or tangent).
@@ -237,26 +237,14 @@ fn apply(
     v1.angular = mul_add(ig1, impulse, v1.angular);
     v2.angular = mul_add(ig2, impulse, v2.angular);
 }
-/// `jv(..) + rhs` with one rescale: `element::jv`'s `dot4` plus `rhs`. The velocity difference
-/// is distributed over the exact wide sum (BT3: `d * (a - b) = d * a - d * b` exactly), which
-/// saves the two checked subtractions; the floored result is the same.
-#[inline(always)]
-fn jv_add(dir: Vec2, g1: Fixed, g2: Fixed, v1: SolverVel, v2: SolverVel, rhs: Fixed) -> Fixed {
-    wide_mul(dir.x, v1.linear.x)
-        .sub(wide_mul(dir.x, v2.linear.x))
-        .add(wide_mul(dir.y, v1.linear.y))
-        .sub(wide_mul(dir.y, v2.linear.y))
-        .add(wide_mul(g1, v1.angular))
-        .add(wide_mul(g2, v2.angular))
-        .add(wide_from(rhs))
-        .narrow()
-}
+/// FU1 P1: the new impulse `impulse - r * (jv + rhs)` is `element::row_impulse`, one exact wide
+/// sum floored once (BT3's `jv_add`, which floored `jv + rhs` before the product, is
+/// `element::alternatives::row_impulse_unfused`).
 #[inline(always)]
 fn solve_normal(
     ref h: HotPoint, dir: Vec2, row: @Row, w: @Weights, ref v1: SolverVel, ref v2: SolverVel,
 ) -> bool {
-    let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.rhs);
-    let clamped = max(ZERO, h.impulse - *row.r * dv);
+    let clamped = max(ZERO, row_impulse(dir, *row.g1, *row.g2, v1, v2, h.rhs, h.impulse, *row.r));
     // BT3: a rigid row (`cfm == ONE`: every relaxation row, speculative biased rows) skips the
     // product, exact since `x * ONE == x`.
     let new_impulse = if h.cfm == ONE {
@@ -287,8 +275,10 @@ fn solve_tangent(
     let new_impulse = if limit == ZERO {
         ZERO
     } else {
-        let dv = jv_add(dir, *row.g1, *row.g2, v1, v2, h.t_rhs);
-        min(limit, max(-limit, h.t_impulse - *row.r * dv))
+        min(
+            limit,
+            max(-limit, row_impulse(dir, *row.g1, *row.g2, v1, v2, h.t_rhs, h.t_impulse, *row.r)),
+        )
     };
     let delta = new_impulse - h.t_impulse;
     h.t_impulse = new_impulse;
@@ -321,35 +311,6 @@ fn idle(h: Hot, count: u8, v1: SolverVel, v2: SolverVel) -> bool {
         && row_zero(h.a)
         && (count == 1 || row_zero(h.b))
 }
-/// `Pose2::transform_point` inlined (BT3: the call was 785 outlined calls per impact tick):
-/// the same wide sums, `re * x - im * y + t` instead of `re * x + (-im) * y + t`, one floor per
-/// component.
-#[inline(always)]
-fn transform(p: Pose2, l: Vec2) -> Vec2 {
-    let r = p.rotation;
-    Vec2 {
-        x: wide_mul(r.re, l.x).sub(wide_mul(r.im, l.y)).add(wide_from(p.translation.x)).narrow(),
-        y: dot2_add(r.im, l.x, r.re, l.y, p.translation.y),
-    }
-}
-/// `(dist + dot(a - b, dir), dot(a - b, t))` with the difference distributed over the exact
-/// wide sums, as in `jv_add`.
-#[inline(always)]
-fn separation(a: Vec2, b: Vec2, dir: Vec2, t: Vec2, dist: Fixed) -> (Fixed, Fixed) {
-    (
-        wide_mul(a.x, dir.x)
-            .sub(wide_mul(b.x, dir.x))
-            .add(wide_mul(a.y, dir.y))
-            .sub(wide_mul(b.y, dir.y))
-            .add(wide_from(dist))
-            .narrow(),
-        wide_mul(a.x, t.x)
-            .sub(wide_mul(b.x, t.x))
-            .add(wide_mul(a.y, t.y))
-            .sub(wide_mul(b.y, t.y))
-            .narrow(),
-    )
-}
 /// `update_element` on the hot values (the unbiased rhs is transient: refresh recomputes it).
 /// A warm-start coefficient of exactly one (the default) skips its two products (`x * ONE ==
 /// x` exactly, BT3).
@@ -360,7 +321,7 @@ fn update_point(
     let (dist, t_dist) = if k.reuse {
         (b.dist, b.t_dist)
     } else {
-        separation(transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist)
+        separation(p1, *f.local_p1, p2, *f.local_p2, *c.dir, *c.t, *f.dist)
     };
     // `max(0, dist) * inv_dt + min(0, max(-cap, dist * erp_inv_dt))` without its exact zeros
     // (BT3): the first term is zero for `dist <= 0`; the second for `dist > 0` when
@@ -393,14 +354,15 @@ fn update_point(
     }
     h.t_rhs = mul_add(t_dist, *c.inv_dt, *f.t_rhs_wo_bias);
 }
-/// `refresh_unbiased` then `strip`.
+/// `refresh_unbiased` then `strip`. FU1 P2: both separations are `element::separation`, one
+/// exact wide sum per component of the anchors' world difference and one floor per separation
+/// (BT3's two inlined transforms then `separation` are
+/// `element::alternatives::separation_of_transforms`).
 #[inline(always)]
 fn refresh_point(
     ref h: HotPoint, ref b: BankPoint, f: @FrozenPoint, c: @Frozen, p1: Pose2, p2: Pose2,
 ) {
-    let (dist, t_dist) = separation(
-        transform(p1, *f.local_p1), transform(p2, *f.local_p2), *c.dir, *c.t, *f.dist,
-    );
+    let (dist, t_dist) = separation(p1, *f.local_p1, p2, *f.local_p2, *c.dir, *c.t, *f.dist);
     b.dist = dist;
     b.t_dist = t_dist;
     // `max(0, dist) * inv_dt`, zero without the product for `dist <= 0` (BT3).
