@@ -215,12 +215,18 @@ pub(crate) fn take_out_dormant(ref world: World) {
 #[inline(always)]
 pub fn restore_dormant(ref world: World) {
     if !world.dormant.as_snapshot().unbox().pairs.is_empty() {
-        let kept = world.dormant.unbox();
-        world
-            .narrow_phase
-            .pairs = super::merge_pairs(world.narrow_phase.pairs.span(), kept.pairs.span());
-        world.dormant = BoxTrait::new(DormantPairs { apart: kept.apart, pairs: array![] });
+        merge_back(ref world);
     }
+}
+
+/// [`restore_dormant`]'s merge, outlined (one copy for its callers).
+#[inline(never)]
+fn merge_back(ref world: World) {
+    let kept = world.dormant.unbox();
+    world
+        .narrow_phase
+        .pairs = super::merge_pairs(world.narrow_phase.pairs.span(), kept.pairs.span());
+    world.dormant = BoxTrait::new(DormantPairs { apart: kept.apart, pairs: array![] });
 }
 
 /// Whether the world's active set is marked valid.

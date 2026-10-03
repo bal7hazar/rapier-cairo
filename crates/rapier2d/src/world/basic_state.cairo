@@ -2,13 +2,15 @@
 //! and half-spaces, no impulse joint, the worlds `BasicStepConfig` steps.
 //!
 //! [`BasicWorldState`] is a [`WorldState`] whose `Serde` writes and reads **the same felts** as
-//! `WorldState`'s (version 4, same layout, no new version; a version-3 state is read and migrated
-//! as `WorldState`'s `Serde` does): a contract that takes and returns a `BasicWorldState` has the
-//! calldata of one that takes a `WorldState`. What it does not compile
-//! is the rest of the format: the `Serde` of the other shapes (triangles, rounded shapes,
-//! polylines, height fields, compounds, capsules, segments) and of the impulse joints, and the
-//! restore of a joint arena. That is what a caller class under the declared-class limit leaves out
-//! (`docs/research/class-split.md`, CS6).
+//! `WorldState`'s (version 4, same layout, no new version): a contract that takes and returns a
+//! `BasicWorldState` has the calldata of one that takes a `WorldState`. Version 3 is rejected
+//! (`'world state: version'`, as `from_state` does): its migration stays out of the caller classes
+//! (WS3, 1.6k CASM felts); a version-3 basic state is the felts of a version-3 `WorldState`, which
+//! `WorldState`'s `Serde` reads and migrates, and whose current felts this codec then reads. What
+//! it does not compile is the rest of the format: the `Serde` of the other shapes (triangles,
+//! rounded shapes, polylines, height fields, compounds, capsules, segments) and of the impulse
+//! joints, and the restore of a joint arena. That is what a caller class under the declared-class
+//! limit leaves out (`docs/research/class-split.md`, CS6).
 //!
 //! A state the codec does not support is rejected, never altered: a collider of another shape
 //! ([`errors::NOT_BASIC`], when it is read or written), a joint arena that was ever used (a joint,
@@ -25,7 +27,6 @@ use rapier_dynamics2d::rigid_body_set::RigidBodySetTrait;
 use rapier_geometry2d::shape::{ConvexPolygon, Shape};
 use crate::pipeline::active_set::DormantPairs;
 use super::World;
-use super::state::v3::{self, WorldStateV3};
 use super::state::{WORLD_STATE_VERSION, WorldState, into_state};
 
 /// Panics of the basic codec.
@@ -64,50 +65,21 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<BasicWorldState> {
+        // WS3: only the current version (see the module documentation for version 3).
         let version = decode::read_version(ref serialized)?;
-        let gravity = decode::read_gravity(ref serialized)?;
-        let integration_parameters = decode::read_parameters(ref serialized)?;
-        let bodies = decode::read_bodies(ref serialized)?;
-        let colliders = decode::read_colliders(ref serialized)?;
-        let removed_colliders = if version == v3::VERSION {
-            array![]
-        } else {
-            decode::read_handles(ref serialized)?
-        };
-        let impulse_joints = deserialize_joints(ref serialized)?;
-        let narrow_phase = Serde::deserialize(ref serialized)?;
-        let active_set = decode::read_active_set(ref serialized)?;
-        if version == v3::VERSION {
-            // WS3: a version-3 state, migrated (no dormant pair apart).
-            return Some(
-                BasicWorldState {
-                    state: v3::migrate(
-                        WorldStateV3 {
-                            version,
-                            gravity,
-                            integration_parameters,
-                            bodies,
-                            colliders,
-                            impulse_joints: v3::joints_v3(impulse_joints),
-                            narrow_phase,
-                            active_set,
-                        },
-                    ),
-                },
-            );
-        }
+        assert(version == WORLD_STATE_VERSION, super::state::errors::VERSION);
         Some(
             BasicWorldState {
                 state: WorldState {
                     version,
-                    gravity,
-                    integration_parameters,
-                    bodies,
-                    colliders,
-                    removed_colliders,
-                    impulse_joints,
-                    narrow_phase,
-                    active_set,
+                    gravity: decode::read_gravity(ref serialized)?,
+                    integration_parameters: decode::read_parameters(ref serialized)?,
+                    bodies: decode::read_bodies(ref serialized)?,
+                    colliders: decode::read_colliders(ref serialized)?,
+                    removed_colliders: decode::read_handles(ref serialized)?,
+                    impulse_joints: deserialize_joints(ref serialized)?,
+                    narrow_phase: Serde::deserialize(ref serialized)?,
+                    active_set: decode::read_active_set(ref serialized)?,
                     dormant_apart: decode::read_bool(ref serialized)?,
                     dormant_pairs: Serde::deserialize(ref serialized)?,
                 },

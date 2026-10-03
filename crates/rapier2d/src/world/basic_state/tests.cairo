@@ -259,3 +259,20 @@ fn gas_read_body_mass_props_derived() {
     let read: RigidBodyMassProps = Serde::deserialize(ref span).unwrap();
     let _ = opaque(read.max_extent);
 }
+
+/// WS3: the basic codec rejects version-3 felts (its caller classes compile no migration); the
+/// same felts read by `WorldState`'s `Serde` migrate, and the basic codec reads their re-encoding.
+#[test]
+#[should_panic(expected: 'world state: version')]
+fn test_basic_codec_rejects_version_3() {
+    let mut world = stepped(2, 12);
+    let v3 = felts(@crate::world::state::v3::downgrade(@world.to_state()));
+    let mut span = v3.span();
+    let migrated: crate::world::state::WorldState = Serde::deserialize(ref span).unwrap();
+    let current = felts(@migrated);
+    let mut span = current.span();
+    let basic: BasicWorldState = Serde::deserialize(ref span).unwrap();
+    assert!(basic.state == migrated);
+    let mut span = v3.span();
+    let _: Option<BasicWorldState> = Serde::deserialize(ref span);
+}
