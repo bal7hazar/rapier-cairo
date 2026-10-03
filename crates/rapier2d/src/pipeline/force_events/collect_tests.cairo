@@ -266,7 +266,7 @@ fn test_rebuilding_agrees() {
         let dt = shipped.integration_parameters.dt;
         for _ in 0..2_u32 {
             let expected = collect(dt, ref shipped.narrow_phase, ref shipped.colliders);
-            let got = super::alternatives::collect_body_rebuilding(
+            let got = super::el1_alternatives::collect_body_rebuilding(
                 dt, ref other.narrow_phase, ref other.colliders, true,
             );
             assert!(got == expected, "events");
@@ -278,7 +278,7 @@ fn test_rebuilding_agrees() {
 fn probe_rebuilding(composite: bool) {
     let mut world = scene(opaque(composite));
     let dt = world.integration_parameters.dt;
-    let _ = super::alternatives::collect_body_rebuilding(
+    let _ = super::el1_alternatives::collect_body_rebuilding(
         dt, ref world.narrow_phase, ref world.colliders, true,
     );
     let _ = opaque(world.gravity);
@@ -290,4 +290,41 @@ fn gas_collect_convex_rebuilding() {
 #[test]
 fn gas_collect_composite_rebuilding() {
     probe_rebuilding(true);
+}
+
+/// EL1 (F1): the shipped `collect` against `alternatives::collect_body_whole_reads`.
+#[test]
+fn test_whole_reads_agree() {
+    for composite in array![false, true] {
+        let mut image = array![];
+        scene(composite).into_state().serialize(ref image);
+        let mut shipped = restore(image.span());
+        let mut other = restore(image.span());
+        let dt = shipped.integration_parameters.dt;
+        for _ in 0..2_u32 {
+            let expected = collect(dt, ref shipped.narrow_phase, ref shipped.colliders);
+            let got = super::el1_alternatives::collect_body_whole_reads(
+                dt, ref other.narrow_phase, ref other.colliders, true,
+            );
+            assert!(got == expected, "events");
+            assert!(other.narrow_phase == shipped.narrow_phase, "pairs");
+        }
+    }
+}
+
+fn probe_whole_reads(composite: bool) {
+    let mut world = scene(opaque(composite));
+    let dt = world.integration_parameters.dt;
+    let _ = super::el1_alternatives::collect_body_whole_reads(
+        dt, ref world.narrow_phase, ref world.colliders, true,
+    );
+    let _ = opaque(world.gravity);
+}
+#[test]
+fn gas_collect_convex_whole_reads() {
+    probe_whole_reads(false);
+}
+#[test]
+fn gas_collect_composite_whole_reads() {
+    probe_whole_reads(true);
 }

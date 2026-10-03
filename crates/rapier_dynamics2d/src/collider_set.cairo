@@ -21,7 +21,9 @@ use fixed::{Fixed, HALF};
 use rapier_core::Handle;
 use rapier_core::collider::ColliderChangesTrait;
 use rapier_core::collider::changes::PARENT;
-use rapier_core::data::arena::{Arena, ArenaState, ArenaStateTrait, ArenaTrait};
+use rapier_core::data::arena::{
+    Arena, ArenaField, ArenaFieldTrait, ArenaState, ArenaStateTrait, ArenaTrait,
+};
 use rapier_core::data::handle::INVALID_HANDLE;
 use rapier_geometry2d::aabb::AabbTrait;
 use rapier_geometry2d::broad_phase::BroadPhaseProxy;
@@ -109,6 +111,14 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     #[inline(always)]
     fn get(ref self: ColliderSet, handle: Handle) -> Option<Collider> {
         self.colliders.get(handle)
+    }
+
+    /// One component `P` of the collider behind `handle`, `None` when the handle is stale or
+    /// unknown; copies only the component, where [`get`](Self::get) copies the collider (EL1).
+    fn get_field<F, impl P: ArenaField<Collider, F>, +Drop<F>>(
+        ref self: ColliderSet, handle: Handle,
+    ) -> Option<F> {
+        self.colliders.get_field::<F, P>(handle)
     }
 
     /// Overwrites the collider behind `handle` (upstream `get_mut`). Returns `false` and
