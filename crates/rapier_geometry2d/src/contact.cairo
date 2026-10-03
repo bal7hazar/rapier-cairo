@@ -7,9 +7,10 @@
 //! points beyond the prediction distance may be present (upstream keeps them); a manifold with
 //! `num_points == 0` is legal and is ignored by the solver, never treated as an error.
 
-use fixed::Fixed;
+use fixed::{Fixed, ONE, ZERO};
 use glam_core::vec2::Vec2;
 use rapier_core::data::handle::Handle;
+use rapier_math::pose2::Pose2;
 use crate::feature_id::FeatureId;
 
 /// Maximum number of points of a 2D manifold.
@@ -63,6 +64,43 @@ pub struct SolverContact {
     pub contact_id: u32,
 }
 
+/// Upstream's `SolverContactGeneric<N, LANES>` instantiated at one scalar lane, which is the
+/// port's only solver contact (the SIMD lanes are not ported): [`SolverContact`] itself.
+pub type SolverContactGeneric = SolverContact;
+
+#[generate_trait]
+pub impl SolverContactGenericImpl of SolverContactGenericTrait {
+    /// The manifold contact index, with the is-new bit removed (upstream `contact_indices`, one
+    /// lane). Only valid within the step that produced the solver contact: manifold points may be
+    /// reordered or replaced by the next narrow-phase update.
+    #[inline(always)]
+    fn contact_indices(self: @SolverContact) -> u32 {
+        let id = *self.contact_id;
+        if id >= NEW_CONTACT_BIT {
+            id - NEW_CONTACT_BIT
+        } else {
+            id
+        }
+    }
+}
+
+/// Should a contact be treated as bouncy? `1` when it is, `0` otherwise (upstream `is_bouncy`).
+/// A new contact bounces unless its restitution is zero; a contact that is still there one step
+/// later is resting, except for restitutions of `1` and above, which can never rest.
+#[inline(always)]
+pub fn is_bouncy(restitution: Fixed, is_new: bool) -> Fixed {
+    let bouncy = if is_new {
+        restitution > ZERO
+    } else {
+        restitution >= ONE
+    };
+    if bouncy {
+        ONE
+    } else {
+        ZERO
+    }
+}
+
 /// Rapier `ContactManifoldData` minus the parallel-solver fields (colour, graph position,
 /// solver body ids), which the sequential solver does not need.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
@@ -78,6 +116,18 @@ pub struct ContactManifoldData {
     pub user_data: u32,
     pub friction: Fixed,
     pub restitution: Fixed,
+}
+
+/// The poses of the composite-shape sub-shapes involved in a contact manifold (upstream
+/// `SubshapePoses`): the data half of upstream's `ContactManifold::subshape_pos1` / `2`. Plain
+/// data: [`ContactManifold`] does not hold it (a new field of a stepped struct), see the
+/// sub-shape widening parked for study SC2.
+#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+pub struct SubshapePoses {
+    /// The pose of the first shape's sub-shape, if it is a composite shape.
+    pub pos1: Option<Pose2>,
+    /// The pose of the second shape's sub-shape, if it is a composite shape.
+    pub pos2: Option<Pose2>,
 }
 
 /// A contact manifold between two (sub)shapes (Parry `ContactManifold`, 2D: at most 2 points).
@@ -222,13 +272,14 @@ pub impl ContactManifoldExtImpl of ContactManifoldExt<ContactManifold> {
 
 #[cfg(test)]
 mod tests {
-    use fixed::{FixedTrait, ONE};
+    use fixed::{FixedTrait, HALF, ONE, ZERO};
     use glam_core::vec2::vec2;
     use rapier_testing::opaque;
     use crate::feature_id::FeatureIdTrait;
     use super::{
         ContactData, ContactManifold, ContactManifoldData, ContactManifoldDataTrait,
-        ContactManifoldExt, ContactManifoldTrait, TrackedContact, TrackedContactTrait,
+        ContactManifoldExt, ContactManifoldTrait, NEW_CONTACT_BIT, SolverContact,
+        SolverContactGenericTrait, SubshapePoses, TrackedContact, TrackedContactTrait, is_bouncy,
     };
 
     #[test]
@@ -277,8 +328,54 @@ mod tests {
     }
 
     #[test]
+    fn test_is_bouncy_table() {
+        // (restitution, is_new, bouncy): a new contact bounces unless the restitution is zero; a
+        // resting one only from a restitution of one.
+        let two: fixed::Fixed = FixedTrait::from_int(2);
+        let cases: Span<(fixed::Fixed, bool, fixed::Fixed)> = array![
+            (ZERO, true, ZERO), (HALF, true, ONE), (ONE, true, ONE), (two, true, ONE),
+            (ZERO, false, ZERO), (HALF, false, ZERO), (ONE, false, ONE), (two, false, ONE),
+            (FixedTrait::from_raw(-1), true, ZERO),
+        ]
+            .span();
+        for (restitution, is_new, bouncy) in cases {
+            assert_eq!(is_bouncy(*restitution, *is_new), *bouncy);
+        }
+    }
+
+    #[test]
+    fn test_subshape_poses_default_to_none() {
+        let poses: SubshapePoses = Default::default();
+        assert_eq!(poses, SubshapePoses { pos1: None, pos2: None });
+        let pose = rapier_math::pose2::Pose2Trait::new(vec2(ONE, ZERO), Default::default());
+        let set = SubshapePoses { pos1: Some(pose), ..poses };
+        assert_eq!((set.pos1, set.pos2), (Some(pose), None));
+    }
+
+    #[test]
+    fn test_contact_indices_remove_the_is_new_bit() {
+        let sc = SolverContact { contact_id: 5, ..Default::default() };
+        assert_eq!(sc.contact_indices(), 5);
+        let new = SolverContact { contact_id: NEW_CONTACT_BIT + 7, ..Default::default() };
+        assert_eq!(new.contact_indices(), 7);
+        let bit_only = SolverContact { contact_id: NEW_CONTACT_BIT, ..Default::default() };
+        assert_eq!(bit_only.contact_indices(), 0);
+    }
+
+    #[test]
     fn gas_baseline() {
         let _ = opaque(ONE);
+    }
+
+    #[test]
+    fn gas_is_bouncy() {
+        let _ = is_bouncy(opaque(HALF), opaque(true));
+    }
+
+    #[test]
+    fn gas_contact_indices() {
+        let _ = opaque(SolverContact { contact_id: NEW_CONTACT_BIT + 7, ..Default::default() })
+            .contact_indices();
     }
 
     #[test]

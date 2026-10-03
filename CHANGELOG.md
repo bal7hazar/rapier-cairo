@@ -8,6 +8,11 @@ whether simulation results changed.
 **Results:** unchanged since `0.1.0-alpha.8` (the toolchain bump and the slim crossings are bit-identical).
 
 ### Added
+- API parity (PX6): `NormalConstraints` / `NormalConstraintsPair` (value style, `LocalNormalProjector` is the required
+  method) with `SegmentPseudoNormals` and the new `TrianglePseudoNormals` as projectors (`project_into_cone` in Q32.32),
+  `ShapeDistance`, `SubshapePoses` (plain data), `is_bouncy`, `SolverContactGeneric` / `contact_indices` (one-lane alias);
+  the main ones in the prelude. No result changed; the 74 items still `missing` are parked families (sub-shape widening,
+  `contact_skin`, composites, the solver's scalar API, V-HACD) or need a table rule (see the PX6 report).
 - `ImpulseJointSet::map_attached_joints_mut` (PX5, #242): the user's closure is called on a copy of each joint attached
   to a body and returns the edited joint, written back (Cairo closures have no `&mut`).
 - Cheap API items off the step path (PX4, #240): `Index` on `ColliderSet` / `RigidBodySet` (`set[handle]`),
