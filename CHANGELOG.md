@@ -5,47 +5,28 @@ whether simulation results changed.
 
 ## Unreleased
 
-Dormant pairs kept apart (WS3, opt-in), `WorldState` version 4 with the migration of version 3, and two parity items
-(`ColliderSet::take_removed`, `GenericJointBuilder::user_data`).
-
-**Results:** bit-identical. Every result test passes unchanged, and the per-tick digests of the version-3 felts of the
-world state (both pile10 shots in process and slim, levels 10 and 20 over 90 ticks) equal `0.1.0-alpha.9`'s, with the
-dormant pairs kept apart or not.
+**Results:** bit-identical, and the step's Cairo steps and Sierra gas unchanged (no existing gas snapshot entry of the
+step moves; only state round trips cost more, see Changed).
 
 ### Added
+- `world::state::v3` (`WorldStateV3`, `migrate`, `downgrade`, WS3): the version-3 layout of the world state, its
+  migration and the version-3 felts of a current state.
 - Sub-shape result widening (SW1): `SubshapeContact`, `SubshapePointProjection` and `SubshapeRayIntersection` (twin values, in the prelude) built by `ContactTrait::with_subshapes` and `PointProjectionTrait` / `RayIntersectionTrait::with_subshape`; `ContactManifoldTrait::subshape_pos1 / 2` (read the part pose back from the shape) and `set_subshape_pos1 / 2` (on a `SubshapePoses`, ADR 46). Opt-in: no existing type, signature or result changes; the 7 parity items are `ported`.
-- `WorldTrait::keep_dormant_pairs_apart` / `World::dormant` (`pipeline::active_set::DormantPairs`, WS3): when on, a step
-  that leaves the active set valid moves its dormant pairs out of `narrow_phase.pairs`, so that the next steps neither
-  walk nor copy them; the world's queries (`contact_pair`, `contact_pairs`, `contact_pairs_with`, `intersection_*`)
-  read both lists, `world.narrow_phase` read directly holds the live pairs only (ADR 0001 entry 47). Off by default.
-  Exact Cairo steps with it on, against alpha.9: level 20 over 60 ticks −678,846 (−4.46 %, the mixed ticks of an awake
-  structure next to a sleeping one), the pile10 reference shot −62,612 slim / −64,902 in process (impact tick
-  −4,310), the owner's shot +1,428 slim / −2,458 in process, the game path −0.8 to −1.0 % (`docs/BUDGETS.md`, WS3).
-- `ColliderSet::take_removed` (with `removed` / `restore_removed`, `collider_set::access`): the handles removed since
-  the last call or step, as upstream; the step drains them as upstream's pipeline does (ADR 0001 entry 48).
-- `GenericJoint::user_data` (`u128`, `0` by default) and `GenericJointBuilder::user_data`, as upstream.
-- `world::state::v3` (`WorldStateV3`, `migrate`, `downgrade`): the version-3 layout, its migration and the version-3
-  felts of a current state. API parity 11 → 9 `missing` (after SW1 and PX8).
 
 ### Changed
+- **`WorldState` is version 4** (WS3; a layout change bumps the version). It reserves the fields of features not ported
+  yet, written empty: `removed_colliders` after `colliders`, a joint's user data (`0`, between its data and its
+  impulses), `dormant_apart` / `dormant_pairs` at the end; `from_state` rejects a state that fills them
+  (`'world state: reserved'`). **Version-3 felts still load**: `WorldState`'s `Serde` reads and migrates them, and the
+  migrated world steps to the same bits as the uninterrupted one. `BasicWorldState` (the caller classes' codec) rejects
+  version 3 with `'world state: version'`: read a version-3 basic state with `WorldState`'s `Serde` and write it again
+  (ADR 0001 entry 47). Out of alpha this is a breaking change of the written format (MAJOR), backward compatible for
+  reading. A state round trip costs a few hundred Cairo steps more (+764 over the game path's three round trips);
+  the step is unchanged. No class hash changes; the caller classes re-pin (`docs/BUDGETS.md`, WS3).
+- WS3's lever (dormant pairs out of `narrow_phase.pairs`) and the parity items `ColliderSet::take_removed` /
+  `GenericJointBuilder::user_data` were measured and are not shipped: each costs Cairo steps on the default path
+  (`docs/research/impact-tick.md` §10).
 - API parity (PX8): the project manager's SC2 decisions of 2026-10-03 as table rules: 26 scalar items of the solver (`dynamics::solver` is `pub(crate)` upstream) and the 3 `contact_skin` items closed with two new reasons, `CompoundEdgeCone` (parry 0.31's 2D type) back to `missing` for lot CE; 46 → 18 `missing`. Table and script only, no library code, results unchanged.
-- **`WorldState` is version 4** (a layout change bumps the version): `removed_colliders` after `colliders`, a joint's
-  `user_data`, and `dormant_apart` / `dormant_pairs` at the end. **Version-3 felts still load**: `WorldState`'s `Serde`
-  reads them and migrates them (`v3::migrate`: no dormant pair apart, no removal recorded, joints' user data `0`), and
-  the migrated world steps to the same bits as the uninterrupted one. `BasicWorldState` (the caller classes' codec)
-  rejects version 3 with `'world state: version'` (the migration does not fit the caller classes, ADR 0001 entry 49):
-  read a version-3 basic state with `WorldState`'s `Serde` and write it again. Out of alpha this is a breaking change of
-  the written format (MAJOR), backward compatible for reading.
-- Cairo steps by default (dormant pairs not kept apart), against alpha.9: `rapier2d` probes +0.17 to +0.89 % (game path
-  +0.23 to +0.36 %; one-body scenes up to +2.16 %), `rapier2d_classes` probes median +0.19 % (max +0.69 %), the pile10
-  owner's shot +44,457 slim (+0.15 %): the boxed fields `World::dormant` and the removed colliders ride along every
-  `ref` of the world and of the collider set. Sierra gas snapshots median +0.21 %.
-- Declared classes: `SlimSplitStep` 66,890 → 70,632 CASM felts (margin 3,096), `SlimEditStep` 68,632 → 72,441
-  (**margin 1,287**), `WorldEditClass` 51,380 → 53,735; the ten library classes stay under 73,728. A game re-pins
-  `SolverClass`, `SolveAdvanceClass`, `IslandsClass`, `MassClass`, `NarrowPhaseClass` and `ForceEventsClass` (the
-  hashes of `crates/rapier2d_classes/tests/hashes.cairo`) and its own caller class; `ContactBallClass`,
-  `ContactPolygonClass`, `BroadPhaseClass` and `ActiveSetClass` keep their hashes. To get WS3's steps, a game calls
-  `keep_dormant_pairs_apart(true)` on its worlds.
 
 ## 0.1.0-alpha.9 — 2026-10-03
 

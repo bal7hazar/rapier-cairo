@@ -373,32 +373,56 @@ about 12. `mul_add` alone is 5.7 % of all probe steps and 11 % of the pile10 sho
 `mul_add` per impulse). A cheaper rescale in `fixed` would move every family; the `Vec2` component-wise operations are
 two scalar operations each (no extra cost).
 
-## 10. WS3 — dormant pairs out of the pair list (2026-10-03)
+## 10. WS3 — dormant pairs out of the pair list: measured, back to the plan (2026-10-03)
 
-Lot WS3 (`docs/briefs/ws3-dormant-pairs.md`): IT1's parked lever (§4, "dormant pairs out of `narrow_phase.pairs`").
-Figures, toolchain and build path: `docs/BUDGETS.md` (WS3). What the measurement found:
+Lot WS3 (`docs/briefs/ws3-dormant-pairs.md`) implemented IT1's parked lever (§4, "dormant pairs out of
+`narrow_phase.pairs`") and two parity items, measured them, and shipped none of them: the project manager's rule of
+2026-10-03 is zero cost on the default path (no existing `gas/**/*.snap` entry and no default probe may change), and
+none of the three met it. What shipped is `WorldState` version 4 with the migration of version 3; its new fields are
+reserved for these features and written empty. The lever goes back to `docs/PLAN.md` with what follows.
 
-- **Opt-in, not default.** With the dormant pairs out of `narrow_phase.pairs` after every step, 14 existing tests fail
-  without any result changing: golden scenes, the SI sleep diagnostics and the staged-against-fused comparisons read
-  `world.narrow_phase.pairs` as the whole list or drive the public stage functions on it. The brief keeps those tests
-  unchanged, so the layout is `World::keep_dormant_pairs_apart(true)`; by default the step runs BT4's code on the whole
-  list.
-- **Where it pays.** The sparse step no longer gathers the live pairs by position, compares them, nor writes the whole
-  list back (`write_live` / `merge_live`), and the island fallback no longer splits it: level 20's mixed ticks lose
-  ≈ 20k each (−4.46 % over 60 ticks), a pile10 flight tick ≈ 0.9k, the impact tick 4.3k. After the pile10 impact
-  every body is awake, the dense path runs with nothing dormant, and the lever does nothing: on the owner's shot (108
-  of 151 ticks after the impact) it only offsets the default's own overhead (−2.5k in process, +1.4k slim). IT1's
-  "most walks of sleeping pairs" are walks of a pile that is asleep only until the impact.
-- **The positions stay.** The active set keeps the positions of the live pairs in the whole list in both modes (the
-  migration, `v3::downgrade` and the stale positions of an invalid set need them); the sparse step recomputes them only
-  when the live keys change (`live_positions`, keys only, no list built).
-- **Overhead by default.** Two boxed cells (`World::dormant`, the removed colliders of `ColliderSet::take_removed`)
-  ride along every `ref` of the world and of the collider set: +0.15 to +0.6 % per tick. Two unboxed `World` fields
-  cost twice as much (measured, replaced).
-- **Bit-identity.** Per-tick Poseidon digests of the version-3 felts of the whole state (`v3::downgrade`), the tick's
-  force events and the entities: 520 pile10 ticks (both shots, in process and slim) and 180 level ticks, equal to
-  alpha.9's in both modes; `level_budget`'s impact digests keep their version-3 pins (and gain version-4 ones).
+**Figures** (PR #266 at `2eade5e`, exact Cairo steps, Scarb 2.20.1 / snforge 0.64.0, the Mac, before = alpha.9 at
+`b1670ed`; uncommitted probes `crates/rapier2d_classes/tests/ws3.cairo`, `crates/rapier2d/tests/ws3_probes.cairo`):
 
-Probes (uncommitted, in the lot's worktree): `crates/rapier2d_classes/tests/ws3.cairo` (EL1's `el1.cairo` with an
-`_apart` twin of every shot and the per-tick traces) and `crates/rapier2d/tests/ws3_probes.cairo` (level windows,
-traces); the committed `steps_*` probes were run "apart" by building with the switch on by default (uncommitted).
+| probe | before | default (the switch off) | opted in |
+|---|--:|--:|--:|
+| pile10 owner's shot, in process | 22,507,444 | +40,571 (+0.18 %) | −2,470 (−0.01 %) |
+| pile10 owner's shot, slim | 29,500,630 | +44,457 (+0.15 %) | +1,416 (+0.00 %) |
+| pile10 reference shot, in process | 8,585,434 | +20,139 (+0.23 %) | −64,902 (−0.76 %) |
+| pile10 reference shot, slim | 11,906,622 | +22,429 (+0.19 %) | −62,612 (−0.53 %) |
+| level 20, 60 ticks (mixed ticks from 26) | 15,237,617 | +32,840 (+0.22 %) | −678,846 (−4.46 %) |
+| `steps_impact_level20` | 3,457,133 | +10,713 (+0.31 %) | −97,320 (−2.82 %) |
+| `steps_asleep_level20` (every block asleep) | 968,713 | +2,971 (+0.31 %) | +11,341 (+1.17 %) |
+| `steps_game_step` | 2,726,098 | +6,318 (+0.23 %) | −26,878 (−0.99 %) |
+
+Bit-identical in both modes: the per-tick digests of the version-3 felts of the whole state (520 pile10 ticks, 180
+level ticks) equal alpha.9's.
+
+**What was learned.**
+
+- **The layout breaks no result but breaks the readers of the list.** With the dormant pairs out of
+  `narrow_phase.pairs` after every step, 14 tests fail: golden scenes, the SI sleep diagnostics and the
+  staged-against-fused comparisons read `world.narrow_phase.pairs` as the whole list or drive the public stage
+  functions on it. The layout must be opt-in (a switch on the world, or a wrapper type), or those tests must read the
+  world's queries.
+- **Where it pays.** The sparse step stops gathering the live pairs by position, comparing them and writing the whole
+  list back (`write_live` / `merge_live`); the island fallback stops splitting it. Level 20's mixed ticks (an awake
+  structure next to a sleeping one) lose ≈ 20k each; a pile10 flight tick ≈ 0.9k, the impact tick 4.3k. After the
+  pile10 impact every body is awake and nothing is dormant: the owner's shot (108 of its 151 ticks after the impact)
+  gains nothing.
+- **Where it costs.** On fully asleep ticks the opt-in costs more than it saves (`steps_asleep_level20` +1.17 %): the
+  pebble's removal merges the pairs back and the next whole step splits them again.
+- **The default path pays for a runtime switch.** A field on `World` (and the removed-collider list on `ColliderSet`)
+  rides along every `ref` of the world or the set: two unboxed fields cost +0.05 to +0.96 % per probe, one boxed cell
+  each +0.02 to +0.75 %, and any extra branch moves the Sierra gas of the functions that hold it. Zero default cost
+  needs the layout outside `World`: a wrapper type holding the world and the dormant list, its own step entry points
+  (the sparse step duplicated in `pipeline/active_set`, the default one untouched), removals and queries, and the
+  reserved `WorldState` fields. The slim callers would not compile it (their margin, option (A) of the project
+  manager): only in-process callers would gain.
+- **The positions stay.** The active set must keep the positions of the live pairs in the whole list in both modes:
+  the migration, the version-3 felts and the stale positions of an invalid set depend on them.
+- **The parity items.** `ColliderSet::take_removed` needs a list on the collider set (+0.1 to +0.2 % per tick, boxed:
+  the set rides along every stage) and `GenericJointBuilder::user_data` a field on `GenericJoint` (+0.05 to +0.11 % on
+  joint scenes: the solver copies the joint). Neither can reach zero default cost while it lives on a struct the step
+  passes or copies; both are back to `missing` in `docs/API_PARITY.md`, with `WorldState` v4's reserved fields ready
+  for them.

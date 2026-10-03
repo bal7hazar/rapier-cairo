@@ -34,11 +34,9 @@ use crate::rigid_body_set::{
 };
 
 /// The set of colliders. Holds a dict: pass it by `ref`.
-#[derive(Destruct)]
+#[derive(Destruct, Default)]
 pub struct ColliderSet {
     colliders: Arena<Collider>,
-    /// Removed handles since the last step or `take_removed` (WS3, `access`), boxed (one cell).
-    removed: Box<Array<Handle>>,
 }
 
 /// Operations of [`ColliderSet`]. Reads take `ref self` because arena reads mutate the dict log.
@@ -47,7 +45,7 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// An empty set.
     #[inline(always)]
     fn new() -> ColliderSet {
-        ColliderSet { colliders: ArenaTrait::new(), removed: access::no_removal() }
+        ColliderSet { colliders: ArenaTrait::new() }
     }
 
     /// An empty set. Cairo arenas reserve no memory, so `capacity` is intentionally ignored.
@@ -106,7 +104,6 @@ pub impl ColliderSetImpl of ColliderSetTrait {
         if let Some(parent) = collider.parent {
             detach_collider(ref bodies, parent.handle, handle);
         }
-        self.record_removed(handle);
         Some(collider)
     }
 
@@ -306,13 +303,12 @@ pub impl ColliderSetImpl of ColliderSetTrait {
     /// # Panics
     /// `Arena: state ...` (`rapier_core::data::arena::errors`) when `state` is not a valid image.
     fn from_state(state: ArenaState<Collider>) -> ColliderSet {
-        ColliderSet { colliders: ArenaStateTrait::from_state(state), removed: access::no_removal() }
+        ColliderSet { colliders: ArenaStateTrait::from_state(state) }
     }
 }
 
-/// `Index` and the change reads (PX4), the removals (WS3).
+/// `Index` and the change reads (PX4).
 pub mod access;
-pub use access::{ColliderSetChangesTrait, ColliderSetDefault};
 
 #[cfg(test)]
 mod tests {

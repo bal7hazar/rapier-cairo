@@ -11,11 +11,13 @@
 //! filled it (the restored sets start unmodified). Version 3 (CC2): a body's cold data holds its
 //! CCD state next to its user data (`RigidBodyColdExtra`, serialized as an `Option`); the CCD
 //! solver is owned by the caller of `step_with_ccd` and serializes its switch alone
-//! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the world's switch and list of the
-//! dormant pairs kept apart (`World::dormant`), and the colliders removed since the last step
-//! (`ColliderSetTrait::take_removed`). A persistent piece
-//! added to [`World`] later (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is
-//! bumped.
+//! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the layout of the next lots, its new
+//! fields reserved and written empty: the colliders removed since the last step
+//! (`removed_colliders`), a joint's user data (`0`, between its data and its impulses), the switch
+//! and list of the dormant pairs kept apart (`dormant_apart`, `dormant_pairs`). [`from_state`]
+//! rejects a state that fills them ([`errors::RESERVED`]): the features that use them are not
+//! ported yet (`docs/research/impact-tick.md` §10). A persistent piece added to [`World`] later
+//! (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is bumped.
 //!
 //! [`to_state`] leaves the world as is; [`into_state`] consumes it and moves the pair list
 //! instead of copying it (the end of a chunk).
@@ -32,18 +34,17 @@
 //! state and migrates them ([`v3::migrate`]); [`v3::downgrade`] writes the version-3 state of a
 //! world.
 
+use fixed::Fixed;
 use glam_core::Vec2;
 use rapier_core::Handle;
 use rapier_core::data::arena::ArenaState;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
-use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSetTrait};
+use rapier_dynamics2d::joint::{GenericJoint, ImpulseJoint, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
-use crate::pipeline::active_set::{ActiveSet, DormantPairs};
-use crate::pipeline::merge_pairs;
+use crate::pipeline::active_set::ActiveSet;
 use super::World;
 
 /// Version 3 of the layout and its migration (WS3).
@@ -56,6 +57,8 @@ pub const WORLD_STATE_VERSION: u32 = 4;
 pub mod errors {
     /// `from_state` received a state of another layout version.
     pub const VERSION: felt252 = 'world state: version';
+    /// A reserved field of version 4 is filled (see the module documentation).
+    pub const RESERVED: felt252 = 'world state: reserved';
 }
 
 /// Flat, serialisable image of a [`World`]: one field per field of the world, in the same
@@ -68,24 +71,24 @@ pub struct WorldState {
     pub integration_parameters: IntegrationParameters,
     pub bodies: ArenaState<RigidBody>,
     pub colliders: ArenaState<Collider>,
-    /// The colliders removed since the last step or `take_removed` (version 4).
+    /// Reserved (version 4): the colliders removed since the last step; empty.
     pub removed_colliders: Array<Handle>,
+    /// The joints; each written with a reserved user data `0` (version 4).
     pub impulse_joints: ArenaState<ImpulseJoint>,
-    /// Last step's contact and intersection pairs, ascending key (without the dormant pairs kept
-    /// apart, version 4).
+    /// Last step's contact and intersection pairs, ascending key.
     pub narrow_phase: NarrowPhase,
     /// The step's active set (BT2, version 2), marked invalid when a set was written since the
     /// step that filled it.
     pub active_set: ActiveSet,
-    /// The steps keep the dormant pairs apart (version 4).
+    /// Reserved (version 4): the steps keep the dormant pairs apart; `false`.
     pub dormant_apart: bool,
-    /// The dormant pairs kept apart, ascending key (version 4); empty when the saved set is
-    /// invalid.
+    /// Reserved (version 4): the dormant pairs kept apart; empty.
     pub dormant_pairs: Array<ContactPair>,
 }
 
-/// The fields in order; reads the felts of the current version, or of version 3 through
-/// [`v3::migrate`]. Another version is read in the current layout (and `from_state` rejects it).
+/// The fields in order (the joints by [`serialize_joints`]); reads the felts of the current
+/// version, or of version 3 through [`v3::migrate`]. Another version is read in the current layout
+/// (and `from_state` rejects it).
 pub impl WorldStateSerde of Serde<WorldState> {
     fn serialize(self: @WorldState, ref output: Array<felt252>) {
         self.version.serialize(ref output);
@@ -94,7 +97,7 @@ pub impl WorldStateSerde of Serde<WorldState> {
         self.bodies.serialize(ref output);
         self.colliders.serialize(ref output);
         self.removed_colliders.serialize(ref output);
-        self.impulse_joints.serialize(ref output);
+        serialize_joints(self.impulse_joints, ref output);
         self.narrow_phase.serialize(ref output);
         self.active_set.serialize(ref output);
         self.dormant_apart.serialize(ref output);
@@ -114,7 +117,7 @@ pub impl WorldStateSerde of Serde<WorldState> {
                 bodies: Serde::deserialize(ref serialized)?,
                 colliders: Serde::deserialize(ref serialized)?,
                 removed_colliders: Serde::deserialize(ref serialized)?,
-                impulse_joints: Serde::deserialize(ref serialized)?,
+                impulse_joints: deserialize_joints(ref serialized)?,
                 narrow_phase: Serde::deserialize(ref serialized)?,
                 active_set: Serde::deserialize(ref serialized)?,
                 dormant_apart: Serde::deserialize(ref serialized)?,
@@ -124,32 +127,69 @@ pub impl WorldStateSerde of Serde<WorldState> {
     }
 }
 
+/// The joint arena's felts in version 4: its bookkeeping, then per entry the handle, the bodies,
+/// the joint's data, the reserved user data (`0_u128`) and the impulses.
+fn serialize_joints(joints: @ArenaState<ImpulseJoint>, ref output: Array<felt252>) {
+    joints.generation.serialize(ref output);
+    joints.capacity.serialize(ref output);
+    joints.free_list.serialize(ref output);
+    let entries = *joints.entries;
+    output.append(entries.len().into());
+    for (handle, joint) in entries {
+        handle.serialize(ref output);
+        joint.body1.serialize(ref output);
+        joint.body2.serialize(ref output);
+        joint.data.serialize(ref output);
+        output.append(0);
+        joint.impulses.serialize(ref output);
+    }
+}
+
+/// [`serialize_joints`]' reader. `None` on malformed felts.
+///
+/// # Panics
+/// [`errors::RESERVED`] when a joint's user data is not `0`.
+fn deserialize_joints(ref serialized: Span<felt252>) -> Option<ArenaState<ImpulseJoint>> {
+    let generation: u32 = Serde::deserialize(ref serialized)?;
+    let capacity: u32 = Serde::deserialize(ref serialized)?;
+    let free_list: Span<u32> = Serde::deserialize(ref serialized)?;
+    let len: u32 = Serde::deserialize(ref serialized)?;
+    let mut entries = array![];
+    let mut i = 0;
+    while i != len {
+        let handle: Handle = Serde::deserialize(ref serialized)?;
+        let body1: Handle = Serde::deserialize(ref serialized)?;
+        let body2: Handle = Serde::deserialize(ref serialized)?;
+        let data: GenericJoint = Serde::deserialize(ref serialized)?;
+        let user_data: u128 = Serde::deserialize(ref serialized)?;
+        assert(user_data == 0, errors::RESERVED);
+        let impulses: [Fixed; 3] = Serde::deserialize(ref serialized)?;
+        entries.append((handle, ImpulseJoint { body1, body2, data, impulses }));
+        i += 1;
+    }
+    Some(ArenaState { generation, capacity, free_list, entries: entries.span() })
+}
+
 /// Saves `world`, which is left unchanged. Cost: one dict read per allocated and per free slot
 /// of each set, and a copy of the pair list.
 pub fn to_state(ref world: World) -> WorldState {
     let mut pairs = array![];
     pairs.append_span(world.narrow_phase.pairs.span());
-    let mut removed = array![];
-    removed.append_span(world.colliders.removed());
-    let kept: @DormantPairs = world.dormant.as_snapshot().unbox();
-    let mut dormant = array![];
-    dormant.append_span(kept.pairs.span());
-    let modified = world.bodies.is_modified() || world.colliders.is_modified();
-    let (pairs, active_set, dormant_pairs) = saved_pairs(
-        pairs, world.active_set.as_snapshot().unbox().clone(), dormant, modified,
-    );
     WorldState {
         version: WORLD_STATE_VERSION,
         gravity: world.gravity,
         integration_parameters: world.integration_parameters,
         bodies: world.bodies.to_state(),
         colliders: world.colliders.to_state(),
-        removed_colliders: removed,
+        removed_colliders: array![],
         impulse_joints: world.impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
-        active_set,
-        dormant_apart: *kept.apart,
-        dormant_pairs,
+        active_set: saved_active_set(
+            world.active_set.as_snapshot().unbox().clone(),
+            world.bodies.is_modified() || world.colliders.is_modified(),
+        ),
+        dormant_apart: false,
+        dormant_pairs: array![],
     }
 }
 
@@ -165,50 +205,38 @@ pub fn into_state(world: World) -> WorldState {
         mut impulse_joints,
         narrow_phase,
         active_set,
-        dormant,
     } = world;
     let modified = bodies.is_modified() || colliders.is_modified();
-    let DormantPairs { apart: dormant_apart, pairs: dormant_pairs } = dormant.unbox();
-    let (pairs, active_set, dormant_pairs) = saved_pairs(
-        narrow_phase.pairs, active_set.unbox(), dormant_pairs, modified,
-    );
     WorldState {
         version: WORLD_STATE_VERSION,
         gravity,
         integration_parameters,
         bodies: bodies.to_state(),
         colliders: colliders.to_state(),
-        removed_colliders: colliders.take_removed(),
+        removed_colliders: array![],
         impulse_joints: impulse_joints.to_state(),
-        narrow_phase: NarrowPhase { pairs },
-        active_set,
-        dormant_apart,
-        dormant_pairs,
+        narrow_phase,
+        active_set: saved_active_set(active_set.unbox(), modified),
+        dormant_apart: false,
+        dormant_pairs: array![],
     }
 }
 
-/// The pair list, the active set and the dormant pairs kept apart as saved: the set invalid when
-/// a set was written since the step that filled it (the restored sets start unmodified), and then
-/// the dormant pairs merged back into the list (an invalid set has none apart, version 4).
-fn saved_pairs(
-    pairs: Array<ContactPair>, active_set: ActiveSet, dormant: Array<ContactPair>, modified: bool,
-) -> (Array<ContactPair>, ActiveSet, Array<ContactPair>) {
+/// The active set as saved: invalid when a set was written since the step that filled it (the
+/// restored sets start unmodified).
+fn saved_active_set(active_set: ActiveSet, modified: bool) -> ActiveSet {
     let mut active_set = active_set;
-    if !modified {
-        return (pairs, active_set, dormant);
+    if modified {
+        active_set.valid = false;
     }
-    active_set.valid = false;
-    if dormant.is_empty() {
-        return (pairs, active_set, dormant);
-    }
-    (merge_pairs(pairs.span(), dormant.span()), active_set, array![])
+    active_set
 }
 
 /// Rebuilds the world saved by [`to_state`]. Cost: one dict write per allocated slot of each set.
 ///
 /// # Panics
-/// `world state: version` when `state.version != WORLD_STATE_VERSION`; `Arena: state ...` when a
-/// set image is invalid.
+/// `world state: version` when `state.version != WORLD_STATE_VERSION`; [`errors::RESERVED`] when
+/// a reserved field is filled; `Arena: state ...` when a set image is invalid.
 pub fn from_state(state: WorldState) -> World {
     let WorldState {
         version,
@@ -224,17 +252,18 @@ pub fn from_state(state: WorldState) -> World {
         dormant_pairs,
     } = state;
     assert(version == WORLD_STATE_VERSION, errors::VERSION);
-    let mut colliders = ColliderSetTrait::from_state(colliders);
-    colliders.restore_removed(removed_colliders);
+    assert(
+        removed_colliders.is_empty() && !dormant_apart && dormant_pairs.is_empty(),
+        errors::RESERVED,
+    );
     World {
         gravity,
         integration_parameters,
         bodies: RigidBodySetTrait::from_state(bodies),
-        colliders,
+        colliders: ColliderSetTrait::from_state(colliders),
         impulse_joints: ImpulseJointSetTrait::from_state(impulse_joints),
         narrow_phase,
         active_set: BoxTrait::new(active_set),
-        dormant: BoxTrait::new(DormantPairs { apart: dormant_apart, pairs: dormant_pairs }),
     }
 }
 

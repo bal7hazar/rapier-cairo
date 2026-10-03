@@ -233,8 +233,6 @@ pub struct GenericJoint {
     pub softness: SpringCoefficients,
     pub contacts_enabled: bool,
     pub enabled: JointEnabled,
-    /// User-defined data associated to the joint (upstream `user_data`, WS3); `0` by default.
-    pub user_data: u128,
 }
 pub impl GenericJointDefault of Default<GenericJoint> {
     fn default() -> GenericJoint {
@@ -252,7 +250,6 @@ pub impl GenericJointDefault of Default<GenericJoint> {
             softness: JOINT_DEFAULTS,
             contacts_enabled: true,
             enabled: JointEnabled::Enabled,
-            user_data: 0,
         }
     }
 }

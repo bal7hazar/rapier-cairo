@@ -23,8 +23,7 @@ use rapier2d::world::state::{WORLD_STATE_VERSION, WorldState};
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
-use rapier_dynamics2d::joint::{GenericJointBuilderTrait, ImpulseJointSetTrait, JointAxesMask};
+use rapier_dynamics2d::joint::ImpulseJointSetTrait;
 use rapier_dynamics2d::rigid_body_set::{
     RigidBodyBuilderTrait, RigidBodyCcdApiTrait, RigidBodySetTrait,
 };
@@ -498,60 +497,15 @@ fn test_migrated_sleep_sensor_k7() {
     assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
 }
 
-/// [`run`] on worlds that keep their dormant pairs apart (`keep_dormant_pairs_apart`), chunked
-/// through the current felts: the dormant pairs and the switch survive the round trip.
-fn run_apart(scene: Scene, k: u32, steps: u32) -> Seen {
-    let mut reference = build(scene);
-    reference.keep_dormant_pairs_apart(true);
-    let mut chunked = build(scene);
-    chunked.keep_dormant_pairs_apart(true);
-    let mut seen: Seen = Default::default();
-    let mut apart = false;
-    let mut step = 0;
-    while step != steps {
-        assert_eq!(act(ref reference, scene, step), act(ref chunked, scene, step));
-        let expected = reference.step();
-        let got = chunked.step();
-        assert!(expected == got, "events differ at step {}", step);
-        observe(ref reference, expected.span(), ref seen);
-        if !reference.dormant.as_snapshot().unbox().pairs.is_empty() {
-            apart = true;
-        }
-        step += 1;
-        if step % k == 0 {
-            let restored = round_trip(ref chunked);
-            chunked = restored;
-            assert!(*chunked.dormant.as_snapshot().unbox().apart);
-        }
-        assert!(reference.to_state() == chunked.to_state(), "state differs after step {}", step);
-    }
-    assert!(apart, "no dormant pair was kept apart");
-    seen
-}
-
-#[test]
-fn test_chunked_apart_sleep_sensor_k1() {
-    let seen = run_apart(Scene::SleepSensor, 1, 95);
-    assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
-}
-
-#[test]
-fn test_chunked_apart_sleep_sensor_k7() {
-    let seen = run_apart(Scene::SleepSensor, 7, 95);
-    assert!(seen.sleeping_steps > 10 && !seen.sleeping_at_end && seen.sensor_events != 0);
-}
-
-/// The sleep-sensor scene, its dormant pairs kept apart, after `steps` steps: its state's felts in
-/// the current layout and in the version-3 one.
+/// The sleep-sensor scene after `steps` steps: its state's felts in the current layout and in the
+/// version-3 one.
 fn sleeping_felts(steps: u32) -> (Array<felt252>, Array<felt252>) {
     let mut world = build(Scene::SleepSensor);
-    world.keep_dormant_pairs_apart(true);
     let mut step = 0;
     while step != steps {
         let _ = world.step();
         step += 1;
     }
-    assert!(!world.dormant.as_snapshot().unbox().pairs.is_empty());
     let state = world.to_state();
     let mut current = array![];
     state.serialize(ref current);
@@ -561,8 +515,8 @@ fn sleeping_felts(steps: u32) -> (Array<felt252>, Array<felt252>) {
 }
 
 /// Golden vectors of both layouts: the sleep-sensor scene at step 80 (the ball asleep inside the
-/// sensor, the active set valid, its dormant pairs apart): Poseidon digests of the felts, and their
-/// lengths. The version-3 felts read back give the version-3 world (no pair apart).
+/// sensor, the active set valid): Poseidon digests of the felts, and their lengths. The version-3
+/// felts read back migrate (reserved fields empty) and write the same version-3 felts.
 #[test]
 fn test_layout_vectors() {
     let (current, old) = sleeping_felts(80);
@@ -577,7 +531,7 @@ fn test_layout_vectors() {
     assert_eq!(
         digests,
         (
-            3339414786868502093669029553999330673840482582429510255798585605212059219305,
+            1998500061259591036295676392253384875842452392322027899046072040991316593378,
             123024487372149215600037955575194440640478820966384355789198944703611307115,
         ),
     );
@@ -600,45 +554,70 @@ fn test_migrate_rejects_other_versions() {
     let _ = migrate(old);
 }
 
-/// `ColliderSet::take_removed` (WS3): a body's colliders and a collider removed since the last
-/// step are listed, survive the world state (version 4) and are drained by the step, as upstream's
-/// pipeline drains them; a version-3 state carries none.
+/// Version 4's reserved fields (WS3): a state that fills one is rejected.
 #[test]
-fn test_removed_colliders_survive_state_and_step() {
+#[should_panic(expected: 'world state: reserved')]
+fn test_reserved_dormant_pairs_rejected() {
     let mut world = build(Scene::Stack);
     let _ = world.step();
-    assert!(world.remove_body(h(3, 0)).is_some());
-    assert!(world.remove_collider(h(1, 0)).is_some());
-    let removed = array![h(3, 0), h(1, 0)];
-    assert_eq!(world.colliders.removed(), removed.span());
-    let mut restored = round_trip(ref world);
-    assert_eq!(restored.colliders.removed(), removed.span());
-    let mut felts = array![];
-    downgrade(@world.to_state()).serialize(ref felts);
-    let mut span = felts.span();
-    let migrated: WorldState = Serde::deserialize(ref span).unwrap();
-    assert!(migrated.removed_colliders.is_empty());
-    let _ = restored.step();
-    assert_eq!(restored.colliders.take_removed(), array![]);
-    assert_eq!(world.colliders.take_removed(), removed);
-    assert_eq!(world.colliders.take_removed(), array![]);
+    let mut state = world.to_state();
+    let mut pairs = array![];
+    pairs.append_span(state.narrow_phase.pairs.span());
+    state.dormant_pairs = pairs;
+    let _ = WorldTrait::from_state(state);
 }
 
-/// `GenericJointBuilder::user_data` (WS3): a joint's user data survives the world state (version
-/// 4); the version-3 felts have none, so a migrated joint's is `0`.
 #[test]
-fn test_joint_user_data_survives_state() {
-    let mut world = build(Scene::Pendulum);
-    let data = GenericJointBuilderTrait::new(JointAxesMask { bits: 3 }).user_data(42).build();
-    let joint = world.insert_impulse_joint(h(0, 0), h(1, 0), data);
+#[should_panic(expected: 'world state: reserved')]
+fn test_reserved_removed_colliders_rejected() {
+    let mut world = build(Scene::Stack);
     let _ = world.step();
-    let mut restored = round_trip(ref world);
-    assert_eq!(restored.impulse_joints.get(joint).unwrap().data.user_data, 42);
+    let mut state = world.to_state();
+    state.removed_colliders = array![h(1, 0)];
+    let _ = WorldTrait::from_state(state);
+}
+
+/// A joint's reserved user data (version 4) is written `0`; felts that carry another value are
+/// rejected when read.
+#[test]
+#[should_panic(expected: 'world state: reserved')]
+fn test_reserved_joint_user_data_rejected() {
+    let mut world = build(Scene::Pendulum);
+    let _ = world.step();
+    let state = world.to_state();
+    assert_eq!(state.impulse_joints.entries.len(), 1);
     let mut felts = array![];
-    downgrade(@world.to_state()).serialize(ref felts);
-    let mut span = felts.span();
-    let mut migrated = WorldTrait::from_state(Serde::deserialize(ref span).unwrap());
-    let back = migrated.impulse_joints.get(joint).unwrap();
-    assert_eq!(back.data.user_data, 0);
-    assert_eq!(back.data.locked_axes, data.locked_axes);
+    state.serialize(ref felts);
+    // The felts before the joint's user data: the fields before the joints, the joint arena's
+    // bookkeeping, then the entry's handle, bodies and data.
+    let mut prefix = array![];
+    state.version.serialize(ref prefix);
+    state.gravity.serialize(ref prefix);
+    state.integration_parameters.serialize(ref prefix);
+    state.bodies.serialize(ref prefix);
+    state.colliders.serialize(ref prefix);
+    state.removed_colliders.serialize(ref prefix);
+    state.impulse_joints.generation.serialize(ref prefix);
+    state.impulse_joints.capacity.serialize(ref prefix);
+    state.impulse_joints.free_list.serialize(ref prefix);
+    prefix.append(1);
+    let (handle, joint) = *state.impulse_joints.entries.at(0);
+    handle.serialize(ref prefix);
+    joint.body1.serialize(ref prefix);
+    joint.body2.serialize(ref prefix);
+    joint.data.serialize(ref prefix);
+    let joint_end = prefix.len();
+    let mut edited = array![];
+    let mut i = 0;
+    for felt in felts.span() {
+        edited.append(if i == joint_end {
+            7
+        } else {
+            *felt
+        });
+        i += 1;
+    }
+    assert_eq!(*felts.at(joint_end), 0);
+    let mut span = edited.span();
+    let _: Option<WorldState> = Serde::deserialize(ref span);
 }

@@ -147,12 +147,6 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
         self.data.set_motor_max_force(axis, max_force);
         self
     }
-    /// An arbitrary user-defined 128-bit integer associated to the joints built by this builder
-    /// (upstream `user_data`, WS3); exact copy, no arithmetic or panics.
-    fn user_data(mut self: GenericJointBuilder, data: u128) -> GenericJointBuilder {
-        self.data.user_data = data;
-        self
-    }
     /// Return the joint; all copies are exact.
     fn build(self: GenericJointBuilder) -> GenericJoint {
         self.data
@@ -472,17 +466,6 @@ mod tests {
     use fixed::{ONE, ZERO};
     use rapier_testing::opaque;
     use super::*;
-    /// WS3: `GenericJointBuilder::user_data` sets the joint's user data, `0` by default.
-    #[test]
-    fn test_generic_builder_user_data() {
-        let locks = JointAxesMask { bits: 3 };
-        assert_eq!(GenericJointBuilderTrait::new(locks).build().user_data, 0);
-        let j = GenericJointBuilderTrait::new(locks)
-            .user_data(0xffffffffffffffffffffffffffffffff)
-            .build();
-        assert_eq!(j.user_data, 0xffffffffffffffffffffffffffffffff);
-        assert_eq!(j.locked_axes, locks);
-    }
     #[test]
     fn test_builders() {
         let a = Vec2 { x: ONE, y: ZERO };

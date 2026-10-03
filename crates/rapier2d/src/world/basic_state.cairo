@@ -21,11 +21,9 @@ use rapier_core::data::arena::ArenaState;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider::components::BoxedOneWayPlatformSerde;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
 use rapier_dynamics2d::joint::ImpulseJoint;
 use rapier_dynamics2d::rigid_body_set::RigidBodySetTrait;
 use rapier_geometry2d::shape::{ConvexPolygon, Shape};
-use crate::pipeline::active_set::DormantPairs;
 use super::World;
 use super::state::{WORLD_STATE_VERSION, WorldState, into_state};
 
@@ -115,17 +113,18 @@ pub fn from_basic_state(state: BasicWorldState) -> World {
             && impulse_joints.entries.is_empty(),
         errors::JOINTS,
     );
-    let mut colliders = ColliderSetTrait::from_state(colliders);
-    colliders.restore_removed(removed_colliders);
+    assert(
+        removed_colliders.is_empty() && !dormant_apart && dormant_pairs.is_empty(),
+        super::state::errors::RESERVED,
+    );
     World {
         gravity,
         integration_parameters,
         bodies: RigidBodySetTrait::from_state(bodies),
-        colliders,
+        colliders: ColliderSetTrait::from_state(colliders),
         impulse_joints: Default::default(),
         narrow_phase,
         active_set: BoxTrait::new(active_set),
-        dormant: BoxTrait::new(DormantPairs { apart: dormant_apart, pairs: dormant_pairs }),
     }
 }
 

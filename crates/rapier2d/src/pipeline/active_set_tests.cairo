@@ -9,11 +9,9 @@ use glam_core::Vec2;
 use rapier_core::collider::events::{COLLISION_EVENTS, CONTACT_FORCE_EVENTS};
 use rapier_dynamics2d::collider::{ColliderBuilderTrait, ColliderTrait};
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
-use rapier_dynamics2d::narrow_phase::ContactPair;
 use rapier_dynamics2d::rigid_body_set::{RigidBodyBuilderTrait, RigidBodySetTrait, RigidBodyTrait};
 use rapier_math::pose2::Pose2;
 use rapier_math::rot2::Rot2;
-use crate::world::state::v3::downgrade;
 use crate::world::{World, WorldTrait};
 use super::active_set::usable;
 use super::fixtures::draw;
@@ -239,108 +237,4 @@ fn test_active_set_survives_state() {
     assert!(world.set_body(h, body));
     let state = world.to_state();
     assert!(!state.active_set.valid);
-}
-
-// --- WS3: the dormant pairs kept apart (`World::keep_dormant_pairs_apart`). ------------------
-
-/// The dormant pairs `world` keeps apart.
-fn apart_list(world: @World) -> Span<ContactPair> {
-    world.dormant.as_snapshot().unbox().pairs.span()
-}
-
-/// The whole pair list of `world`: `narrow_phase.pairs` merged with the dormant pairs kept apart.
-fn whole_pairs(ref world: World) -> Array<ContactPair> {
-    super::merge_pairs(world.narrow_phase.pairs.span(), apart_list(@world))
-}
-
-/// Steps `apart` (dormant pairs kept apart) and `reference` (the default) `steps` times on
-/// [`level_with`]`(seed, far)`, with the user changes of `seed`; after every step: the same events
-/// and force events, bodies, colliders, whole pair list, queries and version-3 felts of the
-/// state. Returns how many steps left dormant pairs apart.
-fn run_apart(seed: u32, steps: u32, changes: bool, far: bool) -> u32 {
-    let mut apart = level_with(seed, far);
-    apart.keep_dormant_pairs_apart(true);
-    let mut reference = level_with(seed, far);
-    let mut kept = 0;
-    let mut t: u32 = 0;
-    while t != steps {
-        if changes && t > 4 {
-            change(ref apart, ref reference, t, seed);
-        }
-        let (expected, expected_forces) = reference.step_with_force_events();
-        let (got, got_forces) = apart.step_with_force_events();
-        assert!(got == expected, "seed {} step {} events", seed, t);
-        assert!(got_forces == expected_forces, "seed {} step {} force events", seed, t);
-        assert!(apart.bodies.iter() == reference.bodies.iter(), "seed {} step {} bodies", seed, t);
-        assert!(
-            apart.colliders.iter() == reference.colliders.iter(),
-            "seed {} step {} colliders",
-            seed,
-            t,
-        );
-        assert!(apart_list(@reference).is_empty());
-        if !apart_list(@apart).is_empty() {
-            kept += 1;
-        }
-        assert!(
-            whole_pairs(ref apart) == reference.narrow_phase.pairs, "seed {seed} step {t} pairs",
-        );
-        assert!(apart.contact_pairs() == reference.contact_pairs(), "seed {seed} step {t} views");
-        assert!(apart.intersection_pairs() == reference.intersection_pairs());
-        let (h, _) = *reference.colliders.iter().at(1);
-        assert!(apart.contact_pairs_with(h) == reference.contact_pairs_with(h));
-        assert!(
-            downgrade(@apart.to_state()) == downgrade(@reference.to_state()),
-            "seed {} step {} state",
-            seed,
-            t,
-        );
-        t += 1;
-    }
-    kept
-}
-
-/// Random levels (mixed ticks) with user changes.
-#[test]
-#[fuzzer(runs: 4, seed: 20261003)]
-fn fuzz_dormant_apart_agrees(seed: u16) {
-    let _ = run_apart(seed.into(), 13, true, true);
-}
-
-/// Without user changes, on both kinds of level: the dormant pairs are kept apart and every step
-/// agrees with the default.
-#[test]
-fn test_dormant_apart_is_kept_and_agrees() {
-    // Seed 0 (the step budget of a unit test): asleep at step 4, the pebble lands at step 10.
-    let kept = run_apart(0, 12, false, false) + run_apart(0, 14, false, true);
-    assert!(kept != 0, "no dormant pair was kept apart");
-}
-
-/// Switching on keeps the dormant pairs apart at once when the set is valid; switching off puts
-/// them back; a world switched on and off mid-run steps as the default.
-#[test]
-fn test_dormant_apart_switch() {
-    let mut world = level_with(0, true);
-    let mut reference = level_with(0, true);
-    let mut t = 0;
-    while t != 6 {
-        let _ = world.step();
-        let _ = reference.step();
-        t += 1;
-    }
-    assert!(super::active_set::is_valid(@world), "the level sleeps");
-    let whole = world.narrow_phase.pairs.clone();
-    world.keep_dormant_pairs_apart(true);
-    assert!(!apart_list(@world).is_empty());
-    assert!(whole_pairs(ref world) == whole);
-    let _ = world.step();
-    let _ = reference.step();
-    world.keep_dormant_pairs_apart(false);
-    assert!(
-        apart_list(@world).is_empty() && world.narrow_phase.pairs == reference.narrow_phase.pairs,
-    );
-    let _ = world.step();
-    let _ = reference.step();
-    assert!(world.bodies.iter() == reference.bodies.iter());
-    assert!(world.to_state() == reference.to_state());
 }

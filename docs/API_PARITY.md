@@ -19,16 +19,16 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
-| dynamics | 561 | 0 | 0 | 621 | 1182 | 78.4% | 100.0% |
-| geometry | 258 | 0 | 0 | 57 | 315 | 86.3% | 100.0% |
+| dynamics | 560 | 0 | 1 | 621 | 1182 | 78.2% | 99.8% |
+| geometry | 257 | 0 | 1 | 57 | 315 | 86.0% | 99.6% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 280 | 0 | 0 | 127 | 407 | 93.3% | 100.0% |
 | parry::shape | 235 | 0 | 9 | 136 | 380 | 89.7% | 96.3% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1554** | **0** | **9** | **1029** | **2592** | **86.1%** | **99.4%** |
+| **total** | **1552** | **0** | **11** | **1029** | **2592** | **86.0%** | **99.3%** |
 
-Cairo-only public items not matched to upstream: **2071**.
+Cairo-only public items not matched to upstream: **2057**.
 
 ## Aabb
 
@@ -541,7 +541,7 @@ Cairo-only public items not matched to upstream: **2071**.
 | method `remove` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `set_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `take_modified` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `take_removed` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
+| method `take_removed` | geometry | missing | The set records no removals (`remove` returns the collider); recording them would add a field to a stepped struct. | `rapier/src/geometry/collider_set.rs` |
 | method `with_capacity` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | type `ColliderSet` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 
@@ -1171,7 +1171,7 @@ Cairo-only public items not matched to upstream: **2071**.
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `user_data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `user_data` | dynamics | missing | `GenericJoint` stores no user data (a new field of a stepped struct). | `rapier/src/dynamics/joint/generic_joint.rs` |
 | type `GenericJointBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## GenericJointConstraint
@@ -4442,6 +4442,8 @@ Cairo-only public items not matched to upstream: **2071**.
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
 | [Additional 2D shapes](#wp-additional-2d-shapes) | 9 | standard | shape interface |
+| [Collider API completion](#wp-collider-api-completion) | 1 | mechanical | DB/EV |
+| [Joint API completion](#wp-joint-api-completion) | 1 | standard | JL/RJ |
 
 ### WP: Additional 2D shapes
 
@@ -4456,6 +4458,18 @@ Tier: standard. Depends/context: shape interface. Estimate: 9 public items.
 - **CompoundEdgeCone** type `CompoundEdgeCone` (`parry/src/shape/compound_pseudo_normals.rs`)
 - **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
 - **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
+
+### WP: Collider API completion
+
+Tier: mechanical. Depends/context: DB/EV. Estimate: 1 public items.
+
+- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
+
+### WP: Joint API completion
+
+Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
+
+- **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
 
 ## Cairo public items without upstream match
 
@@ -4531,7 +4545,6 @@ Tier: standard. Depends/context: shape interface. Estimate: 9 public items.
 - **ActiveSet** method `invalidate` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** method `is_valid` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** method `rebuild` (`crates/rapier2d/src/pipeline/active_set.cairo`)
-- **ActiveSet** method `restore_dormant` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSet** method `serialize` (`crates/rapier2d_classes/src/active_set.cairo`)
 - **ActiveSet** type `ActiveSet` (`crates/rapier2d/src/pipeline/active_set.cairo`)
 - **ActiveSetStage** method `rebuild` (`crates/rapier2d/src/pipeline/stages.cairo`)
@@ -4659,7 +4672,8 @@ Tier: standard. Depends/context: shape interface. Estimate: 9 public items.
 - **Alternatives** method `words_lane` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
-- ... 1871 more
+- **Arena** const `CAPACITY_OVERFLOW` (`crates/rapier_core/src/data/arena.cairo`)
+- ... 1857 more
 
 ## Embedded Rust inventory
 

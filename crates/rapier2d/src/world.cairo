@@ -6,9 +6,7 @@
 //! impulses) and the narrow-phase pairs (manifolds carrying the warm-start impulses and the event
 //! status; sensor pairs with their `intersecting` state), plus (BT2, D7 / D9 amended) the
 //! step's active set (`crate::pipeline::active_set`: the awake bodies, the static broad-phase
-//! proxies and the positions of the live pairs, so that a step walks the awake bodies only), and
-//! (WS3, opt-in: [`WorldTrait::keep_dormant_pairs_apart`]) the dormant pairs of a valid active set
-//! out of `narrow_phase.pairs`, which the queries below read with the others.
+//! proxies and the positions of the live pairs, so that a step walks the awake bodies only).
 //! Everything else [`WorldTrait::step`] needs (the other broad-phase proxies and pairs, solver
 //! bodies, constraints) is rebuilt every step and dropped with it. [`WorldTrait::to_state`] /
 //! [`WorldTrait::from_state`] save and restore it (`state`, versioned).
@@ -59,7 +57,7 @@ use rapier_geometry2d::query::{NonlinearRigidMotion, ShapeCastHit, ShapeCastOpti
 use rapier_geometry2d::ray::{Ray, RayIntersection};
 use rapier_geometry2d::shape::Shape;
 use rapier_math::pose2::Pose2;
-use crate::pipeline::active_set::{ActiveSet, DormantPairs};
+use crate::pipeline::active_set::ActiveSet;
 use crate::pipeline::ccd::CCDSolver;
 use crate::pipeline::config::StepConfig;
 use crate::pipeline::stages::StageConfig;
@@ -88,9 +86,6 @@ pub struct World {
     /// maintained by the step: only trusted while neither set was written since. Boxed: the
     /// world is passed by reference, one cell instead of the whole set.
     pub active_set: Box<ActiveSet>,
-    /// The dormant pairs kept apart and the switch that keeps them apart (WS3, see
-    /// [`WorldTrait::keep_dormant_pairs_apart`]). Boxed: one cell along every `ref` of the world.
-    pub dormant: Box<DormantPairs>,
 }
 
 /// Upstream's name of the world.
@@ -121,25 +116,6 @@ pub impl WorldImpl of WorldTrait {
             impulse_joints: ImpulseJointSetTrait::new(),
             narrow_phase: NarrowPhaseTrait::new(),
             active_set: BoxTrait::new(Default::default()),
-            dormant: BoxTrait::new(Default::default()),
-        }
-    }
-
-    /// Whether the steps keep the dormant pairs apart (WS3; no upstream counterpart). When `keep`,
-    /// a step that leaves the active set valid moves its dormant pairs (both sides fixed, absent or
-    /// asleep) out of `narrow_phase.pairs` into [`World::dormant`], so that the next steps neither
-    /// walk nor copy them; results and events are the same bits (`pipeline::active_set`). The
-    /// queries of the world ([`WorldTrait::contact_pair`], [`WorldTrait::contact_pairs`], ...) read
-    /// both lists; `narrow_phase` read directly then holds the live pairs only. `false` (the
-    /// default) puts the dormant pairs back into `narrow_phase.pairs`.
-    fn keep_dormant_pairs_apart(ref self: World, keep: bool) {
-        let mut dormant = self.dormant.unbox();
-        dormant.apart = keep;
-        self.dormant = BoxTrait::new(dormant);
-        if keep {
-            crate::pipeline::active_set::take_out_dormant(ref self);
-        } else {
-            crate::pipeline::active_set::restore_dormant(ref self);
         }
     }
 
@@ -240,8 +216,6 @@ pub impl WorldImpl of WorldTrait {
     /// not, with their `REMOVED` event. One walk of the pairs for both
     /// (`pipeline::sleeping::wake_and_release_removed`).
     fn wake_contact_partners(ref self: World, collider: Handle) {
-        // WS3: the dormant pairs kept apart go back into the list (the removal ends the set).
-        crate::pipeline::active_set::restore_dormant(ref self);
         self
             .narrow_phase
             .pairs =
@@ -420,30 +394,21 @@ pub impl WorldImpl of WorldTrait {
     /// last step, if any (upstream `PhysicsWorld::contact_pair`). Linear scan.
     #[inline(always)]
     fn contact_pair(self: @World, collider1: Handle, collider2: Handle) -> Option<ContactPair> {
-        match whole_narrow_phase(self) {
-            Some(whole) => whole.contact_pair(collider1, collider2),
-            None => self.narrow_phase.contact_pair(collider1, collider2),
-        }
+        self.narrow_phase.contact_pair(collider1, collider2)
     }
 
     /// Every contact pair found by the last step, one [`ContactPairView`] per collider pair with
     /// all its manifolds (a composite pair gathered), in ascending pair order, both colliders
     /// still existing (upstream `PhysicsWorld::contact_pairs`, without the collider references).
     fn contact_pairs(ref self: World) -> Array<ContactPairView> {
-        let pairs = match whole_narrow_phase(@self) {
-            Some(whole) => whole.contact_pairs(),
-            None => self.narrow_phase.contact_pairs(),
-        };
+        let pairs = self.narrow_phase.contact_pairs();
         existing_views(ref self.colliders, pairs)
     }
 
     /// The contact pairs of `collider` found by the last step, as [`WorldTrait::contact_pairs`]
     /// (upstream `PhysicsWorld::contact_pairs_with`).
     fn contact_pairs_with(ref self: World, collider: Handle) -> Array<ContactPairView> {
-        let pairs = match whole_narrow_phase(@self) {
-            Some(whole) => whole.contact_pairs_with(collider),
-            None => self.narrow_phase.contact_pairs_with(collider),
-        };
+        let pairs = self.narrow_phase.contact_pairs_with(collider);
         existing_views(ref self.colliders, pairs)
     }
 
@@ -453,20 +418,14 @@ pub impl WorldImpl of WorldTrait {
     /// Linear scan.
     #[inline(always)]
     fn intersection_pair(self: @World, collider1: Handle, collider2: Handle) -> Option<bool> {
-        match whole_narrow_phase(self) {
-            Some(whole) => whole.intersection_pair(collider1, collider2),
-            None => self.narrow_phase.intersection_pair(collider1, collider2),
-        }
+        self.narrow_phase.intersection_pair(collider1, collider2)
     }
 
     /// `(collider1, collider2, intersecting)` of every sensor pair involving `collider` found
     /// by the last step, in ascending pair order, both colliders still existing (upstream
     /// `PhysicsWorld::intersection_pairs_with`, without the collider references).
     fn intersection_pairs_with(ref self: World, collider: Handle) -> Array<(Handle, Handle, bool)> {
-        let pairs = match whole_narrow_phase(@self) {
-            Some(whole) => whole.intersection_pairs_with(collider),
-            None => self.narrow_phase.intersection_pairs_with(collider),
-        };
+        let pairs = self.narrow_phase.intersection_pairs_with(collider);
         existing(ref self.colliders, pairs.span())
     }
 
@@ -474,10 +433,7 @@ pub impl WorldImpl of WorldTrait {
     /// ascending pair order, both colliders still existing (upstream
     /// `PhysicsWorld::intersection_pairs`, without the collider references).
     fn intersection_pairs(ref self: World) -> Array<(Handle, Handle, bool)> {
-        let pairs = match whole_narrow_phase(@self) {
-            Some(whole) => whole.intersection_pairs(),
-            None => self.narrow_phase.intersection_pairs(),
-        };
+        let pairs = self.narrow_phase.intersection_pairs();
         existing(ref self.colliders, pairs.span())
     }
 
@@ -721,20 +677,6 @@ fn is_active(body: @RigidBody) -> bool {
 }
 
 /// The entries of `pairs` whose two colliders exist.
-/// WS3: the whole pair list as a narrow phase, `narrow_phase.pairs` merged with the dormant pairs
-/// kept apart, when there are some; `None` otherwise (`narrow_phase` is the whole list).
-fn whole_narrow_phase(world: @World) -> Option<NarrowPhase> {
-    let dormant = world.dormant.as_snapshot().unbox().pairs.span();
-    if dormant.is_empty() {
-        return None;
-    }
-    Some(
-        NarrowPhase {
-            pairs: crate::pipeline::merge_pairs(world.narrow_phase.pairs.span(), dormant),
-        },
-    )
-}
-
 fn existing(
     ref colliders: ColliderSet, pairs: Span<(Handle, Handle, bool)>,
 ) -> Array<(Handle, Handle, bool)> {
