@@ -51,7 +51,7 @@ impl CompoundSpec {
     }
 }
 
-fn at(x: f64, y: f64) -> QPose {
+pub(crate) fn at(x: f64, y: f64) -> QPose {
     QPose::new(qv(x, y), QRot::IDENTITY)
 }
 
@@ -176,7 +176,7 @@ impl Other {
     }
 }
 
-fn manifolds_json(manifolds: &[ContactManifold<(), ()>]) -> Vec<Value> {
+pub(crate) fn manifolds_json(manifolds: &[ContactManifold<(), ()>]) -> Vec<Value> {
     let mut parts: Vec<Value> = manifolds
         .iter()
         .filter(|m| !m.points.is_empty())
@@ -230,7 +230,7 @@ fn manifold_case(id: String, comp_name: &str, other: &Other, pos: QPose, first: 
 }
 
 /// `json_opt` of a distance; upstream's `Real::MAX` (no supported part) is `"infinite": true`.
-fn distance_json(r: Result<f64, query::Unsupported>) -> Value {
+pub(crate) fn distance_json(r: Result<f64, query::Unsupported>) -> Value {
     match r {
         Ok(v) if v == f64::MAX => json!({ "supported": true, "infinite": true, "value": Value::Null }),
         other => json_opt(other, jf),

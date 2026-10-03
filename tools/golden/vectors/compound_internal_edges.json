@@ -1,0 +1,2273 @@
+{
+  "generated_by": "tools/golden — do not edit, run `cargo run --release` in tools/golden",
+  "rapier": "rapier2d-f64 0.35.3",
+  "parry": "parry2d-f64 0.31.1",
+  "encoding": "scalar = {f64, raw}; raw = round(f64 * 2^32) as i64 (Q32.32)",
+  "family": "compound_internal_edges",
+  "prediction": { "f64": 0.02000000001862645, "raw": 85899346 },
+  "compounds": [
+    {
+      "name": "row2",
+      "shape": {
+        "type": "compound",
+        "parts": [
+          {
+            "pose": {
+              "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "cuboid",
+              "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }
+            }
+          },
+          {
+            "pose": {
+              "translation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "cuboid",
+              "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "row3",
+      "shape": {
+        "type": "compound",
+        "parts": [
+          {
+            "pose": {
+              "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "cuboid",
+              "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }
+            }
+          },
+          {
+            "pose": {
+              "translation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "cuboid",
+              "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }
+            }
+          },
+          {
+            "pose": {
+              "translation": { "f64": [2.0, 0.0], "raw": [8589934592, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "cuboid",
+              "half_extents": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "poly2",
+      "shape": {
+        "type": "compound",
+        "parts": [
+          {
+            "pose": {
+              "translation": { "f64": [0.0, 0.0], "raw": [0, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "convex_polygon",
+              "vertices": [
+                { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+                { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] }
+              ]
+            }
+          },
+          {
+            "pose": {
+              "translation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+              "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+            },
+            "shape": {
+              "type": "convex_polygon",
+              "vertices": [
+                { "f64": [-0.5, -0.5], "raw": [-2147483648, -2147483648] },
+                { "f64": [0.5, -0.5], "raw": [2147483648, -2147483648] },
+                { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "flagged": [
+    {
+      "id": "row2_ball/x300",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.30000000004656613, 0.9799999999813735], "raw": [1288490189, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x300/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.30000000004656613, -0.9799999999813735],
+          "raw": [-1288490189, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x450",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.44999999995343387, 0.9799999999813735], "raw": [1932735283, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x450/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.44999999995343387, -0.9799999999813735],
+          "raw": [-1932735283, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x500",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.9799999999813735], "raw": [2147483648, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x500/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [-0.5, -0.9799999999813735], "raw": [-2147483648, -4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          },
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x550",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.5500000000465661, 0.9799999999813735], "raw": [2362232013, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x550/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.5500000000465661, -0.9799999999813735],
+          "raw": [-2362232013, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x700",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.6999999999534339, 0.9799999999813735], "raw": [3006477107, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.30000000004656613, 0.5], "raw": [-1288490189, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x700/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.6999999999534339, -0.9799999999813735],
+          "raw": [-3006477107, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [-0.30000000004656613, 0.5], "raw": [-1288490189, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_cuboid/x255",
+      "compound": 0,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "cuboid",
+          "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.2549999998882413, 0.7399999999906868], "raw": [1095216660, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.2450000001117587, -0.25], "raw": [1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              },
+              {
+                "local_p1": { "f64": [0.004999999888241291, 0.5], "raw": [21474836, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "local_n2": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.23999999999068677], "raw": [1073741824, -1030792151] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225528, "kind": "face", "code": 56 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.4899999999906868], "raw": [-2147483648, 2104533975] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 3221225533, "kind": "face", "code": 61 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_cuboid/x500",
+      "compound": 0,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "cuboid",
+          "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.7399999999906868], "raw": [2147483648, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              },
+              {
+                "local_p1": { "f64": [0.25, 0.5], "raw": [1073741824, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.25, 0.5], "raw": [-1073741824, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_cuboid/x745",
+      "compound": 0,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "cuboid",
+          "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.7450000001117587, 0.7399999999906868], "raw": [3199750636, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+            "local_n2": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.4899999999906868], "raw": [2147483648, 2104533975] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 3221225528, "kind": "face", "code": 56 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              },
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.23999999999068677], "raw": [-1073741824, -1030792151] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225533, "kind": "face", "code": 61 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.004999999888241291, 0.5], "raw": [-21474836, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.2450000001117587, -0.25], "raw": [-1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row3_ball/x450",
+      "compound": 1,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.44999999995343387, 0.9799999999813735], "raw": [1932735283, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row3_ball/x1450",
+      "compound": 1,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [1.4499999999534339, 0.9799999999813735], "raw": [6227702579, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row3_ball/x1550",
+      "compound": 1,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [1.5500000000465661, 0.9799999999813735], "raw": [6657199309, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 2,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_polygon/x255",
+      "compound": 2,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "convex_polygon",
+          "vertices": [
+            { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+            { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+            { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] },
+            { "f64": [-0.25, 0.25], "raw": [-1073741824, 1073741824] }
+          ]
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.2549999998882413, 0.7399999999906868], "raw": [1095216660, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.2450000001117587, -0.25], "raw": [1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741828, "kind": "vertex", "code": 4 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.004999999888241291, 0.5], "raw": [21474836, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_polygon/x500",
+      "compound": 2,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "convex_polygon",
+          "vertices": [
+            { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+            { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+            { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] },
+            { "f64": [-0.25, 0.25], "raw": [-1073741824, 1073741824] }
+          ]
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.7399999999906868], "raw": [2147483648, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741828, "kind": "vertex", "code": 4 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.25, 0.5], "raw": [1073741824, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.25, 0.5], "raw": [-1073741824, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_polygon/x745",
+      "compound": 2,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "convex_polygon",
+          "vertices": [
+            { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+            { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+            { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] },
+            { "f64": [-0.25, 0.25], "raw": [-1073741824, 1073741824] }
+          ]
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.7450000001117587, 0.7399999999906868], "raw": [3199750636, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.004999999888241291, 0.5], "raw": [-21474836, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.2450000001117587, -0.25], "raw": [-1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_ball/x450",
+      "compound": 2,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.44999999995343387, 0.9799999999813735], "raw": [1932735283, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225474, "kind": "face", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_ball/x550",
+      "compound": 2,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.5500000000465661, 0.9799999999813735], "raw": [2362232013, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225474, "kind": "face", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    }
+  ],
+  "plain": [
+    {
+      "id": "row2_ball/x300",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.30000000004656613, 0.9799999999813735], "raw": [1288490189, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.3846153845517986, 0.9230769231034172],
+              "raw": [-1651910498, 3964585196]
+            },
+            "local_n2": {
+              "f64": [0.3846153845517986, -0.9230769231034172],
+              "raw": [1651910498, -3964585196]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [0.1923076922758993, -0.4615384615517086],
+                  "raw": [825955249, -1982292598]
+                },
+                "dist": { "f64": 0.01999999996489632, "raw": 85899346 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x300/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.30000000004656613, -0.9799999999813735],
+          "raw": [-1288490189, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [0.30000000004656613, 0.5], "raw": [1288490189, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          },
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": {
+              "f64": [0.3846153845517986, -0.9230769231034172],
+              "raw": [1651910498, -3964585196]
+            },
+            "local_n2": {
+              "f64": [-0.3846153845517986, 0.9230769231034172],
+              "raw": [-1651910498, 3964585196]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.1923076922758993, -0.4615384615517086],
+                  "raw": [825955249, -1982292598]
+                },
+                "local_p2": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "dist": { "f64": 0.01999999996489632, "raw": 85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x450",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.44999999995343387, 0.9799999999813735], "raw": [1932735283, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.10360608435888824, 0.9946184088804203],
+              "raw": [-444984744, 4271853538]
+            },
+            "local_n2": {
+              "f64": [0.10360608435888824, -0.9946184088804203],
+              "raw": [444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [0.05180304217944412, -0.49730920444021015],
+                  "raw": [222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x450/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.44999999995343387, -0.9799999999813735],
+          "raw": [-1932735283, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          },
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": {
+              "f64": [0.10360608435888824, -0.9946184088804203],
+              "raw": [444984744, -4271853538]
+            },
+            "local_n2": {
+              "f64": [-0.10360608435888824, 0.9946184088804203],
+              "raw": [-444984744, 4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [0.05180304217944412, -0.49730920444021015],
+                  "raw": [222492372, -2135926769]
+                },
+                "local_p2": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741825, "kind": "vertex", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x500",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.9799999999813735], "raw": [2147483648, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x500/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [-0.5, -0.9799999999813735], "raw": [-2147483648, -4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          },
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x550",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.5500000000465661, 0.9799999999813735], "raw": [2362232013, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.10360608435888824, 0.9946184088804203], "raw": [444984744, 4271853538] },
+            "local_n2": {
+              "f64": [-0.10360608435888824, -0.9946184088804203],
+              "raw": [-444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [-0.05180304217944412, -0.49730920444021015],
+                  "raw": [-222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x550/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.5500000000465661, -0.9799999999813735],
+          "raw": [-2362232013, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.10360608435888824, -0.9946184088804203],
+              "raw": [-444984744, -4271853538]
+            },
+            "local_n2": { "f64": [0.10360608435888824, 0.9946184088804203], "raw": [444984744, 4271853538] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.05180304217944412, -0.49730920444021015],
+                  "raw": [-222492372, -2135926769]
+                },
+                "local_p2": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x700",
+      "compound": 0,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.6999999999534339, 0.9799999999813735], "raw": [3006477107, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.3846153845517986, 0.9230769231034172], "raw": [1651910498, 3964585196] },
+            "local_n2": {
+              "f64": [-0.3846153845517986, -0.9230769231034172],
+              "raw": [-1651910498, -3964585196]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [-0.1923076922758993, -0.4615384615517086],
+                  "raw": [-825955249, -1982292598]
+                },
+                "dist": { "f64": 0.01999999996489632, "raw": 85899346 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.30000000004656613, 0.5], "raw": [-1288490189, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_ball/x700/flip",
+      "compound": 0,
+      "compound_first": false,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": {
+          "f64": [-0.6999999999534339, -0.9799999999813735],
+          "raw": [-3006477107, -4209067950]
+        },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.3846153845517986, -0.9230769231034172],
+              "raw": [-1651910498, -3964585196]
+            },
+            "local_n2": { "f64": [0.3846153845517986, 0.9230769231034172], "raw": [1651910498, 3964585196] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": {
+                  "f64": [-0.1923076922758993, -0.4615384615517086],
+                  "raw": [-825955249, -1982292598]
+                },
+                "local_p2": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "dist": { "f64": 0.01999999996489632, "raw": 85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 0,
+            "subshape2": 1,
+            "local_n1": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "local_n2": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "local_p2": { "f64": [-0.30000000004656613, 0.5], "raw": [-1288490189, 2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225472, "kind": "face", "code": 0 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_cuboid/x255",
+      "compound": 0,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "cuboid",
+          "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.2549999998882413, 0.7399999999906868], "raw": [1095216660, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.2450000001117587, -0.25], "raw": [1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              },
+              {
+                "local_p1": { "f64": [0.004999999888241291, 0.5], "raw": [21474836, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "local_n2": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.23999999999068677], "raw": [1073741824, -1030792151] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225528, "kind": "face", "code": 56 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.4899999999906868], "raw": [-2147483648, 2104533975] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 3221225533, "kind": "face", "code": 61 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_cuboid/x500",
+      "compound": 0,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "cuboid",
+          "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.7399999999906868], "raw": [2147483648, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              },
+              {
+                "local_p1": { "f64": [0.25, 0.5], "raw": [1073741824, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.25, 0.5], "raw": [-1073741824, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row2_cuboid/x745",
+      "compound": 0,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "cuboid",
+          "half_extents": { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] }
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.7450000001117587, 0.7399999999906868], "raw": [3199750636, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+            "local_n2": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.4899999999906868], "raw": [2147483648, 2104533975] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 3221225528, "kind": "face", "code": 56 },
+                "fid2": { "packed": 1073741827, "kind": "vertex", "code": 3 }
+              },
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.23999999999068677], "raw": [-1073741824, -1030792151] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225533, "kind": "face", "code": 61 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.004999999888241291, 0.5], "raw": [-21474836, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225524, "kind": "face", "code": 52 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.2450000001117587, -0.25], "raw": [-1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225534, "kind": "face", "code": 62 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row3_ball/x450",
+      "compound": 1,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.44999999995343387, 0.9799999999813735], "raw": [1932735283, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.10360608435888824, 0.9946184088804203],
+              "raw": [-444984744, 4271853538]
+            },
+            "local_n2": {
+              "f64": [0.10360608435888824, -0.9946184088804203],
+              "raw": [444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [0.05180304217944412, -0.49730920444021015],
+                  "raw": [222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row3_ball/x1450",
+      "compound": 1,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [1.4499999999534339, 0.9799999999813735], "raw": [6227702579, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 2,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.10360608435888824, 0.9946184088804203],
+              "raw": [-444984744, 4271853538]
+            },
+            "local_n2": {
+              "f64": [0.10360608435888824, -0.9946184088804203],
+              "raw": [444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [0.05180304217944412, -0.49730920444021015],
+                  "raw": [222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741825, "kind": "vertex", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "row3_ball/x1550",
+      "compound": 1,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [1.5500000000465661, 0.9799999999813735], "raw": [6657199309, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.10360608435888824, 0.9946184088804203], "raw": [444984744, 4271853538] },
+            "local_n2": {
+              "f64": [-0.10360608435888824, -0.9946184088804203],
+              "raw": [-444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [-0.05180304217944412, -0.49730920444021015],
+                  "raw": [-222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741824, "kind": "vertex", "code": 0 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 2,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225473, "kind": "face", "code": 1 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_polygon/x255",
+      "compound": 2,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "convex_polygon",
+          "vertices": [
+            { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+            { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+            { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] },
+            { "f64": [-0.25, 0.25], "raw": [-1073741824, 1073741824] }
+          ]
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.2549999998882413, 0.7399999999906868], "raw": [1095216660, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.2450000001117587, -0.25], "raw": [1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741828, "kind": "vertex", "code": 4 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.004999999888241291, 0.5], "raw": [21474836, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "local_n2": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.23999999999068677], "raw": [1073741824, -1030792151] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid2": { "packed": 3221225475, "kind": "face", "code": 3 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.4899999999906868], "raw": [-2147483648, 2104533975] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 3221225479, "kind": "face", "code": 7 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_polygon/x500",
+      "compound": 2,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "convex_polygon",
+          "vertices": [
+            { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+            { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+            { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] },
+            { "f64": [-0.25, 0.25], "raw": [-1073741824, 1073741824] }
+          ]
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.5, 0.7399999999906868], "raw": [2147483648, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741828, "kind": "vertex", "code": 4 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              },
+              {
+                "local_p1": { "f64": [0.25, 0.5], "raw": [1073741824, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.25, 0.5], "raw": [-1073741824, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.25], "raw": [0, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_polygon/x745",
+      "compound": 2,
+      "compound_first": true,
+      "other": {
+        "kind": "convex",
+        "shape": {
+          "type": "convex_polygon",
+          "vertices": [
+            { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+            { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+            { "f64": [0.25, 0.25], "raw": [1073741824, 1073741824] },
+            { "f64": [-0.25, 0.25], "raw": [-1073741824, 1073741824] }
+          ]
+        }
+      },
+      "pos12": {
+        "translation": { "f64": [0.7450000001117587, 0.7399999999906868], "raw": [3199750636, 3178275799] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [1.0, 0.0], "raw": [4294967296, 0] },
+            "local_n2": { "f64": [-1.0, 0.0], "raw": [-4294967296, 0] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.4899999999906868], "raw": [2147483648, 2104533975] },
+                "local_p2": { "f64": [-0.25, -0.25], "raw": [-1073741824, -1073741824] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 3221225475, "kind": "face", "code": 3 },
+                "fid2": { "packed": 1073741824, "kind": "vertex", "code": 0 }
+              },
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.25, -0.23999999999068677], "raw": [-1073741824, -1030792151] },
+                "dist": { "f64": -0.004999999888241291, "raw": -21474836 },
+                "fid1": { "packed": 1073741828, "kind": "vertex", "code": 4 },
+                "fid2": { "packed": 3221225479, "kind": "face", "code": 7 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 2,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.004999999888241291, 0.5], "raw": [-21474836, 2147483648] },
+                "local_p2": { "f64": [0.25, -0.25], "raw": [1073741824, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 3221225477, "kind": "face", "code": 5 },
+                "fid2": { "packed": 1073741826, "kind": "vertex", "code": 2 }
+              },
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": { "f64": [-0.2450000001117587, -0.25], "raw": [-1052266988, -1073741824] },
+                "dist": { "f64": -0.010000000009313226, "raw": -42949673 },
+                "fid1": { "packed": 1073741830, "kind": "vertex", "code": 6 },
+                "fid2": { "packed": 3221225473, "kind": "face", "code": 1 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_ball/x450",
+      "compound": 2,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.44999999995343387, 0.9799999999813735], "raw": [1932735283, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.44999999995343387, 0.5], "raw": [1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225474, "kind": "face", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": {
+              "f64": [-0.10360608435888824, 0.9946184088804203],
+              "raw": [-444984744, 4271853538]
+            },
+            "local_n2": {
+              "f64": [0.10360608435888824, -0.9946184088804203],
+              "raw": [444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.5, 0.5], "raw": [-2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [0.05180304217944412, -0.49730920444021015],
+                  "raw": [222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741827, "kind": "vertex", "code": 3 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    },
+    {
+      "id": "poly2_ball/x550",
+      "compound": 2,
+      "compound_first": true,
+      "other": { "kind": "convex", "shape": { "type": "ball", "radius": { "f64": 0.5, "raw": 2147483648 } } },
+      "pos12": {
+        "translation": { "f64": [0.5500000000465661, 0.9799999999813735], "raw": [2362232013, 4209067950] },
+        "rotation": { "f64": [1.0, 0.0], "raw": [4294967296, 0] }
+      },
+      "expected": {
+        "manifolds": [
+          {
+            "subshape1": 0,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.10360608435888824, 0.9946184088804203], "raw": [444984744, 4271853538] },
+            "local_n2": {
+              "f64": [-0.10360608435888824, -0.9946184088804203],
+              "raw": [-444984744, -4271853538]
+            },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [0.5, 0.5], "raw": [2147483648, 2147483648] },
+                "local_p2": {
+                  "f64": [-0.05180304217944412, -0.49730920444021015],
+                  "raw": [-222492372, -2135926769]
+                },
+                "dist": { "f64": -0.017402859533155512, "raw": -74744713 },
+                "fid1": { "packed": 1073741826, "kind": "vertex", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          },
+          {
+            "subshape1": 1,
+            "subshape2": 0,
+            "local_n1": { "f64": [0.0, 1.0], "raw": [0, 4294967296] },
+            "local_n2": { "f64": [0.0, -1.0], "raw": [0, -4294967296] },
+            "num_points": 1,
+            "points": [
+              {
+                "local_p1": { "f64": [-0.44999999995343387, 0.5], "raw": [-1932735283, 2147483648] },
+                "local_p2": { "f64": [0.0, -0.5], "raw": [0, -2147483648] },
+                "dist": { "f64": -0.02000000001862645, "raw": -85899346 },
+                "fid1": { "packed": 3221225474, "kind": "face", "code": 2 },
+                "fid2": { "packed": 3221225472, "kind": "face", "code": 0 }
+              }
+            ]
+          }
+        ],
+        "intersects": { "supported": true, "value": true },
+        "distance": { "supported": true, "value": { "f64": 0.0, "raw": 0 } }
+      }
+    }
+  ]
+}
