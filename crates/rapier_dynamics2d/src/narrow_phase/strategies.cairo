@@ -19,7 +19,7 @@ use rapier_geometry2d::contact::ContactManifold;
 use rapier_geometry2d::shape::ShapeTrait;
 use crate::collider_set::ColliderSet;
 use crate::events::CollisionEvent;
-use super::composite::composite_pair_step;
+use super::composite::{composite_pair_step, composite_pair_step_constrained};
 use super::intersections::intersection_pair_step;
 use super::{ContactPair, PairCollider};
 
@@ -121,6 +121,29 @@ pub impl CompositeManifolds of CompositeStrategy {
         ref manifold: ContactManifold,
     ) -> Option<(Span<ContactPair>, Option<CollisionEvent>, u32)> {
         composite_pair_step(prediction, co1, co2, previous, cursor, ref manifold)
+    }
+}
+
+/// [`CompositeManifolds`] with the compound parts' normal constraints (lot CE, parry 0.31's
+/// `CompoundFlags::FIX_INTERNAL_EDGES`): a compound built with that flag clamps its parts' contact
+/// normals to the outline of the union, so a body sliding across the join of two parts does not
+/// catch on it. A compound without the flag, a polyline and a heightfield get
+/// [`CompositeManifolds`]'s manifolds. Opt-in: `DefaultStepConfig` keeps [`CompositeManifolds`], so
+/// `World::step` does not compile this path; a step selects it with its own `StepConfig`
+/// (`impl Composites = ConstrainedCompositeManifolds;`) through `World::step_with::<C>`.
+pub impl ConstrainedCompositeManifolds of CompositeStrategy {
+    const ENABLED: bool = true;
+
+    #[inline(always)]
+    fn composite_pair(
+        prediction: Fixed,
+        co1: PairCollider,
+        co2: PairCollider,
+        previous: Span<ContactPair>,
+        cursor: u32,
+        ref manifold: ContactManifold,
+    ) -> Option<(Span<ContactPair>, Option<CollisionEvent>, u32)> {
+        composite_pair_step_constrained(prediction, co1, co2, previous, cursor, ref manifold)
     }
 }
 

@@ -168,5 +168,6 @@ pub(crate) fn composite_unsupported(ref manifold: ContactManifold) -> bool {
 }
 
 pub mod compound;
+pub mod constrained;
 #[cfg(test)]
 mod tests;

@@ -68,7 +68,10 @@ pub mod prelude {
         ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,
     };
     pub use rapier_geometry2d::ray::{Ray, RayIntersection, RayTrait};
-    pub use rapier_geometry2d::shape::compound::{Compound, CompoundTrait};
+    pub use rapier_geometry2d::shape::compound::{
+        Compound, CompoundEdgeCone, CompoundFlags, CompoundFlagsTrait, CompoundPseudoNormals,
+        CompoundTrait, FIX_INTERNAL_EDGES,
+    };
     pub use rapier_geometry2d::shape::dyn_api::{ShapeDynImpl, ShapeDynTrait};
     pub use rapier_geometry2d::shape::heightfield::{
         HeightField, HeightFieldCellStatus, HeightFieldTrait,
@@ -95,7 +98,9 @@ pub mod prelude {
     };
     pub use crate::dispatcher::DefaultDispatcher;
     pub use crate::pipeline::ccd::{CCDSolver, CCDSolverTrait};
-    pub use crate::pipeline::config::{BasicStepConfig, DefaultStepConfig, StepConfig};
+    pub use crate::pipeline::config::{
+        BasicStepConfig, ConstrainedCompositeManifolds, DefaultStepConfig, StepConfig,
+    };
     pub use crate::pipeline::facade::{
         CollisionPipeline, CollisionPipelineTrait, PhysicsPipeline, PhysicsPipelineTrait,
     };

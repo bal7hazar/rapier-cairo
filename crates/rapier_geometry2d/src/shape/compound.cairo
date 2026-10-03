@@ -12,21 +12,36 @@
 //! to 16 parts. Parts therefore come out in ascending index, where upstream's order follows its
 //! tree.
 //!
-//! Deviations: `bvh` is not ported (no tree, see above); `DEFAULT_WELD_TOLERANCE`, `flags`,
-//! `set_flags`, `with_flags`, `part_normal_constraints`, `CompoundFlags` and
-//! `CompoundPseudoNormals` (Parry 0.31's `FIX_INTERNAL_EDGES`) postdate the golden pin
-//! (parry2d-f64 0.30.2); `decompose_trimesh` needs a triangle mesh.
+//! # Internal edges (lot CE)
+//!
+//! [`FIX_INTERNAL_EDGES`] (Parry 0.31, opt-in: `new` sets no flag) computes, once, the normal cones
+//! of every polygonal part from the outline of the union ([`internal_edges`]); a step that selects
+//! the constrained composite strategy projects each part's contact normals into them
+//! ([`CompoundTrait::part_normal_constraints`]). The flags are not stored apart: a compound is
+//! flagged exactly when it holds cones (one entry per part), so a flag-free compound keeps its
+//! width but one span, and its serialised felts ([`CompoundSerde`]).
+//!
+//! Deviations: `bvh` is not ported (no tree, see above); `decompose_trimesh` needs a triangle mesh;
+//! `DEFAULT_WELD_TOLERANCE` is an absolute distance in raw Q32.32 units (upstream: ULPs relative
+//! to each corner's magnitude, ADR 0001); `part_normal_constraints` answers the cones by value.
 
+use core::traits::BitOr;
 use fixed::Fixed;
 use rapier_math::pose2::Pose2;
 use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::aabb::{Aabb, AabbTrait};
 use crate::mass::MassProperties;
+pub use crate::shape::compound::pseudo_normals::{
+    CompoundEdgeCone, CompoundEdgeConeTrait, CompoundPseudoNormals, turns_clockwise,
+};
 use crate::shape::round_shape::{RoundConvexPolygonShapeTrait, RoundConvexPolygonTrait};
 use crate::shape::{
     BallTrait, CapsuleTrait, ConvexPolygonTrait, CuboidTrait, HalfSpaceTrait, RoundCuboidTrait,
     RoundTriangleTrait, SegmentTrait, Shape, ShapeTrait, TriangleTrait,
 };
+
+pub mod internal_edges;
+pub mod pseudo_normals;
 
 /// Failure modes of [`CompoundTrait`].
 pub mod errors {
@@ -39,8 +54,49 @@ pub mod errors {
     pub const PART_INDEX: felt252 = 'Compound: part index';
 }
 
+/// Controls how a [`Compound`] is loaded (upstream `CompoundFlags`, a bit set).
+#[derive(Copy, Drop, Serde, PartialEq, Debug, Default)]
+pub struct CompoundFlags {
+    pub bits: u8,
+}
+
+/// The edges where two parts meet are interior to the union, and contact normals are clamped to
+/// the surviving outline (upstream `CompoundFlags::FIX_INTERNAL_EDGES`): it removes the ledge a
+/// body catches on when it slides across the cut between two parts of a decomposition. Costs a
+/// one-off pass over the parts' edges when set, and is honoured by a step that selects the
+/// constrained composite strategy.
+pub const FIX_INTERNAL_EDGES: CompoundFlags = CompoundFlags { bits: 1 };
+
+#[generate_trait]
+pub impl CompoundFlagsImpl of CompoundFlagsTrait {
+    /// No flag set.
+    #[inline(always)]
+    fn empty() -> CompoundFlags {
+        CompoundFlags { bits: 0 }
+    }
+
+    /// The [`FIX_INTERNAL_EDGES`] flag.
+    #[inline(always)]
+    fn fix_internal_edges() -> CompoundFlags {
+        FIX_INTERNAL_EDGES
+    }
+
+    /// Whether every flag of `other` is set in `self`.
+    #[inline(always)]
+    fn contains(self: CompoundFlags, other: CompoundFlags) -> bool {
+        (self.bits & other.bits) == other.bits
+    }
+}
+
+pub impl CompoundFlagsBitOr of BitOr<CompoundFlags> {
+    #[inline(always)]
+    fn bitor(lhs: CompoundFlags, rhs: CompoundFlags) -> CompoundFlags {
+        CompoundFlags { bits: lhs.bits | rhs.bits }
+    }
+}
+
 /// A union of convex parts (upstream `Compound`).
-#[derive(Copy, Drop, Serde, PartialEq, Debug)]
+#[derive(Copy, Drop, PartialEq, Debug)]
 pub struct Compound {
     /// The parts and their poses in the compound's frame.
     shapes: Span<(Pose2, Shape)>,
@@ -48,6 +104,74 @@ pub struct Compound {
     aabbs: Span<Aabb>,
     /// The union of `aabbs`.
     aabb: Aabb,
+    /// One entry per part when [`FIX_INTERNAL_EDGES`] is set (`None` for a part with no straight
+    /// sides), empty otherwise (upstream `flags` and `pseudo_normals`, see the module
+    /// documentation).
+    pseudo_normals: Span<Option<CompoundPseudoNormals>>,
+}
+
+/// `2^32`: [`CompoundSerde`] packs the flags above the part count.
+const FLAG_SHIFT: felt252 = 0x1_0000_0000;
+const FLAG_SHIFT_NZ: NonZero<u64> = 0x1_0000_0000;
+
+/// The serialised form of a compound: the part count, the parts, the boxes, the union box, as the
+/// derived `Serde` of the fields; a flagged compound adds its flags above the part count
+/// (`count + flags * 2^32`) and its cones after the union box. A flag-free compound therefore keeps
+/// the felts it had before the flags existed, and is read back by the derived path behind one
+/// look at the first felt.
+pub impl CompoundSerde of Serde<Compound> {
+    fn serialize(self: @Compound, ref output: Array<felt252>) {
+        if self.pseudo_normals.is_empty() {
+            Serde::serialize(self.shapes, ref output);
+            Serde::serialize(self.aabbs, ref output);
+            Serde::serialize(self.aabb, ref output);
+            return;
+        }
+        let shapes = *self.shapes;
+        output.append(shapes.len().into() + FIX_INTERNAL_EDGES.bits.into() * FLAG_SHIFT);
+        for part in shapes {
+            Serde::serialize(part, ref output);
+        }
+        Serde::serialize(self.aabbs, ref output);
+        Serde::serialize(self.aabb, ref output);
+        Serde::serialize(self.pseudo_normals, ref output);
+    }
+
+    fn deserialize(ref serialized: Span<felt252>) -> Option<Compound> {
+        let head = *serialized.get(0)?.unbox();
+        let fits: Option<u32> = head.try_into();
+        if fits.is_some() {
+            let shapes = Serde::deserialize(ref serialized)?;
+            let aabbs = Serde::deserialize(ref serialized)?;
+            let aabb = Serde::deserialize(ref serialized)?;
+            return Some(Compound { shapes, aabbs, aabb, pseudo_normals: array![].span() });
+        }
+        deserialize_flagged(ref serialized)
+    }
+}
+
+/// The flagged arm of [`CompoundSerde::deserialize`], out of line.
+#[inline(never)]
+fn deserialize_flagged(ref serialized: Span<felt252>) -> Option<Compound> {
+    let head: u64 = (*serialized.pop_front()?).try_into()?;
+    let (bits, count) = core::num::traits::DivRem::div_rem(head, FLAG_SHIFT_NZ);
+    if bits != FIX_INTERNAL_EDGES.bits.into() {
+        return None;
+    }
+    let count: u32 = count.try_into()?;
+    let mut shapes = array![];
+    let mut i: u32 = 0;
+    while i != count {
+        shapes.append(Serde::<(Pose2, Shape)>::deserialize(ref serialized)?);
+        i += 1;
+    }
+    let aabbs = Serde::deserialize(ref serialized)?;
+    let aabb = Serde::deserialize(ref serialized)?;
+    let pseudo_normals: Span<Option<CompoundPseudoNormals>> = Serde::deserialize(ref serialized)?;
+    if pseudo_normals.len() != count {
+        return None;
+    }
+    Some(Compound { shapes: shapes.span(), aabbs, aabb, pseudo_normals })
 }
 
 /// `Serde` of the boxed variant payload.
@@ -87,7 +211,69 @@ pub impl CompoundImpl of CompoundTrait {
             aabb = aabb.merged(bv);
             aabbs.append(bv);
         }
-        Compound { shapes, aabbs: aabbs.span(), aabb }
+        Compound { shapes, aabbs: aabbs.span(), aabb, pseudo_normals: array![].span() }
+    }
+
+    /// The tolerance [`CompoundTrait::set_flags`] welds part corners with when given `None`:
+    /// 4 raw Q32.32 units (`4 * 2^-32`), an absolute Chebyshev distance (upstream: 4 ULPs relative
+    /// to each corner's magnitude; ADR 0001).
+    const DEFAULT_WELD_TOLERANCE: Fixed = Fixed { raw: 4 };
+
+    /// [`CompoundTrait::new`] with `flags` applied (upstream `with_flags`); `weld_tolerance` is
+    /// [`CompoundTrait::set_flags`]'s.
+    /// #### Panics
+    /// * As [`CompoundTrait::new`] and [`CompoundTrait::set_flags`].
+    fn with_flags(
+        shapes: Span<(Pose2, Shape)>, flags: CompoundFlags, weld_tolerance: Option<Fixed>,
+    ) -> Compound {
+        let mut compound = Self::new(shapes);
+        compound.set_flags(flags, weld_tolerance);
+        compound
+    }
+
+    /// Sets the flags, computing or discarding the cones (upstream `set_flags`).
+    ///
+    /// `weld_tolerance` says how far apart two part corners may be and still be the same point:
+    /// an absolute distance on each axis, `None` selecting
+    /// [`CompoundTrait::DEFAULT_WELD_TOLERANCE`]; zero welds only corners at the very same
+    /// coordinates. Only [`FIX_INTERNAL_EDGES`] reads it.
+    /// #### Panics
+    /// * `'i64_sub Overflow'` / `'i64_sub Underflow'` when two corners are `2^31` or more apart.
+    fn set_flags(ref self: Compound, flags: CompoundFlags, weld_tolerance: Option<Fixed>) {
+        self
+            .pseudo_normals =
+                if flags.contains(FIX_INTERNAL_EDGES) {
+                    internal_edges::compute_pseudo_normals(
+                        self.shapes, weld_tolerance.unwrap_or(Self::DEFAULT_WELD_TOLERANCE),
+                    )
+                } else {
+                    array![].span()
+                };
+    }
+
+    /// The flags (upstream `flags`): [`FIX_INTERNAL_EDGES`] when the compound holds its cones.
+    #[inline(always)]
+    fn flags(self: @Compound) -> CompoundFlags {
+        if self.pseudo_normals.is_empty() {
+            CompoundFlagsTrait::empty()
+        } else {
+            FIX_INTERNAL_EDGES
+        }
+    }
+
+    /// The cones of part `i` (upstream `part_normal_constraints`): `None` unless the compound was
+    /// given [`FIX_INTERNAL_EDGES`] and the part is polygonal (a cuboid, a convex polygon or a
+    /// triangle).
+    /// #### Panics
+    /// * [`errors::PART_INDEX`] when flagged and `i >= num_parts`.
+    #[inline(always)]
+    fn part_normal_constraints(self: @Compound, i: u32) -> Option<CompoundPseudoNormals> {
+        let cones = *self.pseudo_normals;
+        if cones.is_empty() {
+            return None;
+        }
+        assert(i < cones.len(), errors::PART_INDEX);
+        *cones.at(i)
     }
 
     /// The parts and their poses (upstream `shapes`).

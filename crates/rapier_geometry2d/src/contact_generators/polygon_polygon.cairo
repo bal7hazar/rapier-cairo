@@ -129,6 +129,38 @@ pub(crate) fn separating_axis(
     Some((n, None))
 }
 
+/// [`separating_axis`] with the cores' signed distance along the answer (lot CE, the retain rule
+/// of the normal-constrained manifolds): the witnesses' distance when separated, else the larger
+/// SAT separation (minus the penetration depth).
+pub(crate) fn separating_axis_and_distance(
+    a: ConvexPolygon, b: ConvexPolygon, p: Pose2, prediction: Fixed,
+) -> Option<(Vec2, Option<(Vec2, Vec2)>, Fixed)> {
+    let (s1, n1) = sat_support(a, b, p);
+    if s1 > prediction {
+        return None;
+    }
+    let (s2, n2) = sat_support(b, a, p.inverse());
+    if s2 > prediction {
+        return None;
+    }
+    let (n, s) = if s2 > s1 {
+        (p.transform_vector(-n2), s2)
+    } else {
+        (n1, s1)
+    };
+    if s1 > ZERO || s2 > ZERO {
+        let (q1, q2) = closest(a, transformed(b, p));
+        let d = q2 - q1;
+        if let Some((x, y, len)) = try_normalize2_and_length(d.x, d.y, ZERO) {
+            if len > prediction {
+                return None;
+            }
+            return Some((Vec2 { x, y }, Some((q1, p.inverse_transform_point(q2))), len));
+        }
+    }
+    Some((n, None, s))
+}
+
 /// Clips features and inflates shape 2. Only actual closest-point witnesses permit a fallback.
 pub(crate) fn finish(
     p: Pose2,

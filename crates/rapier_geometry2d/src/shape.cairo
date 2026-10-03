@@ -58,7 +58,10 @@ use crate::mass::MassProperties;
 pub use crate::shape::ball::{Ball, BallTrait};
 pub use crate::shape::capsule::{Capsule, CapsuleTrait};
 use crate::shape::compound::{BoxedCompoundPartialEq, BoxedCompoundSerde};
-pub use crate::shape::compound::{Compound, CompoundTrait};
+pub use crate::shape::compound::{
+    Compound, CompoundEdgeCone, CompoundFlags, CompoundFlagsTrait, CompoundPseudoNormals,
+    CompoundTrait, FIX_INTERNAL_EDGES,
+};
 pub use crate::shape::cuboid::{Cuboid, CuboidTrait};
 pub use crate::shape::dyn_api::{ShapeDynImpl, ShapeDynTrait};
 pub use crate::shape::halfspace::{HalfSpace, HalfSpaceTrait};
