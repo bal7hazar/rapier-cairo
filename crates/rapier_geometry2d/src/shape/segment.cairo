@@ -10,6 +10,8 @@ use crate::aabb::bounding_volume::{BoundingSphere, BoundingSphereTrait};
 use crate::feature_id::{FeatureId, FeatureIdTrait};
 use crate::mass::MassProperties;
 use crate::point::SegmentPointLocation;
+use crate::query::normal_constraints::LocalNormalProjector;
+use crate::shape::pseudo_normals::project_into_cone;
 
 /// The segment from `a` to `b`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
@@ -28,6 +30,20 @@ pub struct SegmentPseudoNormals {
     pub face: Vec2,
     /// The outward pseudo-normals at the segment's two end points.
     pub edges: [Vec2; 2],
+}
+
+/// Upstream `impl NormalConstraints for SegmentPseudoNormals`: the normal is projected into the
+/// cone bounded by the end-point pseudo-normal it is the closest to (the first one on a tie).
+pub impl SegmentPseudoNormalsProjector of LocalNormalProjector<SegmentPseudoNormals> {
+    fn project_local_normal_mut(self: @SegmentPseudoNormals, normal: Vec2) -> (bool, Vec2) {
+        let [e0, e1] = *self.edges;
+        let closest_edge = if normal.dot(e0) >= normal.dot(e1) {
+            e0
+        } else {
+            e1
+        };
+        project_into_cone(*self.face, closest_edge, normal)
+    }
 }
 
 /// Failure modes of [`SegmentTrait`].
@@ -274,6 +290,7 @@ mod tests {
     use rapier_testing::opaque;
     use crate::feature_id::{FEATURE_UNKNOWN, FeatureId, FeatureIdTrait};
     use crate::point::SegmentPointLocation;
+    use crate::query::normal_constraints::LocalNormalProjector;
     use super::{Segment, SegmentPseudoNormals, SegmentTrait};
 
     fn v(x: i32, y: i32) -> Vec2 {
@@ -396,6 +413,46 @@ mod tests {
         assert_eq!(normals, SegmentPseudoNormals { face: v(0, 1), edges: [v(1, 1), v(-1, 1)] });
     }
 
+    fn vr(x: i64, y: i64) -> Vec2 {
+        Vec2 { x: Fixed { raw: x }, y: Fixed { raw: y } }
+    }
+
+    fn close(a: Vec2, b: Vec2) -> bool {
+        let tol = 64;
+        (a.x - b.x).abs().raw <= tol && (a.y - b.y).abs().raw <= tol
+    }
+
+    #[test]
+    fn test_pseudo_normals_projection() {
+        // The outward cone of +Y is bounded at +-45 degrees (end-point pseudo-normals at +-22.5
+        // degrees, upstream's `clamps_into_the_outward_cone`); the expected values come from an
+        // f64 evaluation of upstream's `project_into_cone`.
+        let edges = [vr(1643612827, 3968032378), vr(-1643612827, 3968032378)];
+        let pn = SegmentPseudoNormals { face: v(0, 1), edges };
+        // (normal, accepted, projected): inside the cone (kept), sideways (pulled onto the
+        // boundary), mirrored sideways (closest to the second end), into the solid (rejected,
+        // still projected).
+        let cases: Span<(Vec2, bool, Vec2)> = array![
+            (v(0, 1), true, v(0, 1)), (vr(842312387, 4211561933), true, vr(842312387, 4211561933)),
+            (vr(4211561933, 842312387), true, vr(3037000500, 3037000500)),
+            (vr(-4211561933, 842312387), true, vr(-3037000500, 3037000500)),
+            (vr(1234149771, -4113832570), false, vr(3037000500, 3037000500)),
+        ]
+            .span();
+        for (normal, accepted, projected) in cases {
+            let (ok, out) = pn.project_local_normal_mut(*normal);
+            assert_eq!(ok, *accepted);
+            assert!(close(out, *projected), "projected {:?}", out);
+        }
+    }
+
+    #[test]
+    fn test_pseudo_normals_degenerate_cone_collapses_to_face() {
+        let pn = SegmentPseudoNormals { face: v(0, 1), edges: [v(0, 1), v(0, 1)] };
+        assert_eq!(pn.project_local_normal_mut(v(1, 1)), (true, v(0, 1)));
+        assert_eq!(pn.project_local_normal_mut(v(0, -1)), (false, v(0, 1)));
+    }
+
     #[test]
     fn gas_baseline() {}
     #[test]
@@ -442,6 +499,13 @@ mod tests {
     #[test]
     fn test_from_array() {
         assert_eq!(SegmentTrait::from_array([v(1, 2), v(3, 4)]), seg(1, 2, 3, 4));
+    }
+    #[test]
+    fn gas_pseudo_normals_projection() {
+        let pn = SegmentPseudoNormals {
+            face: v(0, 1), edges: [vr(1643612827, 3968032378), vr(-1643612827, 3968032378)],
+        };
+        let _ = opaque(pn).project_local_normal_mut(opaque(vr(4211561933, 842312387)));
     }
     #[test]
     fn gas_from_array() {
