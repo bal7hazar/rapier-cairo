@@ -328,6 +328,7 @@ rapier_dynamics2d::solver::island::sweeps::split::tests::gas_round_trip_ground 2
 rapier_dynamics2d::solver::island::sweeps::split::tests::gas_round_trip_ground_via_pose 36560
 rapier_dynamics2d::solver::island::sweeps::split::tests::gas_update_stack3 1139960
 rapier_dynamics2d::solver::island::sweeps::split::tests::gas_writeback_stack3 1038250
+rapier_dynamics2d::solver::island::sweeps::split::tests::test_round_trip_refresh_gives_back_sc_dist 366150
 rapier_dynamics2d::solver::island::sweeps::split::tests::test_split_matches_constraint_set_sweeps 45816750
 rapier_dynamics2d::solver::island::sweeps::variants::gas_baseline 6410
 rapier_dynamics2d::solver::island::sweeps::zero_checks::gas_baseline 6410
