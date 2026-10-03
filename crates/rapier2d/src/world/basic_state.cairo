@@ -88,7 +88,7 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
                             integration_parameters,
                             bodies,
                             colliders,
-                            impulse_joints,
+                            impulse_joints: v3::joints_v3(impulse_joints),
                             narrow_phase,
                             active_set,
                         },

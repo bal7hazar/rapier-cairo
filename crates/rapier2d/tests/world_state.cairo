@@ -24,7 +24,7 @@ use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
 use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
-use rapier_dynamics2d::joint::ImpulseJointSetTrait;
+use rapier_dynamics2d::joint::{GenericJointBuilderTrait, ImpulseJointSetTrait, JointAxesMask};
 use rapier_dynamics2d::rigid_body_set::{
     RigidBodyBuilderTrait, RigidBodyCcdApiTrait, RigidBodySetTrait,
 };
@@ -622,4 +622,23 @@ fn test_removed_colliders_survive_state_and_step() {
     assert_eq!(restored.colliders.take_removed(), array![]);
     assert_eq!(world.colliders.take_removed(), removed);
     assert_eq!(world.colliders.take_removed(), array![]);
+}
+
+/// `GenericJointBuilder::user_data` (WS3): a joint's user data survives the world state (version
+/// 4); the version-3 felts have none, so a migrated joint's is `0`.
+#[test]
+fn test_joint_user_data_survives_state() {
+    let mut world = build(Scene::Pendulum);
+    let data = GenericJointBuilderTrait::new(JointAxesMask { bits: 3 }).user_data(42).build();
+    let joint = world.insert_impulse_joint(h(0, 0), h(1, 0), data);
+    let _ = world.step();
+    let mut restored = round_trip(ref world);
+    assert_eq!(restored.impulse_joints.get(joint).unwrap().data.user_data, 42);
+    let mut felts = array![];
+    downgrade(@world.to_state()).serialize(ref felts);
+    let mut span = felts.span();
+    let mut migrated = WorldTrait::from_state(Serde::deserialize(ref span).unwrap());
+    let back = migrated.impulse_joints.get(joint).unwrap();
+    assert_eq!(back.data.user_data, 0);
+    assert_eq!(back.data.locked_axes, data.locked_axes);
 }
