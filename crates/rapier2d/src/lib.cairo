@@ -60,6 +60,9 @@ pub mod prelude {
         LocalNormalProjector, NormalConstraints, NormalConstraintsPair,
     };
     pub use rapier_geometry2d::query::shape_distance::{ShapeDistance, ShapeDistanceTrait};
+    pub use rapier_geometry2d::query::subshape::{
+        SubshapeContact, SubshapePointProjection, SubshapeRayIntersection,
+    };
     pub use rapier_geometry2d::query::{
         NonlinearRigidMotion, NonlinearRigidMotionTrait, ShapeCastHit, ShapeCastHitTrait,
         ShapeCastOptions, ShapeCastOptionsTrait, ShapeCastStatus,

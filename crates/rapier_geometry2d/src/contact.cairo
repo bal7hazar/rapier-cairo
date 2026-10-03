@@ -12,6 +12,7 @@ use glam_core::vec2::Vec2;
 use rapier_core::data::handle::Handle;
 use rapier_math::pose2::Pose2;
 use crate::feature_id::FeatureId;
+use crate::shape::{CompoundTrait, Shape};
 
 /// Maximum number of points of a 2D manifold.
 pub const MAX_MANIFOLD_POINTS: u8 = 2;
@@ -157,6 +158,44 @@ pub impl ContactManifoldImpl of ContactManifoldTrait {
             let [_, p1] = points;
             p1
         }
+    }
+
+    /// The pose of the first shape's sub-shape, read back from `shape1` (upstream
+    /// `subshape_pos1`): the part pose of a compound, `None` for every other shape.
+    /// #### Panics
+    /// * `'Compound: part index'` when `shape1` is a compound with fewer parts than `subshape1`.
+    /// #### Deviations
+    /// * Upstream reads a boxed `SubshapePoses` field of the manifold; the port keeps the
+    ///   manifold at its width and takes the shape (ADR 36), one more argument.
+    fn subshape_pos1(self: @ContactManifold, shape1: @Shape) -> Option<Pose2> {
+        match shape1 {
+            Shape::Compound(c) => Some(c.unbox().part_pose(*self.subshape1)),
+            _ => None,
+        }
+    }
+
+    /// The pose of the second shape's sub-shape, read back from `shape2` (see
+    /// [`Self::subshape_pos1`]).
+    fn subshape_pos2(self: @ContactManifold, shape2: @Shape) -> Option<Pose2> {
+        match shape2 {
+            Shape::Compound(c) => Some(c.unbox().part_pose(*self.subshape2)),
+            _ => None,
+        }
+    }
+
+    /// Sets the pose of the first shape's sub-shape in `poses` (upstream `set_subshape_pos1`).
+    /// #### Deviations
+    /// * Upstream mutates the manifold's boxed poses; the manifold holds none, so the poses are
+    ///   the plain data [`SubshapePoses`], passed in place of `self` (ADR 36).
+    #[inline(always)]
+    fn set_subshape_pos1(ref poses: SubshapePoses, pos: Option<Pose2>) {
+        poses.pos1 = pos;
+    }
+
+    /// Sets the pose of the second shape's sub-shape in `poses` (see [`Self::set_subshape_pos1`]).
+    #[inline(always)]
+    fn set_subshape_pos2(ref poses: SubshapePoses, pos: Option<Pose2>) {
+        poses.pos2 = pos;
     }
 
     /// Forgets every point; normals and data are kept (upstream `clear`).
