@@ -23,6 +23,7 @@ use rapier2d::world::state::{WORLD_STATE_VERSION, WorldState};
 use rapier_core::collider::events::COLLISION_EVENTS;
 use rapier_core::rigid_body::RigidBodyActivationTrait;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
+use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
 use rapier_dynamics2d::joint::ImpulseJointSetTrait;
 use rapier_dynamics2d::rigid_body_set::{
     RigidBodyBuilderTrait, RigidBodyCcdApiTrait, RigidBodySetTrait,
@@ -572,11 +573,11 @@ fn test_layout_vectors() {
         core::poseidon::poseidon_hash_span(old.span()),
     );
     println!("v4 {} felts, v3 {} felts, digests {:?}", current.len(), old.len(), digests);
-    assert_eq!((current.len(), old.len()), (477, 475));
+    assert_eq!((current.len(), old.len()), (478, 475));
     assert_eq!(
         digests,
         (
-            2638262023801539103267890740067436395534757128511958331098088627768351763189,
+            3339414786868502093669029553999330673840482582429510255798585605212059219305,
             123024487372149215600037955575194440640478820966384355789198944703611307115,
         ),
     );
@@ -597,4 +598,28 @@ fn test_migrate_rejects_other_versions() {
     let mut old = downgrade(@world.to_state());
     old.version = 2;
     let _ = migrate(old);
+}
+
+/// `ColliderSet::take_removed` (WS3): a body's colliders and a collider removed since the last
+/// step are listed, survive the world state (version 4) and are drained by the step, as upstream's
+/// pipeline drains them; a version-3 state carries none.
+#[test]
+fn test_removed_colliders_survive_state_and_step() {
+    let mut world = build(Scene::Stack);
+    let _ = world.step();
+    assert!(world.remove_body(h(3, 0)).is_some());
+    assert!(world.remove_collider(h(1, 0)).is_some());
+    let removed = array![h(3, 0), h(1, 0)];
+    assert_eq!(world.colliders.removed(), removed.span());
+    let mut restored = round_trip(ref world);
+    assert_eq!(restored.colliders.removed(), removed.span());
+    let mut felts = array![];
+    downgrade(@world.to_state()).serialize(ref felts);
+    let mut span = felts.span();
+    let migrated: WorldState = Serde::deserialize(ref span).unwrap();
+    assert!(migrated.removed_colliders.is_empty());
+    let _ = restored.step();
+    assert_eq!(restored.colliders.take_removed(), array![]);
+    assert_eq!(world.colliders.take_removed(), removed);
+    assert_eq!(world.colliders.take_removed(), array![]);
 }

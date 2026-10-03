@@ -19,6 +19,7 @@ use rapier_core::data::arena::ArenaState;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider::components::BoxedOneWayPlatformSerde;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
+use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
 use rapier_dynamics2d::joint::ImpulseJoint;
 use rapier_dynamics2d::rigid_body_set::RigidBodySetTrait;
 use rapier_geometry2d::shape::{ConvexPolygon, Shape};
@@ -54,6 +55,7 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
         state.integration_parameters.serialize(ref output);
         state.bodies.serialize(ref output);
         serialize_colliders(state.colliders, ref output);
+        state.removed_colliders.serialize(ref output);
         serialize_joints(state.impulse_joints, ref output);
         state.narrow_phase.serialize(ref output);
         state.active_set.serialize(ref output);
@@ -67,6 +69,11 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
         let integration_parameters = decode::read_parameters(ref serialized)?;
         let bodies = decode::read_bodies(ref serialized)?;
         let colliders = decode::read_colliders(ref serialized)?;
+        let removed_colliders = if version == v3::VERSION {
+            array![]
+        } else {
+            decode::read_handles(ref serialized)?
+        };
         let impulse_joints = deserialize_joints(ref serialized)?;
         let narrow_phase = Serde::deserialize(ref serialized)?;
         let active_set = decode::read_active_set(ref serialized)?;
@@ -97,6 +104,7 @@ pub impl BasicWorldStateSerde of Serde<BasicWorldState> {
                     integration_parameters,
                     bodies,
                     colliders,
+                    removed_colliders,
                     impulse_joints,
                     narrow_phase,
                     active_set,
@@ -120,6 +128,7 @@ pub fn from_basic_state(state: BasicWorldState) -> World {
         integration_parameters,
         bodies,
         colliders,
+        removed_colliders,
         impulse_joints,
         narrow_phase,
         active_set,
@@ -134,11 +143,13 @@ pub fn from_basic_state(state: BasicWorldState) -> World {
             && impulse_joints.entries.is_empty(),
         errors::JOINTS,
     );
+    let mut colliders = ColliderSetTrait::from_state(colliders);
+    colliders.restore_removed(removed_colliders);
     World {
         gravity,
         integration_parameters,
         bodies: RigidBodySetTrait::from_state(bodies),
-        colliders: ColliderSetTrait::from_state(colliders),
+        colliders,
         impulse_joints: Default::default(),
         narrow_phase,
         active_set: BoxTrait::new(active_set),

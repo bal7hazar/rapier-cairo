@@ -36,6 +36,7 @@ use rapier_core::collider::{ColliderChanges, ColliderChangesTrait};
 use rapier_core::rigid_body::changes::{COLLIDERS, LOCAL_MASS_PROPERTIES, POSITION};
 use rapier_core::rigid_body::{RigidBodyChanges, RigidBodyChangesTrait};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
+use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::narrow_phase::ContactPair;
 use rapier_dynamics2d::rigid_body::RigidBodyMassPropsTrait;
@@ -68,6 +69,8 @@ pub fn handle_user_changes(
 pub(crate) fn handle_user_changes_fresh(
     ref bodies: RigidBodySet, ref colliders: ColliderSet, pairs: Span<ContactPair>,
 ) -> Array<Handle> {
+    // Upstream's pipeline drains the removed colliders (`take_removed`) at each step.
+    colliders.clear_removed();
     let mut touched = array![];
     let mut fresh = array![];
     for (handle, collider) in colliders.iter() {

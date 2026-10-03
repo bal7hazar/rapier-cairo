@@ -83,6 +83,7 @@ use rapier_core::collider::{ActiveEventsTrait, ColliderChangesTrait, ColliderEna
 use rapier_core::integration_parameters::{IntegrationParameters, IntegrationParametersTrait};
 use rapier_core::rigid_body::{RigidBodyChangesTrait, RigidBodyDominanceTrait, RigidBodyType};
 use rapier_dynamics2d::collider::{Collider, ColliderTrait};
+use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
 use rapier_dynamics2d::collider_set::{ColliderSet, ColliderSetTrait};
 use rapier_dynamics2d::events::{CollisionEvent, ContactForceEvent};
 use rapier_dynamics2d::narrow_phase::{ContactPair, PairCollider};
@@ -447,6 +448,8 @@ fn user_changes_bodies_for_step<impl S: StageConfig>(
 ) -> (
     Span<(Handle, Collider)>, Span<BodyInfo>, Span<(Handle, RigidBody)>, SleepCensus, Span<Handle>,
 ) {
+    // Upstream's pipeline drains the removed colliders (`take_removed`) at each step.
+    colliders.clear_removed();
     let mut snapshot = colliders.iter().span();
     let mut dirty = false;
     let mut touched = array![];

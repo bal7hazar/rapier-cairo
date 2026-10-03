@@ -6,7 +6,8 @@
 //! every pair in its list and does not keep them apart (`DormantPairs::apart` is `false`), the
 //! state a version-4 world built and stepped the same way saves; [`downgrade`] merges the dormant
 //! pairs kept apart back into the list (the active set's positions are those of the whole list in
-//! both versions).
+//! both versions). Version 3 kept no removed colliders (`ColliderSetTrait::take_removed`): a
+//! migrated state has none, and [`downgrade`] leaves them out.
 //!
 //! The migrated world steps to the same bits and events as the uninterrupted one
 //! (`crates/rapier2d/tests/world_state.cairo`, `test_migrated_*`).
@@ -68,6 +69,7 @@ pub fn migrate(state: WorldStateV3) -> WorldState {
         integration_parameters,
         bodies,
         colliders,
+        removed_colliders: array![],
         impulse_joints,
         narrow_phase,
         active_set,

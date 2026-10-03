@@ -12,7 +12,8 @@
 //! CCD state next to its user data (`RigidBodyColdExtra`, serialized as an `Option`); the CCD
 //! solver is owned by the caller of `step_with_ccd` and serializes its switch alone
 //! (`crate::pipeline::ccd::CCDSolver`). Version 4 (WS3): the world's switch and list of the
-//! dormant pairs kept apart (`World::dormant`). A persistent piece
+//! dormant pairs kept apart (`World::dormant`), and the colliders removed since the last step
+//! (`ColliderSetTrait::take_removed`). A persistent piece
 //! added to [`World`] later (island manager) gets its field here, and [`WORLD_STATE_VERSION`] is
 //! bumped.
 //!
@@ -32,10 +33,12 @@
 //! world.
 
 use glam_core::Vec2;
+use rapier_core::Handle;
 use rapier_core::data::arena::ArenaState;
 use rapier_core::integration_parameters::IntegrationParameters;
 use rapier_dynamics2d::collider::Collider;
 use rapier_dynamics2d::collider_set::ColliderSetTrait;
+use rapier_dynamics2d::collider_set::access::ColliderSetChangesTrait;
 use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSetTrait};
 use rapier_dynamics2d::narrow_phase::{ContactPair, NarrowPhase};
 use rapier_dynamics2d::rigid_body_set::{RigidBody, RigidBodySetTrait};
@@ -65,6 +68,8 @@ pub struct WorldState {
     pub integration_parameters: IntegrationParameters,
     pub bodies: ArenaState<RigidBody>,
     pub colliders: ArenaState<Collider>,
+    /// The colliders removed since the last step or `take_removed` (version 4).
+    pub removed_colliders: Array<Handle>,
     pub impulse_joints: ArenaState<ImpulseJoint>,
     /// Last step's contact and intersection pairs, ascending key (without the dormant pairs kept
     /// apart, version 4).
@@ -88,6 +93,7 @@ pub impl WorldStateSerde of Serde<WorldState> {
         self.integration_parameters.serialize(ref output);
         self.bodies.serialize(ref output);
         self.colliders.serialize(ref output);
+        self.removed_colliders.serialize(ref output);
         self.impulse_joints.serialize(ref output);
         self.narrow_phase.serialize(ref output);
         self.active_set.serialize(ref output);
@@ -107,6 +113,7 @@ pub impl WorldStateSerde of Serde<WorldState> {
                 integration_parameters: Serde::deserialize(ref serialized)?,
                 bodies: Serde::deserialize(ref serialized)?,
                 colliders: Serde::deserialize(ref serialized)?,
+                removed_colliders: Serde::deserialize(ref serialized)?,
                 impulse_joints: Serde::deserialize(ref serialized)?,
                 narrow_phase: Serde::deserialize(ref serialized)?,
                 active_set: Serde::deserialize(ref serialized)?,
@@ -122,6 +129,8 @@ pub impl WorldStateSerde of Serde<WorldState> {
 pub fn to_state(ref world: World) -> WorldState {
     let mut pairs = array![];
     pairs.append_span(world.narrow_phase.pairs.span());
+    let mut removed = array![];
+    removed.append_span(world.colliders.removed());
     let kept: @DormantPairs = world.dormant.as_snapshot().unbox();
     let mut dormant = array![];
     dormant.append_span(kept.pairs.span());
@@ -135,6 +144,7 @@ pub fn to_state(ref world: World) -> WorldState {
         integration_parameters: world.integration_parameters,
         bodies: world.bodies.to_state(),
         colliders: world.colliders.to_state(),
+        removed_colliders: removed,
         impulse_joints: world.impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
         active_set,
@@ -168,6 +178,7 @@ pub fn into_state(world: World) -> WorldState {
         integration_parameters,
         bodies: bodies.to_state(),
         colliders: colliders.to_state(),
+        removed_colliders: colliders.take_removed(),
         impulse_joints: impulse_joints.to_state(),
         narrow_phase: NarrowPhase { pairs },
         active_set,
@@ -205,6 +216,7 @@ pub fn from_state(state: WorldState) -> World {
         integration_parameters,
         bodies,
         colliders,
+        removed_colliders,
         impulse_joints,
         narrow_phase,
         active_set,
@@ -212,11 +224,13 @@ pub fn from_state(state: WorldState) -> World {
         dormant_pairs,
     } = state;
     assert(version == WORLD_STATE_VERSION, errors::VERSION);
+    let mut colliders = ColliderSetTrait::from_state(colliders);
+    colliders.restore_removed(removed_colliders);
     World {
         gravity,
         integration_parameters,
         bodies: RigidBodySetTrait::from_state(bodies),
-        colliders: ColliderSetTrait::from_state(colliders),
+        colliders,
         impulse_joints: ImpulseJointSetTrait::from_state(impulse_joints),
         narrow_phase,
         active_set: BoxTrait::new(active_set),
@@ -363,6 +377,7 @@ pub mod alternatives {
                 integration_parameters: level.integration_parameters,
                 bodies: arena(compact.bodies, bodies),
                 colliders: arena(compact.colliders, colliders),
+                removed_colliders: array![],
                 impulse_joints: arena(compact.joints, joints),
                 narrow_phase: NarrowPhase { pairs },
                 active_set: Default::default(),

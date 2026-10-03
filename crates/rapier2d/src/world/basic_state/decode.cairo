@@ -89,7 +89,7 @@ fn read_mass_properties(ref s: Span<felt252>) -> Option<MassProperties> {
 }
 
 /// A length, then its handles.
-fn read_handles(ref s: Span<felt252>) -> Option<Array<Handle>> {
+pub(crate) fn read_handles(ref s: Span<felt252>) -> Option<Array<Handle>> {
     let len = read_u32(ref s)?;
     let mut out = array![];
     let mut i = 0;

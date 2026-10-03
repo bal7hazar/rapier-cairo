@@ -702,13 +702,13 @@ fn impact_digest_v4(blocks: u32) -> felt252 {
 // (`impact_digest` writes them through `v3::downgrade`); the current layout's digests.
 #[test]
 fn test_impact_digest_v4_level10() {
-    let digest = 1275043776768678842613564678895846757316320104716279790710655764572037931156;
+    let digest = 775073539435841919293195962731819767698580356615700471461678721857580300651;
     assert_eq!(impact_digest_v4(10), digest);
 }
 
 #[test]
 fn test_impact_digest_v4_level20() {
-    let digest = 72342560052535913141945039666282711214383269387087826948093784367362111465;
+    let digest = 136420778922040339807350755433434747896806868930740727544827935057357625788;
     assert_eq!(impact_digest_v4(20), digest);
 }
 
