@@ -676,16 +676,17 @@ fn impact_digest(blocks: u32) -> felt252 {
 // CC2 (world state v3): the serialized version felt is the only change (v2 digests:
 // 1985544622515358198263847469439284359808027788067515804168561424627924706414 and
 // 472789490704743956326115600893800118381478821102367849164298489098502318457, verified with the
-// first felt set back to 2). SF1 re-pinned both (rebased frozen contact separations).
+// first felt set back to 2). SF1 re-pinned both (rebased frozen contact separations), FU1 again
+// (fused rescales P1, P2, P3, C5; before: 6143…9417 and 4168…1468).
 #[test]
 fn test_impact_digest_level10() {
-    let digest = 614397285234841136777566373155896226470871082861011936180075160649340509417;
+    let digest = 2055868529716223719326463914935521379845216338264591804365469300933440159332;
     assert_eq!(impact_digest(10), digest);
 }
 
 #[test]
 fn test_impact_digest_level20() {
-    let digest = 416855740500297607967284561706278029719752173547945538611177048279506421468;
+    let digest = 2955146531576087240594933705329824135768578510734914919176203790330757895188;
     assert_eq!(impact_digest(20), digest);
 }
 

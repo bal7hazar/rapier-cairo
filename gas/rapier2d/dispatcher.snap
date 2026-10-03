@@ -4,10 +4,10 @@ rapier2d::dispatcher::tests::gas_default_dispatcher_ball_ball 81810
 rapier2d::dispatcher::tests::gas_default_dispatcher_cuboid_cuboid 448640
 rapier2d::dispatcher::tests::gas_default_dispatcher_halfspace_cuboid 278610
 rapier2d::dispatcher::tests::gas_inline_dispatcher_ball_ball 73310
-rapier2d::dispatcher::tests::gas_inline_dispatcher_cuboid_cuboid 513070
+rapier2d::dispatcher::tests::gas_inline_dispatcher_cuboid_cuboid 488070
 rapier2d::dispatcher::tests::gas_inline_dispatcher_halfspace_cuboid 271400
 rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_ball_ball 109800
-rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_cuboid_cuboid 549560
+rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_cuboid_cuboid 524560
 rapier2d::dispatcher::tests::gas_inline_dispatcher_loop_halfspace_cuboid 307890
-rapier2d::dispatcher::tests::test_matches_dispatch_on_every_arm 128690380
+rapier2d::dispatcher::tests::test_matches_dispatch_on_every_arm 125215380
 rapier2d::dispatcher::tests::test_unsupported_pairs_match_dispatch 1257980
