@@ -12,5 +12,5 @@ rapier2d_integrationtest::game_path::steps_game_reads 319651632
 rapier2d_integrationtest::game_path::steps_game_serde_trips 338090992
 rapier2d_integrationtest::game_path::steps_game_state_trips 315175132
 rapier2d_integrationtest::game_path::steps_game_step 312051492
-rapier2d_integrationtest::game_path::test_game_basic_digest 659332635
-rapier2d_integrationtest::game_path::test_game_digest 662011175
+rapier2d_integrationtest::game_path::test_game_basic_digest 638049395
+rapier2d_integrationtest::game_path::test_game_digest 640727935

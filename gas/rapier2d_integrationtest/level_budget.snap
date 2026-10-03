@@ -12,5 +12,5 @@ rapier2d_integrationtest::level_budget::steps_impact_level10 310254901
 rapier2d_integrationtest::level_budget::steps_impact_level20 394846425
 rapier2d_integrationtest::level_budget::steps_load_level10 55188582
 rapier2d_integrationtest::level_budget::steps_load_level20 100181361
-rapier2d_integrationtest::level_budget::test_impact_digest_level10 330606269
-rapier2d_integrationtest::level_budget::test_impact_digest_level20 421876537
+rapier2d_integrationtest::level_budget::test_impact_digest_level10 317778049
+rapier2d_integrationtest::level_budget::test_impact_digest_level20 407497677
