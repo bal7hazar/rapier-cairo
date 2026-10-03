@@ -1,5 +1,34 @@
 # Step Budgets
 
+## FU1 — fused rescales (2026-10-03)
+
+The fused forms of `docs/research/fused-rescales.md` §8:
+- **B1** (#268): bit-identical;
+- **P1, P2, P3, C5 and C7** (results change): within one ulp of each formula's exact value;
+- **C6:** dropped.
+
+The table gives exact Cairo steps per call on the formula's own probe: a scratch package outside the repository,
+one call on opaque inputs, net of a baseline. Measured on the VPS (x86_64) with Scarb 2.20.1 / snforge 0.64.0,
+`RAYON_NUM_THREADS=1`, `prlimit --as=8589934592`, peak 1.59 GB.
+
+| formula | today | fused | Δ per call |
+|---|--:|--:|--:|
+| P1 row solve | 55 | 38 | −17 |
+| P2 refresh separation | 131 | 72 | −59 |
+| P3 effective mass | 57 | 32 | −25 |
+| C5 manifold point update | 144 | 84 | −60 |
+| C5 normal test | 57 | 30 | −27 |
+| C7 `Rot2::integrate` | 114 | 101 | −13 |
+| B1 anchor | 65 | 57 | −8 |
+
+**Whole-shot effect: to run on the Mac.** It needs the IT1 / EL1 shot probes, which do not fit the VPS's 8 GB cap.
+FU0 estimated it from the per-call savings: −0.36 to −0.42M steps on the reference shot and −1.06 to −1.26M on the
+owner's shot, in both layouts. The commands are those of `docs/research/fused-rescales.md` §5, on this branch against
+`main`, with `--max-threads 2`.
+
+Class margins after B1 (CI run 37144840437, CASM felts under 73,728): `NarrowPhaseClass` 7,041, `SlimSplitStep`
+6,838, `SlimEditStep` 5,096. The numeric PR's own margins come from its CI.
+
 ## EL1 — engine levers (2026-10-03)
 
 IT1's in-scope step levers (`docs/research/impact-tick.md` §8). R1: `remove_body` wakes and releases a collider's pairs
