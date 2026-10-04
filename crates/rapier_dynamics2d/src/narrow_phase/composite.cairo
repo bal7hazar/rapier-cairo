@@ -39,8 +39,9 @@ use fixed::Fixed;
 use rapier_core::collider::CollisionEventFlagsTrait;
 use rapier_core::interaction_groups::{InteractionGroups, InteractionTestMode};
 use rapier_geometry2d::contact::ContactManifold;
+use rapier_geometry2d::dispatch::composite::constrained::contact_manifolds_composite_constrained;
 use rapier_geometry2d::dispatch::composite::contact_manifolds_composite;
-use rapier_geometry2d::shape::{CompoundTrait, ShapeTrait};
+use rapier_geometry2d::shape::{CompoundTrait, Shape, ShapeTrait};
 use rapier_math::pose2::Pose2Trait;
 use crate::events::{CollisionEvent, PairEventStatusTrait, started, stopped};
 use super::{
@@ -79,14 +80,80 @@ pub(crate) fn composite_pair_step(
     let mut out = None;
     let mut pending = true;
     while pending {
-        out = composite_pair_inner(prediction, co1, co2, previous, cursor, ref manifold);
+        out =
+            composite_pair_inner::<
+                PlainManifolds,
+            >(prediction, co1, co2, previous, cursor, ref manifold);
         pending = false;
     }
     out
 }
 
+/// [`composite_pair_step`] with the compound parts' normal constraints (lot CE): the manifolds of
+/// `rapier_geometry2d::dispatch::composite::constrained::contact_manifolds_composite_constrained`,
+/// everything else the same.
+#[inline(never)]
+pub(crate) fn composite_pair_step_constrained(
+    prediction: Fixed,
+    co1: PairCollider,
+    co2: PairCollider,
+    previous: Span<ContactPair>,
+    cursor: u32,
+    ref manifold: ContactManifold,
+) -> Option<(Span<ContactPair>, Option<CollisionEvent>, u32)> {
+    let mut out = None;
+    let mut pending = true;
+    while pending {
+        out =
+            composite_pair_inner::<
+                ConstrainedManifolds,
+            >(prediction, co1, co2, previous, cursor, ref manifold);
+        pending = false;
+    }
+    out
+}
+
+/// Where a composite pair's manifolds come from.
+trait PartManifolds {
+    fn manifolds(
+        pos12: rapier_math::pose2::Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        previous: Span<ContactManifold>,
+    ) -> Option<Array<ContactManifold>>;
+}
+
+/// `contact_manifolds_composite`: what `World::step` compiles.
+impl PlainManifolds of PartManifolds {
+    #[inline(always)]
+    fn manifolds(
+        pos12: rapier_math::pose2::Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        previous: Span<ContactManifold>,
+    ) -> Option<Array<ContactManifold>> {
+        contact_manifolds_composite(pos12, shape1, shape2, prediction, previous)
+    }
+}
+
+/// `contact_manifolds_composite_constrained` (lot CE).
+impl ConstrainedManifolds of PartManifolds {
+    #[inline(always)]
+    fn manifolds(
+        pos12: rapier_math::pose2::Pose2,
+        shape1: Shape,
+        shape2: Shape,
+        prediction: Fixed,
+        previous: Span<ContactManifold>,
+    ) -> Option<Array<ContactManifold>> {
+        contact_manifolds_composite_constrained(pos12, shape1, shape2, prediction, previous)
+    }
+}
+
 /// The body of [`composite_pair_step`], behind its one-iteration loop.
-fn composite_pair_inner(
+fn composite_pair_inner<impl M: PartManifolds>(
     prediction: Fixed,
     co1: PairCollider,
     co2: PairCollider,
@@ -124,9 +191,7 @@ fn composite_pair_inner(
             }
         }
     }
-    let manifolds = contact_manifolds_composite(
-        pair_pose(co1, co2), co1.shape, co2.shape, prediction, old.span(),
-    )
+    let manifolds = M::manifolds(pair_pose(co1, co2), co1.shape, co2.shape, prediction, old.span())
         .unwrap_or_default();
     let mut solved = array![];
     let mut first: Option<u32> = None;

@@ -1,5 +1,60 @@
 # Step Budgets
 
+## CE — compound internal edges, opt-in (2026-10-03)
+
+Exact Cairo steps (`snforge test --detailed-resources --tracked-resource cairo-steps`, crate-scoped, VPS x86_64,
+Scarb 2.20.1 / snforge 0.64.0, `RAYON_NUM_THREADS=1`), this branch merged with `main` at FU1 (`4b5c3da`) against
+`main` at `4b5c3da`.
+
+**Existing worlds.** The 53 `steps_*` probes of `rapier2d` (`gas_scenes`, `game_path`, `level_budget`,
+`sleep_budget`, `pipeline::config::alternatives`): identical. None of them holds a compound. The `compound_budget`
+probes (a compound plank on a half-space or a polyline, `World::step`), net step (`gas_step_*` − `gas_setup_*`):
+
+| world | main | CE, cones in a `Span` (294d7a7) | CE, cones behind one `Nullable` felt | Δ |
+|---|--:|--:|--:|--:|
+| 2 parts, half-space | 49,915 | 49,927 | 49,921 | +6 |
+| 4 parts, half-space | 83,154 | 83,170 | 83,162 | +8 |
+| 8 parts, half-space | 157,756 | 157,780 | 157,768 | +12 |
+| 2 parts, polyline | 62,924 | 62,942 | 62,933 | +9 |
+| 4 parts, polyline | 106,624 | 106,646 | 106,635 | +11 |
+| 8 parts, polyline | 181,399 | 181,435 | 181,417 | +18 |
+
+The delta grows with the part count: `Compound` is copied by value on each part access, and every felt it gains is
+copied there. One felt (`Nullable`) is the least a field can take; identity needs the cones outside the value the
+default path copies, which means outside `Compound` (a new `Shape` variant or a side table), a design change.
+**Accepted** by the orchestrator (2026-10-04, option A of the CE review): +6 to +18 steps per compound step and +1
+per flag-free read-back, with the 53 `steps_*` probes identical. The game holds no compound, and the alternatives (a
+new `Shape` variant, cones on the collider) cost more than they save. A later lot can remove this cost if a consumer
+ever steps compounds on a hot path.
+
+**Composite worlds without a compound** (polyline and heightfield, `composite_budget`): +200 Sierra gas per
+composite pair step (setup +600, setup plus one step +800; about 0.003 % to 0.006 % of their entries). Exact Cairo
+steps not measured: no `steps_*` probe holds a polyline or a heightfield. Cause: `composite_pair_inner` became generic
+over `PartManifolds`, behind two `#[inline(never)]` wrappers (`composite_pair_step`, `composite_pair_step_constrained`).
+**Accepted** by the orchestrator (2026-10-04): the game holds no polyline or heightfield either. The lever
+(`#[inline(always)]` on the inner function for the plain arm) is parked in `docs/PLAN.md` (G).
+
+**`WorldState`.** A flag-free compound serialises to the same felts as before (`test_serde_layout`). Reading it back:
+883 steps against 882 for the derived path of the three fields (`gas_deserialize_flag_free`,
+`gas_deserialize_derived_fields`): the derived read is tried first, and a flagged header (a part count above `2^32`)
+fails it and rewinds. A flagged compound of two boxes reads back in 14,598 steps (it carries its cones).
+
+**The opt-in path** (`ConstrainedCompositeManifolds`), per constrained part manifold, against the same part pair
+unconstrained (probes of `dispatch/composite/constrained.cairo`; each includes the same 12,011-step `with_flags` setup):
+
+| part pair | unconstrained | constrained | Δ |
+|---|--:|--:|--:|
+| polygon on polygon (PFM–PFM, normal kept) | 26,668 | 27,182 | +514 |
+| ball on cuboid (normal kept) | 12,608 | 13,081 | +473 |
+| ball past a corner (normal projected, contact recast) | 12,608 | 13,135 | +527 |
+
+`Compound::with_flags` on two boxes (the cones, off the step path): 12,011 steps.
+
+**Classes.** No declared class selects the new strategy; `gas/bytecode.size` comes from this PR's CI.
+
+**Package size.** `rapier_geometry2d` library lines (`scripts/consumer_cost.py --lines-only`): 23,895 → 25,105 of
+40,000 (+37 % margin); `rapier_dynamics2d` 15,158 → 15,246.
+
 ## FU1 — fused rescales (2026-10-03)
 
 The fused forms of `docs/research/fused-rescales.md` §8:

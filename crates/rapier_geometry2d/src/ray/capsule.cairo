@@ -1,28 +1,25 @@
 //! Ray casts on a [`Capsule`] (Parry `query/ray/ray_support_map.rs`, `impl RayCast for
 //! Capsule`).
 //!
-//! Upstream casts rays on a capsule through the generic support-map path: GJK ray casting
-//! (`gjk::cast_local_ray`, iterative, `eps_tol = 10 f64::EPSILON`) and, for a hollow ray from
-//! inside, a second GJK cast backwards from a point shifted beyond the shape. Porting GJK for
-//! one convex shape whose boundary is known in closed form would buy iterations and tolerances
-//! for nothing, so this module solves the same problem **analytically**: a capsule is the union
+//! Parry 0.31 casts rays on a capsule analytically (`query/ray/ray_capsule.rs`; 0.30.2 went
+//! through the generic support-map path, GJK ray casting). This module solves the same problem
+//! analytically, in its own way: a capsule is the union
 //! of the two discs of its end points and of the rectangle swept by its core segment, a line
 //! crosses a convex union along one interval, and that interval is the union of the three
 //! component intervals. The entry is therefore the smallest component entry and the exit the
 //! largest component exit, each from exact wide quantities (circle kernel of
 //! [`super::ball`], slab tests in the frame of the segment without normalising it).
 //!
-//! What is kept from upstream is what GJK *answers*, not how it gets there:
+//! The answers are parry 0.31.1's:
 //!
-//! * a zero `dir` is a miss, even from inside (`ray_length == 0 → None`);
-//! * a `solid` ray starting inside (boundary included) answers `t = 0` with the normal
-//!   `-dir / |dir|` (GJK's initial search direction);
+//! * a `solid` ray starting inside (boundary included) answers `t = 0` with a zero normal, even
+//!   for a zero `dir`;
+//! * any other zero `dir` is a miss;
 //! * a hollow ray starting inside answers the exit with the **inward** normal, if within `max`;
-//! * the feature is always `Unknown`;
+//! * the feature is always `Face(0)`;
 //! * `t <= max_time_of_impact` is kept.
 //!
-//! A GJK answer is within its tolerance of the exact one; the analytic one is within an ulp or
-//! two, so the golden comparison measures upstream's convergence rather than this port.
+//! Times of impact and normals agree with upstream's within a few ulp (golden `ray_casts`).
 
 use core::num::traits::WideMul;
 use fixed::wide::norm2;
@@ -30,7 +27,8 @@ use fixed::{Fixed, ZERO};
 use glam_core::vec2::Vec2;
 use rapier_math::math_ext::norm2::{is_zero2, norm2_sq_wide};
 use rapier_math::math_ext::vec2::try_normalize2;
-use crate::feature_id::FEATURE_UNKNOWN;
+use crate::feature_id::FeatureId;
+use crate::point::contains_local_point_capsule;
 use crate::point::wide2::{cross_wide, dot_wide};
 use crate::shape::Capsule;
 use super::ball::{circle_coefficients, circle_normal, sqrt_discriminant};
@@ -214,6 +212,15 @@ fn better(
     }
 }
 
+/// The capsule's one feature (parry 0.31's `FeatureId::Face(0)`: face header 3, code 0).
+const FACE: FeatureId = FeatureId { packed: 0xc000_0000 };
+
+/// A `solid` ray starting inside: `t = 0`, a zero normal (upstream `Vector::ZERO`).
+#[inline(never)]
+fn inside_hit() -> RayIntersection {
+    RayIntersection { time_of_impact: ZERO, normal: Vec2 { x: ZERO, y: ZERO }, feature: FACE }
+}
+
 /// Time of impact, normal and feature of `ray` on `capsule` (local frame).
 ///
 /// Mirrors `RayCast::cast_local_ray_and_get_normal` for `Capsule` (see the module documentation
@@ -230,6 +237,9 @@ pub fn cast_local_ray_and_get_normal_capsule(
 ) -> Option<RayIntersection> {
     let d = ray.dir;
     if is_zero2(d.x, d.y) {
+        if solid && contains_local_point_capsule(capsule, ray.origin) {
+            return Some(inside_hit());
+        }
         return None;
     }
     let (in_a, disc_a) = disc_interval(capsule.segment.a, capsule.radius, ray, DISC_A);
@@ -237,12 +247,7 @@ pub fn cast_local_ray_and_get_normal_capsule(
     let (in_rect, rect) = rect_interval(capsule, ray);
     let inside = in_a || in_b || in_rect;
     if inside && solid {
-        let (x, y) = try_normalize2(d.x, d.y).unwrap();
-        return Some(
-            RayIntersection {
-                time_of_impact: ZERO, normal: Vec2 { x: -x, y: -y }, feature: FEATURE_UNKNOWN,
-            },
-        );
+        return Some(inside_hit());
     }
     // Entering from outside: the earliest entry; leaving from inside: the latest exit.
     let entry = !inside;
@@ -261,7 +266,7 @@ pub fn cast_local_ray_and_get_normal_capsule(
         RayIntersection {
             time_of_impact: t,
             normal: piece_normal(capsule, piece, ray.point_at(t), inside),
-            feature: FEATURE_UNKNOWN,
+            feature: FACE,
         },
     )
 }
@@ -285,6 +290,7 @@ mod tests {
     use fixed::{Fixed, FixedTrait, HALF, ONE, TWO, ZERO};
     use glam_core::vec2::Vec2;
     use rapier_testing::opaque;
+    use crate::feature_id::FeatureIdTrait;
     use crate::point::contains_local_point_capsule;
     use crate::shape::{Capsule, CapsuleTrait};
     use super::super::{Ray, RayTrait};
@@ -317,17 +323,20 @@ mod tests {
             (ray(int(2), HALF, -ONE, ZERO), max, true, Some((TWO - HALF, v(ONE, ZERO)))),
             (ray(ZERO, int(3), ZERO, -ONE), max, true, Some((TWO, v(ZERO, ONE)))),
             (ray(ZERO, int(-3), ZERO, TWO), max, true, Some((ONE, v(ZERO, -ONE)))),
-            // Inside: solid 0 with -dir, hollow the exit with the inward normal.
-            (ray(ZERO, ZERO, ONE, ZERO), max, true, Some((ZERO, v(-ONE, ZERO)))),
+            // Inside: solid 0 with a zero normal, hollow the exit with the inward normal.
+            (ray(ZERO, ZERO, ONE, ZERO), max, true, Some((ZERO, v(ZERO, ZERO)))),
             (ray(ZERO, ZERO, ONE, ZERO), max, false, Some((HALF, v(-ONE, ZERO)))),
             (ray(ZERO, ZERO, ZERO, ONE), max, false, Some((ONE, v(ZERO, -ONE)))),
             (ray(ZERO, ZERO, ZERO, ONE), HALF, false, None),
-            // Misses: parallel outside, above, behind, cut by max, zero direction.
+            // A zero direction from inside: solid 0, hollow a miss.
+            (ray(ZERO, ZERO, ZERO, ZERO), max, true, Some((ZERO, v(ZERO, ZERO)))),
+            (ray(ZERO, ZERO, ZERO, ZERO), max, false, None),
+            // Misses: parallel outside, above, behind, cut by max, zero direction outside.
             (ray(ONE, int(-3), ZERO, ONE), max, true, None),
             (ray(int(-2), TWO, ONE, ZERO), max, true, None),
             (ray(int(2), ZERO, ONE, ZERO), max, true, None),
             (ray(int(-2), ZERO, ONE, ZERO), ONE, true, None),
-            (ray(ZERO, ZERO, ZERO, ZERO), max, true, None),
+            (ray(int(2), ZERO, ZERO, ZERO), max, true, None),
         ]
             .span();
         for (r, m, solid, expected) in cases {
@@ -338,6 +347,7 @@ mod tests {
                 )) => {
                     let hit = hit.unwrap();
                     assert_eq!((hit.time_of_impact, hit.normal), (t, n));
+                    assert_eq!(hit.feature, FeatureIdTrait::face(0));
                     assert_eq!(cast_local_ray_capsule(capsule(), *r, *m, *solid), Some(t));
                 },
                 None => assert!(hit.is_none(), "expected a miss"),

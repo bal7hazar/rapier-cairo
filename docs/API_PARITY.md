@@ -24,11 +24,11 @@ Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly ra
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 280 | 0 | 0 | 127 | 407 | 93.3% | 100.0% |
-| parry::shape | 235 | 0 | 9 | 136 | 380 | 89.7% | 96.3% |
+| parry::shape | 243 | 0 | 1 | 136 | 380 | 92.7% | 99.6% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1552** | **0** | **11** | **1029** | **2592** | **86.0%** | **99.3%** |
+| **total** | **1560** | **0** | **3** | **1029** | **2592** | **86.4%** | **99.8%** |
 
-Cairo-only public items not matched to upstream: **2049**.
+Cairo-only public items not matched to upstream: **2071**.
 
 ## Aabb
 
@@ -630,40 +630,40 @@ Cairo-only public items not matched to upstream: **2049**.
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| const `DEFAULT_WELD_TOLERANCE` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| const `DEFAULT_WELD_TOLERANCE` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | impl `PointQuery` | parry::query | ported | Same public name. | `parry/src/query/point/point_composite_shape.rs` |
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_composite_shape.rs` |
 | impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabbs` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | method `bvh` | parry::shape | missing | SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`). | `parry/src/shape/compound.rs` |
 | method `decompose_trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/compound.rs` |
-| method `flags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| method `flags` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | method `local_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | method `local_bounding_sphere` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | method `new` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
-| method `part_normal_constraints` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
-| method `set_flags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| method `part_normal_constraints` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
+| method `set_flags` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | method `shapes` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
-| method `with_flags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| method `with_flags` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | type `Compound` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 
 ## CompoundEdgeCone
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CompoundEdgeCone` | parry::shape | missing | Not found on Cairo candidate(s): CompoundEdgeCone, CompoundEdgeConeTrait. | `parry/src/shape/compound_pseudo_normals.rs` |
+| type `CompoundEdgeCone` | parry::shape | ported | Same public name. | `parry/src/shape/compound_pseudo_normals.rs` |
 
 ## CompoundFlags
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CompoundFlags` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound.rs` |
+| type `CompoundFlags` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 
 ## CompoundPseudoNormals
 
 | Item | Module | Status | Detail | Source |
 |---|---|---|---|---|
-| type `CompoundPseudoNormals` | parry::shape | missing | SH2b: parry 0.31 `FIX_INTERNAL_EDGES`, after the golden pin (parry2d-f64 0.30.2). | `parry/src/shape/compound_pseudo_normals.rs` |
+| type `CompoundPseudoNormals` | parry::shape | ported | Same public name. | `parry/src/shape/compound_pseudo_normals.rs` |
 
 ## ConjugateGradient
 
@@ -4441,23 +4441,15 @@ Cairo-only public items not matched to upstream: **2049**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 9 | standard | shape interface |
+| [Additional 2D shapes](#wp-additional-2d-shapes) | 1 | standard | shape interface |
 | [Collider API completion](#wp-collider-api-completion) | 1 | mechanical | DB/EV |
 | [Joint API completion](#wp-joint-api-completion) | 1 | standard | JL/RJ |
 
 ### WP: Additional 2D shapes
 
-Tier: standard. Depends/context: shape interface. Estimate: 9 public items.
+Tier: standard. Depends/context: shape interface. Estimate: 1 public items.
 
-- **Compound** const `DEFAULT_WELD_TOLERANCE` (`parry/src/shape/compound.rs`)
 - **Compound** method `bvh` (`parry/src/shape/compound.rs`)
-- **Compound** method `flags` (`parry/src/shape/compound.rs`)
-- **Compound** method `part_normal_constraints` (`parry/src/shape/compound.rs`)
-- **Compound** method `set_flags` (`parry/src/shape/compound.rs`)
-- **Compound** method `with_flags` (`parry/src/shape/compound.rs`)
-- **CompoundEdgeCone** type `CompoundEdgeCone` (`parry/src/shape/compound_pseudo_normals.rs`)
-- **CompoundFlags** type `CompoundFlags` (`parry/src/shape/compound.rs`)
-- **CompoundPseudoNormals** type `CompoundPseudoNormals` (`parry/src/shape/compound_pseudo_normals.rs`)
 
 ### WP: Collider API completion
 
@@ -4673,7 +4665,7 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
 - **Alternatives** method `words_lane` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
-- ... 1849 more
+- ... 1871 more
 
 ## Embedded Rust inventory
 

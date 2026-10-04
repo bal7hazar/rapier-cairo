@@ -2,7 +2,7 @@
 //! step on the worlds it supports (raw equality of bodies, colliders, pairs and events after
 //! every step), and the rejection of the worlds it does not.
 
-use fixed::{Fixed, HALF, ONE, ZERO};
+use fixed::{Fixed, FixedTrait, HALF, ONE, ZERO};
 use glam_core::Vec2;
 use rapier_core::collider::events::{COLLISION_EVENTS, CONTACT_FORCE_EVENTS};
 use rapier_dynamics2d::collider::{ColliderBuilder, ColliderBuilderTrait};
@@ -378,4 +378,86 @@ fn gas_step_default_stack3() {
 fn gas_step_basic_stack3() {
     let mut world = settled_stack();
     let _ = world.step_with_force_events_with::<BasicStepConfig>();
+}
+
+/// Everything, with the compound parts' normal constraints (lot CE).
+impl InternalEdges of StepConfig {
+    impl Dispatcher = DefaultDispatcher;
+    impl Sensors = SensorIntersections;
+    impl Composites = rapier_dynamics2d::narrow_phase::strategies::ConstrainedCompositeManifolds;
+    impl Joints = ImpulseJointSolver;
+}
+
+/// A ball of radius 0.25 rolling at 0.6 m/s over a fixed floor of two unit boxes meeting at
+/// `x = 0.5`, flagged with `FIX_INTERNAL_EDGES` when `flagged`.
+fn seam_world(flagged: bool) -> World {
+    let parts = array![
+        (
+            at(ZERO, ZERO),
+            rapier_geometry2d::shape::Shape::Cuboid(
+                rapier_geometry2d::shape::CuboidTrait::new(v(HALF, HALF)),
+            ),
+        ),
+        (
+            at(ONE, ZERO),
+            rapier_geometry2d::shape::Shape::Cuboid(
+                rapier_geometry2d::shape::CuboidTrait::new(v(HALF, HALF)),
+            ),
+        ),
+    ]
+        .span();
+    let floor = if flagged {
+        rapier_geometry2d::shape::CompoundTrait::with_flags(
+            parts, rapier_geometry2d::shape::FIX_INTERNAL_EDGES, None,
+        )
+    } else {
+        rapier_geometry2d::shape::CompoundTrait::new(parts)
+    };
+    let mut world: World = Default::default();
+    let _ = world.insert_collider(ColliderBuilderTrait::new(floor.into()).build(), None);
+    let mut ball = RigidBodyTrait::dynamic(at(f(1288490189), HALF + f(1073741824)));
+    ball.set_linvel(v(f(2576980378), ZERO));
+    let _ = world.insert(ball, ColliderBuilderTrait::ball(f(1073741824)).build());
+    world
+}
+
+/// The largest `|normal.x|` (raw) of the floor–ball manifolds with solver contacts.
+fn worst_tilt(world: @World) -> i64 {
+    let mut worst: i64 = 0;
+    for pair in world.narrow_phase.pairs.span() {
+        let m = *pair.manifold;
+        if m.data.num_solver_contacts != 0 && m.data.normal.x.abs().raw > worst {
+            worst = m.data.normal.x.abs().raw;
+        }
+    }
+    worst
+}
+
+/// Across the seam, the default step meets part 1's corner (a tilted normal, the ledge a body
+/// catches on); the constrained step on the flagged floor only ever pushes straight up, and on the
+/// unflagged floor it is the default step, bit for bit.
+#[test]
+fn test_constrained_composites_across_a_seam() {
+    let mut plain = seam_world(false);
+    let mut twin = seam_world(false);
+    let mut flagged = seam_world(true);
+    let mut tilted: i64 = 0;
+    let mut k = 0;
+    while k != 40 {
+        let _ = plain.step();
+        let _ = twin.step_with::<InternalEdges>();
+        let _ = flagged.step_with::<InternalEdges>();
+        let t = worst_tilt(@plain);
+        if t > tilted {
+            tilted = t;
+        }
+        assert!(worst_tilt(@flagged) <= 64, "flagged tilt at step {}", k);
+        assert!(twin.narrow_phase.pairs == plain.narrow_phase.pairs, "twin pairs at step {}", k);
+        k += 1;
+    }
+    assert!(tilted > 0x1000_0000, "the default step meets the corner: {}", tilted);
+    let ball = rapier_core::Handle { index: 0, generation: 0 };
+    // From x = 0.3 at 0.6 m/s, rolling (friction) for 40 steps of 1/60 s: past the seam at 0.5.
+    let x = flagged.body(ball).unwrap().translation().x;
+    assert!(x > HALF, "past the seam: {:?}", x);
 }

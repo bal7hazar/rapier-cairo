@@ -9,7 +9,6 @@ tools/golden/
   Cargo.toml, Cargo.lock      exact upstream pins
   src/                        the harness (one module per vector family) + the Cairo generator
   vectors/*.json              committed reference vectors (source of truth)
-  vectors/frozen/*.json       frozen copies of older upstream values, never regenerated (see below)
 crates/rapier_golden/
   src/types.cairo             hand-written data carriers (raw i64 only)
   src/compare.cairo           hand-written tolerance helpers
@@ -53,31 +52,6 @@ tests.
 Note that the local upstream clones used by the research reports are Rapier `master` (0.35.x +
 soft bodies) and Parry 0.31.x: the vectors come from the **published** crates above (Parry with the
 one-line feature-id patch of `vendor/`, Rapier with its raised requirement), not from the clones.
-
-## Frozen parry 0.30.2 values
-
-Moving the pin from parry 0.30.2 to 0.31.1 (OB) moved 127 values in three files and nothing else
-(the other 30 files changed only their `parry` header line): `composite_queries.json` (39, polyline /
-heightfield feature ids), `compound_queries.json` (24, compound point-projection feature ids) and
-`ray_casts.json` (64 in 9 capsule cases, parry 0.31's analytic capsule cast). The port's results did
-not change, so for each moved field the port does **not** follow, the 0.30.2 value is kept in
-`vectors/frozen/parry_0_30_2.json`: written once from the 0.30.2 vectors at `0e009d7`, never
-regenerated and never edited. Each entry names its family, case, `solid` (rays), field, 0.30.2 value
-and why it moved. The generator transcribes it into `generated/frozen_parry030.cairo` (tables and
-lookups); the golden tests compare those fields with it and every other field with 0.31.1:
-
-| family | frozen fields | the port | test |
-|---|---|---|---|
-| `composite_points` | 20 features (23 values) | shape-wide ids (0.30.2's `segment_feature_to_polyline_feature`, heightfield `curr + num_cells`) | `composite_queries_golden.cairo` |
-| `composite_rays` | 16 hit features (16 values) | the same | `composite_queries_golden.cairo` |
-| `compound_points` | 16 features (24 values) | `Unknown`, as 0.30.2 | `compound_queries_golden.cairo` |
-| `ray_casts` | 16 capsule features, 2 solid-inside normals, 1 zero-`dir` miss | `Unknown`; `-dir / \|dir\|`; a miss | `ray_golden.cairo` |
-| `ray_casts` | 1 time of impact (`capsule/inside` hollow) | the true exit, as 0.31.1 | `test_capsule_hollow_upstream_units_bug` only |
-
-The other moved capsule values (times of impact, normals, `f64` digits of unchanged raws) go the
-port's way and are compared with 0.31.1 (ADR 0001 entries 4 and 5 closed). Whether the port should
-follow 0.31.1's feature ids is a programme decision (`docs/research/parked-families.md` §4.4); if it
-does, the frozen entries of that family are deleted with the port change.
 
 ## Quantisation rule
 
@@ -751,17 +725,14 @@ posed cast. A `None` upstream result is `has_toi = false` / `hit = false` with z
   for `+x|+y` (upstream's `+ 3`), `Unknown` for a zero `dir` inside; a solid ray from inside has a
   zero normal and the feature of the exit face; a corner tie has the normal `-dir / |dir|`.
 - **Capsule, analytic since parry 0.31.1.** The feature is `Face(0)`; a zero `dir` from inside
-  hits at `t = 0` with a zero normal; a solid ray from inside answers a zero normal. The port keeps
-  0.30.2's answers for those three (`Unknown`, a miss, `-dir / |dir|`), compared with the frozen
-  copy (see [Frozen parry 0.30.2 values](#frozen-parry-0302-values)). Times of impact and normals
-  agree with the port (equal times, normals within 3 raw, `posed`).
+  hits at `t = 0` with a zero normal; a solid ray from inside answers a zero normal. The port answers
+  the same since CE. Times of impact and normals agree with the port (equal times, normals within
+  3 raw, `posed`).
 - **Parry 0.30.2 (GJK) and its bug, `capsule/inside` hollow.** 0.30.2's normal was GJK's last
   search direction, up to ~300 ulp from the exact one (`hit_cap`, `posed`). Its hollow support-map
   cast shifted the origin by a *length* along `dir / |dir|`, cast back along `-dir` (times in units
   of `|dir|`) and returned `shift - toi_back`: correct only for a unit `dir`. With `|dir| = 1.118`
-  it answered `0.18122` where the exit is at `0.15`. 0.31.1 answers `0.15`, as the port; the Cairo
-  test still checks that the frozen 0.30.2 number is exactly that unit mix applied to the port's
-  exit.
+  it answered `0.18122` where the exit is at `0.15`. 0.31.1 answers `0.15`, as the port.
 - **Half-space.** A solid ray strictly inside answers `t = 0` with a zero normal; a ray parallel
   to the plane divides by zero upstream (`±inf` / `NaN`, rejected by the comparisons).
 - The exact centre of a ball as a solid origin gives a `NaN` normal (`non_finite_probes`).
@@ -934,7 +905,7 @@ raised, write down why.
 | manifolds, analytic pairs (all but `cuboid_capsule`) | 64 ulp on `dist` and points, 64 ulp per normal component | one `sqrt`, one division, a few products on magnitudes ≤ 4 |
 | manifolds, `cuboid_capsule` / `capsule_cuboid` | 2^16 ulp (1.5e-5) | upstream runs GJK/EPA, which stops on its own epsilon; the port plans an analytic generator (report 02 §4.1), so the two agree only up to GJK's convergence threshold |
 | manifolds, discrete outputs | exact unless `ambiguous` | point count, feature ids, which point comes first |
-| ray casts | 4 ulp time of impact, 8 ulp normal | one correctly rounded quotient per time. Hit / miss and features exact; the capsule features, solid-inside normals and zero-`dir` miss against the frozen 0.30.2 copy, see [ray_casts](#ray_casts) |
+| ray casts | 4 ulp time of impact, 8 ulp normal | one correctly rounded quotient per time. Hit / miss and features exact; see [ray_casts](#ray_casts) |
 | scenes `ball_drop`, `ball_bounce`, `pendulum`, `box_slope_*` | `2^12 · step` ulp on positions (≈ 1e-6 per step), twice that on velocities | single-contact or joint-only scenes have no solver-order ambiguity; the error is rounding accumulated over ~10³ operations per step, growing at most linearly while the motion is not chaotic. After the first bounce of `ball_bounce`, compare bounce apex and impact step rather than samples |
 | scene `box_stack3` | invariants, not samples | rest heights within `allowed_linear_error` (0.005) of `0.5 + i`, `|x| < 0.01`, final speeds `< 1e-3`; multi-contact ordering differs from upstream by construction (SO: in upstream's colour order the samples pass the scene tolerance) |
 
@@ -1401,8 +1372,8 @@ carried by `Sh1ShapeRaw` (`Other(ShapeRaw)`, `Polygon`, `Triangle`, `RoundCuboid
 
 ### SH2a families
 
-Generated by `src/sh2a.rs` (parry2d-f64 0.31.1 since OB, rapier2d-f64 0.35.3; the moved point and ray
-features are compared with the [frozen 0.30.2 copy](#frozen-parry-0302-values)), emitted by `src/cairo/sh2a.rs`
+Generated by `src/sh2a.rs` (parry2d-f64 0.31.1 since OB, rapier2d-f64 0.35.3; features compared with 0.31.1
+since CE), emitted by `src/cairo/sh2a.rs`
 into files of their own (`generated/{composite_shapes,composite_contacts,composite_points,
 composite_rays,composite_pairs,composite_aabbs,composite_scenes}` and their `partN` modules, at most
 12 cases each). The composite shapes are carried by `CompositeRaw` (`composite_shapes::composite(i)`:
@@ -1426,8 +1397,8 @@ heightfield, a closed square polyline plain and oriented); the other shape by `S
 
 ### SH2b families
 
-Generated by `src/sh2b.rs` (parry2d-f64 0.31.1 since OB, rapier2d-f64 0.35.3; the moved point
-features are compared with the [frozen 0.30.2 copy](#frozen-parry-0302-values)), emitted by `src/cairo/sh2b.rs`
+Generated by `src/sh2b.rs` (parry2d-f64 0.31.1 since OB, rapier2d-f64 0.35.3; features compared
+with 0.31.1 since CE), emitted by `src/cairo/sh2b.rs`
 into files of their own (`generated/{compound_shapes,compound_contacts,compound_points,
 compound_rays,compound_pairs,compound_mass,compound_scenes}` and their `partN` modules, at most 12
 cases each). The compounds are carried by `CompoundRaw` (`compound_shapes::compound(i)`: `ell`, a bar

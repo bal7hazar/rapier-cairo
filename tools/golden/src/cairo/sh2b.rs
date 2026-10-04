@@ -298,3 +298,41 @@ pub fn files(vectors: &Path) -> Vec<(String, String)> {
     files.push(("compound_scenes".to_string(), scenes_module(vectors)));
     files
 }
+
+/// Lot CE: `compound_internal_edges.json` as the compounds' builder `compound_internal_edges_shapes`
+/// and the two families `compound_internal_edges_flagged` / `_plain`, in `CompoundManifoldCase`
+/// (its `compound` indexes `compound_internal_edges_shapes::compound`).
+pub fn ce_files(vectors: &Path) -> Vec<(String, String)> {
+    let json = load(vectors, "compound_internal_edges.json");
+    let mut shapes = Module::new(
+        "compound_internal_edges.json",
+        "The compounds of the CE family (flagged or not by the test), built from their raws.",
+    );
+    compounds_module(&json["compounds"], "K", "compound", &mut shapes.body);
+    let mut files = vec![("compound_internal_edges_shapes".to_string(), shapes.finish(&TYPES))];
+    for (key, name, doc) in [
+        (
+            "flagged",
+            "compound_internal_edges_flagged",
+            "Contact manifolds of compounds with `FIX_INTERNAL_EDGES` against a body across a part seam (CE).",
+        ),
+        (
+            "plain",
+            "compound_internal_edges_plain",
+            "The same placements on the unflagged compounds (CE).",
+        ),
+    ] {
+        let header = konst("PREDICTION", "i64", &raw(&json["prediction"]));
+        files.extend(own_family(
+            "compound_internal_edges.json",
+            &json,
+            key,
+            name,
+            doc,
+            "CompoundManifoldCase",
+            header,
+            manifold_case,
+        ));
+    }
+    files
+}

@@ -383,6 +383,8 @@ The capsule cases, port against 0.31.1 (port values measured by running the port
 
 The capsule ray tolerances drop to the standard 4 / 8 ulp.
 
+**Done in CE (2026-10-03).** Option 4A landed: `CompoundFlags` / `FIX_INTERNAL_EDGES`, the five `Compound` items, `CompoundPseudoNormals` / `CompoundEdgeCone`, and `ConstrainedCompositeManifolds`, which a step selects through `World::step_with::<C>` (`DefaultStepConfig` keeps `CompositeManifolds`). The two numeric points are ADR 0001 entries 50 (an absolute weld tolerance of 4 raw) and 51 (the SAT counterparts of the GJK-point branch and of the retain rule's `dist`); the API shape is entry 52. The constraints reach the convex–ball and PFM–PFM part pairs, as upstream's; cuboid–cuboid ignores them, as upstream's. CE also follows 0.31.1's query answers (the feature ids of §4.4 and the three capsule answers), which removed the frozen 0.30.2 copy and closed entries 47 and 48. New goldens: `compound_internal_edges` (42 cases, flagged and plain).
+
 **Recommendation on the feature ids (a programme decision, not taken by OB):** follow 0.31.1. Its ids
 are the API-parity target; per-segment / per-part ids with the part in `subshape` are what SW1's
 `SubshapePointProjection` / `SubshapeRayIntersection` already carry; no contact or scene value moved

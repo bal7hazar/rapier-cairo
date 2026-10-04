@@ -48,7 +48,7 @@
 //! only the pair `match` is kept.
 
 use fixed::wide::{NormTrait, RecipTrait, norm2_wide};
-use fixed::{Fixed, ONE, ZERO};
+use fixed::{Fixed, MAX, ONE, ZERO};
 use glam_core::{Vec2, Vec2Trait};
 use rapier_math::math_ext::vec2::try_normalize2;
 use rapier_math::pose2::{Pose2, Pose2Trait};
@@ -60,6 +60,9 @@ use crate::point::{
     project_local_point_and_get_feature_capsule, project_local_point_and_get_feature_cuboid,
     project_local_point_and_get_feature_halfspace, project_local_point_and_get_feature_segment,
 };
+use crate::query::normal_constraints::NormalConstraints;
+use crate::ray::{Ray, RayIntersection, RayTrait, cast_local_ray_and_get_normal};
+use crate::shape::compound::CompoundPseudoNormals;
 use crate::shape::{Ball, Capsule, Cuboid, HalfSpace, Segment, Shape};
 
 /// Computes the contact manifold between a convex shape and a ball, either of them first.
@@ -269,6 +272,127 @@ fn write_contact(
     manifold.num_points = 1;
     manifold.local_n1 = n1;
     manifold.local_n2 = n2;
+}
+
+/// Upstream's `contact_manifold_convex_ball` with the convex shape's normal constraints (lot CE,
+/// a compound part): [`contact_manifold_convex_ball`] when `constraints1` is `None` (an unflagged
+/// compound's manifolds are unchanged), else the same projection, then upstream's constrained
+/// steps: the normal is projected into the cones (`project_local_normal1`; a rejection clears the
+/// manifold) and, when the projection moved it, the contact point on the convex shape is recast as
+/// a hollow ray from the ball's centre along the projected normal (away from it when the centre
+/// is outside), its time of impact becoming the distance and its feature `fid1`; no hit clears the
+/// manifold.
+/// #### Panics
+/// * As [`contact_manifold_convex_ball`], and the ray cast's.
+pub fn contact_manifold_convex_ball_constrained(
+    pos12: Pose2,
+    shape1: Shape,
+    ball2: Ball,
+    constraints1: Option<CompoundPseudoNormals>,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) {
+    let Some(constraints) = constraints1 else {
+        return contact_manifold_convex_ball(pos12, shape1, ball2, prediction, ref manifold);
+    };
+    let (proj, fid1) = project(shape1, pos12.translation);
+    finish_constrained(
+        pos12, shape1, proj, fid1, ball2, constraints, prediction, false, ref manifold,
+    );
+}
+
+/// [`contact_manifold_convex_ball_constrained`] with the ball first (upstream's `flipped` branch):
+/// `constraints2` constrains `shape2`.
+/// #### Panics
+/// * As [`contact_manifold_ball_convex`], and the ray cast's.
+pub fn contact_manifold_ball_convex_constrained(
+    pos12: Pose2,
+    ball1: Ball,
+    shape2: Shape,
+    constraints2: Option<CompoundPseudoNormals>,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) {
+    let Some(constraints) = constraints2 else {
+        return contact_manifold_ball_convex(pos12, ball1, shape2, prediction, ref manifold);
+    };
+    let pos21 = pos12.inverse();
+    let (proj, fid2) = project(shape2, pos21.translation);
+    finish_constrained(
+        pos21, shape2, proj, fid2, ball1, constraints, prediction, true, ref manifold,
+    );
+}
+
+/// The hollow ray cast of the constrained correction, out of line (the inlined dispatcher).
+#[inline(never)]
+fn recast(shape: Shape, ray: Ray) -> Option<RayIntersection> {
+    cast_local_ray_and_get_normal(shape, ray, MAX, false)
+}
+
+/// [`finish`] with the normal constraints of the convex shape (see
+/// [`contact_manifold_convex_ball_constrained`]).
+fn finish_constrained(
+    pos12: Pose2,
+    shape: Shape,
+    proj: PointProjection,
+    fid_convex: FeatureId,
+    ball: Ball,
+    constraints: CompoundPseudoNormals,
+    prediction: Fixed,
+    flipped: bool,
+    ref manifold: ContactManifold,
+) {
+    let t = pos12.translation;
+    let d = Vec2 { x: t.x - proj.point.x, y: t.y - proj.point.y };
+    let n = norm2_wide(d.x, d.y);
+    let len = n.to_fixed();
+    let dist = if proj.is_inside {
+        -len
+    } else {
+        len
+    };
+    if dist > ball.radius + prediction {
+        manifold.clear();
+        return;
+    }
+    let dir = match n.try_recip() {
+        Some(r) => Vec2 { x: r.mul(d.x), y: r.mul(d.y) },
+        None => fallback_normal(t),
+    };
+    let local_n1 = if proj.is_inside {
+        -dir
+    } else {
+        dir
+    };
+    let (accepted, projected, _) = NormalConstraints::project_local_normal1(
+        @constraints, pos12, local_n1, pos12.rotation.inverse_rotate(-local_n1),
+    );
+    if !accepted {
+        manifold.clear();
+        return;
+    }
+    if projected == local_n1 {
+        write_contact(pos12, proj.point, fid_convex, ball, local_n1, dist, flipped, ref manifold);
+        return;
+    }
+    let ray = Ray { origin: t, dir: if proj.is_inside {
+        projected
+    } else {
+        -projected
+    } };
+    let Some(hit) = recast(shape, ray) else {
+        manifold.clear();
+        return;
+    };
+    let toi = hit.time_of_impact;
+    let dist = if proj.is_inside {
+        -toi
+    } else {
+        toi
+    };
+    write_contact(
+        pos12, ray.point_at(toi), hit.feature, ball, projected, dist, flipped, ref manifold,
+    );
 }
 
 /// Rejected candidates, kept for the `gas_*` ranking.

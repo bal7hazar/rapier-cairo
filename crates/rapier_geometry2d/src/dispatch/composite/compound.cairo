@@ -99,7 +99,7 @@ pub fn contact_manifolds_compound_shape(
 }
 
 /// The local box of a polyline or a compound (upstream `bvh().root_aabb()`).
-fn root_aabb(shape: Shape) -> Aabb {
+pub(crate) fn root_aabb(shape: Shape) -> Aabb {
     match shape {
         Shape::Polyline(p) => p.unbox().local_aabb(),
         Shape::Compound(c) => c.unbox().local_aabb(),
@@ -109,7 +109,7 @@ fn root_aabb(shape: Shape) -> Aabb {
 
 /// The parts of a polyline or a compound meeting `aabb` (its frame), with their poses (the
 /// identity for a polyline's segments), ascending.
-fn posed_parts_in_aabb(shape: Shape, aabb: Aabb) -> Array<(u32, Pose2, Shape)> {
+pub(crate) fn posed_parts_in_aabb(shape: Shape, aabb: Aabb) -> Array<(u32, Pose2, Shape)> {
     let mut out = array![];
     match shape {
         Shape::Polyline(p) => {
@@ -131,7 +131,7 @@ fn posed_parts_in_aabb(shape: Shape, aabb: Aabb) -> Array<(u32, Pose2, Shape)> {
 }
 
 /// `|v|^2` of a box's half extents, exact.
-fn half_extents_sq(aabb: Aabb) -> i128 {
+pub(crate) fn half_extents_sq(aabb: Aabb) -> i128 {
     let he = aabb.half_extents();
     let (x, y): (i128, i128) = (he.x.raw.into(), he.y.raw.into());
     x * x + y * y

@@ -24,12 +24,14 @@
 use fixed::{Fixed, ZERO};
 use glam_core::{Vec2, Vec2Trait};
 use rapier_math::pose2::{Pose2, Pose2Trait};
-use crate::contact::{ContactManifold, ContactManifoldTrait};
+use crate::contact::{ContactManifold, ContactManifoldTrait, TrackedContact};
 use crate::manifold::ManifoldTrait;
-use crate::polygonal_feature::PolygonalFeature;
+use crate::polygonal_feature::{PolygonalFeature, PolygonalFeatureTrait};
+use crate::query::normal_constraints::NormalConstraintsPair;
+use crate::shape::compound::CompoundPseudoNormals;
 use crate::shape::triangle::{feature_to_triangle, triangle_core};
 use crate::shape::{ConvexPolygon, ConvexPolygonTrait, Cuboid, CuboidTrait, Segment, Shape};
-use super::polygon_polygon::{cuboid_core, finish, separating_axis};
+use super::polygon_polygon::{cuboid_core, finish, separating_axis, separating_axis_and_distance};
 use super::polygon_segment::core as segment_core;
 
 /// The polygonal core of one side, with what its feature ids need.
@@ -224,6 +226,122 @@ pub fn contact_manifold_pfm_pfm_part(
         },
     }
     true
+}
+
+/// `5`: upstream's retain factor (`pt.dist >= dist * 5.0`).
+const RETAIN_FACTOR: Fixed = Fixed { raw: 5 * 0x1_0000_0000 };
+
+/// Upstream's `contact_manifold_pfm_pfm` with its normal constraints (lot CE), on a composite
+/// shape's part: [`contact_manifold_pfm_pfm_part`] when neither side is constrained (the same
+/// function, so an unflagged compound's manifolds are unchanged), else the same SAT and clipping
+/// with upstream's three constrained steps:
+///
+/// 1. the normal is projected through `constraints1` then `constraints2`
+///    (`NormalConstraintsPair::project_local_normals`); a rejection clears the manifold;
+/// 2. the closest-pair point a separated pair falls back on when clipping keeps nothing is only
+///    added when the projection left the normal unchanged (upstream: the extra GJK point only when
+///    `local_n1 == dir`);
+/// 3. when the unconstrained distance `dist` is negative, a point is kept only when its distance
+///    is at least `5 dist` (upstream's retain rule), `dist` being the SAT penetration (the larger
+///    face separation) or the witnesses' distance of a separated pair.
+///
+/// Then the radii push the points out along the projected normals, and the warm-start data are
+/// matched by feature ids, as the unconstrained generator.
+/// #### Panics
+/// * As [`contact_manifold_pfm_pfm_part`].
+pub fn contact_manifold_pfm_pfm_part_constrained(
+    pos12: Pose2,
+    shape1: Shape,
+    shape2: Shape,
+    constraints1: Option<CompoundPseudoNormals>,
+    constraints2: Option<CompoundPseudoNormals>,
+    prediction: Fixed,
+    ref manifold: ContactManifold,
+) -> bool {
+    if constraints1.is_none() && constraints2.is_none() {
+        return contact_manifold_pfm_pfm_part(pos12, shape1, shape2, prediction, ref manifold);
+    }
+    let (Some((inner1, r1)), Some((inner2, r2))) = (decompose(shape1), decompose(shape2)) else {
+        manifold.clear();
+        return false;
+    };
+    if manifold.try_update_contacts(pos12) {
+        return true;
+    }
+    let (core1, core2) = (core_of(inner1), core_of(inner2));
+    let Some((n, witnesses, dist)) = separating_axis_and_distance(
+        core1, core2, pos12, prediction + r1 + r2,
+    ) else {
+        manifold.clear();
+        return true;
+    };
+    let n = if witnesses.is_some() {
+        snap_normal(n, core1, core2, pos12)
+    } else {
+        n
+    };
+    let (accepted, n1, n2) = (constraints1, constraints2)
+        .project_local_normals(pos12, n, pos12.inverse_transform_vector(-n));
+    if !accepted {
+        manifold.clear();
+        return true;
+    }
+    let f1 = feature_of(inner1, n1);
+    let f2 = feature_of(inner2, n2);
+    let old = manifold;
+    manifold.clear();
+    PolygonalFeatureTrait::contacts(pos12, pos12.inverse(), n1, n2, f1, f2, ref manifold, false);
+    if manifold.num_points == 0 && n1 == n {
+        if let Some((q1, q2)) = witnesses {
+            let c = TrackedContact {
+                local_p1: q1,
+                local_p2: q2,
+                dist: (pos12.transform_point(q2) - q1).dot(n1),
+                ..Default::default(),
+            };
+            manifold.points = [c, Default::default()];
+            manifold.num_points = 1;
+        }
+    }
+    retain_constrained(ref manifold, dist);
+    let (o1, o2) = (n1.mul_scalar(r1), n2.mul_scalar(r2));
+    let [mut a, mut b] = manifold.points;
+    a.local_p1 = a.local_p1 + o1;
+    b.local_p1 = b.local_p1 + o1;
+    a.local_p2 = a.local_p2 + o2;
+    b.local_p2 = b.local_p2 + o2;
+    a.dist = a.dist - r1 - r2;
+    b.dist = b.dist - r1 - r2;
+    manifold.points = [a, b];
+    manifold.local_n1 = n1;
+    manifold.local_n2 = n2;
+    manifold.match_contacts(@old);
+    true
+}
+
+/// Upstream's retain rule of the constrained manifolds (see
+/// [`contact_manifold_pfm_pfm_part_constrained`]): with a negative unconstrained distance `dist`,
+/// keeps the points whose distance is at least `5 dist`, in order.
+fn retain_constrained(ref manifold: ContactManifold, dist: Fixed) {
+    if dist >= ZERO {
+        return;
+    }
+    let limit = dist * RETAIN_FACTOR;
+    let [a, b] = manifold.points;
+    let keep_a = manifold.num_points > 0 && a.dist >= limit;
+    let keep_b = manifold.num_points > 1 && b.dist >= limit;
+    if keep_a {
+        manifold.num_points = if keep_b {
+            2
+        } else {
+            1
+        };
+    } else if keep_b {
+        manifold.points = [b, a];
+        manifold.num_points = 1;
+    } else {
+        manifold.num_points = 0;
+    }
 }
 
 /// The cuboid–triangle manifold (Parry `contact_manifold_cuboid_triangle`, with `pos12` placing

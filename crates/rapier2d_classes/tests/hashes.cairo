@@ -14,14 +14,15 @@ use starknet::syscalls::{storage_read_syscall, storage_write_syscall};
 use starknet::{ClassHash, SyscallResultTrait};
 
 /// The class hashes snforge declares for this package's classes (`test_pinned_class_hashes`
-/// prints the new ones when the classes change). Pinned from CI (Scarb 2.20.1, TC1): root path
-/// `/home/runner/work/rapier-cairo/rapier-cairo`, run 37017663782, artifact `class-hashes`.
+/// prints the new ones when the classes change).
+/// CE: pinned from CI (Scarb 2.20.1): root `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37165682689, artifact `class-hashes`.
 pub const CONTACT_BALL_HASH: felt252 =
-    0x5f9b275f6554d67248a2d06302bc48eb7fc08854ab213a36cd558dc9ef7d08b;
-/// FU1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
-/// 37151548515, artifact `class-hashes`.
+    0x61d717d09e8b8af360caeeaa04f6e5d705b865d0e678b8669350ce5323051db;
+/// CE: pinned from CI (Scarb 2.20.1): root `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37165682689, artifact `class-hashes`.
 pub const CONTACT_POLYGON_HASH: felt252 =
-    0x1360212d7a7f833476ef059ec23733825ad53d370224a12d2e564a593a7cf15;
+    0x3826b7710064281bc41d6ca4dca41cdd72c362897652ab8cdc0d3abdaf02b96;
 pub const SOLVER_HASH: felt252 = 0x57e2011e184a627ffcc1b9fabc4af49e3515ffa260892c8a37a489421a02ede;
 pub const SOLVE_ADVANCE_HASH: felt252 =
     0x44c3a661a7a730f5a763889f2e81cc82ad37d6caad8af6b4aae29d152d84a17;
@@ -30,19 +31,21 @@ pub const SOLVE_ADVANCE_HASH: felt252 =
 pub const ISLANDS_HASH: felt252 = 0x6aa5300b631b548c341b88a8d5881356f7f33898c37ff1894ef003ea73f6a9e;
 pub const BROAD_PHASE_HASH: felt252 =
     0x53423c89826872bf0609676dde383e1e7fd4716d8c76c4964785c1e73a51014;
-pub const MASS_HASH: felt252 = 0x60051ffb6f7fe7e5a29c6ac58db800bafcfa716e79b3d97a058a71027e10c3b;
-/// FU1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
-/// 37151548515, artifact `class-hashes`.
+/// CE: pinned from CI (Scarb 2.20.1): root `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37165682689, artifact `class-hashes`.
+pub const MASS_HASH: felt252 = 0x55df726ec8b94db8bbfdfaa74c298679ab03d26314501d199fa7d983f307fb1;
+/// CE: pinned from CI (Scarb 2.20.1): root `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37165682689, artifact `class-hashes`.
 pub const NARROW_PHASE_HASH: felt252 =
-    0x11c9f3239147891a04a8f5d147d8e325ae713d2bd645e996c7e7f07ec58d0fc;
-/// CX3: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
-/// 37033470531, artifact `class-hashes`.
+    0x35db07c4525f5cef070dd1f753421cb30ce85354cc38a9f2633edf10f73af17;
+/// CE: pinned from CI (Scarb 2.20.1): root `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37165682689, artifact `class-hashes`.
 pub const ACTIVE_SET_HASH: felt252 =
-    0x5ea0e678c30220f403888fa50bf0b304040ee2628f14edfa4158cf082e90e9b;
-/// EL1: pinned from CI (Scarb 2.20.1): root path `/home/runner/work/rapier-cairo/rapier-cairo`, run
-/// 37116036184, artifact `class-hashes`.
+    0x61c0fba16d913dd4aa4be58fa7aa0c6f3d1a5f8af69f7e268869f4dc960b396;
+/// CE: pinned from CI (Scarb 2.20.1): root `/home/runner/work/rapier-cairo/rapier-cairo`, run
+/// 37165682689, artifact `class-hashes`.
 pub const FORCE_EVENTS_HASH: felt252 =
-    0x402420ceeb354eb38a44977636924c41bfc63190dad4cad1dc6e28ad6b44759;
+    0x64e6eed27db6b91700eb16336b39264ca6cab93164be50ec87bf29714feaa5b;
 
 /// The declared classes: name, pinned hash, storage slot of [`StoredHashes`], call counter of
 /// [`CountingHashes`].

@@ -15,7 +15,9 @@
 //!   (`crate::dispatcher::BasicShapesDispatcher`), no sensor, no composite shape, no joint.
 //!
 //! A game picks its own mix: `impl MyStep of StepConfig { impl Dispatcher = ..; impl Sensors =
-//! ..; impl Composites = ..; impl Joints = ..; }`.
+//! ..; impl Composites = ..; impl Joints = ..; }`. `impl Composites =
+//! ConstrainedCompositeManifolds;` honours the compounds built with `FIX_INTERNAL_EDGES` (lot CE),
+//! which `DefaultStepConfig`'s `CompositeManifolds` ignores.
 //!
 //! # Stages (CS5, CS6)
 //!
@@ -53,8 +55,8 @@ use rapier_dynamics2d::joint::{ImpulseJoint, ImpulseJointSet, ImpulseJointSetTra
 /// The pieces a [`StepConfig`] is made of, in one place.
 pub use rapier_dynamics2d::narrow_phase::ContactDispatcher;
 pub use rapier_dynamics2d::narrow_phase::strategies::{
-    CompositeManifolds, CompositeStrategy, IntersectionStrategy, NoComposites, NoSensors,
-    SensorIntersections,
+    CompositeManifolds, CompositeStrategy, ConstrainedCompositeManifolds, IntersectionStrategy,
+    NoComposites, NoSensors, SensorIntersections,
 };
 use rapier_dynamics2d::rigid_body_set::RigidBody;
 use rapier_dynamics2d::solver::island::{

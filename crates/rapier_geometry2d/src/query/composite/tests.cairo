@@ -64,8 +64,12 @@ fn test_point_queries() {
     assert_eq!(seg, 1);
     assert!(!proj.is_inside);
     assert_eq!(loc, SegmentPointLocation::OnVertex(1));
+    // The segment's own feature (parry 0.31): segment 0's side `Face(0)`, then segment 1's end
+    // vertex `Vertex(1)` (0.30.2: `Face(1)`, the segment).
     let (_, feature) = project_local_point_and_get_feature_polyline(@p, v(-ONE, -ONE));
     assert_eq!(feature, FeatureIdTrait::face(0));
+    let (_, feature) = project_local_point_and_get_feature_polyline(@p, v(int(3), int(3)));
+    assert_eq!(feature, FeatureIdTrait::vertex(1));
     // An unoriented polyline has no interior.
     assert!(!p.contains_local_point(v(ZERO, HALF)));
     // An oriented square: inside, solid answers the point itself.
@@ -111,9 +115,10 @@ fn test_ray_casts() {
     let (cell, hit) = cast_local_ray_and_get_normal_heightfield_part(@h, ray, int(100)).unwrap();
     assert_eq!(cell, 2);
     assert_eq!(hit.time_of_impact, int(5));
-    // The cell's `normal()` (clockwise of `a -> b`): `(0, -1)`; from above, `Face(cell + 4)`.
+    // The cell's `normal()` (clockwise of `a -> b`): `(0, -1)`; from above, the segment's own
+    // `Face(1)` (parry 0.31; 0.30.2 answered `Face(cell + 4)`).
     assert_eq!(hit.normal, v(ZERO, -ONE));
-    assert_eq!(hit.feature, FeatureIdTrait::face(6));
+    assert_eq!(hit.feature, FeatureIdTrait::face(1));
     // A slanted ray walks the cells.
     let slanted = Ray { origin: v(int(-3), ONE), dir: v(ONE, -HALF) };
     let (cell, hit) = cast_local_ray_and_get_normal_heightfield_part(@h, slanted, int(100))

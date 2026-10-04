@@ -199,12 +199,13 @@ pub fn project_local_point_compound(compound: @Compound, pt: Vec2, solid: bool) 
 }
 
 /// Upstream `PointQuery::project_local_point_and_get_feature` for `Compound`: the closest part's
-/// projection and `Unknown`.
+/// projection and the part's own feature (parry 0.31: the part is the projection's `subshape`,
+/// answered by [`project_local_point_and_get_feature_compound_part`]).
 pub fn project_local_point_and_get_feature_compound(
     compound: @Compound, pt: Vec2,
 ) -> (PointProjection, FeatureId) {
     match project_local_point_and_get_feature_compound_part(compound, pt) {
-        Some((_, (proj, _))) => (proj, FEATURE_UNKNOWN),
+        Some((_, (proj, feature))) => (proj, feature),
         None => (PointProjectionTrait::new(false, pt), FEATURE_UNKNOWN),
     }
 }
