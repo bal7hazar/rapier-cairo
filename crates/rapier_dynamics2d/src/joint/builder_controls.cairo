@@ -43,7 +43,9 @@ fn test_builder_controls_match_generic_setters() {
         assert_eq!(g, expected);
         assert_eq!(specialized, expected);
         expected.set_motor_velocity(axis, -ONE, ONE);
-        let g = GenericJointBuilder { data: g }.motor_velocity(axis, -ONE, ONE).build();
+        let g = GenericJointBuilder { data: g, user_data: 0 }
+            .motor_velocity(axis, -ONE, ONE)
+            .build();
         let specialized = if axis == 0 {
             PrismaticJointBuilder { data: specialized }.motor_velocity(-ONE, ONE).build()
         } else {
@@ -52,7 +54,9 @@ fn test_builder_controls_match_generic_setters() {
         assert_eq!(g, expected);
         assert_eq!(specialized, expected);
         expected.set_motor_position(axis, -HALF, HALF, ONE);
-        let g = GenericJointBuilder { data: g }.motor_position(axis, -HALF, HALF, ONE).build();
+        let g = GenericJointBuilder { data: g, user_data: 0 }
+            .motor_position(axis, -HALF, HALF, ONE)
+            .build();
         let specialized = if axis == 0 {
             PrismaticJointBuilder { data: specialized }.motor_position(-HALF, HALF, ONE).build()
         } else {

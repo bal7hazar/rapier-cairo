@@ -51,6 +51,7 @@ EXCLUSIONS = (
     "construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need",
     "solver / island internals not exposed (dynamics::solver is pub(crate) upstream)",
     "contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps",
+    "a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
@@ -116,6 +117,9 @@ CLOSED_ENUM: frozenset[tuple[str, str, str]] = frozenset({
     ("CompositeShape", "method", "is_deformable"), ("CompositeShape", "method", "map_part_at"),
     ("TypedCompositeShape", "trait", "TypedCompositeShape"), ("TypedCompositeShape", "method", "map_typed_part_at"),
     ("TypedCompositeShape", "method", "map_untyped_part_at"), ("CompositeShapeRef", "type", "CompositeShapeRef"),
+    # The project manager's decision, 2026-10-04 (PX9): `Compound::bvh` closes like `CompositeShape::bvh`; the compound
+    # scans `aabbs` in `parts_in_aabb`, cheaper than a tree up to about 6 parts (ADR 36, SH2b).
+    ("Compound", "method", "bvh"),
 })
 # The project manager's decisions, 2026-10-03 (PX7), each item listed by exact `(owner, kind, name)`; like PX1's
 # reasons they count in "in scope" only.
@@ -174,11 +178,18 @@ CONTACT_SKIN: frozenset[tuple[str, str, str]] = frozenset({
     ("Collider", "method", "contact_skin"), ("Collider", "method", "set_contact_skin"),
     ("ColliderBuilder", "method", "contact_skin"),
 })
+# The project manager's decision, 2026-10-04 (PX9): `ColliderSet::take_removed` needs a removal log, a field of the
+# set that every step copies. WS3 measured the one-cell boxed list (the smallest layout a field can have, #266, not
+# merged): +0.1 to +0.2 % steps per tick on the default path, +27,580 on the pile10 shot. The figure is WS3's; the
+# VPS cap of 8 GiB could not compile the step probes for a second measurement (ADR 53).
+REMOVAL_LOG_REASON = ("a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, "
+                      "+27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)")
+REMOVAL_LOG: frozenset[tuple[str, str, str]] = frozenset({("ColliderSet", "method", "take_removed")})
 # Every reason added since PX1: they do not count in the raw figure.
 POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON,
                               MUTABLE_GRAPH_REASON, CLOSED_ENUM_REASON, NO_INDEX_MUT_REASON,
                               NO_FAITHFUL_DEFAULT_REASON, UNFAITHFUL_REASON, DECOMPOSITION_REASON,
-                              SOLVER_SCALAR_REASON, CONTACT_SKIN_REASON})
+                              SOLVER_SCALAR_REASON, CONTACT_SKIN_REASON, REMOVAL_LOG_REASON})
 
 # PX1: rapier's contact/joint constraint solver internals and the persistent-island / BVH
 # broad-phase internals have no Cairo counterpart by design, mirroring "EPA/GJK internals not
@@ -1116,6 +1127,8 @@ def exclusion_reason(item: Item) -> str:
         return SOLVER_SCALAR_REASON
     if item.key in CONTACT_SKIN:
         return CONTACT_SKIN_REASON
+    if item.key in REMOVAL_LOG:
+        return REMOVAL_LOG_REASON
     blob = " ".join((item.owner, item.kind, item.name, item.module, item.source)).lower()
     impl = item.kind == "impl"
     # PO1: the FEM / soft-constraint solver files hold the soft bodies' linear algebra (`BlockMatrix`,
@@ -1222,7 +1235,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
         ("Compound", "part_normal_constraints"), ("Compound", "set_flags"),
         ("Compound", "with_flags"), ("CompoundFlags", "CompoundFlags"),
         ("CompoundPseudoNormals", "CompoundPseudoNormals"))},
-    ("Compound", "bvh"): "SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`).",
     # PX2 / PX4: `SharedShape` -> `Shape` (`OWNER_ALIASES`); every constructor upstream builds through a
     # concrete shape has a same-named `ShapeTrait` counterpart, and PX4's `ShapeDynTrait` holds the value meanings
     # of `new`, `convex_polyline_unmodified`, `as_shape`, `clone_box`, `clone_dyn`, `scale_dyn` and the CCD
@@ -1231,11 +1243,6 @@ MISSING_REASONS: dict[tuple[str, str], str] = {
     # `DefaultQueryDispatcher::cast_shapes_nonlinear`, which answers `Unsupported`, as the port).
     **{("parry::query", n): "Not compiled upstream (commented out); the pair is unsupported, as upstream." for n in (
         "cast_shapes_nonlinear_halfspace_support_map", "cast_shapes_nonlinear_support_map_halfspace")},
-    # PX4: the set keeps no removal list (`remove` returns the collider); `take_modified` is a read of the change
-    # flags (`collider_set/access.cairo`).
-    ("ColliderSet", "take_removed"): "The set records no removals (`remove` returns the collider); recording them would add a field to a stepped struct.",
-    # PX4: joints store no user data (`GenericJoint` has no such field, and a field of a stepped struct is out of scope).
-    ("GenericJointBuilder", "user_data"): "`GenericJoint` stores no user data (a new field of a stepped struct).",
 }
 
 
@@ -1316,7 +1323,8 @@ def render(rust: list[Item], cairo: list[Item]) -> str:
         "Of these, the project manager's decisions of 2026-10-03 are: " + ", ".join(f"`{r}`" for r in (
             NO_INDEX_MUT_REASON, NO_FAITHFUL_DEFAULT_REASON, UNFAITHFUL_REASON, DECOMPOSITION_REASON,
             SOLVER_SCALAR_REASON, CONTACT_SKIN_REASON)) + " (the first four from PX7, the last two from PX8);"
-        " the closed-enum reason also covers the composite traits of PX7.",
+        " the closed-enum reason also covers the composite traits of PX7 and `Compound::bvh` (PX9, 2026-10-04), and "
+        f"`{REMOVAL_LOG_REASON}` is `ColliderSet::take_removed` (PX9).",
         "",
         "## Coverage summary",
         "",
@@ -1458,6 +1466,8 @@ def self_test() -> int:
                         (("SolverVel", "impl", "SubAssign"), SOLVER_SCALAR_REASON),
                         (("VelocitySolver", "method", "new"), SOLVER_SCALAR_REASON),
                         (("Collider", "method", "set_contact_skin"), CONTACT_SKIN_REASON),
+                        (("Compound", "method", "bvh"), CLOSED_ENUM_REASON),
+                        (("ColliderSet", "method", "take_removed"), REMOVAL_LOG_REASON),
                         (("SolverVel", "type", "SolverVel"), ""),
                         (("CompoundEdgeCone", "type", "CompoundEdgeCone"), "")):
         assert exclusion_reason(Item(*key)) == reason, key

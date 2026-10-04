@@ -8,27 +8,27 @@ Upstream target: rapier-rs `0.35.3+4` 2D plus parry `0.31.1` public items Rapier
 
 Statuses: `ported` means the same public name or a documented owner/name mapping exists in Cairo; `partial` is reserved for split owners; `missing` is the default; `excluded` uses only the closed reasons below.
 
-Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `Cairo has no IndexMut / &mut index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps`.
+Closed exclusion reasons: `dim3-only`, `soft bodies`, `multibody`, `SIMD/parallel`, `debug render`, `serde/rkyv/bytemuck`, `profiling counters`, `dyn hooks`, `trimesh/voxels/3D heightfield`, `EPA/GJK internals not exposed`, `solver / island internals not exposed`, `f32/f64 conversions and approx traits`, `soft bodies are not part of the port`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `static dispatch through StepConfig / StageConfig (D10)`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `Cairo has no IndexMut / &mut index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps`, `a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)`.
 
-Of these, the project manager's decisions of 2026-10-03 are: `Cairo has no IndexMut / &mut index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps` (the first four from PX7, the last two from PX8); the closed-enum reason also covers the composite traits of PX7.
+Of these, the project manager's decisions of 2026-10-03 are: `Cairo has no IndexMut / &mut index`, `persisted contact-graph order, no faithful Default`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps` (the first four from PX7, the last two from PX8); the closed-enum reason also covers the composite traits of PX7 and `Compound::bvh` (PX9, 2026-10-04), and `a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)` is `ColliderSet::take_removed` (PX9).
 
 ## Coverage summary
 
-Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Cairo has no IndexMut / &mut index`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `persisted contact-graph order, no faithful Default`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `static dispatch through StepConfig / StageConfig (D10)`).
+Two coverage figures (PX1, 2026-09-27), so closing an exclusion never quietly raises the headline number: **raw** = ported / (items − excluded by the reasons that predate PX1); **in scope** = ported / (items − every excluded item, including the reasons added since PX1: `Cairo has no IndexMut / &mut index`, `Q32.32 state cannot become NaN or infinite; nothing to contain`, `a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)`, `closed value enum replaces Arc / dyn shapes (SH2a)`, `construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need`, `contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps`, `no faithful form: fixed solver-contact array and count; anchors are offsets at the step's start`, `persisted contact-graph order, no faithful Default`, `persistent mutable graph not ported (D7): values cannot hand out mutable references into the step's storage`, `soft bodies are not part of the port`, `solver / island internals not exposed`, `solver / island internals not exposed (dynamics::solver is pub(crate) upstream)`, `static dispatch through StepConfig / StageConfig (D10)`).
 
 | Module | Ported | Partial | Missing | Excluded | Items | Raw | In scope |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | control | 31 | 0 | 0 | 0 | 31 | 100.0% | 100.0% |
-| dynamics | 560 | 0 | 1 | 621 | 1182 | 78.2% | 99.8% |
-| geometry | 257 | 0 | 1 | 57 | 315 | 86.0% | 99.6% |
+| dynamics | 561 | 0 | 0 | 621 | 1182 | 78.4% | 100.0% |
+| geometry | 257 | 0 | 0 | 58 | 315 | 86.0% | 100.0% |
 | parry::bounding_volume | 89 | 0 | 0 | 6 | 95 | 100.0% | 100.0% |
 | parry::mass_properties | 19 | 0 | 0 | 5 | 24 | 100.0% | 100.0% |
 | parry::query | 280 | 0 | 0 | 127 | 407 | 93.3% | 100.0% |
-| parry::shape | 243 | 0 | 1 | 136 | 380 | 92.7% | 99.6% |
+| parry::shape | 243 | 0 | 0 | 137 | 380 | 92.7% | 100.0% |
 | pipeline | 81 | 0 | 0 | 77 | 158 | 91.0% | 100.0% |
-| **total** | **1560** | **0** | **3** | **1029** | **2592** | **86.4%** | **99.8%** |
+| **total** | **1561** | **0** | **0** | **1031** | **2592** | **86.5%** | **100.0%** |
 
-Cairo-only public items not matched to upstream: **2071**.
+Cairo-only public items not matched to upstream: **2079**.
 
 ## Aabb
 
@@ -541,7 +541,7 @@ Cairo-only public items not matched to upstream: **2071**.
 | method `remove` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `set_parent` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | method `take_modified` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
-| method `take_removed` | geometry | missing | The set records no removals (`remove` returns the collider); recording them would add a field to a stepped struct. | `rapier/src/geometry/collider_set.rs` |
+| method `take_removed` | geometry | excluded | a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c) | `rapier/src/geometry/collider_set.rs` |
 | method `with_capacity` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 | type `ColliderSet` | geometry | ported | Same public name. | `rapier/src/geometry/collider_set.rs` |
 
@@ -635,7 +635,7 @@ Cairo-only public items not matched to upstream: **2071**.
 | impl `RayCast` | parry::query | ported | Same public name. | `parry/src/query/ray/ray_composite_shape.rs` |
 | impl `Shape` | parry::shape | ported | Same public name. | `parry/src/shape/shape.rs` |
 | method `aabbs` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
-| method `bvh` | parry::shape | missing | SH2b: no BVH; `parts_in_aabb` scans `aabbs` (cheaper than a tree up to ~6 parts, `shape/compound/tests.cairo`). | `parry/src/shape/compound.rs` |
+| method `bvh` | parry::shape | excluded | closed value enum replaces Arc / dyn shapes (SH2a) | `parry/src/shape/compound.rs` |
 | method `decompose_trimesh` | parry::shape | excluded | trimesh/voxels/3D heightfield | `parry/src/shape/compound.rs` |
 | method `flags` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
 | method `local_aabb` | parry::shape | ported | Same public name. | `parry/src/shape/compound.rs` |
@@ -1171,7 +1171,7 @@ Cairo-only public items not matched to upstream: **2071**.
 | method `new` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `set_motor` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | method `softness` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
-| method `user_data` | dynamics | missing | `GenericJoint` stores no user data (a new field of a stepped struct). | `rapier/src/dynamics/joint/generic_joint.rs` |
+| method `user_data` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 | type `GenericJointBuilder` | dynamics | ported | Same public name. | `rapier/src/dynamics/joint/generic_joint.rs` |
 
 ## GenericJointConstraint
@@ -4441,27 +4441,6 @@ Cairo-only public items not matched to upstream: **2071**.
 
 | Package | Items | Tier | Depends on / context |
 |---|---:|---|---|
-| [Additional 2D shapes](#wp-additional-2d-shapes) | 1 | standard | shape interface |
-| [Collider API completion](#wp-collider-api-completion) | 1 | mechanical | DB/EV |
-| [Joint API completion](#wp-joint-api-completion) | 1 | standard | JL/RJ |
-
-### WP: Additional 2D shapes
-
-Tier: standard. Depends/context: shape interface. Estimate: 1 public items.
-
-- **Compound** method `bvh` (`parry/src/shape/compound.rs`)
-
-### WP: Collider API completion
-
-Tier: mechanical. Depends/context: DB/EV. Estimate: 1 public items.
-
-- **ColliderSet** method `take_removed` (`rapier/src/geometry/collider_set.rs`)
-
-### WP: Joint API completion
-
-Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
-
-- **GenericJointBuilder** method `user_data` (`rapier/src/dynamics/joint/generic_joint.rs`)
 
 ## Cairo public items without upstream match
 
@@ -4665,7 +4644,7 @@ Tier: standard. Depends/context: JL/RJ. Estimate: 1 public items.
 - **Alternatives** method `words_lane` (`crates/rapier2d_classes/src/narrow/alternatives.cairo`)
 - **Alternatives** method `write` (`crates/rapier2d/src/pipeline/config/alternatives.cairo`)
 - **Alternatives::kind** method `pair_kind` (`crates/rapier2d/src/pipeline/alternatives.cairo`)
-- ... 1871 more
+- ... 1879 more
 
 ## Embedded Rust inventory
 

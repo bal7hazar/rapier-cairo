@@ -15,6 +15,7 @@ mod set;
 mod spring_joint;
 #[cfg(test)]
 mod typed_tests;
+mod user_data;
 pub use builders::{
     FixedJointBuilder, FixedJointBuilderTrait, GenericJointBuilder, GenericJointBuilderIntoGeneric,
     GenericJointBuilderTrait, PrismaticJointBuilder, PrismaticJointBuilderTrait,
@@ -48,6 +49,7 @@ pub use spring_joint::{
     SpringJoint, SpringJointBuilder, SpringJointBuilderIntoGeneric, SpringJointBuilderTrait,
     SpringJointIntoGeneric, SpringJointTrait,
 };
+pub use user_data::{JointUserData, JointUserDataImpl, JointUserDataTrait};
 
 /// 2D axis bits: X=1, Y=2, AngX=4. Only values 0..7 are valid.
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]

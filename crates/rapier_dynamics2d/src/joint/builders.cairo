@@ -13,6 +13,8 @@ use super::{
 #[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub struct GenericJointBuilder {
     pub data: GenericJoint,
+    /// The user data set by `user_data` (PX9): kept beside the joint, see `JointUserData`.
+    pub(crate) user_data: u128,
 }
 #[generate_trait]
 pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
@@ -20,7 +22,7 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
     fn new(locked_axes: JointAxesMask) -> GenericJointBuilder {
         let data = GenericJoint { locked_axes: locked_axes, ..Default::default() };
         assert(locked_axes.bits <= 7, errors::MASK);
-        let result = GenericJointBuilder { data };
+        let result = GenericJointBuilder { data, user_data: 0 };
         result
     }
     /// Set the coupled axes (upstream `coupled_axes`); exact copy. Coupled linear axes act as
@@ -146,6 +148,19 @@ pub impl GenericJointBuilderImpl of GenericJointBuilderTrait {
     ) -> GenericJointBuilder {
         self.data.set_motor_max_force(axis, max_force);
         self
+    }
+    /// An arbitrary user-defined 128-bit integer associated to the joints built by this builder
+    /// (upstream `user_data`, PX9). `build` returns the joint without it: [`JointUserData`]
+    /// (`insert`) keeps it by the joint's handle, and
+    /// [`user_data_value`](GenericJointBuilderTrait::user_data_value) reads it back.
+    fn user_data(mut self: GenericJointBuilder, data: u128) -> GenericJointBuilder {
+        self.user_data = data;
+        self
+    }
+    /// The user data set by [`user_data`](GenericJointBuilderTrait::user_data), `0` by default.
+    #[inline(always)]
+    fn user_data_value(self: @GenericJointBuilder) -> u128 {
+        *self.user_data
     }
     /// Return the joint; all copies are exact.
     fn build(self: GenericJointBuilder) -> GenericJoint {
