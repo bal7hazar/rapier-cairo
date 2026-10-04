@@ -22,6 +22,10 @@ probes (a compound plank on a half-space or a polyline, `World::step`), net step
 The delta grows with the part count: `Compound` is copied by value on each part access, and every felt it gains is
 copied there. One felt (`Nullable`) is the least a field can take; identity needs the cones outside the value the
 default path copies, which means outside `Compound` (a new `Shape` variant or a side table), a design change.
+**Accepted** by the orchestrator (2026-10-04, option A of the CE review): +6 to +18 steps per compound step and +1
+per flag-free read-back, with the 53 `steps_*` probes identical. The game holds no compound, and the alternatives (a
+new `Shape` variant, cones on the collider) cost more than they save. A later lot can remove this cost if a consumer
+ever steps compounds on a hot path.
 
 **`WorldState`.** A flag-free compound serialises to the same felts as before (`test_serde_layout`). Reading it back:
 883 steps against 882 for the derived path of the three fields (`gas_deserialize_flag_free`,
