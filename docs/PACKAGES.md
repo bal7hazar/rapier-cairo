@@ -8,16 +8,16 @@ Gates: at most 40,000 library lines; marginal cost at most 5 s / 1 GB (gate 2); 
 
 | package | version | lines | marginal time | marginal memory | verdict |
 |---|---|---:|---:|---:|---|
-| rapier2d | 0.1.0-alpha.9 | 10,564 (gate 3 only) | closure 9.7 s / 15 s (+35 %) | closure 1.50 GB / 3 GB (+50 %) | ok |
-| rapier2d_classes | 0.1.0-alpha.9 | 3,760 / 40,000 (+91 %) | 0.9 s / 5 s (+83 %) | 0.09 GB / 1 GB (+91 %) | ok |
-| rapier_core | 0.1.0-alpha.9 | 3,200 / 40,000 (+92 %) | 0.6 s / 5 s (+87 %) | 0.08 GB / 1 GB (+92 %) | ok |
-| rapier_dynamics2d | 0.1.0-alpha.9 | 15,246 / 40,000 (+62 %) | 2.1 s / 5 s (+58 %) | 0.38 GB / 1 GB (+62 %) | ok |
-| rapier_geometry2d | 0.1.0-alpha.9 | 25,128 / 40,000 (+37 %) | 2.5 s / 5 s (+50 %) | 0.45 GB / 1 GB (+55 %) | ok |
-| rapier_math | 0.1.0-alpha.9 | 935 / 40,000 (+98 %) | 0.4 s / 5 s (+93 %) | 0.02 GB / 1 GB (+98 %) | ok |
+| rapier2d | 0.1.0-alpha.10 | 10,564 (gate 3 only) | closure 9.0 s / 15 s (+40 %) | closure 1.50 GB / 3 GB (+50 %) | ok |
+| rapier2d_classes | 0.1.0-alpha.10 | 3,760 / 40,000 (+91 %) | 0.6 s / 5 s (+87 %) | 0.09 GB / 1 GB (+91 %) | ok |
+| rapier_core | 0.1.0-alpha.10 | 3,200 / 40,000 (+92 %) | 0.5 s / 5 s (+90 %) | 0.08 GB / 1 GB (+92 %) | ok |
+| rapier_dynamics2d | 0.1.0-alpha.10 | 15,246 / 40,000 (+62 %) | 1.9 s / 5 s (+63 %) | 0.38 GB / 1 GB (+62 %) | ok |
+| rapier_geometry2d | 0.1.0-alpha.10 | 25,128 / 40,000 (+37 %) | 2.4 s / 5 s (+52 %) | 0.46 GB / 1 GB (+54 %) | ok |
+| rapier_math | 0.1.0-alpha.10 | 935 / 40,000 (+98 %) | 0.2 s / 5 s (+97 %) | 0.02 GB / 1 GB (+98 %) | ok |
 
 ## Declared closures
 
 | closure | members | time | memory | budget | verdict |
 |---|---|---:|---:|---|---|
-| game_classes | rapier2d_classes, glam_core@0.4.1, fixed@0.4.0 | 10.3 s / 15 s (+32 %) | 1.59 GB / 3 GB (+47 %) | 15 s / 3 GB | ok |
-| rapier2d | rapier2d, glam_core@0.4.1, fixed@0.4.0 | 9.6 s / 15 s (+36 %) | 1.50 GB / 3 GB (+50 %) | 15 s / 3 GB | ok |
+| game_classes | rapier2d_classes, glam_core@0.4.1, fixed@0.4.0 | 9.1 s / 15 s (+40 %) | 1.59 GB / 3 GB (+47 %) | 15 s / 3 GB | ok |
+| rapier2d | rapier2d, glam_core@0.4.1, fixed@0.4.0 | 8.6 s / 15 s (+43 %) | 1.50 GB / 3 GB (+50 %) | 15 s / 3 GB | ok |
