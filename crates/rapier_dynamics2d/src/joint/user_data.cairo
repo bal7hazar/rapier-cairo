@@ -4,13 +4,20 @@
 //! Upstream stores the `u128` in the stepped `GenericJoint`. A field there rides along every copy
 //! of the joint, so the data lives beside the joint set instead: the builder carries it, and
 //! [`JointUserData`] keeps it by joint handle. Nothing the step reads changes.
+//!
+//! With a `World`: `let h = world.insert_impulse_joint(b1, b2, builder.build());` (it wakes the
+//! bodies), then `table.set(h, builder.user_data_value());`. [`JointUserDataTrait::insert`] does
+//! both steps for a bare `ImpulseJointSet`.
 use core::dict::{Felt252Dict, Felt252DictTrait};
 use rapier_core::data::handle::Handle;
 use super::{GenericJointBuilder, ImpulseJointSet, ImpulseJointSetTrait};
 
 /// The user data of joints by handle; a joint without an entry has `0`, upstream's default.
-/// Holds a dict: pass it by `ref`. Entries of removed joints are the caller's to
-/// [`remove`](JointUserDataTrait::remove); a handle is never reused (its generation changes).
+/// Holds a dict: pass it by `ref`. A table belongs to one world history: it is not serialised and
+/// is not in `WorldState`, so after `from_state` the caller rebuilds or restores it with the
+/// world. Entries of removed joints are the caller's to [`remove`](JointUserDataTrait::remove); a
+/// handle can come back after a restore, so [`insert`](JointUserDataTrait::insert) always
+/// overwrites.
 #[derive(Destruct, Default)]
 pub struct JointUserData {
     data: Felt252Dict<u128>,
@@ -32,11 +39,8 @@ pub impl JointUserDataImpl of JointUserDataTrait {
         body2: Handle,
         builder: GenericJointBuilder,
     ) -> Handle {
-        let user_data = builder.user_data;
         let handle = joints.insert(body1, body2, builder.data);
-        if user_data != 0 {
-            self.set(handle, user_data);
-        }
+        self.set(handle, builder.user_data);
         handle
     }
 
@@ -92,6 +96,24 @@ mod tests {
         assert_eq!(table.get(plain), 7);
         assert_eq!(table.remove(tagged), big);
         assert_eq!(table.get(tagged), 0);
+    }
+
+    /// A joint inserted without user data under a handle that a restore hands out again reads `0`,
+    /// not the value of the joint that held the handle before.
+    #[test]
+    fn test_user_data_reused_handle_after_restore() {
+        let mut joints: ImpulseJointSet = ImpulseJointSetTrait::new();
+        let mut table: JointUserData = JointUserDataTrait::new();
+        let locks = JointAxesMask { bits: 3 };
+        let (b1, b2) = (Handle { index: 0, generation: 0 }, Handle { index: 1, generation: 0 });
+        let state = joints.to_state();
+        let first = table
+            .insert(ref joints, b1, b2, GenericJointBuilderTrait::new(locks).user_data(42));
+        assert_eq!(table.get(first), 42);
+        let mut joints = ImpulseJointSetTrait::from_state(state);
+        let again = table.insert(ref joints, b1, b2, GenericJointBuilderTrait::new(locks));
+        assert_eq!(again, first);
+        assert_eq!(table.get(again), 0);
     }
 
     /// The same slot with another generation is another joint.

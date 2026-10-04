@@ -51,7 +51,7 @@ EXCLUSIONS = (
     "construction-time decomposition, several thousand lines, no consumer; reopened on a consumer's need",
     "solver / island internals not exposed (dynamics::solver is pub(crate) upstream)",
     "contact skin changes the collider layout and the contact solver for every user; no opt-in form keeps existing steps",
-    "a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the pile10 shot (WS3, ADR 53)",
+    "a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, +27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)",
 )
 
 # PX1 (2026-09-27, programme decision): the reasons above this line predate PX1; the coverage
@@ -183,7 +183,7 @@ CONTACT_SKIN: frozenset[tuple[str, str, str]] = frozenset({
 # merged): +0.1 to +0.2 % steps per tick on the default path, +27,580 on the pile10 shot. The figure is WS3's; the
 # VPS cap of 8 GiB could not compile the step probes for a second measurement (ADR 53).
 REMOVAL_LOG_REASON = ("a removal log is a field of the stepped collider set: +0.1 to +0.2 % Cairo steps per tick, "
-                      "+27,580 on the pile10 shot (WS3, ADR 53)")
+                      "+27,580 on the owner's pile10 shot, in process (WS3, commit 16ac69c)")
 REMOVAL_LOG: frozenset[tuple[str, str, str]] = frozenset({("ColliderSet", "method", "take_removed")})
 # Every reason added since PX1: they do not count in the raw figure.
 POST_PX1_REASONS = frozenset({SOLVER_ISLAND_REASON, SOFT_CONTACTS_REASON, QUARANTINE_REASON, DISPATCHER_REASON,
