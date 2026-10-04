@@ -13,12 +13,6 @@ documentation = "https://github.com/bal7hazar/rapier-cairo/tree/main/crates/rapi
 fixed.workspace = true
 glam_core.workspace = true
 
-[dev-dependencies]
-snforge_std.workspace = true
-assert_macros.workspace = true
-rapier_testing.workspace = true
-rapier_golden.workspace = true
-
 [tool]
 fmt.workspace = true
 scarb.workspace = true

@@ -17,12 +17,6 @@ rapier_math.workspace = true
 rapier_geometry2d.workspace = true
 rapier_dynamics2d.workspace = true
 
-[dev-dependencies]
-snforge_std.workspace = true
-assert_macros.workspace = true
-rapier_testing.workspace = true
-rapier_golden.workspace = true
-
 [tool]
 fmt.workspace = true
 scarb.workspace = true
