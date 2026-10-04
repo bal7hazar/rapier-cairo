@@ -8,24 +8,25 @@ Scarb 2.20.1 / snforge 0.64.0, `RAYON_NUM_THREADS=1`), this branch merged with `
 
 **Existing worlds.** The 53 `steps_*` probes of `rapier2d` (`gas_scenes`, `game_path`, `level_budget`,
 `sleep_budget`, `pipeline::config::alternatives`): identical. None of them holds a compound. The `compound_budget`
-probes (a compound plank on a half-space or a polyline, `World::step`) move by +12 to +36 steps per step (net step,
-`gas_step_*` − `gas_setup_*`):
+probes (a compound plank on a half-space or a polyline, `World::step`), net step (`gas_step_*` − `gas_setup_*`):
 
-| world | main | CE | Δ per step |
-|---|--:|--:|--:|
-| 2 parts, half-space | 49,915 | 49,927 | +12 |
-| 4 parts, half-space | 83,154 | 83,170 | +16 |
-| 8 parts, half-space | 157,756 | 157,780 | +24 |
-| 2 parts, polyline | 62,924 | 62,942 | +18 |
-| 4 parts, polyline | 106,624 | 106,646 | +22 |
-| 8 parts, polyline | 181,399 | 181,435 | +36 |
+| world | main | CE, cones in a `Span` (294d7a7) | CE, cones behind one `Nullable` felt | Δ |
+|---|--:|--:|--:|--:|
+| 2 parts, half-space | 49,915 | 49,927 | 49,921 | +6 |
+| 4 parts, half-space | 83,154 | 83,170 | 83,162 | +8 |
+| 8 parts, half-space | 157,756 | 157,780 | 157,768 | +12 |
+| 2 parts, polyline | 62,924 | 62,942 | 62,933 | +9 |
+| 4 parts, polyline | 106,624 | 106,646 | 106,635 | +11 |
+| 8 parts, polyline | 181,399 | 181,435 | 181,417 | +18 |
 
-The delta grows with the part count (about 2 steps per part access): the `Compound` value is one `Span` wider (the
-cones), and it is copied on each `part` call. Not isolated further.
+The delta grows with the part count: `Compound` is copied by value on each part access, and every felt it gains is
+copied there. One felt (`Nullable`) is the least a field can take; identity needs the cones outside the value the
+default path copies, which means outside `Compound` (a new `Shape` variant or a side table), a design change.
 
-**`WorldState`.** A flag-free compound serialises to the same felts as before (`test_serde_layout`). Reading it back
-costs +16 steps per compound (`gas_deserialize_flag_free` 918 against `gas_deserialize_derived_fields` 902, the
-derived path of the three fields). A flagged compound of two boxes reads back in 14,037 steps (it carries its cones).
+**`WorldState`.** A flag-free compound serialises to the same felts as before (`test_serde_layout`). Reading it back:
+883 steps against 882 for the derived path of the three fields (`gas_deserialize_flag_free`,
+`gas_deserialize_derived_fields`): the derived read is tried first, and a flagged header (a part count above `2^32`)
+fails it and rewinds. A flagged compound of two boxes reads back in 14,598 steps (it carries its cones).
 
 **The opt-in path** (`ConstrainedCompositeManifolds`), per constrained part manifold, against the same part pair
 unconstrained (probes of `dispatch/composite/constrained.cairo`; each includes the same 12,011-step `with_flags` setup):

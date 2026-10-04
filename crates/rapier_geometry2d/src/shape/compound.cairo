@@ -25,6 +25,7 @@
 //! `DEFAULT_WELD_TOLERANCE` is an absolute distance in raw Q32.32 units (upstream: ULPs relative
 //! to each corner's magnitude, ADR 0001); `part_normal_constraints` answers the cones by value.
 
+use core::nullable::{FromNullableResult, NullableTrait, match_nullable, null};
 use core::traits::BitOr;
 use fixed::Fixed;
 use rapier_math::pose2::Pose2;
@@ -96,7 +97,7 @@ pub impl CompoundFlagsBitOr of BitOr<CompoundFlags> {
 }
 
 /// A union of convex parts (upstream `Compound`).
-#[derive(Copy, Drop, PartialEq, Debug)]
+#[derive(Copy, Drop, Debug)]
 pub struct Compound {
     /// The parts and their poses in the compound's frame.
     shapes: Span<(Pose2, Shape)>,
@@ -105,9 +106,30 @@ pub struct Compound {
     /// The union of `aabbs`.
     aabb: Aabb,
     /// One entry per part when [`FIX_INTERNAL_EDGES`] is set (`None` for a part with no straight
-    /// sides), empty otherwise (upstream `flags` and `pseudo_normals`, see the module
-    /// documentation).
-    pseudo_normals: Span<Option<CompoundPseudoNormals>>,
+    /// sides), null otherwise (upstream `flags` and `pseudo_normals`, see the module
+    /// documentation). One felt, so that a flag-free compound costs the paths that copy it
+    /// (every part access) one felt at most.
+    pseudo_normals: Nullable<Span<Option<CompoundPseudoNormals>>>,
+}
+
+/// The cones of `pseudo_normals`, `None` when null.
+#[inline(always)]
+fn cones_of(
+    pseudo_normals: Nullable<Span<Option<CompoundPseudoNormals>>>,
+) -> Option<Span<Option<CompoundPseudoNormals>>> {
+    match match_nullable(pseudo_normals) {
+        FromNullableResult::Null => None,
+        FromNullableResult::NotNull(cones) => Some(cones.unbox()),
+    }
+}
+
+pub impl CompoundPartialEq of PartialEq<Compound> {
+    fn eq(lhs: @Compound, rhs: @Compound) -> bool {
+        lhs.shapes == rhs.shapes
+            && lhs.aabbs == rhs.aabbs
+            && lhs.aabb == rhs.aabb
+            && cones_of(*lhs.pseudo_normals) == cones_of(*rhs.pseudo_normals)
+    }
 }
 
 /// `2^32`: [`CompoundSerde`] packs the flags above the part count.
@@ -117,16 +139,16 @@ const FLAG_SHIFT_NZ: NonZero<u64> = 0x1_0000_0000;
 /// The serialised form of a compound: the part count, the parts, the boxes, the union box, as the
 /// derived `Serde` of the fields; a flagged compound adds its flags above the part count
 /// (`count + flags * 2^32`) and its cones after the union box. A flag-free compound therefore keeps
-/// the felts it had before the flags existed, and is read back by the derived path behind one
-/// look at the first felt.
+/// the felts it had before the flags existed, and is read back by the derived path; a flagged
+/// header fails that path's `u32` part count, which rewinds and reads the flagged layout.
 pub impl CompoundSerde of Serde<Compound> {
     fn serialize(self: @Compound, ref output: Array<felt252>) {
-        if self.pseudo_normals.is_empty() {
+        let Some(cones) = cones_of(*self.pseudo_normals) else {
             Serde::serialize(self.shapes, ref output);
             Serde::serialize(self.aabbs, ref output);
             Serde::serialize(self.aabb, ref output);
             return;
-        }
+        };
         let shapes = *self.shapes;
         output.append(shapes.len().into() + FIX_INTERNAL_EDGES.bits.into() * FLAG_SHIFT);
         for part in shapes {
@@ -134,18 +156,17 @@ pub impl CompoundSerde of Serde<Compound> {
         }
         Serde::serialize(self.aabbs, ref output);
         Serde::serialize(self.aabb, ref output);
-        Serde::serialize(self.pseudo_normals, ref output);
+        Serde::serialize(@cones, ref output);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<Compound> {
-        let head = *serialized.get(0)?.unbox();
-        let fits: Option<u32> = head.try_into();
-        if fits.is_some() {
-            let shapes = Serde::deserialize(ref serialized)?;
+        let start = serialized;
+        if let Some(shapes) = Serde::deserialize(ref serialized) {
             let aabbs = Serde::deserialize(ref serialized)?;
             let aabb = Serde::deserialize(ref serialized)?;
-            return Some(Compound { shapes, aabbs, aabb, pseudo_normals: array![].span() });
+            return Some(Compound { shapes, aabbs, aabb, pseudo_normals: null() });
         }
+        serialized = start;
         deserialize_flagged(ref serialized)
     }
 }
@@ -171,7 +192,11 @@ fn deserialize_flagged(ref serialized: Span<felt252>) -> Option<Compound> {
     if pseudo_normals.len() != count {
         return None;
     }
-    Some(Compound { shapes: shapes.span(), aabbs, aabb, pseudo_normals })
+    Some(
+        Compound {
+            shapes: shapes.span(), aabbs, aabb, pseudo_normals: NullableTrait::new(pseudo_normals),
+        },
+    )
 }
 
 /// `Serde` of the boxed variant payload.
@@ -211,7 +236,7 @@ pub impl CompoundImpl of CompoundTrait {
             aabb = aabb.merged(bv);
             aabbs.append(bv);
         }
-        Compound { shapes, aabbs: aabbs.span(), aabb, pseudo_normals: array![].span() }
+        Compound { shapes, aabbs: aabbs.span(), aabb, pseudo_normals: null() }
     }
 
     /// The tolerance [`CompoundTrait::set_flags`] welds part corners with when given `None`:
@@ -243,21 +268,22 @@ pub impl CompoundImpl of CompoundTrait {
         self
             .pseudo_normals =
                 if flags.contains(FIX_INTERNAL_EDGES) {
-                    internal_edges::compute_pseudo_normals(
-                        self.shapes, weld_tolerance.unwrap_or(Self::DEFAULT_WELD_TOLERANCE),
+                    NullableTrait::new(
+                        internal_edges::compute_pseudo_normals(
+                            self.shapes, weld_tolerance.unwrap_or(Self::DEFAULT_WELD_TOLERANCE),
+                        ),
                     )
                 } else {
-                    array![].span()
+                    null()
                 };
     }
 
     /// The flags (upstream `flags`): [`FIX_INTERNAL_EDGES`] when the compound holds its cones.
     #[inline(always)]
     fn flags(self: @Compound) -> CompoundFlags {
-        if self.pseudo_normals.is_empty() {
-            CompoundFlagsTrait::empty()
-        } else {
-            FIX_INTERNAL_EDGES
+        match cones_of(*self.pseudo_normals) {
+            None => CompoundFlagsTrait::empty(),
+            Some(_) => FIX_INTERNAL_EDGES,
         }
     }
 
@@ -268,10 +294,7 @@ pub impl CompoundImpl of CompoundTrait {
     /// * [`errors::PART_INDEX`] when flagged and `i >= num_parts`.
     #[inline(always)]
     fn part_normal_constraints(self: @Compound, i: u32) -> Option<CompoundPseudoNormals> {
-        let cones = *self.pseudo_normals;
-        if cones.is_empty() {
-            return None;
-        }
+        let cones = cones_of(*self.pseudo_normals)?;
         assert(i < cones.len(), errors::PART_INDEX);
         *cones.at(i)
     }

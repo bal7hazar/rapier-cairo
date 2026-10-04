@@ -17,7 +17,9 @@
 //! closest points (`bumps_segment/deep`).
 //!
 //! Ties: a point projecting on a vertex shared by two segments reports the segment upstream's BVH
-//! visits first, the port the lowest index (`TIE`, the feature must still be a face).
+//! visits first, the port the lowest index (`TIE`): the same point, as the end vertex of segment 0
+//! here (`Vertex(1)`) and the start vertex of segment 1 upstream (`Vertex(0)`), so the feature must
+//! be a vertex.
 use fixed::Fixed;
 use glam_core::Vec2;
 use rapier_geometry2d::feature_id::FeatureIdTrait;
@@ -68,7 +70,7 @@ fn test_composite_point_queries_golden() {
         assert_eq!(p.is_inside, *c.feature_projection.is_inside, "{} f inside", *c.id);
         assert!(vec2_within(raw(p.point), *c.feature_projection.point, EXACT), "{} f", *c.id);
         if *c.id == TIE {
-            assert!(f.is_face(), "{} tie", *c.id);
+            assert!(f.is_vertex(), "{} tie", *c.id);
         } else {
             assert!(feature_eq(f, *c.feature), "{} feature {:?}", *c.id, f);
         }
