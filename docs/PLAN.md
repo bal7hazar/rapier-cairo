@@ -60,7 +60,15 @@ jobs per crate with 2 threads, package gates 1–3 enforced, declared classes ga
   every chunk boundary. Design note for a later lot: boxed cells only when opted in. 14 diagnostic tests read
   `narrow_phase.pairs` as the whole list, and a default layout would need them rewritten.
 - Missing by decision: V-HACD / voxelisation ("not ported yet", low priority), `solver_contact_world_points` (no exact
-  answer), `IndexMut`, `take_removed`, `GenericJointBuilder::user_data` (they would widen stepped structs).
+  answer), `IndexMut`, `take_removed` (closed by PX9 with WS3's measured cost, ADR 53). `GenericJointBuilder::user_data`
+  is ported by PX9 beside the joint set (`JointUserData`, ADR 54), not as a field of the stepped joint.
+- (V1) wide velocities across the rows of one solver kernel (project manager's decision, 2026-10-04), parked: keep the two
+  bodies' velocities wide (Q64.64) across the rows of one kernel (2 to 4 rows), instead of narrowing after each impulse
+  application. Estimate: FU0's rough −0.2 to −0.45M steps on the reference shot (`docs/research/fused-rescales.md` §2,
+  "Ruled out or left out"). Prerequisite: an unbounded Q96.96 accumulator in `fixed`, a glam-track change (the next row's
+  `jv` would exceed `fixed`'s 16-term bound, and P1's product would no longer fit a felt252). Reopens only if the game's
+  proofs need it after its re-pin. Also out, with their figures: C6 (1.95 ulp > 1) and C7 (out of the `box_slope_slide`
+  band), each under about 10k steps on the reference shot.
 
 **Launch rule (programme, 2026-10-02; procedure in `docs/ORCHESTRATOR.md`):** a thread starts only after `machine-capacity` and the programme's placement rule (the Mac for builds that write no pin, the VPS for the rest, one heavy suite at a time there); the conditions of the programme go into the brief.
 

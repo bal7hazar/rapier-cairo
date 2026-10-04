@@ -5,6 +5,14 @@ whether simulation results changed.
 
 ## Unreleased
 
+**Results:** unchanged (PX9: no step result, no `WorldState` format, no class hash moves; the stepped structs are as they were).
+
+### Added
+- `GenericJointBuilder::user_data` (PX9, parity): the builder carries a `u128` (`user_data_value` reads it back), and `JointUserData` (in the prelude) keeps it by joint handle, beside the joint set: `insert(ref joints, body1, body2, builder)` inserts the joint and records the data, `get` / `set` / `remove` read and write it, `0` by default. `GenericJoint` has no `user_data` field (a field of the stepped joint rides along every copy of it; ADR 54). `GenericJointBuilder` gains a `pub(crate)` field, so a struct literal `GenericJointBuilder { data }` outside the crate no longer compiles: use `GenericJointBuilderTrait::new`.
+
+### Changed
+- API parity closes at 100 % in scope (PX9): `ColliderSet::take_removed` is closed with its measured cost (a removal log is a field of the stepped collider set, +0.1 to +0.2 % Cairo steps per tick; ADR 53) and `Compound::bvh` with the no-BVH reason of `CompositeShape::bvh` (ADR 36, 55).
+
 ## 0.1.0-alpha.10 — 2026-10-04
 
 Two MINOR result changes ship together so a consumer re-pins once: the fused fixed-point rescales on the step path (FU1)
