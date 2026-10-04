@@ -31,10 +31,10 @@ rapier_dynamics2d::narrow_phase::benches::gas_step2_merge_stack_2 2703656
 rapier_dynamics2d::narrow_phase::benches::gas_step2_merge_stack_32 44003976
 rapier_dynamics2d::narrow_phase::benches::gas_step2_merge_stack_8 10546334
 rapier_dynamics2d::narrow_phase::composite::tests::gas_baseline 5910
-rapier_dynamics2d::narrow_phase::composite::tests::gas_group_step_box_on_heightfield 3687483
-rapier_dynamics2d::narrow_phase::composite::tests::test_compound_solver_contacts_in_world_space 11909370
-rapier_dynamics2d::narrow_phase::composite::tests::test_group_entries_and_events_per_collider_pair 9602086
-rapier_dynamics2d::narrow_phase::composite::tests::test_group_lead_is_a_touching_manifold 5463952
+rapier_dynamics2d::narrow_phase::composite::tests::gas_group_step_box_on_heightfield 3687683
+rapier_dynamics2d::narrow_phase::composite::tests::test_compound_solver_contacts_in_world_space 11910970
+rapier_dynamics2d::narrow_phase::composite::tests::test_group_entries_and_events_per_collider_pair 9602686
+rapier_dynamics2d::narrow_phase::composite::tests::test_group_lead_is_a_touching_manifold 5464352
 rapier_dynamics2d::narrow_phase::contact_pairs::tests::gas_baseline 6410
 rapier_dynamics2d::narrow_phase::contact_pairs::tests::gas_contact_pair_at_index 257530
 rapier_dynamics2d::narrow_phase::contact_pairs::tests::gas_contact_pair_unknown_gen 297790
