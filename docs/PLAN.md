@@ -48,6 +48,11 @@ jobs per crate with 2 threads, package gates 1–3 enforced, declared classes ga
   changes contact results for composite worlds.
 - (E) sub-shape result widening (`with_subshape(s)`, `ShapeDistance`): costs steps on every query (ADR 35).
 - (F) `contact_skin`: changes the collider layout and the step for users who set it.
+- (G) CE follow-ups (#271; deferred by the orchestrator, 2026-10-04), for a later lot: (a) the +10 Sierra gas on
+  `gas_scale_dyn_ball_polygon` and `gas_scale_dyn_cuboid` (code layout, no mechanism found); (b) the lever for the
+  +200 gas per composite pair step of worlds without a compound: `#[inline(always)]` on `composite_pair_inner` for the
+  plain arm, measured with `--tracked-resource cairo-steps` on one composite world; (c) the `vee/p5` tie of
+  `composite_queries_golden` should also assert `(subshape 0, Vertex(1))`.
 - Missing by decision: V-HACD / voxelisation ("not ported yet", low priority), `solver_contact_world_points` (no exact
   answer), `IndexMut`, `take_removed`, `GenericJointBuilder::user_data` (they would widen stepped structs).
 

@@ -27,6 +27,13 @@ per flag-free read-back, with the 53 `steps_*` probes identical. The game holds 
 new `Shape` variant, cones on the collider) cost more than they save. A later lot can remove this cost if a consumer
 ever steps compounds on a hot path.
 
+**Composite worlds without a compound** (polyline and heightfield, `composite_budget`): +200 Sierra gas per
+composite pair step (setup +600, setup plus one step +800; about 0.003 % to 0.006 % of their entries). Exact Cairo
+steps not measured: no `steps_*` probe holds a polyline or a heightfield. Cause: `composite_pair_inner` became generic
+over `PartManifolds`, behind two `#[inline(never)]` wrappers (`composite_pair_step`, `composite_pair_step_constrained`).
+**Accepted** by the orchestrator (2026-10-04): the game holds no polyline or heightfield either. The lever
+(`#[inline(always)]` on the inner function for the plain arm) is parked in `docs/PLAN.md` (G).
+
 **`WorldState`.** A flag-free compound serialises to the same felts as before (`test_serde_layout`). Reading it back:
 883 steps against 882 for the derived path of the three fields (`gas_deserialize_flag_free`,
 `gas_deserialize_derived_fields`): the derived read is tried first, and a flagged header (a part count above `2^32`)
