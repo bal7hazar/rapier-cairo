@@ -12,17 +12,20 @@ and the parry 0.31.1 query answers with opt-in compound internal edges (CE).
 
 **Results:** a MINOR result change (FU1, CE). A consumer re-pins once: class hashes, `WorldState` and replay digests,
 and the cost sheet. FU1 changes the simulation results in their last bits (golden scenes stay within their bands; no
-API, signature or `WorldState` format change); a game re-pins `ActiveSetClass`, `ContactBallClass`,
-`ContactPolygonClass`, `ForceEventsClass`, `MassClass`, `NarrowPhaseClass`, `SolverClass` and `SolveAdvanceClass`
-(`BroadPhaseClass` and `IslandsClass` keep their hashes). CE moves query answers (polyline, heightfield, compound and
-capsule), while contacts, scenes and `WorldState` do not change; its compound strategy is opt-in.
+API, signature or `WorldState` format change); FU1 and CE together: a game re-pins `ActiveSetClass`,
+`ContactBallClass`, `ContactPolygonClass`, `ForceEventsClass`, `MassClass`, `NarrowPhaseClass`, `SolverClass` and
+`SolveAdvanceClass`. FU1 (#270) moved `ContactPolygonClass`, `SolverClass`, `SolveAdvanceClass` and `NarrowPhaseClass`;
+CE (#271) moved `ContactBallClass`, `ContactPolygonClass`, `MassClass`, `NarrowPhaseClass`, `ActiveSetClass` and
+`ForceEventsClass`; `IslandsClass` and `BroadPhaseClass` are unchanged. CE moves class hashes but no contact, scene or
+`WorldState` value; it moves query answers (polyline, heightfield, compound and capsule), and its compound strategy is
+opt-in.
 
 ### Added
 - Compound internal edges, opt-in (CE, parry 0.31.1's `CompoundFlags::FIX_INTERNAL_EDGES`): `CompoundFlags`, `FIX_INTERNAL_EDGES`, `Compound::{with_flags, set_flags, flags, DEFAULT_WELD_TOLERANCE, part_normal_constraints}`, `CompoundPseudoNormals` / `CompoundEdgeCone` (a `LocalNormalProjector`), and the `ConstrainedCompositeManifolds` composite strategy, which a step selects with its own `StepConfig` through `World::step_with::<C>`: a flagged compound clamps its parts' contact normals to the union's outline, so a body sliding across the cut between two parts no longer catches on it. `DefaultStepConfig` keeps `CompositeManifolds`, so `World::step` does not compile the new path and ignores the flag. A flag-free compound keeps its `WorldState` felts; a flagged one adds its flag and cones (readable by this version on). `DEFAULT_WELD_TOLERANCE` is 4 raw Q32.32 units, absolute (ADR 0001 entries 50 to 52). New golden family `compound_internal_edges` (oracle on parry 0.31.1). No existing result changes.
 - Sub-shape result widening (SW1): `SubshapeContact`, `SubshapePointProjection` and `SubshapeRayIntersection` (twin values, in the prelude) built by `ContactTrait::with_subshapes` and `PointProjectionTrait` / `RayIntersectionTrait::with_subshape`; `ContactManifoldTrait::subshape_pos1 / 2` (read the part pose back from the shape) and `set_subshape_pos1 / 2` (on a `SubshapePoses`, ADR 46). Opt-in: no existing type, signature or result changes; the 7 parity items are `ported`.
 
 ### Changed
-- **Query answers follow parry 0.31.1 (CE), a MINOR result change:** query results move, while contacts, scenes and `WorldState` do not (every contact and scene golden, digest and class hash unchanged). One line per family:
+- **Query answers follow parry 0.31.1 (CE), a MINOR result change:** query results move, while contacts, scenes, digests and `WorldState` do not (every contact and scene golden and digest unchanged); the class hashes of six classes move (the compound arm of `Shape`'s Serde). One line per family:
   - polyline point projections (`project_local_point_and_get_feature`): the closest segment's own feature (`Vertex(0 / 1)`, `Face(0 / 1)`; the segment is the `subshape` of `project_local_point_and_get_location_polyline_part` / `SubshapePointProjection`) instead of `Face(segment)`;
   - heightfield ray hits: the cell segment's side, `Face(0)` from above and `Face(1)` from below (the cell is the hit's `subshape`), instead of `Face(cell)` / `Face(cell + num_cells)`;
   - compound point projections: the part's own feature instead of `Unknown`;
