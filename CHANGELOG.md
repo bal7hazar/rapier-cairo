@@ -5,7 +5,9 @@ whether simulation results changed.
 
 ## Unreleased
 
-**Results:** unchanged (PX9: no step result, no `WorldState` format, no class hash moves; the stepped structs are as they were).
+## 0.1.0-alpha.11 — 2026-10-05
+
+**Results:** unchanged (DEP5 and PX9: no step result, no `WorldState` format and no class hash moves). A consumer that uses `Fixed` or `Vec2` itself must move to `fixed` 0.5 and `glam_core` 0.5 with this version.
 
 ### Added
 - `GenericJointBuilder::user_data` (PX9, parity): the builder carries a `u128` (`user_data_value` reads it back), and `JointUserData` (in the prelude) keeps it by joint handle, beside the joint set: `insert(ref joints, body1, body2, builder)` inserts the joint into a bare set and records the data (with a `World`: `world.insert_impulse_joint(b1, b2, builder.build())`, then `table.set(h, builder.user_data_value())`), `get` / `set` / `remove` read and write it, `0` by default; the table is not part of `WorldState` and belongs to one world history. `GenericJoint` has no `user_data` field (a field of the stepped joint rides along every copy of it; ADR 54). `GenericJointBuilder` gains a `pub(crate)` field, so a struct literal `GenericJointBuilder { data }` outside the crate no longer compiles: use `GenericJointBuilderTrait::new`.

@@ -8,7 +8,7 @@ physics engine to Cairo for provable physics. Q32.32 fixed-point scalars from
 
 ```toml
 [dependencies]
-rapier2d = "0.1.0-alpha.8"
+rapier2d = "0.1.0-alpha.11"
 ```
 
 ```cairo
