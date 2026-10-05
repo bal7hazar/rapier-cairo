@@ -3,7 +3,7 @@
 A port of the [Rapier](https://rapier.rs) physics engine to [Cairo](https://www.cairo-lang.org),
 so that games can run on **provable physics**.
 
-> Status: `0.1.0-alpha.8` on [scarbs.xyz](https://scarbs.xyz) (`rapier2d` and its crates). 2D rigid bodies, colliders,
+> Status: `0.1.0-alpha.11` on [scarbs.xyz](https://scarbs.xyz) (`rapier2d` and its crates). 2D rigid bodies, colliders,
 > joints, sensors, events, sleeping, queries and world save / restore; parity status in
 > [`docs/API_PARITY.md`](docs/API_PARITY.md).
 
@@ -48,7 +48,7 @@ Toolchain: scarb 2.20.1 (Cairo 2.20.0), starknet-foundry 0.64.0 (see `.tool-vers
 
 ## Stability
 
-`0.1.0-alpha.8` is an **alpha**: no API or numeric stability. Every alpha is validated against golden vectors
+`0.1.0-alpha.11` is an **alpha**: no API or numeric stability. Every alpha is validated against golden vectors
 recorded from rapier2d-f64 0.35.3 / parry2d-f64 0.30.2 within documented tolerance bands, and
 the deliberate divergences from upstream are listed in
 [`docs/adr/0001-upstream-divergences.md`](https://github.com/bal7hazar/rapier-cairo/blob/main/docs/adr/0001-upstream-divergences.md).
