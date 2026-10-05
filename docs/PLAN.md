@@ -94,7 +94,7 @@ and the parry 0.31.1 query answers). It is tagged, has a GitHub pre-release, and
   ported beside the joint set)
 
 **Open:** no pull request. No thread is running.
-- DEP5 had just started when the pause came, and was stopped before any commit or push.
+- DEP5 had just started when the pause came. It was stopped with two local commits, never pushed, and resumes from them.
 - WS3 (#266) stays closed, parked in entry H.
 
 **Merged on `main` after alpha.10, unreleased:** PX9 (#275).
