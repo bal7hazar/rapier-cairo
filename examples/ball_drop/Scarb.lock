@@ -12,22 +12,22 @@ dependencies = [
 
 [[package]]
 name = "fixed"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://scarbs.xyz/"
-checksum = "sha256:a8f7ec541b8cc85894688ae9008cddb87cccc55a024b04b35f7fd3716d715064"
+checksum = "sha256:697d3e82f4eb156e56dfcc025d96fd77edca6d05878a0fc16d3ac8c664230fb9"
 
 [[package]]
 name = "glam_core"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://scarbs.xyz/"
-checksum = "sha256:86351a73e26bfd6bbdd7548775e9377b33ed08a9616a249117942ccb29b7c75f"
+checksum = "sha256:a5e6e4863acfc4be492e06f8f965a16982b8a8975a5179a903d64092a9f05975"
 dependencies = [
  "fixed",
 ]
 
 [[package]]
 name = "rapier2d"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.10"
 dependencies = [
  "fixed",
  "glam_core",
@@ -39,14 +39,14 @@ dependencies = [
 
 [[package]]
 name = "rapier_core"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.10"
 dependencies = [
  "fixed",
 ]
 
 [[package]]
 name = "rapier_dynamics2d"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.10"
 dependencies = [
  "fixed",
  "glam_core",
@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_geometry2d"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.10"
 dependencies = [
  "fixed",
  "glam_core",
@@ -67,7 +67,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_math"
-version = "0.1.0-alpha.8"
+version = "0.1.0-alpha.10"
 dependencies = [
  "fixed",
  "glam_core",
