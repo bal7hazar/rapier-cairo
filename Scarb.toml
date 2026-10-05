@@ -12,8 +12,8 @@ repository = "https://github.com/bal7hazar/rapier-cairo"
 # Shared Q32.32 scalar (`fixed`, repo bal7hazar/fixed-cairo) and vector types (`glam`, repo
 # bal7hazar/glam-cairo), released on scarbs.xyz (docs/PLAN.md D12). Pre-1.0: a MINOR bump may change
 # numeric results (glam-cairo DESIGN §6), so it is its own PR.
-fixed = "0.4.0"
-glam_core = "0.4.1"
+fixed = "0.5.0"
+glam_core = "0.5.0"
 # Workspace crates: a path for development, the version for `scarb package` (which drops the path).
 # `scripts/release.sh <version>` bumps `workspace.package.version` and these requirements together.
 rapier_math = { path = "crates/rapier_math", version = "0.1.0-alpha.10" }
