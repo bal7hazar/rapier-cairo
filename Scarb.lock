@@ -25,10 +25,7 @@ dependencies = [
  "rapier_core",
  "rapier_dynamics2d",
  "rapier_geometry2d",
- "rapier_golden",
  "rapier_math",
- "rapier_testing",
- "snforge_std",
 ]
 
 [[package]]
@@ -41,8 +38,6 @@ dependencies = [
  "rapier_core",
  "rapier_dynamics2d",
  "rapier_geometry2d",
- "rapier_testing",
- "snforge_std",
 ]
 
 [[package]]
@@ -50,9 +45,6 @@ name = "rapier_core"
 version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
- "rapier_golden",
- "rapier_testing",
- "snforge_std",
 ]
 
 [[package]]
@@ -63,10 +55,7 @@ dependencies = [
  "glam_core",
  "rapier_core",
  "rapier_geometry2d",
- "rapier_golden",
  "rapier_math",
- "rapier_testing",
- "snforge_std",
 ]
 
 [[package]]
@@ -76,10 +65,7 @@ dependencies = [
  "fixed",
  "glam_core",
  "rapier_core",
- "rapier_golden",
  "rapier_math",
- "rapier_testing",
- "snforge_std",
 ]
 
 [[package]]
@@ -96,9 +82,6 @@ version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
  "glam_core",
- "rapier_golden",
- "rapier_testing",
- "snforge_std",
 ]
 
 [[package]]
