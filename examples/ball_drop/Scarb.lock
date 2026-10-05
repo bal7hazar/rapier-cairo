@@ -27,7 +27,7 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.1.0-alpha.10"
+version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
  "glam_core",
@@ -39,14 +39,14 @@ dependencies = [
 
 [[package]]
 name = "rapier_core"
-version = "0.1.0-alpha.10"
+version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
 ]
 
 [[package]]
 name = "rapier_dynamics2d"
-version = "0.1.0-alpha.10"
+version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
  "glam_core",
@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_geometry2d"
-version = "0.1.0-alpha.10"
+version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
  "glam_core",
@@ -67,7 +67,7 @@ dependencies = [
 
 [[package]]
 name = "rapier_math"
-version = "0.1.0-alpha.10"
+version = "0.1.0-alpha.11"
 dependencies = [
  "fixed",
  "glam_core",
