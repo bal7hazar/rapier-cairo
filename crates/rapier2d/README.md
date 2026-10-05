@@ -15,9 +15,10 @@ rapier2d = "0.1.0-alpha.8"
 use rapier2d::prelude::*;
 ```
 
-rapier-cairo depends on `fixed` 0.4.0 and `glam_core` 0.4.1 (since `0.1.0-alpha.8`; `0.1.0-alpha.7` and earlier used `fixed`
-0.3.0 and the `glam` 0.3.0 facade). A consumer that also uses these types must itself be on `fixed` 0.4 and
-`glam` ≥ 0.4.1 (or `glam_core`), otherwise it compiles two generations of the same types. `Vec2` and `Fixed`
+rapier-cairo depends on `fixed` 0.5.0 and `glam_core` 0.5.0 (since `0.1.0-alpha.11`; `0.1.0-alpha.8` to `0.1.0-alpha.10` used
+`fixed` 0.4.0 and `glam_core` 0.4.1; `0.1.0-alpha.7` and earlier used `fixed` 0.3.0 and the `glam` 0.3.0 facade). A consumer
+that also uses these types must itself be on `fixed` 0.5 and `glam_core` 0.5, otherwise it compiles
+two generations of the same types. `Vec2` and `Fixed`
 stay available as `rapier2d::prelude::{Vec2, Fixed}`.
 
 `World::new(gravity, IntegrationParameters)`, `insert(body, collider)`, `step()` returning the step's
