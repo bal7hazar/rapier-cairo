@@ -11,7 +11,7 @@ license = "MIT"
 fixed = "0.5.0"
 glam_core = "0.5.0"
 # By path, so that the example (run by the `execute` CI job) tracks `main`; games pin the registry version,
-# e.g. `rapier2d = "0.1.0-alpha.8"`.
+# e.g. `rapier2d = "0.1.0-alpha.11"`.
 rapier2d = { path = "../../crates/rapier2d" }
 cairo_execute = "2.20.0"
 
